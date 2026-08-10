@@ -5,7 +5,7 @@
 
 This folder is the living design + conformance + second-implementation surface for turning **ux-channel** from a strong Python library into a **wire-native peer platform**.
 
-**Layout:** [ARCHITECTURE.md](ARCHITECTURE.md) · **Python map:** [python/LAYOUT.md](python/LAYOUT.md) · [python/ONTOLOGY.md](python/ONTOLOGY.md) — monorepo with `python/` + `rust/` + shared law.
+**Layout:** [ARCHITECTURE.md](ARCHITECTURE.md) · **Naming:** [NAMING.md](NAMING.md) · **Python map:** [python/LAYOUT.md](python/LAYOUT.md) · [python/ONTOLOGY.md](python/ONTOLOGY.md) — monorepo with `python/` + `rust/` + shared law.
 
 **New here?** (read in order)
 1. **[TERMINOLOGY.md](TERMINOLOGY.md)** — what every word means, does, and is **not**

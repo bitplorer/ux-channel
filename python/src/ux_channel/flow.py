@@ -1,17 +1,11 @@
 """Compatibility shim — implementation: ``ux_channel.host.flow``.
 
-Stable::
-
-    from ux_channel.flow import ...
-
-Preferred::
-
-    from ux_channel.host.flow import ...
+Stable: ``from ux_channel.flow import ...``
+Preferred package path: ``ux_channel.host.flow``
 """
 from __future__ import annotations
 
 from ux_channel.host.flow import *  # noqa: F403
-
 import ux_channel.host.flow as _impl
 
-__all__ = [n for n in dir(_impl) if not n.startswith("_")]
+__all__ = list(getattr(_impl, "__all__", [n for n in dir(_impl) if not n.startswith("_")]))

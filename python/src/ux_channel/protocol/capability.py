@@ -80,6 +80,7 @@ class CapabilityService:
             self._previous.append(URLSafeTimedSerializer(secret_key=prev, salt=salt))
 
     def sign(
+        # Prefer mint() in new speech — identical implementation.
         self,
         action: str,
         args: Optional[Mapping[str, Any]] = None,
@@ -104,6 +105,31 @@ class CapabilityService:
         }
         payload = {k: v for k, v in payload.items() if v is not None}
         return self._ser.dumps(payload)
+
+
+    def mint(
+        self,
+        action: str,
+        args: Optional[Mapping[str, Any]] = None,
+        *,
+        extra: Optional[Mapping[str, Any]] = None,
+        sub: Optional[str] = None,
+        scopes: Optional[Sequence[str]] = None,
+        jti: Optional[str] = None,
+        once: bool = False,
+    ) -> str:
+        """Create a capability token — **same function as** ``sign``.
+
+        Naming intent
+        -------------
+        * **mint** — product / Rust speech ("issue a cap")
+        * **sign** — historical Python/itsdangerous speech
+
+        Prefer **mint** in new code and docs so Python and Rust say the same verb.
+        """
+        return self.sign(
+            action, args, extra=extra, sub=sub, scopes=scopes, jti=jti, once=once
+        )
 
     def verify(
         self,

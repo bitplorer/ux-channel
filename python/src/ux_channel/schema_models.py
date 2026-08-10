@@ -1,17 +1,11 @@
 """Compatibility shim — implementation: ``ux_channel.ops_dx.schema_models``.
 
-Stable::
-
-    from ux_channel.schema_models import ...
-
-Preferred::
-
-    from ux_channel.ops_dx.schema_models import ...
+Stable: ``from ux_channel.schema_models import ...``
+Preferred package path: ``ux_channel.ops_dx.schema_models``
 """
 from __future__ import annotations
 
 from ux_channel.ops_dx.schema_models import *  # noqa: F403
-
 import ux_channel.ops_dx.schema_models as _impl
 
-__all__ = [n for n in dir(_impl) if not n.startswith("_")]
+__all__ = list(getattr(_impl, "__all__", [n for n in dir(_impl) if not n.startswith("_")]))

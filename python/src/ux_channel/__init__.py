@@ -70,7 +70,7 @@ from ux_channel.idempotency import MemoryIdempotencyStore
 
 # ── Façade + regions ──────────────────────────────────────────────────────
 from ux_channel.dx import Channel, UiBuilder, sel
-from ux_channel.regions import RegionBook, RegionContext, RegionDef
+from ux_channel.regions import RegionBook, RegionContext, RegionDef, RegionRegistry
 from ux_channel.region_component import Region
 from ux_channel.flow import Flow, FailFlow, attach_flow
 from ux_channel.ssr_state import ssr_state, attach_ssr_state, SsrState, SessionVar, Namespace
@@ -157,6 +157,7 @@ __all__ = [
     "UiBuilder",
     "sel",
     "RegionBook",
+    "RegionRegistry",
     "RegionContext",
     "RegionDef",
     "Region",

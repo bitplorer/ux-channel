@@ -4,6 +4,18 @@ Words: [TERMINOLOGY.md](TERMINOLOGY.md) · Flows: [HOW_IT_WORKS.md](HOW_IT_WORKS
 
 ---
 
+### Why do some things have two names (`mint`/`sign`, `RegionBook`/`RegionRegistry`)?
+
+**One intent, one function — two spellings only when history or Rust parity requires it.**
+
+| Intent | Prefer | Same as |
+|--------|--------|--------|
+| Create cap | `mint` | `sign` |
+| Slot registry type | `RegionRegistry` | `RegionBook` |
+| One slot | `Region` only | — |
+
+Full table: [`NAMING.md`](NAMING.md).
+
 ### Did Region get renamed to RegionBook?
 
 **No.** They were never the same thing.

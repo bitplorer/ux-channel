@@ -12,6 +12,17 @@
 
 ## Laws
 
+Monorepo intent table (mint/sign, Region/registry): **[NAMING.md](../../../NAMING.md)** at repo root.
+
+### Capability & region speech
+
+| Intent | Preferred | Alias (same) |
+|--------|-----------|--------------|
+| Create cap | `mint` | `sign` |
+| One DOM slot | `Region` | `@ch.region` |
+| All slots registry | `RegionRegistry` / `ch.regions` | `RegionBook` |
+
+
 1. One name · one meaning · one call path
 2. No alias map; no dual kwargs next to product names
 3. Apps return `ch.done` / `ch.fail.*` only

@@ -179,12 +179,13 @@ Terms are grouped: **big picture → messages → security → wire → HTTP →
 
 **You almost always mean this word when you say “a region.”**
 
-### RegionBook (Python host) — **the registry**
+### RegionBook / RegionRegistry (Python host) — **the registry**
 
 | | |
 |--|--|
 | **Is** | The **book of all regions** on a Channel: `uid → render` (`ch.regions`). |
-| **Type** | Class `RegionBook` — different type from `Region`. |
+| **Type** | Class `RegionBook` **≡** `RegionRegistry` (alias) — different type from `Region`. |
+| **Preferred speech** | “region registry”; type name `RegionRegistry` or historical `RegionBook`. |
 | **Does** | After an action, re-runs selected renders and builds **morph** ops. |
 | **Not** | Not a single slot; not a rename of `Region`. |
 | **Import** | Usually via `ch.regions` — you rarely construct it yourself. |
@@ -229,6 +230,21 @@ RegionBook = the whole book (registry on the channel)
 | **Not** | Not HTTP itself; peer gate calls it before handlers. |
 
 ### Mint
+
+| | |
+|--|--|
+| **Is** | **Create** a capability token (preferred product speech). |
+| **Python** | `CapabilityService.mint` — **identical** to `sign`. |
+| **Rust** | `CapService::mint`. |
+| **Not** | Not verify. Prefer **mint** in new docs/code. |
+
+### Sign (Python cap create)
+
+| | |
+|--|--|
+| **Is** | Historical Python name for **mint** (same method body). |
+| **Prefer** | `mint` for parity with Rust and product speech. |
+
 
 | | |
 |--|--|

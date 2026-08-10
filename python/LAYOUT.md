@@ -22,6 +22,8 @@ Legacy: top-level `ux_channel.regions` etc. are **thin shims** → same objects.
 ```
 
 
+Intent ↔ name constitution: [`../NAMING.md`](../NAMING.md).
+
 ## Region naming (quick)
 
 | Type | Package path | Role |
