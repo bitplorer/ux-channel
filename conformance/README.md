@@ -38,7 +38,32 @@ conformance/
 | Result   | ok+morph, ok+toast, unauthorized, validation+fields, navigate, signal+noop, multi-ops |
 | Cap      | notes + oracle token (`02-oracle-token.json`) |
 | Trace    | single-hop, multi-hop, missing-trace-still-valid |
+| Handshake | surface-hello (optional Phase 1.5+) |
 | CXB      | 14 frozen blobs under `expected/cxb/` |
+
+### Vector catalog (files)
+
+| Path | Proves |
+|------|--------|
+| `vectors/intent/01-minimal.json` | Smallest valid Intent |
+| `vectors/intent/02-with-request-id.json` | `request_id` present |
+| `vectors/intent/03-with-cap-placeholder.json` | Cap field shape |
+| `vectors/intent/04-unknown-fields-ignored.json` | Forward-compatible ignore |
+| `vectors/result/01-ok-morph.json` | Success + morph op |
+| `vectors/result/02-ok-toast.json` | Success + toast op |
+| `vectors/result/03-error-unauthorized.json` | Stable `unauthorized` |
+| `vectors/result/04-error-validation.json` | Stable `validation` + fields |
+| `vectors/result/05-ok-navigate-safe.json` | navigate op |
+| `vectors/result/06-ok-signal-and-noop.json` | signal_set + noop |
+| `vectors/result/07-ok-multi-ops.json` | Multiple ops ordered |
+| `vectors/cap/02-oracle-token.json` | Concrete token + hash algorithm |
+| `vectors/trace/01-single-hop.json` | Optional trace |
+| `vectors/trace/02-multi-hop.json` | Multi-hop trace |
+| `vectors/trace/03-missing-trace-still-valid.json` | No trace still valid |
+| `vectors/handshake/01-surface-hello.json` | Surface advertisement sketch |
+| `expected/cxb/*` (14) | CXB decode oracle freeze |
+
+Machine index: [`manifest.json`](manifest.json). Full HTTP recipes: [`../REFERENCE.md`](../REFERENCE.md).
 
 ## Phase 1 exit criteria
 
@@ -63,6 +88,8 @@ cd peers/ux_channel_rs && cargo run --bin uxc_check -- ../../conformance
 
 - [`../TERMINOLOGY.md`](../TERMINOLOGY.md) — glossary
 - [`../HOW_IT_WORKS.md`](../HOW_IT_WORKS.md) — human walkthrough
+- [`../REFERENCE.md`](../REFERENCE.md) — HTTP + vector recipes
+- [`../FAQ.md`](../FAQ.md) — short Q&A
 - [`../SPEC/intent-result-ops.md`](../SPEC/intent-result-ops.md)
 - [`../SPEC/capability.md`](../SPEC/capability.md)
 - [`../SPEC/INVARIANTS.md`](../SPEC/INVARIANTS.md)

@@ -8,6 +8,8 @@ Related shorter docs:
 | Doc | When you need it |
 |-----|------------------|
 | [TERMINOLOGY.md](TERMINOLOGY.md) | **Glossary** — what each word is / does / is not |
+| [REFERENCE.md](REFERENCE.md) | HTTP API, curl recipes, module map |
+| [FAQ.md](FAQ.md) | Short Q&A |
 | [README.md](README.md) | Status table + how to run checks |
 | [OPERATIONAL.md](OPERATIONAL.md) | Secrets, env vars, production checklist |
 | [STRUCTURE.md](STRUCTURE.md) | What is “law” vs what is “demo” |
@@ -566,12 +568,14 @@ These are tracked in README status + INVARIANTS + health `once_jti_enforced: fal
 
 1. [TERMINOLOGY.md](TERMINOLOGY.md) — words first.  
 2. **This file** (big picture + diagrams).  
-3. [STRUCTURE.md](STRUCTURE.md) — what you may freely change.  
-4. [OPERATIONAL.md](OPERATIONAL.md) — before running `uxc_peer`.  
-5. [SPEC/intent-result-ops.md](SPEC/intent-result-ops.md) — field tables.  
-6. [SPEC/capability.md](SPEC/capability.md) — cap rules.  
-7. [SPEC/INVARIANTS.md](SPEC/INVARIANTS.md) — kill criteria.  
-8. Code starting at `peers/ux_channel_rs/src/peer.rs` (gate), then `actions.rs`, then `bin/uxc_peer.rs`.
+3. [REFERENCE.md](REFERENCE.md) — HTTP + recipes.  
+4. [FAQ.md](FAQ.md) — remaining confusions.  
+5. [STRUCTURE.md](STRUCTURE.md) — what you may freely change.  
+6. [OPERATIONAL.md](OPERATIONAL.md) — before running `uxc_peer`.  
+7. [SPEC/intent-result-ops.md](SPEC/intent-result-ops.md) — field tables.  
+8. [SPEC/capability.md](SPEC/capability.md) — cap rules.  
+9. [SPEC/INVARIANTS.md](SPEC/INVARIANTS.md) — kill criteria.  
+10. Code starting at `peers/ux_channel_rs/src/peer.rs` (gate), then `actions.rs`, then `bin/uxc_peer.rs`.
 
 ---
 

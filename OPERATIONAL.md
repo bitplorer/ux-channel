@@ -1,6 +1,6 @@
 # Operational notes — not tribal knowledge
 
-Glossary: [`TERMINOLOGY.md`](TERMINOLOGY.md).  
+Glossary: [`TERMINOLOGY.md`](TERMINOLOGY.md). Recipes: [`REFERENCE.md`](REFERENCE.md). FAQ: [`FAQ.md`](FAQ.md).  
 Story + diagrams: [`HOW_IT_WORKS.md`](HOW_IT_WORKS.md).  
 Permanent vs moving: [`STRUCTURE.md`](STRUCTURE.md).
 

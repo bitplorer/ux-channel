@@ -69,3 +69,8 @@ for each expected/cxb blob:
 - [x] Cap oracle token + Rust verify
 - [x] CXB expected blobs + Python + Rust checks
 - [x] Rust peer `uxc_check` loads the full suite
+
+## Package entry
+
+From repo root: `./verify.sh` (and `./verify.sh --http`).
+See also [`../../REFERENCE.md`](../../REFERENCE.md), [`../../TERMINOLOGY.md`](../../TERMINOLOGY.md).

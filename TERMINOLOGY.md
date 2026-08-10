@@ -2,7 +2,7 @@
 
 **Purpose:** Stop ambiguous language. Every term below has a plain definition, what it **does**, what it is **not**, and where it lives in this package.
 
-**Companion docs:** [HOW_IT_WORKS.md](HOW_IT_WORKS.md) (flows) · [STRUCTURE.md](STRUCTURE.md) (law vs demo) · [OPERATIONAL.md](OPERATIONAL.md) (secrets) · [SPEC/](SPEC/) (normative fields)
+**Companion docs:** [HOW_IT_WORKS.md](HOW_IT_WORKS.md) (flows) · [REFERENCE.md](REFERENCE.md) (HTTP/API) · [FAQ.md](FAQ.md) · [STRUCTURE.md](STRUCTURE.md) · [OPERATIONAL.md](OPERATIONAL.md) · [SPEC/](SPEC/)
 
 ---
 
@@ -517,6 +517,8 @@ Client --Intent(action,args,cap)--> Peer gate --verify cap--> Action --> Result(
 | Need | Doc |
 |------|-----|
 | Flows and order of steps | [HOW_IT_WORKS.md](HOW_IT_WORKS.md) |
+| HTTP / curl / modules | [REFERENCE.md](REFERENCE.md) |
+| Short Q&A | [FAQ.md](FAQ.md) |
 | Field tables (normative) | [SPEC/intent-result-ops.md](SPEC/intent-result-ops.md), [SPEC/capability.md](SPEC/capability.md) |
 | Must-hold laws | [SPEC/INVARIANTS.md](SPEC/INVARIANTS.md) |
 | Secrets / health honesty | [OPERATIONAL.md](OPERATIONAL.md) |

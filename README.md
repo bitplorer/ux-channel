@@ -5,9 +5,11 @@
 
 This folder is the living design + conformance + second-implementation surface for turning **ux-channel** from a strong Python library into a **wire-native peer platform**.
 
-**New here?**
+**New here?** (read in order)
 1. **[TERMINOLOGY.md](TERMINOLOGY.md)** — what every word means, does, and is **not**
-2. **[HOW_IT_WORKS.md](HOW_IT_WORKS.md)** — flows, algorithms, order of steps, failure catalog
+2. **[HOW_IT_WORKS.md](HOW_IT_WORKS.md)** — flows, algorithms, order of steps
+3. **[REFERENCE.md](REFERENCE.md)** — HTTP API, curl recipes, module map
+4. **[FAQ.md](FAQ.md)** — short answers
 Do not assume prior knowledge of IR / caps / CXB.
 
 ---
@@ -33,10 +35,13 @@ Read top → bottom if you are new. Layers do not mix “law” with “demo.”
 | Path | Role |
 |------|------|
 | **[TERMINOLOGY.md](TERMINOLOGY.md)** | **Glossary** — every term: is / does / is-not / where |
-| **[HOW_IT_WORKS.md](HOW_IT_WORKS.md)** | Full walkthrough: diagrams, algorithms, order of steps, failures, CXB status |
+| **[HOW_IT_WORKS.md](HOW_IT_WORKS.md)** | Full walkthrough: diagrams, algorithms, order of steps |
+| **[REFERENCE.md](REFERENCE.md)** | HTTP API, curl, modules, how to add an action |
+| **[FAQ.md](FAQ.md)** | Common confusions in short form |
 | [STRUCTURE.md](STRUCTURE.md) | Permanent (law) vs moving (demos) |
 | [OPERATIONAL.md](OPERATIONAL.md) | Secrets, env vars, HTTP honesty — **before** `uxc_peer` |
 | [AGENTS.md](AGENTS.md) | Short agent checklist |
+| [CHANGELOG.md](CHANGELOG.md) | What landed in this tree |
 
 ### B. Law (change only via major IR or bugfix)
 

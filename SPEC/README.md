@@ -14,6 +14,8 @@
 | [../OPERATIONAL.md](../OPERATIONAL.md) | Secrets, env, HTTP honesty | Operators |
 | [../TERMINOLOGY.md](../TERMINOLOGY.md) | Glossary (is / does / is-not) | Guide |
 | [../HOW_IT_WORKS.md](../HOW_IT_WORKS.md) | Human walkthrough (diagrams) | Guide |
+| [../REFERENCE.md](../REFERENCE.md) | HTTP API + recipes | Guide |
+| [../FAQ.md](../FAQ.md) | Short Q&A | Guide |
 | [../ux-channel-design-causal-surface.md](../ux-channel-design-causal-surface.md) | Optional envelopes | Phase 1.5 (additive) |
 | Package `docs/core/CXB.md` | Binary wire format (CXB1 / CXBZ) | Normative inside 0.1.0 package |
 | Package `docs/core/WIRE.md` | Multi-format wire surface | Supporting |
