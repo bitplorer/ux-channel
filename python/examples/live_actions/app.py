@@ -27,7 +27,7 @@ from ux_channel.render.kit import (
     demo_scripts,
     script_tags,
 )
-from ux_channel.host.catalog import action_catalog
+from ux_channel.host.action_catalog import action_catalog
 
 app = FastAPI(title="uxchannel live actions demo")
 SECRET = "live-actions-demo-secret-key-32b!!"

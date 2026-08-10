@@ -1,3 +1,13 @@
+## 2026-08-10 — deep cleanup: action_catalog, tool_audit, mint_cap naming
+
+- host/catalog.py → host/action_catalog.py (≠ catalog/ navigator)
+- agent_runtime/audit.py → tool_audit.py (≠ devtools.audit)
+- Remove CapService._hash_args; use hash_args only
+- ChannelTest(sign=) → mint_cap=; AgentPeer/AgentRunner sign_caps → mint_caps
+- Docs disambiguation tables; python README → docs/index
+
+---
+
 ## 2026-08-10 — deeper cleanup: agent peer into agent_runtime kernel
 
 - Move devtools/agent_peer.py → agent_runtime/peer.py (caller-plane cohesion)

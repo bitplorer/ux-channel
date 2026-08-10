@@ -23,7 +23,7 @@ import time
 from dataclasses import dataclass
 from typing import Any, Mapping, Optional
 
-from ux_channel.agent_runtime.audit import (
+from ux_channel.agent_runtime.tool_audit import (
     AuditEvent,
     AuditSink,
     LoggingAuditSink,
@@ -69,13 +69,13 @@ class AgentRunner:
         # If set, confirmation string must match for confirm_actions
         confirmation_secret: Optional[str] = None,
         # Cap signing for agent path (optional; can disable require_cap for agent-only reg)
-        sign_caps: bool = True,
+        mint_caps: bool = True,
     ):
         self.registry = registry
         self.session = session
         self.audit = audit or LoggingAuditSink()
         self.confirmation_secret = confirmation_secret
-        self.sign_caps = sign_caps
+        self.mint_caps = mint_caps
 
     def list_tools(self, *, only_marked: bool = False) -> list[dict[str, Any]]:
         from ux_channel.agent_runtime.tools import tools_from_registry
@@ -304,7 +304,7 @@ class AgentRunner:
     def _to_intent(self, call: ToolCall, *, dry_run: bool) -> Intent:
         args = dict(call.arguments)
         cap = None
-        if self.sign_caps and self.registry.require_cap:
+        if self.mint_caps and self.registry.require_cap:
             # agent path: sign with empty extra; principal bound via auth_resolver
             sub = self.session.principal.id if self.session.principal else None
             cap = self.registry.mint(call.name, args, sub=sub, once=False)

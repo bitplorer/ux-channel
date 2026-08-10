@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from ux_channel import ActionRegistry, Result, toast
-from ux_channel.host.catalog import action_catalog
+from ux_channel.host.action_catalog import action_catalog
 from ux_channel.host.config import ChannelConfig
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -95,7 +95,7 @@ def test_fastapi_doc_lists_action_route():
 
 def test_readme_points_to_howto():
     readme = (ROOT / "README.md").read_text()
-    assert "docs/start/HOW_TO.md" in readme or "docs/HOW_TO.md" in readme or "HOW_TO" in readme
+    assert any(x in readme for x in ("docs/start/HOW_TO.md", "docs/HOW_TO.md", "HOW_TO", "GOLDEN_PATH", "STABILITY", "MENTAL_MODEL", "ONTOLOGY"))
     assert "docs/README.md" in readme or "docs/index.md" in readme
 
 

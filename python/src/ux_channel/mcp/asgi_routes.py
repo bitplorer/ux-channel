@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from typing import Any, Optional, Sequence
 
-from ux_channel.agent_runtime.audit import LoggingAuditSink, MemoryAuditSink, MultiAuditSink
+from ux_channel.agent_runtime.tool_audit import LoggingAuditSink, MemoryAuditSink, MultiAuditSink
 from ux_channel.agent_runtime.policy import AgentPolicy
 from ux_channel.agent_runtime.runner import AgentRunner
 from ux_channel.agent_runtime.session import AgentSession

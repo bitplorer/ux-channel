@@ -17,7 +17,7 @@ Patterns that show up in real commerce / admin products:
 
 4. **paginate()** — stable list paging for region loaders.
 
-5. **PolicyRegistry** — ch.sign / ch.control auto-apply once= from @ch.on policy
+5. **PolicyRegistry** — ch.mint / ch.control auto-apply once= from @ch.on policy
    so buttons cannot forget one-shot signing.
 
 INTENDED USAGE

@@ -397,7 +397,7 @@ def mount_channel(
         """List registered actions (disabled in production unless health_list_actions)."""
         if not health_list and getattr(config, "environment", "") == "production":
             return JSONResponse({"ok": False, "error": "catalog disabled"}, status_code=404)
-        from ux_channel.host.catalog import action_catalog
+        from ux_channel.host.action_catalog import action_catalog
         return {"ok": True, "actions": action_catalog(registry)}
 
     @router.get("/docs/howto")

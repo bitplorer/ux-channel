@@ -61,7 +61,7 @@ def test_args_hash_matches_rust_and_oracle_algorithm():
     expected = hashlib.sha256(raw.encode("utf-8")).hexdigest()[:32]
     assert expected == "96e4f83e3793b646323a67f314b51044"
     svc = CapService(ORACLE_SECRET)
-    assert svc._hash_args(args) == expected
+    assert CapService.hash_args(args) == expected
 
 
 def test_cap_oracle_token_verifies():

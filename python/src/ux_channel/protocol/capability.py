@@ -155,6 +155,3 @@ class CapService:
         raw = json.dumps(payload, sort_keys=True, separators=(",", ":"), default=str)
         return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:32]
 
-    # Back-compat for any internal callers still using the old name
-    def _hash_args(self, args: Mapping[str, Any]) -> str:
-        return self.hash_args(args)

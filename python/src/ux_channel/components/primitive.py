@@ -90,7 +90,7 @@ def region_button(
     class_name: str = "",
     **attrs: Any,
 ) -> str:
-    """Signed control button using any ActionRegistry-like ``.sign``."""
+    """Signed control button using any ActionRegistry-like ``.mint``."""
     sealed = dict(trust or {})
     cap = None
     if mint_cap and hasattr(registry, "mint"):

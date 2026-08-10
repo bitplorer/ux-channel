@@ -37,10 +37,11 @@
     "catalog"
   ],
   "modules": {
+    "action_catalog": "host",
     "actions_file": "host",
     "agents_api": "devtools",
     "attenuate": "security",
-    "audit": "agent_runtime",
+    "audit": "devtools",
     "backoff": "transport",
     "batch": "transport",
     "bridge_api": "bridge",
@@ -52,7 +53,6 @@
     "bridge_style": "bridge",
     "bulkhead": "security",
     "capability": "protocol",
-    "catalog": "host",
     "channel": "host",
     "cli": "devtools",
     "codegen": "devtools",
@@ -130,6 +130,7 @@
     "stream": "transport",
     "testing": "host",
     "ticket_revoke": "devtools",
+    "tool_audit": "agent_runtime",
     "tools": "agent_runtime",
     "trace": "devtools",
     "tree_cap": "security",

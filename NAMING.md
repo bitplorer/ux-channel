@@ -190,3 +190,14 @@ Wire keys are **not** renamed to match prose. Prose maps *to* wire keys in TERMI
 | `guest_runtime` | Module under `bridge` | Island seal — not top-level |
 | `mcp` | Package | Transport; uses agent_runtime |
 | `workplace` | Package | Rooms/tickets — not agent kernel |
+
+
+## Catalog / audit names
+
+| Name | Means |
+|------|--------|
+| `catalog/` package | Package navigator |
+| `host.action_catalog` | `action_catalog(registry)` |
+| `agent_runtime.tool_audit` | Tool-call audit for agents |
+| `devtools.audit` | `attach_audit` Intent log |
+| `ChannelTest(mint_cap=True)` | Auto-mint caps in tests (not `sign=`) |

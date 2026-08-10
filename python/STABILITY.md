@@ -134,3 +134,13 @@ Never name a package `agents` — it shadows the function on `ux_channel`.
 | `workplace` | Room policy / tickets (not a tool runner) |
 
 `agents()` is a **function** façade. Implementation package is `agent_runtime` (never `agents/`).
+
+
+## Catalog disambiguation
+
+| Path | Role |
+|------|------|
+| `ux_channel.catalog` | Package navigator (layout map) |
+| `ux_channel.host.action_catalog` | Action registry metadata for docs/codegen |
+| `agent_runtime.tool_audit` | Agent tool-call audit sinks |
+| `devtools.audit` | Channel Intent audit / forensics façade |

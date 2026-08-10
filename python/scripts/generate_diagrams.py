@@ -344,7 +344,7 @@ def diagram_workflow():
 
     steps = [
         (0.25, "1. Register\n@reg.action"),
-        (2.4, "2. Render HTML\nreg.sign + attrs"),
+        (2.4, "2. Render HTML\nreg.mint + attrs"),
         (4.55, "3. Client POST\n/ux-channel/action"),
         (6.7, "4. Handler\nResult.ops"),
         (8.85, "5. Apply\nmorph/bridge/toast"),

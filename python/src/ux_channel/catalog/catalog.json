@@ -34,7 +34,7 @@
   },
   "packages": {
     "agent_runtime": {
-      "audit": "ux_channel.agent_runtime.audit",
+      "audit": "ux_channel.agent_runtime.tool_audit",
       "peer": "ux_channel.agent_runtime.peer",
       "policy": "ux_channel.agent_runtime.policy",
       "runner": "ux_channel.agent_runtime.runner",
@@ -83,7 +83,7 @@
     },
     "host": {
       "actions_file": "ux_channel.host.actions_file",
-      "catalog": "ux_channel.host.catalog",
+      "catalog": "ux_channel.host.action_catalog",
       "channel": "ux_channel.host.channel",
       "config": "ux_channel.host.config",
       "context": "ux_channel.host.context",

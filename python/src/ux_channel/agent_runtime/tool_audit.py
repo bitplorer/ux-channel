@@ -11,7 +11,7 @@ import time
 from dataclasses import asdict, dataclass, field
 from typing import Any, Callable, List, Optional, Protocol
 
-logger = logging.getLogger("ux_channel.agent_runtime.audit")
+logger = logging.getLogger("ux_channel.agent_runtime.tool_audit")
 
 
 @dataclass

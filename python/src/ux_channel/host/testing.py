@@ -130,14 +130,14 @@ class ChannelTest:
         .call("X", principal=Principal.of("bob", roles=["admin"]))
     """
 
-    def __init__(self, channel_or_registry: Any, *, sign: bool = True, sub: str | None = None):
+    def __init__(self, channel_or_registry: Any, *, mint_cap: bool = True, sub: str | None = None):
         if hasattr(channel_or_registry, "registry"):
             self.channel = channel_or_registry
             self.registry = channel_or_registry.registry
         else:
             self.channel = None
             self.registry = channel_or_registry
-        self.sign = sign
+        self.mint_cap = mint_cap
         self.sub = sub
 
     def call(
@@ -161,7 +161,7 @@ class ChannelTest:
         if principal is not None:
             cap_sub = principal.id or cap_sub
 
-        if cap is None and self.sign and getattr(self.registry, "require_cap", True):
+        if cap is None and self.mint_cap and getattr(self.registry, "require_cap", True):
             cap = self.registry.mint(
                 action,
                 call_args,

@@ -30,7 +30,7 @@ class AgentPeer:
 
     id: str
     scopes: tuple[str, ...] = ()
-    sign_caps: bool = True
+    mint_caps: bool = True
 
 
 def peer_intent(
@@ -66,7 +66,7 @@ def dispatch_peer(
     reg = channel.registry
     args_d = dict(args or {})
     cap = None
-    should_mint = peer is None or getattr(peer, "sign_caps", True)
+    should_mint = peer is None or getattr(peer, "mint_caps", True)
     if should_mint and getattr(reg, "require_cap", False):
         mint_fn = getattr(reg, "mint", None)
         if callable(mint_fn):
