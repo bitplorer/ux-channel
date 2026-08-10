@@ -15,7 +15,7 @@ Power packages (import by intent)
 ---------------------------------
 ``protocol`` · ``host`` · ``render`` · ``security`` · ``transport`` ·
 ``foundations`` · ``realtime`` · ``bridge`` · ``bridges`` · ``asgi`` ·
-``devtools`` · ``wire`` · ``components`` · ``agents`` · ``mcp`` · ``workplace``
+``devtools`` · ``wire`` · ``components`` · ``agent_runtime`` · ``mcp`` · ``workplace``
 
 Layout: ``python/STABILITY.md`` · Naming: root ``NAMING.md``.
 """
@@ -85,7 +85,7 @@ from ux_channel.host.state_planes import (
 )
 from ux_channel.host.testing import ChannelTest
 
-# ── Devtools / agents ─────────────────────────────────────────────────────
+# ── Devtools / AX ─────────────────────────────────────────────────────
 from ux_channel.devtools import AuditBundle, attach_audit, inspect_channel, inspect_enabled
 from ux_channel.devtools.agents_api import Agents, EffectReport, attach_agents
 from ux_channel.devtools.agents_api import agents as _agents_facade

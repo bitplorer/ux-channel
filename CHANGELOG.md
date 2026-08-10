@@ -1,3 +1,11 @@
+## 2026-08-10 — deeper cleanup: agent peer into agent_runtime kernel
+
+- Move devtools/agent_peer.py → agent_runtime/peer.py (caller-plane cohesion)
+- PACKAGE_MAP: product package agents→agent_runtime; modules include peer
+- Gate: agent_runtime kernel surface; no callable package; agents() façade separate
+
+---
+
 ## 2026-08-10 — caller planes analysis; pure agent_runtime kernel
 
 - Document caller planes (human / agent_runtime / mcp / guest / workplace / peer)

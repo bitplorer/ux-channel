@@ -128,7 +128,7 @@ Never name a package `agents` — it shadows the function on `ux_channel`.
 | Name | Role |
 |------|------|
 | (default) Channel | Human Intent path |
-| `agent_runtime` | Non-human tool kernel (`AgentRunner`) |
+| `agent_runtime` | Non-human tool kernel (`AgentRunner`, `peer`, policy, session) |
 | `bridge.guest_runtime` | Sealed island guest |
 | `mcp` | MCP adapter **on top of** agent_runtime |
 | `workplace` | Room policy / tickets (not a tool runner) |

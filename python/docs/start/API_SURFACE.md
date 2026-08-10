@@ -81,7 +81,7 @@ from ux_channel import Channel, ChannelConfig, Region, agents, state, attach_aud
 | Nested caps | `from ux_channel.security.attenuate import attenuate` |
 | Morph IR | `from ux_channel.render.morph_ir import elem, region` |
 | Sealed guests | `from ux_channel.bridge.bridge_protocol import SealedBridgeProtocol` |
-| Peer (tests) | `from ux_channel.devtools.agent_peer import dispatch_peer` |
+| Peer (tests) | `from ux_channel.agent_runtime.peer import dispatch_peer` |
 
 ### Quantity (canonical)
 

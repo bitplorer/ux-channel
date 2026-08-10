@@ -149,3 +149,20 @@ def test_product_package_imports():
     import ux_channel.scaffold  # noqa: F401
     from ux_channel.redis_extra import RedisStateStore  # may exist
     assert RedisStateStore
+
+
+def test_agent_runtime_kernel_surface():
+    from ux_channel.agent_runtime import (
+        AgentPeer,
+        AgentPolicy,
+        AgentRunner,
+        AgentSession,
+        dispatch_peer,
+    )
+    from ux_channel import agents
+    import types
+    import ux_channel.agent_runtime as ar
+
+    assert all((AgentRunner, AgentPolicy, AgentSession, AgentPeer, dispatch_peer))
+    assert callable(agents) and isinstance(ar, types.ModuleType)
+    assert not callable(ar)

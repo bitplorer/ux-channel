@@ -26,7 +26,7 @@
     "asgi",
     "bridges",
     "components",
-    "agents",
+    "agent_runtime",
     "mcp",
     "workplace",
     "io_adapters",
@@ -38,10 +38,9 @@
   ],
   "modules": {
     "actions_file": "host",
-    "agent_peer": "devtools",
     "agents_api": "devtools",
     "attenuate": "security",
-    "audit": "devtools",
+    "audit": "agent_runtime",
     "backoff": "transport",
     "batch": "transport",
     "bridge_api": "bridge",
@@ -97,9 +96,10 @@
     "otel": "devtools",
     "outbox": "transport",
     "patterns": "host",
+    "peer": "agent_runtime",
     "placement": "render",
     "plugins": "bridge",
-    "policy": "security",
+    "policy": "agent_runtime",
     "profiling": "devtools",
     "projections": "render",
     "provenance": "foundations",
@@ -115,10 +115,12 @@
     "registry": "host",
     "renderers": "render",
     "response": "render",
+    "runner": "agent_runtime",
     "schema_models": "devtools",
     "security": "security",
     "security_events": "security",
     "serde": "protocol",
+    "session": "agent_runtime",
     "sfu": "realtime",
     "slot_compile": "render",
     "ssr_state": "host",
@@ -128,6 +130,7 @@
     "stream": "transport",
     "testing": "host",
     "ticket_revoke": "devtools",
+    "tools": "agent_runtime",
     "trace": "devtools",
     "tree_cap": "security",
     "types": "protocol",
@@ -183,7 +186,8 @@
     "foundations": "Quantity, provenance, io_channel.",
     "realtime": "WebRTC / SFU / media (optional).",
     "bridge": "Bridge contracts, scaffold, guest runtime. Presets: bridges/.",
-    "devtools": "Audit, CLI, observability, dashboards, agents fa\u00e7ade."
+    "devtools": "Audit, CLI, observability, dashboards, agents fa\u00e7ade.",
+    "agent_runtime": "Non-human tool kernel: AgentRunner, policy, session, peer, audit. Fa\u00e7ade agents(ch) lives in devtools.agents_api."
   },
   "forbidden_names": [
     "day1",
@@ -195,6 +199,7 @@
     "host.dx",
     "dx_dashboard",
     "jsonutil",
-    "mental_model"
+    "mental_model",
+    "agents"
   ]
 }

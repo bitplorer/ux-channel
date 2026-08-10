@@ -1,21 +1,17 @@
-"""
-Agent peer Intent path — internal to AX (``agents_api``).
+"""Agent peer Intent path — part of the agent caller plane.
 
-=================================================================
-PUBLIC / PRIVATE
-=================================================================
-* **Private to product apps.** Application::
+Application code prefers::
 
-      from ux_channel import agents
-      agents(ch).dispatch(action, args, peer=agents(ch).peer("bot-1"))
+    from ux_channel import agents
+    agents(ch).dispatch(action, args, peer=agents(ch).peer("bot-1"))
 
-* **Power / tests:** ``from ux_channel.devtools.agent_peer import dispatch_peer``
+Power / tests::
+
+    from ux_channel.agent_runtime import AgentPeer, dispatch_peer
 
 Same Intent grammar, same caps, same registry as a human button.
-Does **not** implement tools_for / situation / effects (that is AX).
-
-Lives at package root (not under ``agents/``) so AX façade can import it
-without a circular import through the MCP ``agents`` package.
+Does **not** implement tools_for / situation / effects (that is AX
+``devtools.agents_api``).
 """
 
 from __future__ import annotations

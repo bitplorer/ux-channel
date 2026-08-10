@@ -33,6 +33,14 @@
     "Intent": "Intent"
   },
   "packages": {
+    "agent_runtime": {
+      "audit": "ux_channel.agent_runtime.audit",
+      "peer": "ux_channel.agent_runtime.peer",
+      "policy": "ux_channel.agent_runtime.policy",
+      "runner": "ux_channel.agent_runtime.runner",
+      "session": "ux_channel.agent_runtime.session",
+      "tools": "ux_channel.agent_runtime.tools"
+    },
     "bridge": {
       "bridge_api": "ux_channel.bridge.bridge_api",
       "bridge_contract": "ux_channel.bridge.bridge_contract",
@@ -47,7 +55,6 @@
     "devtools": {
       "agent_peer": "ux_channel.devtools.agent_peer",
       "agents_api": "ux_channel.devtools.agents_api",
-      "audit": "ux_channel.devtools.audit",
       "cli": "ux_channel.devtools.cli",
       "codegen": "ux_channel.devtools.codegen",
       "dashboard": "ux_channel.devtools.dashboard",
@@ -93,9 +100,9 @@
       "regions": "ux_channel.host.regions",
       "registry": "ux_channel.host.registry",
       "ssr_state": "ux_channel.host.ssr_state",
-      "state": "ux_channel.host.stores",
       "state_api": "ux_channel.host.state_api",
       "state_planes": "ux_channel.host.state_planes",
+      "stores": "ux_channel.host.stores",
       "testing": "ux_channel.host.testing"
     },
     "protocol": {
@@ -134,7 +141,6 @@
       "bulkhead": "ux_channel.security.bulkhead",
       "host_csrf": "ux_channel.security.host_csrf",
       "limits": "ux_channel.security.limits",
-      "policy": "ux_channel.security.policy",
       "push_security": "ux_channel.security.push_security",
       "ratelimit": "ux_channel.security.ratelimit",
       "security": "ux_channel.security.security",

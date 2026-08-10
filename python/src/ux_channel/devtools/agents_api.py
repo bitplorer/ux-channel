@@ -6,7 +6,7 @@ PUBLIC / PRIVATE
 =================================================================
 * **Application public:** ``from ux_channel import agents`` → ``agents(ch)``
 * **Only** agent product API (tools_for · situation · dispatch · effects).
-* Peer impl: ``ux_channel.agent_peer`` (prefer ``ag.dispatch``).
+* Peer impl: ``ux_channel.agent_runtime.peer`` (prefer ``ag.dispatch``).
 * Foundations (quantity, caps, Morph IR) are **not** AX.
 
 ::
@@ -23,7 +23,7 @@ import logging
 from dataclasses import dataclass
 from typing import Any, Mapping, Optional, Sequence
 
-from ux_channel.devtools.agent_peer import AgentPeer, dispatch_peer
+from ux_channel.agent_runtime.peer import AgentPeer, dispatch_peer
 from ux_channel.protocol.types import Result
 
 __all__ = ["Agents", "agents", "attach_agents", "EffectReport"]
@@ -434,7 +434,7 @@ class Agents:
             ],
             "law": "agent tool == button Intent (same registry)",
             "not": "DOM / project_agent tree dumps (use situation)",
-            "peer_impl": "ux_channel.devtools.agent_peer",
+            "peer_impl": "ux_channel.agent_runtime.peer",
         }
 
 

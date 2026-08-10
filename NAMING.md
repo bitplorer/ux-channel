@@ -186,7 +186,7 @@ Wire keys are **not** renamed to match prose. Prose maps *to* wire keys in TERMI
 | Name | Kind | Notes |
 |------|------|-------|
 | `agents()` | Function | Application AX façade |
-| `agent_runtime` | Package | AgentRunner + policy + session |
+| `agent_runtime` | Package | AgentRunner + policy + session + peer |
 | `guest_runtime` | Module under `bridge` | Island seal — not top-level |
 | `mcp` | Package | Transport; uses agent_runtime |
 | `workplace` | Package | Rooms/tickets — not agent kernel |

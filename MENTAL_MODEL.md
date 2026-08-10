@@ -80,7 +80,7 @@ They are not multiple Channels — they are different trust / budget doors.
 | Plane | Package / entry | Principal | Trust model |
 |-------|-----------------|-----------|-------------|
 | **Human UI** | `Channel` + Intent + caps | End user | Short-lived caps, CSRF, control attrs |
-| **Agent tools** | `agent_runtime.AgentRunner` | Agent / automation | Policy allow/deny, budgets, audit |
+| **Agent tools** | `agent_runtime (AgentRunner, peer)` | Agent / automation | Policy allow/deny, budgets, audit |
 | **AX façade** | `agents(ch)` (`devtools.agents_api`) | Product API over runner/peer | Application speech only |
 | **MCP transport** | `mcp` (uses `AgentRunner`) | MCP client | Same agent policy + session |
 | **Island guest** | `bridge.guest_runtime` | Browser island | Sealed budgets; no durable quantities |

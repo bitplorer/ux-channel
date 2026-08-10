@@ -56,7 +56,7 @@ r = ag.dispatch("inc", {})
 print(ag.effects(r).to_dict())
 ```
 
-Peer dispatch implementation: `ux_channel.agent_peer` (**internal** — prefer `agents(ch).dispatch`).
+Peer dispatch implementation: `ux_channel.agent_runtime.peer` (**internal** — prefer `agents(ch).dispatch`).
 
 ## Channel
 

@@ -20,7 +20,7 @@
 | Intent log / forensics | `attach_audit` · `intent_log` · `forensics` |
 | Sealed bridge | `from ux_channel.bridge.bridge_protocol import SealedBridgeProtocol` |
 | Guest runtime | `from ux_channel.bridge.guest_runtime import GuestRuntime` |
-| Agent peer | `agents(ch).dispatch` · power: `ux_channel.agent_peer` |
+| Agent peer | `agents(ch).dispatch` · power: `ux_channel.agent_runtime.peer` |
 
 ```python
 from ux_channel.foundations.quantity import Quantity
