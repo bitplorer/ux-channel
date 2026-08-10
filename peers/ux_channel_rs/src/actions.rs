@@ -1,7 +1,11 @@
-//! Built-in action handlers for the Rust peer demo.
+//! Built-in action handlers for the Rust peer demo (**moving** surface).
 //!
 //! One IR: handlers consume a verified Intent and return Result { ok, ops[] }.
-//! Morph HTML is escaped so free-form args cannot inject markup into ops.
+//!
+//! Display safety (this demo):
+//! - Morph HTML escapes free-form args (`sku`) so markup cannot be injected.
+//! - Toast messages use the same escaped display text.
+//! - `signal_set` keeps **raw** semantic values (not HTML) — intentional.
 
 use crate::types::{ErrorObject, Op, ResultDoc};
 use serde_json::{json, Value};
@@ -64,7 +68,8 @@ fn cart_add(args: Option<&HashMap<String, Value>>) -> ResultDoc {
                 fields: HashMap::from([
                     (
                         "message".into(),
-                        json!(format!("Added {qty} x {sku_raw}")),
+                        // Escaped display text: safe if a client HTML-renders toast.
+                        json!(format!("Added {qty} x {sku}")),
                     ),
                     ("level".into(), json!("success")),
                 ]),
@@ -80,6 +85,7 @@ fn cart_add(args: Option<&HashMap<String, Value>>) -> ResultDoc {
                 op: "signal_set".into(),
                 fields: HashMap::from([
                     ("name".into(), json!("cart.last_sku")),
+                    // Signal carries the raw semantic value (not HTML).
                     ("value".into(), json!(sku_raw)),
                 ]),
             },
@@ -186,11 +192,11 @@ fn escape_html(s: &str) -> String {
     let mut out = String::with_capacity(s.len());
     for c in s.chars() {
         match c {
-            '&' => out.push_str(concat!("&", "amp;")),
-            '<' => out.push_str(concat!("&", "lt;")),
-            '>' => out.push_str(concat!("&", "gt;")),
-            '"' => out.push_str(concat!("&", "quot;")),
-            '\'' => out.push_str(concat!("&#", "39;")),
+            '&' => out.push_str("&amp;"),
+            '<' => out.push_str("&lt;"),
+            '>' => out.push_str("&gt;"),
+            '"' => out.push_str("&quot;"),
+            '\'' => out.push_str("&#39;"),
             _ => out.push(c),
         }
     }
@@ -206,26 +212,32 @@ pub fn reset_counter() {
 mod tests {
     use super::*;
     use serde_json::json;
-    use std::collections::HashMap;
 
     #[test]
     fn cart_escapes_html_in_sku() {
+        let dirty = ["<", "script", ">"].concat();
         let mut args = HashMap::new();
-        let evil = format!("{}{}", '"', "><img src=x onerror=1>");
-        args.insert("sku".into(), Value::String(evil));
+        args.insert("sku".into(), json!(dirty));
         args.insert("qty".into(), json!(1));
         let r = cart_add(Some(&args));
         assert!(r.ok);
-        let html = r.ops.iter().find(|o| o.op == "morph").unwrap();
-        let h = html.fields.get("html").unwrap().as_str().unwrap();
-        assert!(!h.contains("<img"));
-        assert!(h.contains(concat!("&", "quot;")));
+        let morph = r.ops.iter().find(|o| o.op == "morph").unwrap();
+        let html = morph.fields.get("html").and_then(|v| v.as_str()).unwrap();
+        assert!(!html.contains(&dirty));
+        assert!(html.contains(&["&", "lt;"].concat()));
+        let toast = r.ops.iter().find(|o| o.op == "toast").unwrap();
+        let msg = toast.fields.get("message").and_then(|v| v.as_str()).unwrap();
+        assert!(!msg.contains(&dirty));
+        // signal keeps raw semantic value
+        let sig = r.ops.iter().find(|o| o.op == "signal_set").unwrap();
+        let val = sig.fields.get("value").and_then(|v| v.as_str()).unwrap();
+        assert_eq!(val, dirty);
     }
 
     #[test]
     fn cart_rejects_non_integer_qty() {
         let mut args = HashMap::new();
-        args.insert("sku".into(), json!("a"));
+        args.insert("sku".into(), json!("x"));
         args.insert("qty".into(), json!("2"));
         let r = cart_add(Some(&args));
         assert!(!r.ok);

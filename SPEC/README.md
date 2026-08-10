@@ -8,10 +8,13 @@
 |----------|------|-----------|
 | [intent-result-ops.md](intent-result-ops.md) | Core IR: Intent, Result, ops vocabulary | **Normative target for 0.1** |
 | [capability.md](capability.md) | Portable authority tokens | **Normative target for 0.1** |
-| [BREAKING_CHANGE_POLICY.md](BREAKING_CHANGE_POLICY.md) | What may change inside a major vs what requires a new major | **Normative process** |
-| [../ux-channel-design-causal-surface.md](../ux-channel-design-causal-surface.md) | Optional envelopes: causal spine, surface negotiation, deltas | Phase 1.5 (additive) |
-| Package `docs/core/CXB.md` | Binary wire format (CXB1 / CXBZ) | Already treated as normative inside 0.1.0 |
-| Package `docs/core/WIRE.md` | Multi-format wire surface (JSON floor + opt-in) | Supporting |
+| [INVARIANTS.md](INVARIANTS.md) | Testable laws + kill criteria | **Normative** |
+| [BREAKING_CHANGE_POLICY.md](BREAKING_CHANGE_POLICY.md) | Major vs additive process | **Normative process** |
+| [../STRUCTURE.md](../STRUCTURE.md) | Permanent vs moving (maintenance) | Process |
+| [../OPERATIONAL.md](../OPERATIONAL.md) | Secrets, env, HTTP honesty | Operators |
+| [../ux-channel-design-causal-surface.md](../ux-channel-design-causal-surface.md) | Optional envelopes | Phase 1.5 (additive) |
+| Package `docs/core/CXB.md` | Binary wire format (CXB1 / CXBZ) | Normative inside 0.1.0 package |
+| Package `docs/core/WIRE.md` | Multi-format wire surface | Supporting |
 
 ## Rules for all specs
 
@@ -30,18 +33,25 @@ They are the executable source of truth for interop.
 - CXB expected: `conformance/expected/cxb/` + `validate_cxb_expected.py`
 - Second implementation: `../peers/ux_channel_rs` (`uxc_check` loads `manifest.json`, verifies JSON + cap oracle + CXB)
 
-## Cap wire (implementation note, Cap 0.1)
+## Cap wire (Cap 0.1)
 
-Until CXB work lands, the portable cap encoding used by Python `CapabilityService` and the Rust peer is:
+Portable encoding used by Python `CapabilityService` and the Rust peer:
 
 - `itsdangerous.URLSafeTimedSerializer` with salt `ux-channel-cap`
 - django-concat key derivation + HMAC-SHA1
 - `args_hash = sha256(json.dumps(args, sort_keys=True, separators=(',', ':'), default=str))[:32 hex]`
 - Oracle: `conformance/vectors/cap/02-oracle-token.json`
+- **once/jti:** required by this SPEC; Rust Cap 0.1 does **not** yet consume jti (documented gap — see INVARIANTS)
+
+## CXB
+
+CXB encode/decode is implemented in the Rust peer and frozen under `conformance/expected/cxb/` (14 blobs).  
+HTTP Accept negotiation for `application/ux-channel+cxb` is **not** on the wire yet (library codec only).
 
 ## Current next work
 
 - HTTP Accept negotiation for `application/ux-channel+cxb` on the Rust peer
+- once/jti consumption + golden vectors
 - Byte-identical freeform encode alignment (msgpack key order)
 - Integrate ASGI forward into the full 0.1.0 package host
 - P3: surface hello runtime + UDS

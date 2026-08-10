@@ -5,12 +5,13 @@ Sends one hot action (Cart.add) to the Rust HTTP peer and returns Result.ops
 unchanged to the caller. No dependency on the full ux-channel package.
 
 Usage:
-  # terminal A
-  cargo run --bin uxc_peer
+  # terminal A (demo secret — see OPERATIONAL.md)
+  UXC_ALLOW_ORACLE_SECRET=1 cargo run --bin uxc_peer
 
   # terminal B
   python3 peers/python_forward/forward_to_rust.py
   python3 peers/python_forward/forward_to_rust.py --base http://127.0.0.1:8787
+  python3 peers/python_forward/forward_to_rust.py --mint-via-peer
 """
 from __future__ import annotations
 
@@ -79,71 +80,59 @@ def forward_intent(base: str, intent: dict[str, Any]) -> dict[str, Any]:
         data=data,
         headers={
             "Content-Type": "application/ux-channel+json",
-            "Accept": "application/ux-channel+json, application/json",
+            "Accept": "application/ux-channel+json",
         },
         method="POST",
     )
-    with urllib.request.urlopen(req, timeout=5) as resp:
-        return json.loads(resp.read().decode())
+    try:
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            return json.loads(resp.read().decode())
+    except urllib.error.HTTPError as e:
+        # Peer returns Result-shaped bodies even on 4xx.
+        body = e.read().decode()
+        try:
+            return json.loads(body)
+        except json.JSONDecodeError:
+            raise RuntimeError(f"HTTP {e.code}: {body}") from e
 
 
-def main(argv: list[str] | None = None) -> int:
-    p = argparse.ArgumentParser(description="Forward one Cart.add Intent to the Rust peer")
-    p.add_argument("--base", default=DEFAULT_BASE, help="Rust peer base URL")
-    p.add_argument(
+def main() -> int:
+    ap = argparse.ArgumentParser(description="Forward Cart.add to Rust ux-channel peer")
+    ap.add_argument("--base", default=DEFAULT_BASE, help="Rust peer base URL")
+    ap.add_argument(
         "--mint-via-peer",
         action="store_true",
-        help="Mint cap via Rust /ux-channel/mint instead of Python itsdangerous",
+        help="mint via POST /ux-channel/mint instead of local itsdangerous",
     )
-    p.add_argument("--sku", default="abc-123")
-    p.add_argument("--qty", type=int, default=2)
-    args = p.parse_args(argv)
+    ap.add_argument("--sku", default="abc-123")
+    ap.add_argument("--qty", type=int, default=2)
+    args = ap.parse_args()
 
     sealed = {"sku": args.sku, "qty": args.qty}
-    action = "Cart.add"
-
-    try:
-        if args.mint_via_peer or URLSafeTimedSerializer is None:
-            cap = mint_via_peer(args.base, action, sealed)
-            mint_src = "rust-peer"
-        else:
-            cap = mint_cap_python(action, sealed)
-            mint_src = "python-itsdangerous"
-    except Exception as e:
-        print(f"mint failed: {e}", file=sys.stderr)
-        return 2
+    if args.mint_via_peer:
+        cap = mint_via_peer(args.base, "Cart.add", sealed)
+    else:
+        try:
+            cap = mint_cap_python("Cart.add", sealed)
+        except RuntimeError as e:
+            print(e, file=sys.stderr)
+            print("hint: pip install itsdangerous  or pass --mint-via-peer", file=sys.stderr)
+            return 2
 
     intent = {
         "v": "1",
-        "action": action,
+        "action": "Cart.add",
         "args": sealed,
         "cap": cap,
         "request_id": "py-forward-1",
     }
-
-    try:
-        result = forward_intent(args.base, intent)
-    except urllib.error.URLError as e:
-        print(f"forward failed (is uxc_peer running?): {e}", file=sys.stderr)
-        return 3
-
-    # Contract: ops returned unchanged to the client
-    ops = result.get("ops", [])
-    print(
-        json.dumps(
-            {
-                "forward": "python→rust",
-                "mint": mint_src,
-                "intent_action": action,
-                "result_ok": result.get("ok"),
-                "ops": ops,
-                "error": result.get("error"),
-                "meta": result.get("meta"),
-            },
-            indent=2,
-        )
-    )
-    return 0 if result.get("ok") else 1
+    result = forward_intent(args.base, intent)
+    print(json.dumps(result, indent=2))
+    if not result.get("ok"):
+        return 1
+    ops = result.get("ops") or []
+    print(f"# ops returned unchanged: {len(ops)}", file=sys.stderr)
+    return 0
 
 
 if __name__ == "__main__":

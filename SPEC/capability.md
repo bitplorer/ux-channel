@@ -37,7 +37,7 @@ The client sends the token back on the Intent. The receiving peer verifies it *b
 
 **Canonical args hash**
 - Serialize the sealed args with a stable JSON subset (sorted keys, no insignificant whitespace, default=str for non-JSON types).
-- SHA-256, take first 32 hex characters (implementation detail of current Python; vectors will freeze the exact bytes).
+- SHA-256, take first 32 hex characters (frozen by oracle vector).
 
 Unknown fields in the payload are preserved by verifiers that understand the same major version but must not be required for basic verification.
 
@@ -56,6 +56,13 @@ A peer must reject the Intent if any of the following fail:
 7. `once=true` and the `jti` has already been consumed.
 
 On failure the Result is `ok=false` with an appropriate `error.code` (typically `unauthorized`).
+
+### Implementation status (Rust Cap 0.1 in this package)
+
+| Rule | Status |
+|------|--------|
+| 1–6 | **Implemented** (`CapService` + oracle vector) |
+| 7 once/jti | **Not enforced yet** — payload fields parse; no jti store. Documented gap in `SPEC/INVARIANTS.md`. Do not claim production once-semantics until green tests exist. |
 
 ---
 
@@ -100,6 +107,8 @@ cap = capability_service.mint(
 
 Handlers never trust client-supplied full state; they re-read truth from the store and only use the sealed args that the cap covers.
 
+**Secrets:** Never use the conformance oracle secret in production. See `OPERATIONAL.md`.
+
 ---
 
 ## 7. Language-agnostic test vectors (required for Phase 1 exit)
@@ -112,7 +121,7 @@ Vectors must cover:
 - Args hash mismatch
 - Principal mismatch
 - Missing required scopes
-- Once-token replay
+- Once-token replay *(SPEC required; Rust enforcement pending)*
 - Previous-key window (key rotation)
 
 A second implementation (even a small Rust test binary) must accept the same vectors.
@@ -139,3 +148,4 @@ A second implementation (even a small Rust test binary) must accept the same vec
 - Canonical byte sequences for the payload + signature scheme are frozen in golden files.
 - Python and at least one other implementation agree on the vectors.
 - Attenuation and `max_hops` are documented even if the first runtime only supports basic mint/verify.
+- once/jti green on at least one peer before claiming production single-use controls.

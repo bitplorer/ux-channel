@@ -2,17 +2,82 @@
 //!
 //! Also serves:
 //!   GET  /ux-channel/health
-//!   POST /ux-channel/mint     (dev: mint cap with oracle secret)
+//!   POST /ux-channel/mint     (dev: mint cap — same secret as verifier)
 //!   GET  /                    interactive demo page
 //!
 //! Bind: UXC_HOST (default 0.0.0.0) + UXC_PORT (default 8787).
+//!
+//! **Secrets (see repo OPERATIONAL.md):**
+//! - Production: set `UXC_CAP_SECRET` to a private high-entropy value (≥ 16 chars).
+//! - Oracle secret is PUBLIC (conformance only). Refused unless `UXC_ALLOW_ORACLE_SECRET=1`.
 
 use std::env;
 use std::sync::Arc;
 
 use serde_json::{json, Value};
 use tiny_http::{Header, Method, Response, Server, StatusCode};
+use ux_channel_rs::cap::{CapService, ORACLE_SECRET};
 use ux_channel_rs::Peer;
+
+/// Resolve cap secret. Fail closed: no silent public default in production.
+fn resolve_secret() -> Result<(CapService, bool), String> {
+    let allow_oracle = env::var("UXC_ALLOW_ORACLE_SECRET")
+        .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
+        .unwrap_or(false);
+
+    match env::var("UXC_CAP_SECRET") {
+        Ok(s) if s.is_empty() => {
+            if allow_oracle {
+                eprintln!(
+                    "WARNING: UXC_CAP_SECRET empty; using PUBLIC oracle secret \
+                     (UXC_ALLOW_ORACLE_SECRET=1). Demo only — not for production."
+                );
+                Ok((CapService::oracle(), true))
+            } else {
+                Err(
+                    "UXC_CAP_SECRET is empty. Refusing silent default. \
+                     Export a private secret, or set UXC_ALLOW_ORACLE_SECRET=1 for local demo. \
+                     See OPERATIONAL.md."
+                        .into(),
+                )
+            }
+        }
+        Ok(s) if s == ORACLE_SECRET => {
+            if allow_oracle {
+                eprintln!(
+                    "WARNING: UXC_CAP_SECRET equals the PUBLIC conformance oracle secret. \
+                     Anyone with the repo can mint caps. Demo only."
+                );
+                CapService::new(s.as_bytes(), 3600)
+                    .map(|c| (c, true))
+                    .map_err(|e| e.to_string())
+            } else {
+                Err(
+                    "UXC_CAP_SECRET is the public oracle secret. Refusing to start. \
+                     Set a private secret, or set UXC_ALLOW_ORACLE_SECRET=1 for local demo only."
+                        .into(),
+                )
+            }
+        }
+        Ok(s) if s.len() < 16 => Err("UXC_CAP_SECRET must be at least 16 characters".into()),
+        Ok(s) => CapService::new(s.as_bytes(), 3600)
+            .map(|c| (c, false))
+            .map_err(|e| e.to_string()),
+        Err(_) if allow_oracle => {
+            eprintln!(
+                "WARNING: UXC_CAP_SECRET unset; using PUBLIC oracle secret \
+                 (UXC_ALLOW_ORACLE_SECRET=1). Demo only — not for production."
+            );
+            Ok((CapService::oracle(), true))
+        }
+        Err(_) => Err(
+            "UXC_CAP_SECRET is not set. Refusing silent default. \
+             Export a private secret, or set UXC_ALLOW_ORACLE_SECRET=1 for local demo only. \
+             See OPERATIONAL.md."
+                .into(),
+        ),
+    }
+}
 
 fn main() {
     let host = env::var("UXC_HOST").unwrap_or_else(|_| "0.0.0.0".into());
@@ -22,7 +87,14 @@ fn main() {
         .unwrap_or(8787);
     let addr = format!("{host}:{port}");
 
-    let peer = Arc::new(Peer::with_oracle());
+    let (caps, demo_mode) = match resolve_secret() {
+        Ok(v) => v,
+        Err(msg) => {
+            eprintln!("uxc_peer: {msg}");
+            std::process::exit(2);
+        }
+    };
+    let peer = Arc::new(Peer::new(caps));
     let server = Server::http(&addr).unwrap_or_else(|e| {
         eprintln!("failed to bind {addr}: {e}");
         std::process::exit(1);
@@ -30,7 +102,12 @@ fn main() {
     eprintln!("uxc_peer listening on http://{addr}");
     eprintln!("  POST /ux-channel/action   Intent → Result");
     eprintln!("  GET  /ux-channel/health");
-    eprintln!("  POST /ux-channel/mint     (dev cap mint)");
+    eprintln!("  POST /ux-channel/mint     (cap mint; same secret as verifier)");
+    if demo_mode {
+        eprintln!("  mode: DEMO (public oracle-capable secret) — not for production");
+    } else {
+        eprintln!("  mode: secret from UXC_CAP_SECRET");
+    }
 
     for mut request in server.incoming_requests() {
         let method = request.method().clone();
@@ -53,6 +130,7 @@ fn main() {
                     "ok": true,
                     "peer": peer.name,
                     "ir": "1",
+                    "demo_mode": demo_mode,
                     "actions": ["Cart.add", "Counter.inc", "Counter.get"],
                     "formats": ["application/ux-channel+json"],
                     "codecs": ["json", "cxb"],
@@ -64,12 +142,22 @@ fn main() {
                         },
                         "mint": {
                             "path": "/ux-channel/mint",
-                            "note": "dev-only; uses oracle secret",
+                            "note": if demo_mode {
+                                "dev/demo; oracle or allow-listed secret"
+                            } else {
+                                "uses UXC_CAP_SECRET; protect this endpoint in production"
+                            },
                         },
                     },
                     "cap_required": ["Cart.add"],
                     "policy": {
                         "present_cap_must_verify": true,
+                        "once_jti_enforced": false,
+                    },
+                    "notes": if demo_mode {
+                        "DEMO: capability secret is public oracle or explicitly allowed. JSON only on HTTP."
+                    } else {
+                        "HTTP surface speaks JSON only; CXB is library-side optional"
                     },
                 });
                 json_response(StatusCode(200), &body)
@@ -90,6 +178,7 @@ fn main() {
             _ => {
                 let body = json!({
                     "ok": false,
+                    "ops": [],
                     "error": {"code": "not_found", "message": "no such route"}
                 });
                 json_response(StatusCode(404), &body)
@@ -105,11 +194,24 @@ fn handle_action(peer: &Peer, body: &[u8]) -> Response<std::io::Cursor<Vec<u8>>>
     // are mapped into ok=false). HTTP status is secondary to Result.ok.
     match peer.handle_json(body) {
         Ok(bytes) => {
-            let ok = serde_json::from_slice::<serde_json::Value>(&bytes)
-                .ok()
+            let parsed = serde_json::from_slice::<serde_json::Value>(&bytes).ok();
+            let ok = parsed
+                .as_ref()
                 .and_then(|v| v.get("ok").and_then(|x| x.as_bool()))
                 .unwrap_or(false);
-            let status = if ok { StatusCode(200) } else { StatusCode(400) };
+            let code = parsed
+                .as_ref()
+                .and_then(|v| v.get("error"))
+                .and_then(|e| e.get("code"))
+                .and_then(|c| c.as_str())
+                .unwrap_or("");
+            let status = if ok {
+                StatusCode(200)
+            } else if code == "unauthorized" {
+                StatusCode(401)
+            } else {
+                StatusCode(400)
+            };
             Response::from_data(bytes)
                 .with_status_code(status)
                 .with_header(header(
@@ -247,206 +349,122 @@ const DEMO_HTML: &str = r#"<!DOCTYPE html>
       color: var(--muted); margin: 0 0 .65rem; font-weight: 650;
     }
     .row { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+    label { font-size: .85rem; color: var(--muted); display: block; margin-bottom: .25rem; }
+    input {
+      width: 100%; background: #0e121b; border: 1px solid var(--border);
+      border-radius: 10px; color: var(--text); padding: .55rem .7rem; font: inherit;
+    }
     button {
-      appearance: none; border: 0; cursor: pointer;
-      border-radius: 10px; padding: .62rem 1rem;
-      font-weight: 650; font-size: .92rem;
-      background: var(--accent); color: #0b0d12;
-      transition: transform .12s ease, filter .12s ease, box-shadow .12s ease;
-      box-shadow: 0 6px 18px rgba(122,162,255,.25);
+      appearance: none; border: 0; border-radius: 10px; padding: .55rem .9rem;
+      font: inherit; font-weight: 650; cursor: pointer;
+      background: linear-gradient(180deg, #8eb0ff, var(--accent)); color: #0b1020;
     }
-    button:hover { filter: brightness(1.06); transform: translateY(-1px); }
-    button:active { transform: translateY(0); }
-    button.secondary {
-      background: transparent; color: var(--text);
-      border: 1px solid var(--border); box-shadow: none;
+    button.secondary { background: #222836; color: var(--text); border: 1px solid var(--border); }
+    #cart, #log {
+      min-height: 2.5rem; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: .82rem; white-space: pre-wrap; word-break: break-word;
+      background: #0a0d14; border: 1px solid var(--border); border-radius: 10px;
+      padding: .75rem; color: var(--muted);
     }
-    button:disabled { opacity: .55; cursor: wait; transform: none; }
-    #cart {
-      min-height: 2.4rem; margin-top: .85rem; padding: .7rem .8rem;
-      border-radius: 10px; background: rgba(110,231,168,.06);
-      border: 1px dashed rgba(110,231,168,.28); color: var(--ok);
-      font-size: .95rem;
-    }
-    #cart:empty::before { content: "No cart ops applied yet."; color: var(--muted); }
-    .stat {
-      display: flex; justify-content: space-between; gap: 1rem;
-      padding: .45rem 0; border-bottom: 1px solid rgba(42,49,66,.7);
-      font-size: .9rem;
-    }
-    .stat:last-child { border-bottom: 0; }
-    .stat span { color: var(--muted); }
-    .stat strong { font-variant-numeric: tabular-nums; color: var(--text); word-break: break-all; text-align: right; }
-    pre {
-      margin: 0; background: #080a10; border: 1px solid var(--border);
-      border-radius: 10px; padding: .8rem .9rem; overflow: auto;
-      font-size: .78rem; line-height: 1.45; max-height: 22rem;
-      color: #c8d0e0;
-    }
-    .toast-host {
-      position: fixed; right: 1rem; bottom: 1rem; display: flex;
-      flex-direction: column; gap: .5rem; z-index: 20;
-      max-width: min(22rem, calc(100vw - 2rem));
-    }
-    .toast {
-      padding: .7rem .9rem; border-radius: 10px; font-size: .88rem; font-weight: 600;
-      background: var(--panel-2); border: 1px solid var(--border);
-      box-shadow: 0 10px 30px rgba(0,0,0,.35);
-      animation: in .18s ease-out;
-    }
-    .toast.success { border-color: rgba(110,231,168,.45); color: var(--ok); }
-    .toast.info { border-color: rgba(122,162,255,.45); color: var(--accent); }
-    .toast.error { border-color: rgba(248,113,113,.45); color: var(--err); }
-    @keyframes in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
-    footer { margin-top: 1.25rem; color: var(--muted); font-size: .82rem; }
-    code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .86em; }
+    .ok { color: var(--ok); }
+    .err { color: var(--err); }
+    .hint { font-size: .8rem; color: var(--muted); margin-top: .5rem; }
   </style>
 </head>
 <body>
   <div class="wrap">
     <header>
-      <div class="eyebrow">IR v1 · wire-native peer</div>
-      <h1>ux-channel Rust peer</h1>
-      <p class="lede">
-        Any peer sends <code>Intent { action, args, cap }</code> and gets
-        <code>Result { ok, ops[] }</code>. Caps authorize; HTTP only delivers.
-      </p>
+      <div class="eyebrow">ux-channel · wire-native peer</div>
+      <h1>Intent → Result · demo</h1>
+      <p class="lede">Mint a cap, run Cart.add / Counter.inc. Caps authorize; this transport only delivers.</p>
     </header>
-
     <div class="grid">
       <div class="card">
-        <h2>Hot actions</h2>
-        <div class="row">
-          <button id="btn-cart" type="button">Cart.add (capped)</button>
-          <button class="secondary" id="btn-counter" type="button">Counter.inc</button>
-          <button class="secondary" id="btn-get" type="button">Counter.get</button>
-        </div>
-        <div id="cart" aria-live="polite"></div>
-      </div>
-
-      <div class="grid grid-2">
-        <div class="card">
-          <h2>Peer health</h2>
-          <div id="health">
-            <div class="stat"><span>status</span><strong>…</strong></div>
+        <h2>Cart.add (cap required)</h2>
+        <div class="grid grid-2" style="margin-bottom:.65rem">
+          <div>
+            <label for="sku">sku</label>
+            <input id="sku" value="abc-123"/>
+          </div>
+          <div>
+            <label for="qty">qty</label>
+            <input id="qty" type="number" value="2" min="1"/>
           </div>
         </div>
-        <div class="card">
-          <h2>Signals</h2>
-          <div class="stat"><span>counter</span><strong id="sig-counter">—</strong></div>
-          <div class="stat"><span>cart.last_sku</span><strong id="sig-sku">—</strong></div>
+        <div class="row">
+          <button type="button" id="btn-cart">Mint + Cart.add</button>
+          <button type="button" class="secondary" id="btn-cart-no-cap">Cart without cap</button>
+        </div>
+        <p class="hint">Missing cap → unauthorized. Present bogus cap also fails (present-cap-must-verify).</p>
+      </div>
+      <div class="card">
+        <h2>Counter (open)</h2>
+        <div class="row">
+          <button type="button" id="btn-inc">Counter.inc</button>
+          <button type="button" class="secondary" id="btn-get">Counter.get</button>
         </div>
       </div>
-
       <div class="card">
-        <h2>Last Result</h2>
-        <pre id="out">{}</pre>
+        <h2>#cart morph target</h2>
+        <div id="cart">(empty)</div>
+      </div>
+      <div class="card">
+        <h2>last Result</h2>
+        <div id="log">(none yet)</div>
       </div>
     </div>
-
-    <footer>
-      JSON floor always works. CXB is opt-in density.
-      Try Python forward: <code>peers/python_forward/forward_to_rust.py</code>
-    </footer>
   </div>
-  <div class="toast-host" id="toasts" aria-live="polite"></div>
-<script>
-const $ = (id) => document.getElementById(id);
+  <script>
+    const logEl = document.getElementById('log');
+    const cartEl = document.getElementById('cart');
 
-async function mint(action, args) {
-  const r = await fetch('/ux-channel/mint', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({action, args, sub: 'user:42', scopes: ['cart:write']}),
-  });
-  return r.json();
-}
-
-async function postIntent(intent) {
-  const r = await fetch('/ux-channel/action', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/ux-channel+json',
-      'Accept': 'application/ux-channel+json',
-    },
-    body: JSON.stringify(intent),
-  });
-  return r.json();
-}
-
-function toast(message, level) {
-  const el = document.createElement('div');
-  el.className = 'toast ' + (level || 'info');
-  el.textContent = message;
-  $('toasts').appendChild(el);
-  setTimeout(() => el.remove(), 2800);
-}
-
-function applyOps(result) {
-  if (!result.ops) return;
-  for (const op of result.ops) {
-    if (op.op === 'morph' && op.target === '#cart') {
-      $('cart').innerHTML = op.html || '';
+    async function postAction(intent) {
+      const res = await fetch('/ux-channel/action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/ux-channel+json', 'Accept': 'application/ux-channel+json' },
+        body: JSON.stringify(intent),
+      });
+      const text = await res.text();
+      let data;
+      try { data = JSON.parse(text); } catch { data = { ok: false, error: { message: text } }; }
+      logEl.className = data.ok ? 'ok' : 'err';
+      logEl.textContent = JSON.stringify({ http: res.status, ...data }, null, 2);
+      if (data.ops) {
+        for (const op of data.ops) {
+          if (op.op === 'morph' && op.target === '#cart' && op.html) {
+            cartEl.innerHTML = op.html;
+          }
+        }
+      }
+      return data;
     }
-    if (op.op === 'toast') {
-      toast(op.message || '', op.level || 'info');
+
+    async function mint(action, args) {
+      const res = await fetch('/ux-channel/mint', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, args }),
+      });
+      return res.json();
     }
-    if (op.op === 'signal_set') {
-      if (op.name === 'counter') $('sig-counter').textContent = String(op.value);
-      if (op.name === 'cart.last_sku') $('sig-sku').textContent = String(op.value);
-    }
-  }
-}
 
-function show(result) {
-  $('out').textContent = JSON.stringify(result, null, 2);
-  applyOps(result);
-  if (result.ok === false && result.error) {
-    toast(result.error.message || result.error.code, 'error');
-  }
-}
-
-async function withBusy(btn, fn) {
-  btn.disabled = true;
-  try { await fn(); }
-  catch (e) { toast(String(e), 'error'); $('out').textContent = String(e); }
-  finally { btn.disabled = false; }
-}
-
-$('btn-cart').onclick = () => withBusy($('btn-cart'), async () => {
-  const args = {sku: 'abc-123', qty: 2};
-  const m = await mint('Cart.add', args);
-  if (!m.ok) throw new Error(m.error || 'mint failed');
-  const result = await postIntent({
-    v: '1', action: 'Cart.add', args, cap: m.cap,
-    request_id: 'demo-' + Date.now(),
-  });
-  show(result);
-});
-
-$('btn-counter').onclick = () => withBusy($('btn-counter'), async () => {
-  show(await postIntent({v:'1', action:'Counter.inc', args:{by:1}}));
-});
-
-$('btn-get').onclick = () => withBusy($('btn-get'), async () => {
-  show(await postIntent({v:'1', action:'Counter.get', args:{}}));
-});
-
-(async () => {
-  try {
-    const r = await fetch('/ux-channel/health');
-    const h = await r.json();
-    $('health').innerHTML = [
-      ['peer', h.peer],
-      ['ir', h.ir],
-      ['actions', (h.actions || []).join(', ')],
-      ['formats', (h.formats || []).join(', ')],
-    ].map(([k,v]) => `<div class="stat"><span>${k}</span><strong>${v}</strong></div>`).join('');
-  } catch (e) {
-    $('health').innerHTML = `<div class="stat"><span>error</span><strong>${e}</strong></div>`;
-  }
-})();
-</script>
+    document.getElementById('btn-cart').onclick = async () => {
+      const sku = document.getElementById('sku').value;
+      const qty = Number(document.getElementById('qty').value);
+      const m = await mint('Cart.add', { sku, qty });
+      if (!m.ok) { logEl.className = 'err'; logEl.textContent = JSON.stringify(m, null, 2); return; }
+      await postAction({ v: '1', action: 'Cart.add', args: { sku, qty }, cap: m.cap, request_id: 'demo-' + Date.now() });
+    };
+    document.getElementById('btn-cart-no-cap').onclick = async () => {
+      const sku = document.getElementById('sku').value;
+      const qty = Number(document.getElementById('qty').value);
+      await postAction({ v: '1', action: 'Cart.add', args: { sku, qty } });
+    };
+    document.getElementById('btn-inc').onclick = () =>
+      postAction({ v: '1', action: 'Counter.inc', args: { by: 1 } });
+    document.getElementById('btn-get').onclick = () =>
+      postAction({ v: '1', action: 'Counter.get', args: {} });
+  </script>
 </body>
 </html>
 "#;

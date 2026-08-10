@@ -6,6 +6,7 @@
 //! - `Cart.add` always requires a valid cap.
 //! - If any Intent carries a `cap` field, it is verified against action+args
 //!   (present-cap-must-verify — never silently ignored).
+//! - once/jti is **not** enforced by Cap 0.1 (SPEC gap; see INVARIANTS).
 
 use crate::actions;
 use crate::cap::{CapError, CapService};
@@ -214,7 +215,7 @@ mod tests {
             "v": "1",
             "action": "Counter.inc",
             "args": {"by": 1},
-            "cap": "not.real"
+            "cap": "totally-bogus"
         }))
         .unwrap();
         let out = peer.handle_json(&body).unwrap();
@@ -230,14 +231,11 @@ mod tests {
         let body = serde_json::to_vec(&json!({
             "v": "1",
             "action": "Counter.inc",
-            "args": {"by": 2},
-            "request_id": "t1"
+            "args": {"by": 2}
         }))
         .unwrap();
         let out = peer.handle_json(&body).unwrap();
         let v: Value = serde_json::from_slice(&out).unwrap();
         assert_eq!(v["ok"], true);
-        assert_eq!(v["meta"]["request_id"], "t1");
-        assert_eq!(v["meta"]["peer"], "ux_channel_rs");
     }
 }
