@@ -1,3 +1,11 @@
+## 2026-08-10 — remove MANUAL_PUBLIC_API magic comment
+
+- Not a shell var or Python export — was only a layout-script guard string
+- All package __init__.py are hand-maintained; sync only regenerates catalog
+- Layout check fails if the stale marker reappears
+
+---
+
 ## 2026-08-10 — deeper+wider: PACKAGE_MAP v3 (package.stem keys)
 
 - Module map keys are package.stem — allows policy/errors/plugins in multiple packages

@@ -11,8 +11,6 @@ the ``host.state`` module (stores). Use ``state_api`` or package root
 """
 from __future__ import annotations
 
-# MANUAL_PUBLIC_API — sync_python_layout must not overwrite this file
-
 from ux_channel.host.channel import Channel
 from ux_channel.host.config import ChannelConfig
 from ux_channel.host.factory import create_channel

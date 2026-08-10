@@ -15,8 +15,6 @@ See root ``MENTAL_MODEL.md`` § Caller planes.
 """
 from __future__ import annotations
 
-# MANUAL_PUBLIC_API
-
 from ux_channel.agent_runtime.tool_audit import (
     AuditEvent,
     LoggingAuditSink,

@@ -6,8 +6,6 @@ Preferred::
 """
 from __future__ import annotations
 
-# MANUAL_PUBLIC_API — sync_python_layout must not overwrite this file
-
 from ux_channel.devtools.audit import AuditBundle, attach_audit
 from ux_channel.devtools.inspect_api import inspect_channel, inspect_enabled
 

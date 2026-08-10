@@ -1,4 +1,3 @@
-# MANUAL_PUBLIC_API
 """Cohesive package: **io_adapters**
 
 Implementation package.

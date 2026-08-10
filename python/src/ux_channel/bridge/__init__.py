@@ -8,8 +8,6 @@ Preferred::
 """
 from __future__ import annotations
 
-# MANUAL_PUBLIC_API — sync_python_layout must not overwrite this file
-
 from ux_channel.bridge.bridge_plane import BRIDGE_PUBLIC_API, attach_bridge
 
 PACKAGE = "bridge"

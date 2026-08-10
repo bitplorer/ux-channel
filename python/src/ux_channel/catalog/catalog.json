@@ -1,6 +1,7 @@
 {
   "policy": "no_shims",
   "map_version": 3,
+  "note": "Package __init__.py files are hand-maintained; this catalog is generated.",
   "public_entry": {
     "preferred": "ux_channel.api",
     "root": "ux_channel",

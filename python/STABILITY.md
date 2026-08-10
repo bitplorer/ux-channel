@@ -69,7 +69,10 @@ from ux_channel.devtools import attach_audit
 
 ## Package public APIs
 
-Hand-maintained package roots (`MANUAL_PUBLIC_API` — layout sync will not overwrite):
+Every package ``__init__.py`` is **hand-maintained** (human-owned exports).
+Layout sync only regenerates ``catalog/catalog.json`` — it never overwrites
+package inits. There is **no** env var or Python symbol named
+``hand-maintained package init`` (that was a temporary magic comment; removed).
 
 | Package | Primary exports |
 |---------|-----------------|
@@ -81,6 +84,7 @@ Hand-maintained package roots (`MANUAL_PUBLIC_API` — layout sync will not over
 | `asgi` | `mount_channel` |
 | `devtools` | `attach_audit`, `inspect_channel` |
 | `foundations` | `Quantity` |
+| `agent_runtime` | `AgentRunner`, `AgentPolicy`, `AgentPeer`, … |
 
 Deep modules: `ux_channel.<package>.<module>`.
 

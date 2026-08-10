@@ -6,8 +6,6 @@ Preferred::
 """
 from __future__ import annotations
 
-# MANUAL_PUBLIC_API — sync_python_layout must not overwrite this file
-
 from ux_channel.protocol.capability import CapError, CapService
 from ux_channel.protocol.errors import ActionError, ActionNotFound, ChannelError
 from ux_channel.protocol.ops import (

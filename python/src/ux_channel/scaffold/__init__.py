@@ -19,8 +19,6 @@ CLI::
 4. **Channel owns control; your HTML owns layout** — scaffold never
    invents a second UI framework.
 """
-
-# MANUAL_PUBLIC_API
 from __future__ import annotations
 
 from ux_channel.scaffold.create import (

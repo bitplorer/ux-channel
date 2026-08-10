@@ -8,7 +8,6 @@ Same objects as the package root; not a second implementation.
 
 Power features: import from ``host``, ``protocol``, ``render``, ``security``, …
 """
-# MANUAL_PUBLIC_API — layout sync must not overwrite
 from __future__ import annotations
 
 from ux_channel._version import __version__, __version_info__

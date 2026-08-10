@@ -22,8 +22,6 @@ Env: ``UX_CHANNEL_WIRE``, ``UX_CHANNEL_WIRE_ENGINE``, ``UX_CHANNEL_WIRE_WORKERS`
 
 from __future__ import annotations
 
-# MANUAL_PUBLIC_API — sync must not overwrite
-
 from ux_channel.wire.core import (
     MEDIA_TYPES,
     Codec,

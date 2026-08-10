@@ -18,8 +18,6 @@ Submodules (advanced)::
 Does not replace application ``agents(ch)`` / ``state(ch)``.
 Adapters stay host-owned (never drivers in core).
 """
-
-# MANUAL_PUBLIC_API
 from __future__ import annotations
 
 from ux_channel.workplace.room import (

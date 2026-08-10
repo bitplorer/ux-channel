@@ -7,8 +7,6 @@ Preferred::
 """
 from __future__ import annotations
 
-# MANUAL_PUBLIC_API — sync must not overwrite
-
 PACKAGE = "asgi"
 __all__ = ["PACKAGE"]
 

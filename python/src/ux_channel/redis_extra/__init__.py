@@ -1,6 +1,4 @@
 """Redis backends for multi-worker production."""
-
-# MANUAL_PUBLIC_API
 from __future__ import annotations
 
 from ux_channel.protocol import serde as _serde
