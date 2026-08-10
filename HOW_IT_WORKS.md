@@ -187,6 +187,7 @@ repo root
 ├── SPEC/                            ← LAW (IR, cap, invariants)
 ├── conformance/                     ← LAW (golden vectors + harnesses)
 ├── python/                          ← PRODUCT: full host library
+│   ├── ONTOLOGY.md                  ← regions/bridges/state map (read first)
 │   ├── ux_channel/                  ← wire, caps, ASGI, CXB oracle, …
 │   ├── ux_dom/
 │   └── docs/core/                   ← WIRE.md, CXB.md

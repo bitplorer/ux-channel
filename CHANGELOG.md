@@ -1,3 +1,12 @@
+## 2026-08-10 — Python ontology map (regions & friends)
+
+### Added
+- `python/ONTOLOGY.md` — logical/ontological map so users pick Region vs Bridge vs Action vs state correctly
+- `python/docs/regions/*` and `python/docs/start/*` (layers, golden path, API surface)
+- TERMINOLOGY + FAQ entries for Region / RegionBook
+
+---
+
 ## 2026-08-10 — close remaining monorepo gaps
 
 ### Fixed / added

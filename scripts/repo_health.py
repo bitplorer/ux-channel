@@ -51,6 +51,7 @@ REQUIRED = [
     "LICENSE",
     "requirements-dev.txt",
     "python/tests/test_interop_conformance.py",
+    "python/ONTOLOGY.md",
     "Makefile",
     "pytest.ini",
 ]

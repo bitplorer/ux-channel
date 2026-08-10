@@ -114,4 +114,4 @@ export UXC_CAP_SECRET='…'
 cargo run --manifest-path rust/Cargo.toml --bin uxc_peer
 ```
 
-See [STRUCTURE.md](STRUCTURE.md), [OPERATIONAL.md](OPERATIONAL.md), [python/README.md](python/README.md), [rust/README.md](rust/README.md).
+See [STRUCTURE.md](STRUCTURE.md), [OPERATIONAL.md](OPERATIONAL.md), [python/ONTOLOGY.md](python/ONTOLOGY.md) (host concepts), [python/README.md](python/README.md), [rust/README.md](rust/README.md).

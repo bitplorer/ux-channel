@@ -2,6 +2,10 @@
 
 **This is where the full Python library lives.**
 
+> **Confused about regions / bridges / state / actions?**  
+> Start here → **[ONTOLOGY.md](ONTOLOGY.md)** (logical map of what is what and which import to use).  
+> Then [docs/regions/REGIONS.md](docs/regions/REGIONS.md) for recipes.
+
 ```text
 python/
   ux_channel/     ← main package (wire, caps, ASGI, bridges, …)
