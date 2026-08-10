@@ -1,5 +1,7 @@
 # Python host ontology — what exists, why, and which door to use
 
+**Start here for the loop:** [../MENTAL_MODEL.md](../MENTAL_MODEL.md).
+
 **Purpose of this file:** stop confusion about *regions*, *actions*, *ops*, *bridges*, *state*, etc.  
 Read this **before** browsing the 180-module package.  
 If two names sound similar, the table here decides which one you mean.

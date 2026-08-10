@@ -1,111 +1,113 @@
-# Python host — single truth (professional packages)
+# Python host — single truth
+
+## Mental model (one line)
+
+**Intent in → trusted action → Result ops out.**  
+You own HTML; Channel owns control, trust, regions, and ops.
 
 ## Layout law
 
 ```text
 ux_channel/
-  __init__.py          # frozen public re-exports
-  api/                 # curated application surface
-  protocol/            # Intent, Result, CapService, ops (Rust-parity)
-  host/                # Channel, Region, RegionBook, state, registry
-  render/              # morph IR, HTML safety, placement, renderers
-  security/            # CSRF, limits, attenuate
-  transport/           # batch, push, ws helpers
-  foundations/         # quantity, provenance, io
-  realtime/            # WebRTC / media
-  bridge/              # bridge contracts / scaffold
-  bridges/             # npm island presets
-  devtools/            # audit, CLI, observability, dashboards
-  asgi/ wire/ agents/ mcp/ workplace/ …
-  catalog/             # package navigator (not an implementation plane)
-  PACKAGE_MAP.json
+  __init__.py       frozen public re-exports
+  api/              curated application surface (same objects as root)
+  protocol/         Intent, Result, CapService, ops  (Rust-parity)
+  host/             Channel, Region, RegionBook, state_api, stores
+  render/           morph IR, HTML safety, placement, renderers, kit
+  security/         CSRF, limits, attenuate
+  transport/        batch, push, stream helpers
+  foundations/      quantity, provenance, io
+  realtime/         WebRTC / media
+  bridge/           contracts + scaffold
+  bridges/          npm island presets
+  wire/             JSON / CXB codecs
+  asgi/             FastAPI / Starlette mount
+  devtools/         audit, CLI, observability
+  catalog/          package navigator
+  PACKAGE_MAP.json  module → package map (no shims)
 ```
 
-**No top-level module aliases. No api / dx / devtools / paint / zones jargon packages.**
-
-## Import flow
-
-```python
-from ux_channel import Channel, Region, CapService, state
-from ux_channel.api import Channel, Region, CapService   # same objects, narrow
-
-from ux_channel.protocol import CapService, Intent, Result, morph, toast
-from ux_channel.host import Channel, Region, RegionBook
-from ux_channel.host.channel import Channel             # implementation module
-from ux_channel.render import morph_ir, renderers
-from ux_channel.devtools import audit
-from ux_channel.bridge import bridge_plane
-```
-
-## Rename history (do not reintroduce)
-
-| Forbidden | Use instead |
-|-----------|-------------|
-| `api` | `api` |
-| `host.channel` / `dx.py` | `host.channel` |
-| `devtools` | `devtools` |
-| `dx_dashboard` / `dx_log` | `dashboard` / `log` |
-| `bridge` | `bridge` |
-| `paint` | `render` |
-| `paint.render` | `render.renderers` |
-| `paint.demo` | `render.kit` |
-| `zones` | `catalog` |
-| `recipes` | `patterns` |
-| `json_codec` | `json_codec` |
-| `planes` | `state_planes` |
-| `describe()` | `Channel.describe()` |
-| `CapService.mint` | `CapService.mint` |
-
-## Change process
-
-1. Code goes in the correct package (`PACKAGE_MAP.json`).
-2. `python3 scripts/sync_python_layout.py` then `--check`.
-3. Export public symbols only via root / `api` / package `__init__` (`MANUAL_PUBLIC_API`).
-4. `make verify` + `make test-python-host`.
-
-
-## Package public APIs
-
-Cohesive packages may expose a small set on the package root
-(`MANUAL_PUBLIC_API` marker — `sync_python_layout` will not overwrite):
-
-| Package | Example |
-|---------|---------|
-| `protocol` | `CapService`, `Intent`, `morph` |
-| `host` | `Channel`, `Region`, `RegionBook` |
-| `render` | `morph_ir`, `renderers` |
-| `security` | `intent_headers`, `attenuate` |
-| `foundations` | `Quantity` |
-
-Deep modules remain available as `ux_channel.<package>.<module>`.
-
-
-## Name collisions to respect
-
-| Path | Meaning |
-|------|---------|
-| `ux_channel.host.stores` | **Module** — memory/null stores (`MemoryStateStore`) |
-| `ux_channel.host.state_api.state` | **Function** — application `state(ch)` API |
-| `from ux_channel import state` | The function (root re-export) |
-
-The store module is `host.stores` (not `host.state`) so `state()` never collides.
-
+**Forbidden package names (must not reappear):**  
+`day1`, `ops_dx`, `bridge_meta`, `paint`, `zones`, `security_plane`, `host/dx.py`, `host/state.py` (use `host/stores.py`).
 
 ## Identity law
 
 ```text
-ux_channel.Channel  is  ux_channel.api.Channel  is  ux_channel.host.Channel
-ux_channel.CapService is ux_channel.protocol.CapService
-ux_channel.state     is  ux_channel.host.state_api.state
-ux_channel.morph    is  ux_channel.protocol.ops.morph  (via protocol package)
+ux_channel.Channel     ≡  api.Channel     ≡  host.Channel
+ux_channel.CapService  ≡  protocol.CapService
+ux_channel.state        ≡  host.state_api.state
+ux_channel.morph       ≡  protocol morph builder
 ```
 
-Gate tests freeze these identities. Never create a second CapService/Channel.
+Gate tests freeze these. Never invent a second CapService or Channel.
 
 ## Stores vs state API
 
 | Import | What |
 |--------|------|
 | `from ux_channel import state` | Application `state(channel)` API |
+| `from ux_channel.host.state_api import state` | Same function |
 | `from ux_channel.host.stores import MemoryStateStore` | Persistence backends |
-| `from ux_channel.host.state_api import state` | Same as root `state` |
+
+## Import flow
+
+```python
+# Application
+from ux_channel import Channel, Region, CapService, state, morph
+from ux_channel.api import Channel, Region, CapService, state
+
+# By package intent
+from ux_channel.protocol import CapService, Intent, Result, morph, toast
+from ux_channel.host import Channel, Region, RegionBook
+from ux_channel.host.stores import MemoryStateStore
+from ux_channel.render import esc, morph_ir, renderers
+from ux_channel.security import intent_headers, safe_href
+from ux_channel.wire import encode, decode, encode_cxb
+from ux_channel.asgi import mount_channel
+from ux_channel.devtools import attach_audit
+```
+
+## Package public APIs
+
+Hand-maintained package roots (`MANUAL_PUBLIC_API` — layout sync will not overwrite):
+
+| Package | Primary exports |
+|---------|-----------------|
+| `protocol` | `CapService`, `Intent`, `Result`, `morph`, `toast`, … |
+| `host` | `Channel`, `Region`, `RegionBook`, `create_channel` |
+| `render` | `morph_ir`, `esc`, `renderers`, … |
+| `security` | `intent_headers`, `attenuate`, `safe_href` |
+| `wire` | `encode`, `decode`, `encode_cxb`, `MEDIA_TYPES` |
+| `asgi` | `mount_channel` |
+| `devtools` | `attach_audit`, `inspect_channel` |
+| `foundations` | `Quantity` |
+
+Deep modules: `ux_channel.<package>.<module>`.
+
+## Rename history (do not reintroduce)
+
+| Forbidden (old) | Use instead |
+|-----------------|-------------|
+| `day1` | `api` |
+| `host/dx.py` | `host/channel.py` |
+| `ops_dx` | `devtools` |
+| `dx_dashboard` / `dx_log` / `dx_errors` | `dashboard` / `log` / `errors` |
+| `bridge_meta` | `bridge` |
+| `paint` | `render` |
+| `paint.render` | `render.renderers` |
+| `paint.demo` | `render.kit` |
+| `zones` | `catalog` |
+| `recipes` | `patterns` |
+| `jsonutil` | `json_codec` |
+| `planes` | `state_planes` |
+| `host/state.py` (stores) | `host/stores.py` |
+| `mental_model()` | `Channel.describe()` |
+| `CapService.sign` | `CapService.mint` |
+| `DAY1_*_API` | `CHANNEL_PUBLIC_API` / `WEBRTC_PUBLIC_API` / `MEDIA_PUBLIC_API` |
+
+## Change process
+
+1. Put code in the correct package (`PACKAGE_MAP.json`).
+2. `python3 scripts/sync_python_layout.py` then `--check`.
+3. Public symbols only via root / `api` / package `__init__`.
+4. `make verify` (health + layout + gate + rust + uxc_check).

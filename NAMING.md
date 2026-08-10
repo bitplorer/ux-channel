@@ -144,3 +144,38 @@ Wire keys are **not** renamed to match prose. Prose maps *to* wire keys in TERMI
 
 `Channel.describe()` replaces `describe()`. Caps use `mint` / `verify` only.
 
+
+## Package and module names
+
+| Name | Role |
+|------|------|
+| `api` | Curated application surface |
+| `protocol` | Wire IR + CapService (mint/verify) |
+| `host` | Channel, regions, actions |
+| `host.channel` | Channel implementation module |
+| `host.stores` | MemoryStateStore backends |
+| `host.state_api` | Application `state()` API |
+| `render` | Morph / HTML / renderers / kit |
+| `wire` | encode/decode + CXB |
+| `asgi` | mount_channel |
+| `security` | CSRF, attenuate, limits |
+| `devtools` | audit, CLI, dashboards |
+| `bridge` / `bridges` | contracts / npm presets |
+| `catalog` | Package navigator |
+
+## Cap API (Rust-parity)
+
+| Use | Do not use |
+|-----|------------|
+| `CapService.mint` | `.sign` |
+| `CapService.verify` | — |
+| `CapService.hash_args` | unsorted JSON |
+
+## Public API constant names
+
+| Constant | Module |
+|----------|--------|
+| `CHANNEL_PUBLIC_API` | `host.channel` |
+| `WEBRTC_PUBLIC_API` | `host.channel` |
+| `MEDIA_PUBLIC_API` | `realtime.media` |
+| `BRIDGE_PUBLIC_API` | `bridge.bridge_plane` |

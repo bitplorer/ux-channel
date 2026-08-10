@@ -1,3 +1,12 @@
+## 2026-08-10 — cleanup deeper+wider: mental model + stability truth
+
+- Rewrite python/STABILITY.md (correct rename table, identity, stores)
+- Add MENTAL_MODEL.md; wire DOCS + ONTOLOGY + repo_health
+- Rename remaining test_*dx* → test_*devtools*
+- NAMING + LAYOUT pointers; health ignores rename-doc false positives
+
+---
+
 ## 2026-08-10 — deeper+wider pass 2: verify layout, public API constants, tests
 
 - verify.sh runs sync_python_layout --check (fixed quoting)
