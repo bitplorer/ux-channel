@@ -3,7 +3,7 @@ Project generator for ux-channel.
 
 WHY THIS MODULE EXISTS
 ----------------------
-Day-1 DX should match React/Vue ``create-*`` tools: one command, runnable app,
+Application Developer tooling should match React/Vue ``create-*`` tools: one command, runnable app,
 opinionated defaults, readable generated sources.
 
 MAINTENANCE RULES (read before editing templates)

@@ -1,7 +1,7 @@
 """
 Scaffold npm widget bridges — any package via string ops (not FFI).
 
-DX::
+Developer tooling::
 
     uxchannel bridge new chartjs --methods update,resetZoom
     uxchannel bridge explain

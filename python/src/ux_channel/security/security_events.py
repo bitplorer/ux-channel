@@ -1,5 +1,5 @@
 """
-Structured security event stream — Wireshark-like DX for auth doors.
+Structured security event stream — Wireshark-like Developer tooling for auth doors.
 
 WHY
 ---

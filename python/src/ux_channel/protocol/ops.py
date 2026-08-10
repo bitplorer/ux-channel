@@ -5,7 +5,7 @@ Ops — client apply instructions inside a Result.
 PUBLIC / PRIVATE
 =================================================================
 * **Power public:** builders (``morph``, ``toast``, ``navigate``, …).
-* Day-1 apps usually return ``ch.done`` / ``ch.fail`` (which emit ops).
+* Application apps usually return ``ch.done`` / ``ch.fail`` (which emit ops).
 * Wire keys are immortal: ``op``, paths, ``data-channel-*`` targets.
 """
 

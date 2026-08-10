@@ -15,7 +15,7 @@ Submodules (advanced)::
     ux_channel.workplace.mesh    — WebRTC + workplace co-issuance
     ux_channel.workplace.room    — Workplace class implementation
 
-Does not replace day-1 ``agents(ch)`` / ``state(ch)``.
+Does not replace application ``agents(ch)`` / ``state(ch)``.
 Adapters stay host-owned (never drivers in core).
 """
 

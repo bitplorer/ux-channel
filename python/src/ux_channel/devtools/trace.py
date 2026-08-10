@@ -1,5 +1,5 @@
 """
-Action & bridge tracing — Wireshark-like DX for the Channel protocol.
+Action & bridge tracing — Wireshark-like Developer tooling for the Channel protocol.
 
 WHY THIS MODULE EXISTS
 ----------------------
@@ -17,7 +17,7 @@ correlates them by ``request_id`` / ``trace_id``, and exposes them to:
 
 CONTRIBUTION TO THE LIBRARY
 ---------------------------
-Observability beyond metrics: **forensic DX** for actions and bridges.
+Observability beyond metrics: **forensic Developer tooling** for actions and bridges.
 Disabled by default in production configs (overhead + data sensitivity).
 
 INTENDED USAGE

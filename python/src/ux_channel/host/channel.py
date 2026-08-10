@@ -192,7 +192,7 @@ class UiBuilder:
 # ---------------------------------------------------------------------------
 # Public API: boot → region → on → control → runtime → draft/done → media → bridge
 # Power: webrtc, sign_*, live, flow, before/after, multi, diagnose, enterprise
-# Demo HTML — ux_channel.demo only (not on Channel)
+# Demo HTML — ux_channel.render.kit only (not on Channel)
 # Layers: webrtc / scaffold / sfu / otel — never grow root exports
 CHANNEL_PUBLIC_API = (
     "boot",
@@ -291,7 +291,7 @@ class Channel:
         if state is not None:
             self.state = state
         else:
-            from ux_channel.host.state import MemoryStateStore
+            from ux_channel.host.stores import MemoryStateStore
 
             # Dev-friendly default; production should pass redis-backed store
             self.state = MemoryStateStore()
@@ -436,20 +436,24 @@ class Channel:
             "  bridge.mount_spec → Placement + mount_ops (widgets only)\n"
             "\n"
             "Never the source of truth\n"
-            "  ch.scripts/page/button HTML strings → ux_channel.demo only\n"
+            "  ch.scripts/page/button HTML strings → ux_channel.render.kit only\n"
             "  ch.webrtc → power layer under ch.media (mesh)\n"
             "  ch.bridge.media → removed; use ch.media\n"
             "\n"
-            "DX: Channel.help() · uxchannel create-app · doctor\n"
+            "Tools: Channel.help() · uxchannel create-app · doctor\n"
         )
 
     @classmethod
     def public_api_names(cls) -> tuple[str, ...]:
-        """Stable list of public API façade names (tests + docs)."""
+        """Application façade verbs (boot/on/region/control/…).
+
+        Not every name is a bare class attribute — many bind on the
+        instance after ``boot`` (e.g. ``on``, ``region``, ``runtime``).
+        """
         return CHANNEL_PUBLIC_API
 
     def doctor(self) -> dict[str, Any]:
-        """DX health check (ux-dom-style doctor): diagnose + actionable hints."""
+        """Health check: diagnose + actionable hints."""
         d = self.diagnose()
         hints: list[str] = []
         cfg = self.config
@@ -491,7 +495,7 @@ class Channel:
     @classmethod
     def help(cls, topic: str | None = None) -> str:
         """
-        Progressive disclosure (ux-dom-style).
+        Progressive disclosure help.
 
         * ``Channel.help()`` — decision tree
         * ``Channel.help("counter")`` — named recipe
@@ -512,7 +516,7 @@ class Channel:
                 "  ch.done / ch.fail.* / ch.control / ch.runtime\n"
                 "  ch.media.plugin / ch.bridge.mount_spec\n"
                 "  notice=  go=  scope=  trust_*\n"
-                "  ux_channel.demo for markup strings\n"
+                "  ux_channel.render.kit for markup strings\n"
                 "\n"
                 "Wire (not app speech)\n"
                 "--------------------\n"

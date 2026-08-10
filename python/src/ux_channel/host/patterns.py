@@ -1,5 +1,5 @@
 """
-Named recipes — copy-paste day-1 patterns (low cognitive load).
+Named recipes — copy-paste application patterns (low cognitive load).
 
 Philosophy
 ----------

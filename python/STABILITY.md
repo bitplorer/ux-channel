@@ -84,8 +84,28 @@ Deep modules remain available as `ux_channel.<package>.<module>`.
 
 | Path | Meaning |
 |------|---------|
-| `ux_channel.host.state` | **Module** — memory/null stores |
+| `ux_channel.host.stores` | **Module** — memory/null stores (`MemoryStateStore`) |
 | `ux_channel.host.state_api.state` | **Function** — day-1 `state(ch)` API |
 | `from ux_channel import state` | The function (root re-export) |
 
-Never put `state` on `host.__all__` — it shadows the submodule.
+The store module is `host.stores` (not `host.state`) so `state()` never collides.
+
+
+## Identity law
+
+```text
+ux_channel.Channel  is  ux_channel.api.Channel  is  ux_channel.host.Channel
+ux_channel.CapService is ux_channel.protocol.CapService
+ux_channel.state     is  ux_channel.host.state_api.state
+ux_channel.morph    is  ux_channel.protocol.ops.morph  (via protocol package)
+```
+
+Gate tests freeze these identities. Never create a second CapService/Channel.
+
+## Stores vs state API
+
+| Import | What |
+|--------|------|
+| `from ux_channel import state` | Application `state(channel)` API |
+| `from ux_channel.host.stores import MemoryStateStore` | Persistence backends |
+| `from ux_channel.host.state_api import state` | Same as root `state` |

@@ -34,7 +34,7 @@ I/O classes
 PUBLIC / PRIVATE
 =================================================================
 * **Power public:** ``from ux_channel.foundations.io_channel import …``
-* Day-1 apps keep using ``Channel`` / ``agents`` / ``state``; this module is the
+* Application apps keep using ``Channel`` / ``agents`` / ``state``; this module is the
   stable port for adapters and mesh-bound I/O policy.
 * Reuses ``SealedBridgeProtocol``, ``Quantity`` / ``QuantityBudget``, guest
   event filtering — does **not** reimplement drivers.

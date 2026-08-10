@@ -93,7 +93,7 @@
       "regions": "ux_channel.host.regions",
       "registry": "ux_channel.host.registry",
       "ssr_state": "ux_channel.host.ssr_state",
-      "state": "ux_channel.host.state",
+      "state": "ux_channel.host.stores",
       "state_api": "ux_channel.host.state_api",
       "state_planes": "ux_channel.host.state_planes",
       "testing": "ux_channel.host.testing"

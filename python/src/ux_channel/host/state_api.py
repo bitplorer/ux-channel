@@ -1,10 +1,10 @@
 """
-Channel state — day-1 flat API (session · client · db guards).
+Channel state — application flat API (session · client · db guards).
 
 =================================================================
 PUBLIC / PRIVATE
 =================================================================
-* **Day-1 public:** ``from ux_channel import state`` → ``state(ch)``
+* **Application public:** ``from ux_channel import state`` → ``state(ch)``
 * **Not** a database — ``st.db`` is guards only; you own durable stores.
 * Quantity paths: load via ``Quantity.from_store``; chrome holds ids only.
 

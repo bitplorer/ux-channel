@@ -12,7 +12,7 @@ Example stub::
     sfu = LiveKitSfu(SfuConfig(url=os.environ["LIVEKIT_URL"], api_key=..., api_secret=...))
     token = sfu.create_token(room="lobby", identity=user_id)
 
-Day-1 DX (preferred)::
+Application Developer tooling (preferred)::
 
     p = ch.media.plugin("lobby", sub=user_id)  # auto mesh|sfu
     p = ch.media.plugin("lobby", sub=user_id, mode="sfu")

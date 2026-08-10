@@ -10,7 +10,7 @@ import time
 from fastapi import FastAPI
 
 from ux_channel import Channel, ChannelConfig, Principal
-from ux_channel.host.state import StateConflict
+from ux_channel.host.stores import StateConflict
 
 
 def _ch():

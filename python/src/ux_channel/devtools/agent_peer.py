@@ -4,7 +4,7 @@ Agent peer Intent path — internal to AX (``agents_api``).
 =================================================================
 PUBLIC / PRIVATE
 =================================================================
-* **Private to product apps.** Day-1::
+* **Private to product apps.** Application::
 
       from ux_channel import agents
       agents(ch).dispatch(action, args, peer=agents(ch).peer("bot-1"))

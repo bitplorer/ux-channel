@@ -69,15 +69,17 @@ def test_cohesive_package_exports():
     assert morph_ir and intent_headers and Quantity and safe_href
 
 
-def test_state_api_not_shadowed_by_host_state_module():
-    """host.state is the store module; state() lives on state_api / root."""
+def test_state_api_vs_stores_module():
+    """stores = MemoryStateStore…; state() = application API on state_api / root."""
     from ux_channel import state as root_state
-    from ux_channel.host import state as host_state_mod
+    from ux_channel.host import stores as stores_mod
     from ux_channel.host.state_api import state as api_state
+    from ux_channel.host.stores import MemoryStateStore
 
-    assert isinstance(host_state_mod, types.ModuleType)
+    assert isinstance(stores_mod, types.ModuleType)
     assert root_state is api_state
     assert callable(root_state)
+    assert MemoryStateStore is stores_mod.MemoryStateStore
 
 
 def test_root_identity_with_packages():

@@ -1,7 +1,7 @@
 """
 Client + db safety helpers for ``ux_channel.state``.
 
-Day-1 entry: ``from ux_channel import state`` — not this module.
+Application entry: ``from ux_channel import state`` — not this module.
 
 Path risk set is **sector-neutral authority** (payments, inventory, clinical, secrets…).
 """

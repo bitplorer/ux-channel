@@ -16,7 +16,7 @@ PUBLIC / PRIVATE
 =================================================================
 * **Power public:** ``from ux_channel.transport.outbox import IntentOutbox, MemoryIntentOutbox``
 * Optional Redis: ``RedisIntentOutbox`` when redis available
-* Not day-1; does not alter Channel.boot
+* Not application; does not alter Channel.boot
 """
 
 from __future__ import annotations

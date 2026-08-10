@@ -1,5 +1,5 @@
 """
-Live UX · AX · DX inspect — read-only, principal-scoped, prod-closed by default.
+Live UX · AX · Developer tooling inspect — read-only, principal-scoped, prod-closed by default.
 
 Governing stance: opt-in shell. Never a second mutation door.
 """

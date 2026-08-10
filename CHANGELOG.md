@@ -1,3 +1,13 @@
+## 2026-08-10 — deeper: stores module, api via packages, identity law
+
+- `host/state.py` → `host/stores.py` (no collision with `state()` API)
+- `api` package re-exports through host/protocol/devtools surfaces
+- Module banner docs: Day-1/DX → Application/Developer tooling
+- Channel.describe paths: render.kit; public_api_names docstring accurate
+- STABILITY identity law + stores table; gate stores test
+
+---
+
 ## 2026-08-10 — package surface polish (root via packages)
 
 - Root re-exports primarily through package public APIs

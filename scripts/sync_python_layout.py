@@ -175,6 +175,9 @@ def check(meta: dict) -> list[str]:
         svc = CapService("dev-secret-key-32chars-minimum!!!!")
         assert hasattr(svc, "mint") and not hasattr(svc, "sign")
         from ux_channel.host.regions import _id_str  # noqa: F401
+        from ux_channel.host.stores import MemoryStateStore  # noqa: F401
+        from ux_channel.host.state_api import state as state_fn  # noqa: F401
+        assert callable(state_fn)
         _ = morph_ir, HtmlRenderer
     except Exception as exc:
         problems.append(f"import smoke: {exc}")

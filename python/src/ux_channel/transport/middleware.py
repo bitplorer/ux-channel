@@ -1,5 +1,5 @@
 """
-ASGI middleware helpers for production DX (request IDs, optional client version).
+ASGI middleware helpers for production Developer tooling (request IDs, optional client version).
 
 Modular: does not depend on FastAPI at import time.
 """

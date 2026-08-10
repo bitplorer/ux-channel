@@ -1,10 +1,10 @@
 """
-AX — Agent Experience façade (day-1 public).
+AX — Agent Experience façade (application public).
 
 =================================================================
 PUBLIC / PRIVATE
 =================================================================
-* **Day-1 public:** ``from ux_channel import agents`` → ``agents(ch)``
+* **Application public:** ``from ux_channel import agents`` → ``agents(ch)``
 * **Only** agent product API (tools_for · situation · dispatch · effects).
 * Peer impl: ``ux_channel.agent_peer`` (prefer ``ag.dispatch``).
 * Foundations (quantity, caps, Morph IR) are **not** AX.

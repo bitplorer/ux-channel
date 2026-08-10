@@ -1,7 +1,7 @@
 """
 Chart.js **bridge preset** — data-first, no HTML.
 
-Day-1 (feels natural)::
+Application (feels natural)::
 
     charts = ChartBridge(ch)                 # bind channel once
     rev = charts("revenue", labels=[...], values=[...], kind="bar")

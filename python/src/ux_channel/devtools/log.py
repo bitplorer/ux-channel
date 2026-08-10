@@ -1,5 +1,5 @@
 """
-DX console logging — nothing silent; text or structured JSON for automation.
+Developer tooling console logging — nothing silent; text or structured JSON for automation.
 
 Text::
 

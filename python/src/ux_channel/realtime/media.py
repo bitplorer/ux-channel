@@ -1,5 +1,5 @@
 """
-Media plane bridge — mesh + battle-tested SFU (LiveKit) as one DX.
+Media plane bridge — mesh + battle-tested SFU (LiveKit) as one Developer tooling.
 
 Philosophy
 ----------
@@ -8,7 +8,7 @@ Philosophy
 * **sfu** → external stack millions use (default **LiveKit** + ``livekit-client`` on the host).
 * **No call UI chrome** — only placement bags (strings/dicts).
 
-Day-1::
+Application::
 
     p = ch.media.plugin("lobby", sub=user_id)          # auto: sfu if configured else mesh
     p = ch.media.plugin("lobby", sub=user_id, mode="mesh")

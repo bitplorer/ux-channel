@@ -1,5 +1,5 @@
 """
-DX / CLI exceptions — cognitively consistent, never silent failures.
+Developer tooling / CLI exceptions — cognitively consistent, never silent failures.
 
 Every user-facing failure is a :class:`DxError` with:
 

@@ -268,7 +268,7 @@ class RedisStateStore:
         import copy
         import json
 
-        from ux_channel.host.state import EditSlot, StateConflict
+        from ux_channel.host.stores import EditSlot, StateConflict
 
         k = self._k(key)
         raw = self.r.get(k)

@@ -72,7 +72,7 @@ from ux_channel.host.idempotency import MemoryIdempotencyStore
 from ux_channel.host.nonce import MemoryNonceStore
 from ux_channel.host.region_directory import RegionDirectory, attach_region_directory, path_to_uid
 from ux_channel.host.ssr_state import Namespace, SessionVar, SsrState, attach_ssr_state, ssr_state
-from ux_channel.host.state import MemoryStateStore, NullStateStore, StateConflict
+from ux_channel.host.stores import MemoryStateStore, NullStateStore, StateConflict
 from ux_channel.host.state_planes import (
     RISKY_SEGMENTS,
     ClientPlane,
