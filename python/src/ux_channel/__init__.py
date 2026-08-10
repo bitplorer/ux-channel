@@ -19,9 +19,11 @@ See ``MENTAL_MODEL.md`` · ``python/STABILITY.md`` · ``PUBLIC_API_FREEZE.md``.
 
 from __future__ import annotations
 
+from typing import Any
+
 from ux_channel._version import __version__, __version_info__
 
-# Protocol (wire law)
+# Protocol (wire law) — no encode/renderers path
 from ux_channel.protocol import (
     ActionError,
     ActionNotFound,
@@ -61,16 +63,8 @@ from ux_channel.host import (
     create_channel,
 )
 from ux_channel.host.context import ActionContext, Principal
-from ux_channel.host.state_api import attach_state, state
 
-# AX / audit façades
-from ux_channel.devtools import AuditBundle, attach_audit
-from ux_channel.devtools.agents_api import Agents, attach_agents
-from ux_channel.devtools.agents_api import agents as _agents_facade
-
-agents = _agents_facade
-
-# Common control / HTML helpers
+# Common control / HTML helpers (light path only)
 from ux_channel.render import (
     ControlAttrs,
     SafeHtml,
@@ -132,3 +126,25 @@ __all__ = [
     "http_status_for",
     "ERROR_HTTP_STATUS",
 ]
+
+_LAZY: dict[str, tuple[str, str]] = {
+    "state": ("ux_channel.host.state_api", "state"),
+    "attach_state": ("ux_channel.host.state_api", "attach_state"),
+    "agents": ("ux_channel.devtools.agents_api", "agents"),
+    "attach_agents": ("ux_channel.devtools.agents_api", "attach_agents"),
+    "Agents": ("ux_channel.devtools.agents_api", "Agents"),
+    "attach_audit": ("ux_channel.devtools.audit", "attach_audit"),
+    "AuditBundle": ("ux_channel.devtools.audit", "AuditBundle"),
+}
+
+
+def __getattr__(name: str) -> Any:
+    spec = _LAZY.get(name)
+    if spec is None:
+        raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+    import importlib
+
+    mod_name, attr = spec
+    val = getattr(importlib.import_module(mod_name), attr)
+    globals()[name] = val
+    return val

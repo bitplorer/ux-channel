@@ -15,7 +15,11 @@ See: docs/HOW_TO.md, docs/DESIGN.md.
 """
 from __future__ import annotations
 
-from ux_channel.protocol import serde as _serde
+def _serde():
+    from ux_channel.protocol import serde as _m
+    return _m
+
+
 
 import html
 import json
@@ -24,7 +28,7 @@ from typing import Any, Mapping, Optional
 
 def json_attr(value: Any) -> str:
     """JSON for embedding in a double-quoted HTML attribute."""
-    raw = _serde.dumps(value, default=str)
+    raw = _serde().dumps(value, default=str)
     return html.escape(raw, quote=True)
 
 
@@ -60,7 +64,7 @@ class ControlAttrs:
     ) -> None:
         m: dict[str, str] = {"data-channel-action": str(action)}
         if trust is not None:
-            m["data-channel-args"] = _serde.dumps(dict(trust), default=str)
+            m["data-channel-args"] = _serde().dumps(dict(trust), default=str)
         if cap:
             m["data-channel-cap"] = str(cap)
         if target:

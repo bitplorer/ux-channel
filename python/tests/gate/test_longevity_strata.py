@@ -64,7 +64,13 @@ def test_root_import_weight():
         heavy = (
             "ux_channel.agent_runtime.runner",
             "ux_channel.agent_runtime.tools",
+            "ux_channel.agent_runtime.peer",
             "ux_channel.devtools.trace",
+            "ux_channel.devtools.agents_api",
+            "ux_channel.wire",
+            "ux_channel.protocol.serde",
+            "ux_channel.protocol.encode",
+            "ux_channel.render.renderers",
             "ux_channel.realtime",
             "ux_channel.mcp",
         )

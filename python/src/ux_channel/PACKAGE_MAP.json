@@ -43,6 +43,7 @@
       "error_map",
       "errors",
       "json_codec",
+      "navigate_markers",
       "ops",
       "serde",
       "types"
@@ -252,6 +253,7 @@
     "protocol.error_map": "protocol",
     "protocol.errors": "protocol",
     "protocol.json_codec": "protocol",
+    "protocol.navigate_markers": "protocol",
     "protocol.ops": "protocol",
     "protocol.serde": "protocol",
     "protocol.types": "protocol",
@@ -532,5 +534,6 @@
       "planes_optional_extras",
       "extension_doors_A_to_G"
     ]
-  }
+  },
+  "module_count": 168
 }

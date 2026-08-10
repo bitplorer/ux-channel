@@ -14,7 +14,6 @@ if TYPE_CHECKING:
     from ux_channel.bridge.plugins import PluginHub
 
 from ux_channel.host.registry import ActionRegistry
-from ux_channel.render.renderers import HtmlRenderer
 
 
 def _maybe_redis_stores(redis_url: str | None):
@@ -47,7 +46,7 @@ def create_channel(
     host: Optional[str] = "fastapi",
     path: str = "/ux-channel",
     hub: Any = None,
-    renderer: Optional[HtmlRenderer] = None,
+    renderer: Any = None,
     require_cap: bool = True,
     load_entry_points: bool = False,
     expose_internal_errors: bool = False,

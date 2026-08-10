@@ -21,26 +21,16 @@ from typing import Any, Mapping, Optional, Sequence
 
 from ux_channel.protocol.errors import ActionError
 from ux_channel.protocol.ops import morph, navigate
-from ux_channel.render.renderers import ChainRenderer, HtmlRenderer, StringRenderer
 from ux_channel.protocol.types import Result
 
 
-class Navigate:
-    """Special return: full navigation."""
-
-    def __init__(self, href: str, *, replace: bool = False):
-        self.href = href
-        self.replace = replace
-
-
-class Go(Navigate):
-    """Alias for Navigate (shorter DX)."""
+from ux_channel.protocol.navigate_markers import Go, Navigate  # re-export
 
 
 def encode_result(
     value: Any,
     *,
-    renderer: Optional[HtmlRenderer] = None,
+    renderer: Any = None,
     default_target: Optional[str] = None,
     meta: Optional[Mapping[str, Any]] = None,
 ) -> Result:
@@ -115,7 +105,10 @@ def encode_result(
     if value is None:
         return Result(ok=True, ops=[], meta=base_meta)
 
-    r = renderer or ChainRenderer(StringRenderer())
+    if renderer is None:
+        from ux_channel.render.renderers import ChainRenderer, StringRenderer
+        renderer = ChainRenderer(StringRenderer())
+    r = renderer
     html = r.render(value)
     if html is not None:
         target = default_target

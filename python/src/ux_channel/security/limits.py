@@ -2,7 +2,11 @@
 
 from __future__ import annotations
 
-from ux_channel.protocol import serde as _serde
+def _serde():
+    from ux_channel.protocol import serde as _m
+    return _m
+
+
 
 from typing import Any, Optional
 
@@ -48,7 +52,7 @@ def enforce_result_limits(
             import json
 
             try:
-                pn = len(_serde.dumps(props, default=str).encode("utf-8"))
+                pn = len(_serde().dumps(props, default=str).encode("utf-8"))
             except (TypeError, ValueError):
                 pn = 0
             if pn > max_html_bytes:
@@ -57,7 +61,7 @@ def enforce_result_limits(
     raw = result.to_dict()
     import json
 
-    encoded = _serde.dumps(raw, default=str).encode("utf-8")
+    encoded = _serde().dumps(raw, default=str).encode("utf-8")
     if len(encoded) > max_result_bytes:
         raise LimitExceeded(
             f"result JSON exceeds max_result_bytes ({len(encoded)} > {max_result_bytes})"

@@ -13,7 +13,11 @@ ux-dom / Jinja / React turn Placement into markup. Demo HTML helpers live in
 
 from __future__ import annotations
 
-from ux_channel.protocol import serde as _serde
+def _serde():
+    from ux_channel.protocol import serde as _m
+    return _m
+
+
 
 import json
 from dataclasses import dataclass, field
@@ -66,7 +70,7 @@ class Placement:
 
     @property
     def client_json(self) -> str:
-        return _serde.dumps(dict(self.client), default=str)
+        return _serde().dumps(dict(self.client), default=str)
 
     @property
     def attrs_py(self) -> dict[str, str]:

@@ -1,3 +1,13 @@
+## 2026-08-10 — deeper: cold import ~28 modules (lazy façades + markers)
+
+- Root/api lazy state/agents/audit via __getattr__
+- protocol.navigate_markers (Go/Navigate without encode/renderers)
+- Lazy serde in html/limits/placement; lazy encode_result/renderers in registry
+- Slim render package; audit internals load on attach
+- Longevity freezes wire/serde/encode/renderers off cold import
+
+---
+
 ## 2026-08-10 — deeper: lazy L4/L5 load (import weight)
 
 - agent_runtime package uses lazy __getattr__ (peer without runner)

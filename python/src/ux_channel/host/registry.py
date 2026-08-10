@@ -47,9 +47,16 @@ from typing import Optional, Any, Callable, Mapping, Optional, Sequence, TYPE_CH
 
 from ux_channel.protocol.capability import CapError, CapService
 from ux_channel.host.context import ActionContext, AuthResolver, Principal
-from ux_channel.protocol.encode import Navigate, encode_result
+from ux_channel.protocol.navigate_markers import Navigate
 from ux_channel.protocol.errors import ActionError
 from ux_channel.host.hooks import AfterHook, BeforeHook, HookList
+
+def _call_encode_result(*args, **kwargs):
+    from ux_channel.protocol.encode import encode_result as _enc
+
+    return _enc(*args, **kwargs)
+
+
 
 def _trace_api():
     """Lazy L5 tooling — keep host registry free of eager devtools import."""
@@ -66,7 +73,6 @@ from ux_channel.security.limits import (
     enforce_result_limits,
 )
 from ux_channel.host.nonce import NonceStore
-from ux_channel.render.renderers import ChainRenderer, HtmlRenderer, StringRenderer
 from ux_channel.security.security import sanitize_op_hrefs, validate_action_name
 
 def _sec(kind: str, **kw) -> None:
@@ -121,7 +127,7 @@ class ActionRegistry:
         self,
         secret: str,
         *,
-        renderer: Optional[HtmlRenderer] = None,
+        renderer: Any = None,
         require_cap: bool = True,
         max_cap_age: int = 3600,
         max_html_bytes: int = DEFAULT_MAX_HTML_BYTES,
@@ -140,7 +146,11 @@ class ActionRegistry:
         self._actions: dict[str, ActionHandler] = {}
         self._action_meta: dict[str, dict[str, Any]] = {}
         self._caps = CapService(secret, max_age=max_cap_age, previous_secrets=previous_secrets)
-        self._renderer = renderer or ChainRenderer(StringRenderer())
+        if renderer is None:
+            from ux_channel.render.renderers import ChainRenderer, StringRenderer
+
+            renderer = ChainRenderer(StringRenderer())
+        self._renderer = renderer
         self.require_cap = require_cap
         self.max_html_bytes = max_html_bytes
         self.max_ops = max_ops
@@ -161,7 +171,7 @@ class ActionRegistry:
         cls,
         config: "ChannelConfig",
         *,
-        renderer: Optional[HtmlRenderer] = None,
+        renderer: Any = None,
         install_defaults: bool = True,
         nonce_store: Optional[NonceStore] = None,
         idempotency_store: Optional[IdempotencyStore] = None,
@@ -754,7 +764,7 @@ class ActionRegistry:
         return ensure_error_meta(result)
 
     def _encode(self, value: Any, intent: Intent, meta: dict[str, Any]) -> Result:
-        return encode_result(
+        return _call_encode_result(
             value,
             renderer=self._renderer,
             default_target=intent.target,
@@ -1009,7 +1019,7 @@ class ActionRegistry:
                 else:
                     value = self._call_sync_handler(handler, bound)
             except ActionError as exc:
-                result = encode_result(exc, renderer=self._renderer, meta=meta)
+                result = _call_encode_result(exc, renderer=self._renderer, meta=meta)
                 return self._finalize(intent, result, t0)
             except TypeError as exc:
                 return self._finalize(
@@ -1120,7 +1130,7 @@ class ActionRegistry:
                     detail={"return_type": type(value).__name__},
                 )
             except ActionError as exc:
-                result = encode_result(exc, renderer=self._renderer, meta=meta)
+                result = _call_encode_result(exc, renderer=self._renderer, meta=meta)
                 return self._finalize(intent, result, t0)
             except TypeError as exc:
                 return self._finalize(

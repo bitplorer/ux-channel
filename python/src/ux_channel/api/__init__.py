@@ -10,13 +10,11 @@ Power features: import from ``host``, ``protocol``, ``render``, ``security``, â€
 """
 from __future__ import annotations
 
+from typing import Any
+
 from ux_channel._version import __version__, __version_info__
-from ux_channel.devtools import AuditBundle, attach_audit
-from ux_channel.devtools.agents_api import Agents, attach_agents
-from ux_channel.devtools.agents_api import agents as _agents
 from ux_channel.host import Channel, ChannelConfig, Region, RegionBook, create_channel
 from ux_channel.host.context import ActionContext, Principal
-from ux_channel.host.state_api import attach_state, state
 from ux_channel.protocol import (
     CapError,
     CapService,
@@ -26,8 +24,6 @@ from ux_channel.protocol import (
     toast,
     navigate,
 )
-
-agents = _agents
 
 __all__ = [
     "__version__",
@@ -54,3 +50,25 @@ __all__ = [
     "ActionContext",
     "Principal",
 ]
+
+_LAZY: dict[str, tuple[str, str]] = {
+    "state": ("ux_channel.host.state_api", "state"),
+    "attach_state": ("ux_channel.host.state_api", "attach_state"),
+    "agents": ("ux_channel.devtools.agents_api", "agents"),
+    "attach_agents": ("ux_channel.devtools.agents_api", "attach_agents"),
+    "Agents": ("ux_channel.devtools.agents_api", "Agents"),
+    "attach_audit": ("ux_channel.devtools.audit", "attach_audit"),
+    "AuditBundle": ("ux_channel.devtools.audit", "AuditBundle"),
+}
+
+
+def __getattr__(name: str) -> Any:
+    spec = _LAZY.get(name)
+    if spec is None:
+        raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+    import importlib
+
+    mod_name, attr = spec
+    val = getattr(importlib.import_module(mod_name), attr)
+    globals()[name] = val
+    return val

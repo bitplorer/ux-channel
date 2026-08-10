@@ -26,7 +26,7 @@ from ux_channel.protocol.ops import (
     toast,
 )
 from ux_channel.protocol.types import ErrorObject, Intent, Result
-from ux_channel.protocol.encode import Go, Navigate
+from ux_channel.protocol.navigate_markers import Go, Navigate
 
 __all__ = [
     "CapService",
