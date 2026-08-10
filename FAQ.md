@@ -4,6 +4,16 @@ Words: [TERMINOLOGY.md](TERMINOLOGY.md) · Flows: [HOW_IT_WORKS.md](HOW_IT_WORKS
 
 ---
 
+### What is a Region vs a Bridge vs an Action?
+
+| | Region | Bridge | Action |
+|--|--------|--------|--------|
+| **Is** | Server-owned HTML slot | npm/JS island mount | Named mutation handler |
+| **Does** | Re-paint via morph | Client widget lifecycle | Change truth, return Result |
+| **Import** | `@ch.region` / `Region` | `ux_channel.bridges` | `@ch.on` / `@Region.action` |
+
+Full decision table: [`python/ONTOLOGY.md`](python/ONTOLOGY.md).
+
 ### What is ux-channel in one sentence?
 
 A shared **Intent → Result + ops** contract so any peer (Python, Rust, …) can run actions under **capability tokens**, with **JSON always working** and optional denser binary (CXB).

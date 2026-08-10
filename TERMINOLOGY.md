@@ -165,6 +165,33 @@ Terms are grouped: **big picture → messages → security → wire → HTTP →
 
 ## 3. Security and authority
 
+
+### Region (Python host)
+
+| | |
+|--|--|
+| **Is** | A **stable DOM slot** (`data-channel-id`) the server can re-render after an action. |
+| **Does** | `render(ctx) → HTML`; refresh emits **morph** ops for that uid. |
+| **Not** | Not a bridge (npm island), not an action (mutation), not the whole page. |
+| **Where** | `ux_channel.regions` / `Region` class / optional `RegionDirectory`. Map: [`python/ONTOLOGY.md`](python/ONTOLOGY.md). |
+
+### RegionBook
+
+| | |
+|--|--|
+| **Is** | Registry `uid → render` on the Channel (`ch.regions`). |
+| **Does** | Revalidates selected uids after actions (`refresh=[…]`). |
+| **Not** | Not file discovery (that is RegionDirectory) and not wire codec. |
+
+### Bridge (Python host)
+
+| | |
+|--|--|
+| **Is** | Mount/helpers for a **JS/npm island** (chart, map, editor). |
+| **Does** | Placement attrs + bridge ops — client owns widget lifecycle. |
+| **Not** | Not a Region (no server HTML morph of the island’s guts). |
+| **Where** | `ux_channel.bridges`. Decision table: [`python/ONTOLOGY.md`](python/ONTOLOGY.md) §3. |
+
 ### Cap / capability token
 
 | | |
