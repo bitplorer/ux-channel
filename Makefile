@@ -4,7 +4,7 @@
 help:
 	@echo "Targets:"
 	@echo "  make health       - links + stale paths + required files"
-	@echo "  make verify       - full law + rust checks (CI default)"
+	@echo "  make verify       - health + law + Python + Rust (CI default)"
 	@echo "  make verify-http  - verify + live peer + demo forward"
 	@echo "  make peer-demo    - start demo uxc_peer (oracle allow-listed)"
 	@echo "  make peer-stop    - kill uxc_peer if running"
@@ -33,8 +33,8 @@ test-rust:
 	cd rust && cargo test --lib
 
 test-python:
-	@python3 -c "import itsdangerous, pytest" 2>/dev/null || python3 -m pip install -q 'itsdangerous>=2.1' 'pytest>=8.0'
-	PYTHONPATH="$(CURDIR)/python:$${PYTHONPATH:-}" python3 -m pytest "$(CURDIR)/python/tests" -q --tb=short
+	@python3 -c "import itsdangerous, pytest" 2>/dev/null || python3 -m pip install -q -r "$(CURDIR)/requirements-dev.txt"
+	PYTHONPATH="$(CURDIR)/python:$${PYTHONPATH:-}" python3 -m pytest -c "$(CURDIR)/pytest.ini"
 
 python-path:
 	@echo "export PYTHONPATH=\"$(CURDIR)/python:\$${PYTHONPATH:-}\""

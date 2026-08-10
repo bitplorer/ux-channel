@@ -41,7 +41,7 @@ include = [
 ]
 
 [tool.poetry.dependencies]
-python = ">=3.14,<3.15"
+python = ">=3.10,<4"
 itsdangerous = ">=2.1"
 
 # Optional extras (ux-dom is a peer — install separately for glue tests)
@@ -113,14 +113,14 @@ testpaths = [
   "tests/security",
   "tests/stress",
 ]
-pythonpath = ["src", ".", "tests"]
+pythonpath = [".", "tests"]
 asyncio_mode = "auto"
 filterwarnings = [
   "ignore::DeprecationWarning",
 ]
 
 [tool.mypy]
-python_version = "3.14"
+python_version = "3.10"
 ignore_missing_imports = true
 mypy_path = "src"
 

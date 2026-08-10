@@ -1,3 +1,14 @@
+## 2026-08-10 — close remaining monorepo gaps
+
+### Fixed / added
+- Root `LICENSE` (MIT)
+- `requirements-dev.txt` for gate deps; CI/verify install from it
+- Relax `python/pyproject.toml` to Python >=3.10 (was 3.14-only)
+- `repo_health` enforces verify.sh runs **both** Python pytest and Rust cargo
+- Docs: AGENTS/STRUCTURE wording for dual-language gate
+
+---
+
 # Changelog — ux-channel wire-native package
 
 History of **this** repository tree (`bitplorer/ux-channel`), not the full PyPI host package.

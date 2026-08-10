@@ -179,7 +179,7 @@ Terms are grouped: **big picture → messages → security → wire → HTTP →
 | | |
 |--|--|
 | **Is** | The mint/verify engine (itsdangerous-compatible in Cap 0.1). |
-| **Does** | `mint(...)` → token; `verify(token, action, args)` → ok or CapError. |
+| **Does** | Issue + check tokens. **Rust:** `mint`/`verify`. **Python host:** `sign`/`verify`. |
 | **Not** | Not HTTP itself; peer gate calls it before handlers. |
 
 ### Mint
@@ -189,7 +189,7 @@ Terms are grouped: **big picture → messages → security → wire → HTTP →
 | **Is** | Creating a new capability token for `(action, sealed args, …)`. |
 | **Does** | Hashes args, builds payload (`action`, `args_hash`, `iat`, …), signs it. |
 | **Not** | Not the action itself. Mint is permission issuance; action is execution. |
-| **Where** | Dev HTTP: `POST /ux-channel/mint`. Library: `Peer::mint_cap` / `CapService::mint`. |
+| **Where** | Dev HTTP: `POST /ux-channel/mint`. Rust: `Peer::mint_cap` / `CapService::mint`. Python: `CapabilityService.sign` / `verify`. |
 
 ### Verify (cap gate)
 

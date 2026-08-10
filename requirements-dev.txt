@@ -1,0 +1,3 @@
+# Minimal deps for monorepo gate (./verify.sh / CI)
+itsdangerous>=2.1
+pytest>=8.0

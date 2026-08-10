@@ -48,6 +48,11 @@ REQUIRED = [
     "SPEC/INVARIANTS.md",
     "conformance/manifest.json",
     ".github/workflows/ci.yml",
+    "LICENSE",
+    "requirements-dev.txt",
+    "python/tests/test_interop_conformance.py",
+    "Makefile",
+    "pytest.ini",
 ]
 
 LINK_RE = re.compile(r"\[([^\]]*)\]\(([^)]+)\)")
@@ -76,6 +81,18 @@ def main() -> int:
     for r in REQUIRED:
         if not (ROOT / r).exists():
             issues.append(f"MISSING required file: {r}")
+
+    # verify.sh must exercise BOTH languages (regression: Rust-only green)
+    verify = (ROOT / "verify.sh").read_text(encoding="utf-8", errors="replace")
+    if "pytest" not in verify or "python/tests" not in verify:
+        issues.append("verify.sh missing Python pytest suite (python/tests)")
+    if "cargo test" not in verify:
+        issues.append("verify.sh missing cargo test")
+    if "uxc_check" not in verify:
+        issues.append("verify.sh missing uxc_check")
+    ci = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8", errors="replace")
+    if "verify.sh" not in ci:
+        issues.append("CI workflow does not run verify.sh")
 
     for p in ROOT.rglob("*"):
         if not p.is_file() or skip_path(p):

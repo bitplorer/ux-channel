@@ -28,9 +28,9 @@ python3 conformance/harness/validate_cxb_expected.py
 
 echo "== Python host interop (sync with law) =="
 if ! python3 -c "import itsdangerous, pytest" 2>/dev/null; then
-  python3 -m pip install -q 'itsdangerous>=2.1' 'pytest>=8.0'
+  python3 -m pip install -q -r "$ROOT/requirements-dev.txt"
 fi
-PYTHONPATH="$ROOT/python${PYTHONPATH:+:$PYTHONPATH}" python3 -m pytest "$ROOT/python/tests" -q --tb=line
+PYTHONPATH="$ROOT/python${PYTHONPATH:+:$PYTHONPATH}" python3 -m pytest -c "$ROOT/pytest.ini"
 
 echo "== Rust unit tests =="
 cd rust

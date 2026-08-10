@@ -112,3 +112,13 @@ def test_cxb_expected_blobs_decode_and_reencode():
 def test_manifest_ir_version():
     m = _load_json(CONF / "manifest.json")
     assert str(m.get("ir_version")) == "1"
+
+
+def test_error_codes_in_vectors_are_stable_vocab():
+    """Error codes that appear in golden Results must stay in the stable set."""
+    allowed = {"validation", "unauthorized", "not_found", "conflict", "internal"}
+    for path in (CONF / "vectors" / "result").glob("*.json"):
+        doc = _load_json(path)
+        if doc.get("ok") is False and doc.get("error"):
+            code = doc["error"].get("code")
+            assert code in allowed, f"{path.name}: unexpected code {code}"

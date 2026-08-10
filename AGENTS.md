@@ -29,7 +29,7 @@ One IR. JSON floor. Caps authorize. Transports only deliver. Peers > FFI.
 Do **not** ask humans to re-run steps by hand — use automation:
 
 ```bash
-make verify          # preferred (repo health + law + rust)
+make verify          # preferred (health + law + Python + Rust)
 make verify-http     # + live peer + demo forward
 # equivalents:
 ./verify.sh
