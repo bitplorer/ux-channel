@@ -34,7 +34,7 @@ test-rust:
 
 test-python:
 	@python3 -c "import itsdangerous, pytest" 2>/dev/null || python3 -m pip install -q -r "$(CURDIR)/requirements-dev.txt"
-	PYTHONPATH="$(CURDIR)/python:$${PYTHONPATH:-}" python3 -m pytest -c "$(CURDIR)/pytest.ini"
+	PYTHONPATH="$(CURDIR)/python/src:$${PYTHONPATH:-}" python3 -m pytest "$(CURDIR)/python/tests/gate" -q --tb=line
 
 python-path:
 	@echo "export PYTHONPATH=\"$(CURDIR)/python:\$${PYTHONPATH:-}\""

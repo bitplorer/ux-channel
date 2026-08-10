@@ -9,6 +9,7 @@
 
 ```text
 python/
+  src/ux_channel/   ← package (src layout)
   ONTOLOGY.md           ← what things *are* (Region vs Bridge vs …)
   LAYOUT.md             ← every module mapped to a zone (anti-flat)
   STRUCTURE.md          ← this file (what may change)
@@ -19,7 +20,7 @@ python/
     regions/            ← region recipes
     core/               ← wire / CXB (shared law narrative)
   tests/                ← monorepo gate (must stay green)
-  ux_channel/
+  src/ux_channel/
     day1.py             ← preferred day-1 import façade
     __init__.py         ← full frozen root exports (__all__)
     … modules …

@@ -12,8 +12,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 SKIP_PARTS = {".git", "target", "node_modules", "__pycache__"}
 SKIP_PREFIXES = (
-    "python/ux_channel/",
-    "python/ux_dom/",
+    "python/src/ux_channel/",
+    "python/src/ux_channel_ux_dom/",
     "python/docs/",
 )
 
@@ -50,11 +50,11 @@ REQUIRED = [
     ".github/workflows/ci.yml",
     "LICENSE",
     "requirements-dev.txt",
-    "python/tests/test_interop_conformance.py",
+    "python/tests/gate/test_interop_conformance.py",
     "python/ONTOLOGY.md",
-    "python/tests/test_public_api_freeze.py",
-    "python/tests/test_day1_regions.py",
-    "python/ux_channel/day1.py",
+    "python/tests/gate/test_public_api_freeze.py",
+    "python/tests/gate/test_day1_regions.py",
+    "python/src/ux_channel/day1.py",
     "python/STRUCTURE.md",
     "python/LAYOUT.md",
     "Makefile",

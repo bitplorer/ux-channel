@@ -234,7 +234,7 @@ Run: `./verify.sh` or harness scripts in `conformance/harness/`.
 
 | Path | What |
 |------|------|
-| [`python/ux_channel/`](python/ux_channel/) | Full host library (wire, capability, ASGI, …) |
+| [`python/src/ux_channel/`](python/src/ux_channel/) | Full host library (wire, capability, ASGI, …) |
 | [`python/docs/core/`](python/docs/core/) | WIRE.md, CXB.md |
 | [`demos/python_forward/forward_to_rust.py`](demos/python_forward/forward_to_rust.py) | Thin Intent POST client |
 | [`conformance/harness/*.py`](conformance/harness/) | Vector validators |

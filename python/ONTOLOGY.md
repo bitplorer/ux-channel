@@ -135,15 +135,15 @@ All three register into the same **RegionBook** (`ch.regions`): uid → loader/r
 
 | File | Ontological role | Day-1? |
 |------|------------------|--------|
-| [`regions.py`](ux_channel/regions.py) | **RegionBook**, `@region` decorator, context, revalidate | Yes (via Channel) |
-| [`region_component.py`](ux_channel/region_component.py) | Class-style **Region**, `@Region.action`, `ch.use` | Yes if you prefer classes |
-| [`region_directory.py`](ux_channel/region_directory.py) | Opt-in FS/package discovery | No — shell feature |
-| [`region_cli.py`](ux_channel/region_cli.py) | Scaffold files for discovery | No — DX only |
-| [`morph_ir.py`](ux_channel/morph_ir.py) | IR node named `region` = morph **target**, same law | Power |
-| [`ops.py`](ux_channel/ops.py) | `morph`/`swap` builders the refresh path emits | Power / implicit |
-| [`live.py`](ux_channel/live.py) | Bind topics → region uids (in-process) | Power |
-| [`components/*`](ux_channel/components/) | Optional kit built **on** regions | Optional |
-| [`bridges/*`](ux_channel/bridges/) | **Not regions** — JS islands | Optional |
+| [`regions.py`](src/ux_channel/regions.py) | **RegionBook**, `@region` decorator, context, revalidate | Yes (via Channel) |
+| [`region_component.py`](src/ux_channel/region_component.py) | Class-style **Region**, `@Region.action`, `ch.use` | Yes if you prefer classes |
+| [`region_directory.py`](src/ux_channel/region_directory.py) | Opt-in FS/package discovery | No — shell feature |
+| [`region_cli.py`](src/ux_channel/region_cli.py) | Scaffold files for discovery | No — DX only |
+| [`morph_ir.py`](src/ux_channel/morph_ir.py) | IR node named `region` = morph **target**, same law | Power |
+| [`ops.py`](src/ux_channel/ops.py) | `morph`/`swap` builders the refresh path emits | Power / implicit |
+| [`live.py`](src/ux_channel/live.py) | Bind topics → region uids (in-process) | Power |
+| [`components/*`](src/ux_channel/components/) | Optional kit built **on** regions | Optional |
+| [`bridges/*`](src/ux_channel/bridges/) | **Not regions** — JS islands | Optional |
 
 ---
 

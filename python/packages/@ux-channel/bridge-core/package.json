@@ -1,0 +1,9 @@
+{
+  "name": "@ux-channel/bridge-core",
+  "version": "0.1.0",
+  "description": "Adapter helpers for ux-bridge.js hosts (widgets, not media SFU)",
+  "type": "module",
+  "main": "index.js",
+  "files": ["index.js", "README.md"],
+  "license": "MIT"
+}

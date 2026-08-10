@@ -21,7 +21,7 @@ classifiers = [
   "Intended Audience :: Developers",
   "License :: OSI Approved :: MIT License",
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.14",
+  "Programming Language :: Python :: 3.10",
   "Topic :: Internet :: WWW/HTTP",
   "Framework :: FastAPI",
   "Typing :: Typed",
@@ -96,24 +96,8 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.pytest.ini_options]
 # Ontological collection order (core → stress). Do not alphabetize packages away.
-testpaths = [
-  "tests/core",
-  "tests/regions",
-  "tests/state",
-  "tests/asgi",
-  "tests/bridges",
-  "tests/client",
-  "tests/webrtc",
-  "tests/workplace",
-  "tests/agents",
-  "tests/redis_store",
-  "tests/ux_dom_glue",
-  "tests/dx",
-  "tests/foundations",
-  "tests/security",
-  "tests/stress",
-]
-pythonpath = [".", "tests"]
+testpaths = ["tests/gate"]  # monorepo gate; full suite: pytest tests -o testpaths=tests
+pythonpath = ["src", "tests"]
 asyncio_mode = "auto"
 filterwarnings = [
   "ignore::DeprecationWarning",

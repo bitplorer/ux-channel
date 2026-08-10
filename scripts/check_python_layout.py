@@ -7,7 +7,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-PKG = ROOT / "python" / "ux_channel"
+PKG = ROOT / "python" / "src" / "ux_channel"
 CATALOG = PKG / "zones" / "catalog.json"
 
 SKIP = {"__init__", "__init__.py", "__pycache__", "zones", "py.typed"}
@@ -55,7 +55,7 @@ def main() -> int:
         return 1
 
     # import zones
-    sys.path.insert(0, str(ROOT / "python"))
+    sys.path.insert(0, str(ROOT / "python" / "src"))
     from ux_channel.zones import ZONES, help_all  # noqa: WPS433
 
     assert len(ZONES) >= 8

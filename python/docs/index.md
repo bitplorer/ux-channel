@@ -1,0 +1,43 @@
+# uxchannel documentation
+
+**Intent → Action → Result(ops)** for server-driven UI.
+
+## Start here
+
+| Doc | Purpose |
+|-----|---------|
+| **[FEATURES](FEATURES.md)** | **Complete feature encyclopedia** (API · impl · use cases · tests) |
+| [GOLDEN_PATH](start/GOLDEN_PATH.md) | First working app |
+| [API_SURFACE](start/API_SURFACE.md) | What is public |
+| [LAYERS](start/LAYERS.md) | Where to import |
+| [HOW_TO](start/HOW_TO.md) | Recipes |
+| [FREEZE_0.1](start/FREEZE_0.1.md) | Frozen day-1 speech |
+
+## By plane (ontology)
+
+| Package | Topics |
+|---------|--------|
+| [start/](start/) | Golden path, API, layers, naming, principles |
+| [core/](core/) | Result, errors, wire contract |
+| [regions/](regions/) | Regions, components, morph paint |
+| [state/](state/) | Session / client / SSR state |
+| [asgi/](asgi/) | FastAPI, SSE, WebSocket, observability |
+| [bridges/](bridges/) | Bridge contracts, plugins, media, NPM |
+| [client/](client/) | JS runtime, CSRF, interop |
+| [webrtc/](webrtc/) | Signaling, ICE, security |
+| [workplace/](workplace/) | Workplace, I/O channel, outbox |
+| [agents/](agents/) | AX façade, MCP verticals |
+| [foundations/](foundations/) | Quantity, architecture, waves |
+| [security/](security/) | Security audit |
+| [production/](production/) | Deploy, soak, enterprise, Redis |
+| [dx/](dx/) | DX, scaffold, inspector, examples |
+
+## Day-1 imports
+
+```python
+from ux_channel import Channel, ChannelConfig, agents, state, attach_audit
+```
+
+Power layers: import by home (`ux_channel.quantity`, `.workplace`, `.io_channel`, …).
+
+- [Stack with ux-channel](STACK.md)

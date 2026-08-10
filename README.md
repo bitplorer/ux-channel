@@ -64,7 +64,7 @@ Read top → bottom if you are new. Layers do not mix “law” with “demo.”
 | [conformance/harness/](conformance/harness/) | Stdlib Python vector validators |
 | [startup-peer.sh](startup-peer.sh) | Idempotent local demo peer helper (oracle allow-listed) |
 
-> **Looking for Python code?** Open [`python/README.md`](python/README.md) and [`python/ux_channel/`](python/ux_channel/).  
+> **Looking for Python code?** Open [`python/README.md`](python/README.md) and [`python/src/ux_channel/`](python/src/ux_channel/).  
 > `demos/python_forward` is only a tiny HTTP client — not the product library.
 
 ### D. Planning only (not law)

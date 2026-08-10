@@ -1,17 +1,16 @@
-"""Shared fixtures for monorepo Python gate tests."""
+"""Shared fixtures for the uxchannel suite.
+
+Collection order is controlled by ``tool.pytest.ini_options.testpaths``
+(ontological packages, core → stress).
+"""
 from __future__ import annotations
 
 import pytest
 
-DEV_SECRET = "dev-secret-key-32chars-minimum!!!!"
-ORACLE_SECRET = "conformance-oracle-secret-32chars!!"
+# Ensure helpers importable as tests.helpers.*
+_pytest_plugins_disabled: list[str] = []
 
 
 @pytest.fixture
 def secret() -> str:
-    return DEV_SECRET
-
-
-@pytest.fixture
-def oracle_secret() -> str:
-    return ORACLE_SECRET
+    return "test-secret-key-32-chars-minimum!!"

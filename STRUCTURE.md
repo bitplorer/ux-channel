@@ -39,7 +39,7 @@ Full narrative (flows, algorithms, CXB negotiation status): [`HOW_IT_WORKS.md`](
 | Peer: `types`, `wire_json` | IR encode/decode floor |
 | Peer: `cap` API + verify rules | Authority path (oracle constant = test-only) |
 | Peer: `peer` gate (IR + present-cap) | Shared entry for “run action” |
-| `python/ux_channel/` (host package) | Reference Python implementation (wire, cap, ASGI) |
+| `python/src/ux_channel/` (host package) | Reference Python implementation (wire, cap, ASGI) |
 | `rust/` (`ux_channel_rs` crate) | Second peer implementation (types, cap, CXB, HTTP) |
 
 **Rule:** A change here is either a **bugfix** (behavior already required by SPEC/vectors) or a **new major**.

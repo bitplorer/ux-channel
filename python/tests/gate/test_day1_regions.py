@@ -101,7 +101,7 @@ def test_unknown_refresh_uid_does_not_crash():
 
 
 def test_client_js_preserves_uid_contract():
-    js_path = Path(__file__).resolve().parents[1] / "ux_channel/static/ux-channel.js"
+    js_path = Path(__file__).resolve().parents[2] / "src/ux_channel/static/ux-channel.js"
     js = js_path.read_text(encoding="utf-8")
     assert "data-channel-id" in js
     assert "replaceWith" in js

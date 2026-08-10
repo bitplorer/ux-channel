@@ -1,0 +1,12 @@
+{
+  "name": "@ux-channel/media-livekit",
+  "version": "0.1.0",
+  "description": "Thin LiveKit join helper — peerDep on livekit-client; tokens from ux-channel",
+  "type": "module",
+  "main": "index.js",
+  "peerDependencies": {
+    "livekit-client": ">=2.0.0"
+  },
+  "files": ["index.js", "README.md"],
+  "license": "MIT"
+}

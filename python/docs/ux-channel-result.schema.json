@@ -1,0 +1,615 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ux-channel.dev/schemas/result/v1.json",
+  "title": "ux-channel Result",
+  "description": "Server response for ux-channel actions (application/ux-channel+json).",
+  "oneOf": [
+    { "$ref": "#/$defs/Result" },
+    { "$ref": "#/$defs/ResultStreamEnvelope" }
+  ],
+  "$defs": {
+    "SemVer": {
+      "type": "string",
+      "pattern": "^1(\\.\\d+)*$"
+    },
+    "Selector": {
+      "type": "string",
+      "minLength": 1,
+      "description": "CSS selector or uid target id (e.g. #main, [data-channel-id=counter])."
+    },
+    "Html": {
+      "type": "string",
+      "description": "HTML fragment. Must be a forest of elements suitable for morph/swap."
+    },
+    "JsonValue": {
+      "description": "JSON-serializable value",
+      "type": ["null", "boolean", "number", "string", "array", "object"]
+    },
+    "Meta": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "action": {
+          "type": "string",
+          "description": "Fully-qualified action name, e.g. Counter.inc"
+        },
+        "request_id": {
+          "type": "string",
+          "description": "Echo of client request id for correlation"
+        },
+        "duration_ms": {
+          "type": "number",
+          "minimum": 0
+        },
+        "trace_id": { "type": "string" }
+      }
+    },
+    "ErrorObject": {
+      "type": "object",
+      "required": ["code", "message"],
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "type": "string",
+          "description": "Machine code: validation | unauthorized | not_found | conflict | internal | ..."
+        },
+        "message": {
+          "type": "string",
+          "description": "Human-readable summary"
+        },
+        "fields": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "description": "Field-level errors: { email: ['required'] }"
+        },
+        "retryable": { "type": "boolean" },
+        "details": { "$ref": "#/$defs/JsonValue" }
+      }
+    },
+
+    "OpBase": {
+      "type": "object",
+      "required": ["op"],
+      "properties": {
+        "op": { "type": "string" },
+        "meta": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      }
+    },
+
+    "OpMorph": {
+      "allOf": [
+        { "$ref": "#/$defs/OpBase" },
+        {
+          "type": "object",
+          "required": ["op", "target", "html"],
+          "additionalProperties": false,
+          "properties": {
+            "op": { "const": "morph" },
+            "target": { "$ref": "#/$defs/Selector" },
+            "html": { "$ref": "#/$defs/Html" },
+            "morph": {
+              "type": "string",
+              "enum": ["idiomorph", "outer", "inner"],
+              "default": "idiomorph",
+              "description": "Morph strategy. idiomorph preserves focus/nodes when possible."
+            },
+            "meta": { "type": "object", "additionalProperties": true }
+          }
+            }
+      ]
+    },
+
+    "OpSwap": {
+      "allOf": [
+        { "$ref": "#/$defs/OpBase" },
+        {
+          "type": "object",
+          "required": ["op", "target", "html"],
+          "additionalProperties": false,
+          "properties": {
+            "op": { "const": "swap" },
+            "target": { "$ref": "#/$defs/Selector" },
+            "html": { "$ref": "#/$defs/Html" },
+            "swap": {
+              "type": "string",
+              "enum": [
+                "innerHTML",
+                "outerHTML",
+                "beforebegin",
+                "afterbegin",
+                "beforeend",
+                "afterend",
+                "delete",
+                "none"
+              ],
+              "default": "outerHTML"
+            },
+            "settle_ms": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0
+            },
+            "meta": { "type": "object", "additionalProperties": true }
+          }
+        }
+      ]
+    },
+
+    "OpRemove": {
+      "allOf": [
+        { "$ref": "#/$defs/OpBase" },
+        {
+          "type": "object",
+          "required": ["op", "target"],
+          "additionalProperties": false,
+          "properties": {
+            "op": { "const": "remove" },
+            "target": { "$ref": "#/$defs/Selector" },
+            "meta": { "type": "object", "additionalProperties": true }
+          }
+        }
+      ]
+    },
+
+    "OpSetAttr": {
+      "allOf": [
+        { "$ref": "#/$defs/OpBase" },
+        {
+          "type": "object",
+          "required": ["op", "target", "attrs"],
+          "additionalProperties": false,
+          "properties": {
+            "op": { "const": "set_attr" },
+            "target": { "$ref": "#/$defs/Selector" },
+            "attrs": {
+              "type": "object",
+              "additionalProperties": {
+                "type": ["string", "null"],
+                "description": "null removes the attribute"
+              }
+            },
+            "meta": { "type": "object", "additionalProperties": true }
+          }
+        }
+      ]
+    },
+
+    "OpSetText": {
+      "allOf": [
+        { "$ref": "#/$defs/OpBase" },
+        {
+          "type": "object",
+          "required": ["op", "target", "text"],
+          "additionalProperties": false,
+          "properties": {
+            "op": { "const": "set_text" },
+            "target": { "$ref": "#/$defs/Selector" },
+            "text": { "type": "string" },
+            "meta": { "type": "object", "additionalProperties": true }
+          }
+        }
+      ]
+    },
+
+    "OpBridgeMount": {
+      "allOf": [
+        { "$ref": "#/$defs/OpBase" },
+        {
+          "type": "object",
+          "required": ["op", "id", "package"],
+          "additionalProperties": false,
+          "properties": {
+            "op": { "const": "bridge.mount" },
+            "id": {
+              "type": "string",
+              "description": "Stable bridge instance id (matches data-ux-bridge-id)"
+            },
+            "package": {
+              "type": "string",
+              "description": "Bridge package key, e.g. chart.js, leaflet"
+            },
+            "target": {
+              "$ref": "#/$defs/Selector",
+              "description": "Host element; default [data-ux-bridge-id=id]"
+            },
+            "props": { "$ref": "#/$defs/JsonValue" },
+            "meta": { "type": "object", "additionalProperties": true }
+          }
+        }
+      ]
+    },
+
+    "OpBridgeUpdate": {
+      "allOf": [
+        { "$ref": "#/$defs/OpBase" },
+        {
+          "type": "object",
+          "required": ["op", "id", "props"],
+          "additionalProperties": false,
+          "properties": {
+            "op": { "const": "bridge.update" },
+            "id": { "type": "string" },
+            "props": { "$ref": "#/$defs/JsonValue" },
+            "replace": {
+              "type": "boolean",
+              "default": false,
+              "description": "If true, replace props; else shallow-merge per adapter"
+            },
+            "meta": { "type": "object", "additionalProperties": true }
+          }
+        }
+      ]
+    },
+
+    "OpBridgeCall": {
+      "allOf": [
+        { "$ref": "#/$defs/OpBase" },
+        {
+          "type": "object",
+          "required": ["op", "id", "method"],
+          "additionalProperties": false,
+          "properties": {
+            "op": { "const": "bridge.call" },
+            "id": { "type": "string" },
+            "method": {
+              "type": "string",
+              "description": "Whitelisted method from bridge manifest"
+            },
+            "args": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/JsonValue" },
+              "default": []
+            },
+            "meta": { "type": "object", "additionalProperties": true }
+          }
+        }
+      ]
+    },
+
+    "OpBridgeDestroy": {
+      "allOf": [
+        { "$ref": "#/$defs/OpBase" },
+        {
+          "type": "object",
+          "required": ["op", "id"],
+          "additionalProperties": false,
+          "properties": {
+            "op": { "const": "bridge.destroy" },
+            "id": { "type": "string" },
+            "meta": { "type": "object", "additionalProperties": true }
+          }
+        }
+      ]
+    },
+
+    "OpNavigate": {
+      "allOf": [
+        { "$ref": "#/$defs/OpBase" },
+        {
+          "type": "object",
+          "required": ["op", "href"],
+          "additionalProperties": false,
+          "properties": {
+            "op": { "const": "navigate" },
+            "href": { "type": "string" },
+            "replace": {
+              "type": "boolean",
+              "default": false,
+              "description": "history.replaceState vs assign"
+            },
+            "meta": { "type": "object", "additionalProperties": true }
+          }
+        }
+      ]
+    },
+
+    "OpReload": {
+      "allOf": [
+        { "$ref": "#/$defs/OpBase" },
+        {
+          "type": "object",
+          "required": ["op"],
+          "additionalProperties": false,
+          "properties": {
+            "op": { "const": "reload" },
+            "meta": { "type": "object", "additionalProperties": true }
+          }
+        }
+      ]
+    },
+
+    "OpPushUrl": {
+      "allOf": [
+        { "$ref": "#/$defs/OpBase" },
+        {
+          "type": "object",
+          "required": ["op", "href"],
+          "additionalProperties": false,
+          "properties": {
+            "op": { "const": "push_url" },
+            "href": { "type": "string" },
+            "replace": { "type": "boolean", "default": false },
+            "meta": { "type": "object", "additionalProperties": true }
+          }
+        }
+      ]
+    },
+
+    "OpFocus": {
+      "allOf": [
+        { "$ref": "#/$defs/OpBase" },
+        {
+          "type": "object",
+          "required": ["op", "target"],
+          "additionalProperties": false,
+          "properties": {
+            "op": { "const": "focus" },
+            "target": { "$ref": "#/$defs/Selector" },
+            "select": {
+              "type": "boolean",
+              "default": false,
+              "description": "Select contents if input/textarea"
+            },
+            "meta": { "type": "object", "additionalProperties": true }
+          }
+        }
+      ]
+    },
+
+    "OpScroll": {
+      "allOf": [
+        { "$ref": "#/$defs/OpBase" },
+        {
+          "type": "object",
+          "required": ["op"],
+          "additionalProperties": false,
+          "properties": {
+            "op": { "const": "scroll" },
+            "target": { "$ref": "#/$defs/Selector" },
+            "top": { "type": "number" },
+            "left": { "type": "number" },
+            "behavior": {
+              "type": "string",
+              "enum": ["auto", "smooth"],
+              "default": "auto"
+            },
+            "meta": { "type": "object", "additionalProperties": true }
+          }
+        }
+      ]
+    },
+
+    "OpToast": {
+      "allOf": [
+        { "$ref": "#/$defs/OpBase" },
+        {
+          "type": "object",
+          "required": ["op", "message"],
+          "additionalProperties": false,
+          "properties": {
+            "op": { "const": "toast" },
+            "message": { "type": "string" },
+            "level": {
+              "type": "string",
+              "enum": ["info", "success", "warning", "error"],
+              "default": "info"
+            },
+            "duration_ms": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 4000
+            },
+            "meta": { "type": "object", "additionalProperties": true }
+          }
+        }
+      ]
+    },
+
+    "OpDispatch": {
+      "allOf": [
+        { "$ref": "#/$defs/OpBase" },
+        {
+          "type": "object",
+          "required": ["op", "name"],
+          "additionalProperties": false,
+          "properties": {
+            "op": { "const": "dispatch" },
+            "name": {
+              "type": "string",
+              "description": "DOM CustomEvent name, e.g. channel:cart-updated"
+            },
+            "target": {
+              "$ref": "#/$defs/Selector",
+              "description": "Default: document.body"
+            },
+            "detail": { "$ref": "#/$defs/JsonValue" },
+            "bubbles": { "type": "boolean", "default": true },
+            "meta": { "type": "object", "additionalProperties": true }
+          }
+        }
+      ]
+    },
+
+    "OpSignalSet": {
+      "allOf": [
+        { "$ref": "#/$defs/OpBase" },
+        {
+          "type": "object",
+          "required": ["op", "path", "value"],
+          "additionalProperties": false,
+          "properties": {
+            "op": { "const": "signal.set" },
+            "path": {
+              "type": "string",
+              "description": "Dot path into client signal store, e.g. ui.sidebarOpen"
+            },
+            "value": { "$ref": "#/$defs/JsonValue" },
+            "meta": { "type": "object", "additionalProperties": true }
+          }
+        }
+      ]
+    },
+
+    "OpClearErrors": {
+      "allOf": [
+        { "$ref": "#/$defs/OpBase" },
+        {
+          "type": "object",
+          "required": ["op"],
+          "additionalProperties": false,
+          "properties": {
+            "op": { "const": "clear_errors" },
+            "target": {
+              "$ref": "#/$defs/Selector",
+              "description": "Optional form root; default all [data-ux-error]"
+            },
+            "meta": { "type": "object", "additionalProperties": true }
+          }
+        }
+      ]
+    },
+
+    "OpNoop": {
+      "allOf": [
+        { "$ref": "#/$defs/OpBase" },
+        {
+          "type": "object",
+          "required": ["op"],
+          "additionalProperties": false,
+          "properties": {
+            "op": { "const": "noop" },
+            "meta": { "type": "object", "additionalProperties": true }
+          }
+        }
+      ]
+    },
+
+    "Op": {
+      "oneOf": [
+        { "$ref": "#/$defs/OpMorph" },
+        { "$ref": "#/$defs/OpSwap" },
+        { "$ref": "#/$defs/OpRemove" },
+        { "$ref": "#/$defs/OpSetAttr" },
+        { "$ref": "#/$defs/OpSetText" },
+        { "$ref": "#/$defs/OpBridgeMount" },
+        { "$ref": "#/$defs/OpBridgeUpdate" },
+        { "$ref": "#/$defs/OpBridgeCall" },
+        { "$ref": "#/$defs/OpBridgeDestroy" },
+        { "$ref": "#/$defs/OpNavigate" },
+        { "$ref": "#/$defs/OpReload" },
+        { "$ref": "#/$defs/OpPushUrl" },
+        { "$ref": "#/$defs/OpFocus" },
+        { "$ref": "#/$defs/OpScroll" },
+        { "$ref": "#/$defs/OpToast" },
+        { "$ref": "#/$defs/OpDispatch" },
+        { "$ref": "#/$defs/OpSignalSet" },
+        { "$ref": "#/$defs/OpClearErrors" },
+        { "$ref": "#/$defs/OpNoop" }
+      ]
+    },
+
+    "Result": {
+      "type": "object",
+      "required": ["v", "ops"],
+      "additionalProperties": false,
+      "properties": {
+        "v": {
+          "type": "string",
+          "const": "1",
+          "description": "Protocol major version. Always '1' for this schema. Not a region id."
+        },
+        "ok": {
+          "type": "boolean",
+          "default": true,
+          "description": "false when action failed; ops may still fix UI (e.g. show errors)"
+        },
+        "ops": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/Op" },
+          "description": "Apply in order. Empty array is valid (ok no-op)."
+        },
+        "error": {
+          "$ref": "#/$defs/ErrorObject",
+          "description": "Present when ok=false; may also drive toast/overlay"
+        },
+        "meta": { "$ref": "#/$defs/Meta" }
+      }
+    },
+
+    "ResultStreamEnvelope": {
+      "type": "object",
+      "required": ["v", "stream"],
+      "additionalProperties": false,
+      "description": "SSE/WebSocket framing: each event data is a Result or a chunk.",
+      "properties": {
+        "v": { "const": "1" },
+        "stream": { "const": true },
+        "chunk": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Monotonic chunk index"
+        },
+        "done": {
+          "type": "boolean",
+          "default": false
+        },
+        "result": {
+          "$ref": "#/$defs/Result",
+          "description": "Partial or final Result; ops append-applied if merge=append"
+        },
+        "merge": {
+          "type": "string",
+          "enum": ["replace", "append"],
+          "default": "append",
+          "description": "How to combine this chunk's ops with previous"
+        }
+      }
+    },
+
+    "Intent": {
+      "type": "object",
+      "required": ["v", "action"],
+      "additionalProperties": false,
+      "description": "Client → server action invocation (application/ux-channel+json request body).",
+      "properties": {
+        "v": { "const": "1" },
+        "action": {
+          "type": "string",
+          "description": "Registered action id, e.g. Counter.inc"
+        },
+        "args": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/$defs/JsonValue" },
+          "description": "Named args only (stable for codegen)"
+        },
+        "cap": {
+          "type": "string",
+          "description": "Signed capability token from SSR HTML (optional but recommended)"
+        },
+        "target": {
+          "type": "string",
+          "description": "Primary target id/selector hint for default morph"
+        },
+        "request_id": {
+          "type": "string",
+          "description": "Client-generated correlation id"
+        },
+        "form": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/$defs/JsonValue" },
+          "description": "Decoded form fields when intent from form submit"
+        },
+        "accept_stream": {
+          "type": "boolean",
+          "default": false
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,79 @@
+# Read the Docs / GitHub Pages — uxchannel documentation site
+site_name: uxchannel site_description: Intent → Action → Result(ops) — server-driven UI + WebRTC
+site_url: https://bitplorer.github.io/ux-channel/
+repo_url: https://github.com/bitplorer/uxchannel repo_name: bitplorer/uxchannel theme:
+  name: material
+  palette:
+    - scheme: slate
+      primary: deep purple
+      accent: amber
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - content.code.copy
+    - search.suggest
+
+nav:
+  - Home: index.md
+  - Features: FEATURES.md
+  - Start:
+      - Layers: start/LAYERS.md
+      - API surface: start/API_SURFACE.md
+      - Golden path: start/GOLDEN_PATH.md
+      - How-to: start/HOW_TO.md
+      - Freeze 0.1: start/FREEZE_0.1.md
+      - Glossary: start/GLOSSARY.md
+      - Naming: start/NAMING.md
+  - Core:
+      - Result: core/RESULT.md
+      - Wire: core/WIRE.md
+      - CXB: core/CXB.md
+      - CXB speed: core/CXB_SPEED.md
+      - CXB realworld: core/CXB_REALWORLD.md
+      - Errors: core/ERRORS.md
+  - Regions: regions/REGIONS.md
+  - State: state/STATE.md
+  - ASGI:
+      - FastAPI: asgi/FASTAPI.md
+      - WebSocket: asgi/WEBSOCKET.md
+      - SSE: asgi/SSE.md
+  - Bridges:
+      - Strategy: bridges/BRIDGE_STRATEGY.md
+      - Contract: bridges/BRIDGE_CONTRACT.md
+      - Plugins: bridges/PLUGINS.md
+  - Client:
+      - JS runtime: client/JS_RUNTIME.md
+      - CSRF: client/CSRF_CHANNEL_HEADER.md
+  - WebRTC:
+      - Overview: webrtc/WEBRTC.md
+      - Signaling: webrtc/WEBRTC_SIGNALING.md
+      - Security: webrtc/WEBRTC_SECURITY.md
+  - Workplace:
+      - Workplace: workplace/WORKPLACE.md
+      - I/O channel: workplace/IO_CHANNEL.md
+      - Outbox: workplace/OUTBOX.md
+  - Agents:
+      - AX: agents/AGENTS.md
+      - MCP verticals: agents/MCP_VERTICALS.md
+  - Foundations: foundations/FOUNDATIONS.md
+  - Production:
+      - Production: production/PRODUCTION.md
+      - Security: security/SECURITY_AUDIT.md
+      - Checklist: production/PRODUCTION_CHECKLIST.md
+  - DX:
+      - Scaffold: dx/SCAFFOLD.md
+      - Examples: dx/EXAMPLES.md
+  - Book: book/UX_CHANNEL_BOOK.md
+
+docs_dir: docs
+
+plugins:
+  - search
+
+markdown_extensions:
+  - admonition
+  - pymdownx.superfences
+  - pymdownx.details
+  - tables
+  - toc:
+      permalink: true

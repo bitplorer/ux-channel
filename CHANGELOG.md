@@ -1,3 +1,14 @@
+## 2026-08-10 — best of both: release layout + monorepo enhancements
+
+### Merged from release zip
+- `python/src/ux_channel` (classic src layout)
+- full `docs/`, `tests/`, `examples/`, `scripts/`, `ux_channel_ux_dom`
+
+### Kept from monorepo evolution
+- zones, day1, sorted args_hash, gate tests, Rust verify/cross-mint
+
+---
+
 ## 2026-08-10 — Python zones (anti-flat layout)
 
 ### Added

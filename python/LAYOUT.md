@@ -14,7 +14,7 @@ print(protocol.MEMBERS)
 ```
 
 ```text
-python/ux_channel/
+python/src/ux_channel/
   day1.py              ← preferred app imports
   zones/               ← INTENT MAP (this structure)
     protocol/          ← IR + wire + caps  (law w/ Rust)
