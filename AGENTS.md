@@ -71,4 +71,6 @@ CI runs the same on every push (`.github/workflows/ci.yml`).
 | Roadmap next steps | `ux-channel-roadmap.md` |
 | Full Python host library | `python/ux_channel/` (see `python/README.md`) |
 | Python concept map (regions, …) | `python/ONTOLOGY.md` |
+| Python host permanence | `python/STRUCTURE.md` |
+| Python day-1 imports | `ux_channel.day1` |
 | Thin Python→Rust forward | `demos/python_forward/` |

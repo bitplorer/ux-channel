@@ -1,3 +1,13 @@
+## 2026-08-10 — Python host long-term stability structure
+
+### Added
+- `ux_channel.day1` — narrow frozen import façade for apps
+- `python/STRUCTURE.md` — permanent vs moving inside the host package
+- Day-1 tests: regions (morph uid, refresh), public API freeze, cap/wire smoke
+- Gate now covers host UX plane, not only IR interop
+
+---
+
 ## 2026-08-10 — Python ontology map (regions & friends)
 
 ### Added

@@ -4,6 +4,7 @@
 Long-term stability comes from a small permanent core; confusion comes from treating demos and transports as the product.
 
 Layout decision: [`ARCHITECTURE.md`](ARCHITECTURE.md).  
+Python host permanence: [`python/STRUCTURE.md`](python/STRUCTURE.md) · map: [`python/ONTOLOGY.md`](python/ONTOLOGY.md).  
 Glossary: [`TERMINOLOGY.md`](TERMINOLOGY.md). Reference: [`REFERENCE.md`](REFERENCE.md).  
 Full narrative (flows, algorithms, CXB negotiation status): [`HOW_IT_WORKS.md`](HOW_IT_WORKS.md).
 

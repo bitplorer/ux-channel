@@ -171,10 +171,22 @@ All three register into the same **RegionBook** (`ch.regions`): uid → loader/r
 
 ## 6. Day-1 golden path (only imports you need)
 
+**Preferred** (narrow surface — fewer footguns):
+
+```python
+from ux_channel.day1 import Channel, ChannelConfig, Region, state, agents, attach_audit
+```
+
+**Also frozen** (same objects):
+
 ```python
 from ux_channel import Channel, ChannelConfig, Region, state, agents, attach_audit
+```
 
+```python
 ch = Channel.boot(app, config=ChannelConfig.development(secret="…"))
+# app may be omitted for pure in-process use:
+# ch = Channel.boot(secret="…")
 
 @ch.region
 def cart_badge(ctx):
@@ -203,13 +215,13 @@ badge = ch.use(CartBadge)   # registers region + actions
 ```
 
 **Stop here** until this is clear. Everything else is power tier.
+Structure permanence: [STRUCTURE.md](STRUCTURE.md).
 
----
 
 ## 7. Import map by intent (not by alphabet)
 
 ```text
-DAY-1 (from ux_channel import …)
+DAY-1 (prefer: from ux_channel.day1 import …)
   Channel, ChannelConfig     boot façade
   Region                     class-style slot
   RegionBook, RegionContext  via regions / Channel
@@ -296,7 +308,9 @@ Interop is at Intent/Result/cap — not at `@ch.region`.
 ```text
 python/
   ONTOLOGY.md                 ← you are here (map)
+  STRUCTURE.md                ← permanent vs moving (host)
   README.md                   ← package entry + tests
+  ux_channel/day1.py          ← narrow day-1 imports
   docs/start/                 ← layers, golden path, API surface
   docs/regions/               ← region recipes + FS + components note
   docs/core/                  ← wire / CXB / errors (IR)

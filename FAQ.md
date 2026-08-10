@@ -14,6 +14,14 @@ Words: [TERMINOLOGY.md](TERMINOLOGY.md) · Flows: [HOW_IT_WORKS.md](HOW_IT_WORKS
 
 Full decision table: [`python/ONTOLOGY.md`](python/ONTOLOGY.md).
 
+### How should new Python apps import the library?
+
+```python
+from ux_channel.day1 import Channel, ChannelConfig, Region, state, agents
+```
+
+Same objects as `from ux_channel import …`, but documents day-1 intent. See [`python/STRUCTURE.md`](python/STRUCTURE.md).
+
 ### What is ux-channel in one sentence?
 
 A shared **Intent → Result + ops** contract so any peer (Python, Rust, …) can run actions under **capability tokens**, with **JSON always working** and optional denser binary (CXB).

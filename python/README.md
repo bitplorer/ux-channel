@@ -3,7 +3,8 @@
 **This is where the full Python library lives.**
 
 > **Confused about regions / bridges / state / actions?**  
-> Start here → **[ONTOLOGY.md](ONTOLOGY.md)** (logical map of what is what and which import to use).  
+> Start here → **[ONTOLOGY.md](ONTOLOGY.md)** · stability → **[STRUCTURE.md](STRUCTURE.md)**  
+> Day-1 code: `from ux_channel.day1 import Channel, Region, …` (logical map of what is what and which import to use).  
 > Then [docs/regions/REGIONS.md](docs/regions/REGIONS.md) for recipes.
 
 ```text
@@ -82,5 +83,8 @@ make test-python
 PYTHONPATH=python pytest python/tests -q
 ```
 
-These tests prove the host package matches shared `conformance/` (same law Rust must pass).
+These tests prove:
+- interop with shared `conformance/` (same law as Rust)
+- frozen public API + `day1` façade
+- day-1 regions (morph uid, refresh, actions) without FastAPI
 

@@ -12,6 +12,9 @@ Day-1
 -----
 ``Channel.boot`` → ``@region`` / ``@on`` → ``control`` → ``agents`` / ``state`` → ``done``.
 
+Prefer ``from ux_channel.day1 import Channel, Region, …`` for new apps
+(same objects as root; narrower speech). See ``python/ONTOLOGY.md`` + ``STRUCTURE.md``.
+
 Import map (stable)
 -------------------
 ::

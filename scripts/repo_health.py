@@ -52,6 +52,10 @@ REQUIRED = [
     "requirements-dev.txt",
     "python/tests/test_interop_conformance.py",
     "python/ONTOLOGY.md",
+    "python/tests/test_public_api_freeze.py",
+    "python/tests/test_day1_regions.py",
+    "python/ux_channel/day1.py",
+    "python/STRUCTURE.md",
     "Makefile",
     "pytest.ini",
 ]
