@@ -1,0 +1,15 @@
+{
+  "ok": true,
+  "ops": [
+    {
+      "op": "morph",
+      "target": "#counter",
+      "html": "<span data-channel-id=\"counter\">3</span>",
+      "morph": "idiomorph"
+    }
+  ],
+  "meta": {
+    "action": "Counter.inc",
+    "duration_ms": 1.2
+  }
+}

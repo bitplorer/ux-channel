@@ -1,0 +1,11 @@
+{
+  "source": "vectors/intent/01-minimal.json",
+  "file": "expected/cxb/intent__01-minimal.cxb",
+  "category": "intent",
+  "magic": "CXB1",
+  "len": 42,
+  "sha256": "1db8a30c4ef098630b7dc494d174677f6e720be625879713dece6d19912806a4",
+  "sha256_prefix": "1db8a30c4ef09863",
+  "hex": "435842310100000300010501310002050b436f756e7465722e696e630003090180007e4352431f62eef6",
+  "b64": "Q1hCMQEAAAMAAQUBMQACBQtDb3VudGVyLmluYwADCQGAAH5DUkMfYu72"
+}

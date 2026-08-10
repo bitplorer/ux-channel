@@ -1,0 +1,15 @@
+{
+  "ok": false,
+  "ops": [],
+  "error": {
+    "code": "validation",
+    "message": "qty must be a positive integer",
+    "fields": {
+      "qty": ["must be >= 1"]
+    },
+    "retryable": false
+  },
+  "meta": {
+    "action": "Cart.add"
+  }
+}

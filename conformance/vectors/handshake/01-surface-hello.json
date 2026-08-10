@@ -1,0 +1,20 @@
+{
+  "type": "PeerHello",
+  "ir_version": "1",
+  "formats": ["json", "cxb"],
+  "surfaces": [
+    "dom.morph",
+    "dom.toast",
+    "dom.navigate",
+    "bridge.mount",
+    "delta.patch",
+    "signal.set"
+  ],
+  "actions": [
+    "Cart.add",
+    "Cart.view",
+    "Counter.inc"
+  ],
+  "peer": "example-python-asgi",
+  "notes": "Phase 1.5 / Phase 3 handshake shape. Optional; basic Intent/Result interop does not require it."
+}

@@ -1,0 +1,12 @@
+{
+  "ok": true,
+  "ops": [
+    {
+      "op": "navigate",
+      "href": "/cart"
+    }
+  ],
+  "meta": {
+    "action": "Cart.view"
+  }
+}

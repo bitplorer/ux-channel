@@ -1,0 +1,13 @@
+{
+  "ok": true,
+  "ops": [
+    {
+      "op": "toast",
+      "message": "Item added to cart",
+      "level": "success"
+    }
+  ],
+  "meta": {
+    "action": "Cart.add"
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "ok": true,
+  "ops": [
+    {
+      "op": "toast",
+      "message": "Shipped"
+    }
+  ],
+  "meta": {
+    "action": "Order.ship"
+  },
+  "trace": {
+    "intent_id": "int-9f2c1a",
+    "hops": [
+      {
+        "peer": "python-asgi-1",
+        "at": "2026-08-10T08:00:00Z",
+        "cap_fingerprint": "sha256:abc…",
+        "signature": "base64:…"
+      }
+    ]
+  }
+}

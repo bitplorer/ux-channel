@@ -1,0 +1,11 @@
+{
+  "source": "vectors/intent/03-with-cap-placeholder.json",
+  "file": "expected/cxb/intent__03-with-cap-placeholder.cxb",
+  "category": "intent",
+  "magic": "CXB1",
+  "len": 103,
+  "sha256": "abb2fb0367b2cfec1af4e299f62ccf1b1ec6f7dc711168810e800ba3ff8aaec8",
+  "sha256_prefix": "abb2fb0367b2cfec",
+  "hex": "4358423101000005000105013100020508436172742e6164640003091282a3736b75a76162632d313233a3717479020004051c7365653a6361702f30322d6f7261636c652d746f6b656e2e6a736f6e0006050b7265712d6361702d303031007e435243c3650e7d",
+  "b64": "Q1hCMQEAAAUAAQUBMQACBQhDYXJ0LmFkZAADCRKCo3NrdadhYmMtMTIzo3F0eQIABAUcc2VlOmNhcC8wMi1vcmFjbGUtdG9rZW4uanNvbgAGBQtyZXEtY2FwLTAwMQB+Q1JDw2UOfQ=="
+}

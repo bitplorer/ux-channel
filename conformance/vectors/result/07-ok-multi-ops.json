@@ -1,0 +1,25 @@
+{
+  "ok": true,
+  "ops": [
+    {
+      "op": "morph",
+      "target": "#cart-badge",
+      "html": "<span id=\"cart-badge\">3</span>"
+    },
+    {
+      "op": "toast",
+      "message": "Added to cart",
+      "level": "success"
+    },
+    {
+      "op": "signal_set",
+      "name": "cart.count",
+      "value": 3
+    }
+  ],
+  "meta": {
+    "action": "Cart.add",
+    "request_id": "req-7f3a9c2e",
+    "duration_ms": 4.1
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "ok": true,
+  "ops": [
+    {
+      "op": "toast",
+      "message": "Robot advanced"
+    }
+  ],
+  "meta": {
+    "action": "Robot.move"
+  },
+  "trace": {
+    "intent_id": "int-robot-42",
+    "caused_by": "int-order-ship-9",
+    "hops": [
+      {
+        "peer": "python-asgi-1",
+        "at": "2026-08-10T08:00:00Z",
+        "cap_fingerprint": "sha256:aaa…",
+        "signature": "base64:sig1…"
+      },
+      {
+        "peer": "rust-worker-floor-1",
+        "at": "2026-08-10T08:00:01Z",
+        "cap_fingerprint": "sha256:bbb…",
+        "signature": "base64:sig2…"
+      }
+    ]
+  }
+}

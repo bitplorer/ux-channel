@@ -1,0 +1,6 @@
+/target/
+**/target/
+*.zip
+.DS_Store
+**/__pycache__/
+*.pyc

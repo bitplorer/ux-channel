@@ -1,0 +1,11 @@
+{
+  "source": "vectors/intent/02-with-request-id.json",
+  "file": "expected/cxb/intent__02-with-request-id.cxb",
+  "category": "intent",
+  "magic": "CXB1",
+  "len": 72,
+  "sha256": "98b9f449b8769c8b2734770b0fd0c95a3a88ef8e4872e0d7ef3c5f1ce96d43b7",
+  "sha256_prefix": "98b9f449b8769c8b",
+  "hex": "4358423101000004000105013100020508436172742e6164640003091282a3736b75a76162632d313233a3717479020006050c7265712d3766336139633265007e4352434203f602",
+  "b64": "Q1hCMQEAAAQAAQUBMQACBQhDYXJ0LmFkZAADCRKCo3NrdadhYmMtMTIzo3F0eQIABgUMcmVxLTdmM2E5YzJlAH5DUkNCA/YC"
+}

@@ -1,0 +1,11 @@
+{
+  "source": "vectors/trace/03-missing-trace-still-valid.json",
+  "file": "expected/cxb/trace__03-missing-trace-still-valid.cxb",
+  "category": "trace",
+  "magic": "CXB1",
+  "len": 90,
+  "sha256": "735e938f993cd15961ee6bbb265df71545daeedd04fcc787f993f76036cf48f5",
+  "sha256_prefix": "735e938f993cd159",
+  "hex": "4358423102000003000202000307010b030105056d6f727068020507237374617475730305103c6469763e52656164793c2f6469763e0005091781a6616374696f6eae5374617475732e72656672657368007e435243cb7daa43",
+  "b64": "Q1hCMQIAAAMAAgIAAwcBCwMBBQVtb3JwaAIFByNzdGF0dXMDBRA8ZGl2PlJlYWR5PC9kaXY+AAUJF4GmYWN0aW9urlN0YXR1cy5yZWZyZXNoAH5DUkPLfapD"
+}

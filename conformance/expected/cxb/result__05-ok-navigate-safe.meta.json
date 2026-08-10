@@ -1,0 +1,11 @@
+{
+  "source": "vectors/result/05-ok-navigate-safe.json",
+  "file": "expected/cxb/result__05-ok-navigate-safe.cxb",
+  "category": "result",
+  "magic": "CXB1",
+  "len": 67,
+  "sha256": "b9a19f612dbcccac3e334fec0352d2a0f587f58d56c27fdaf8a1351a68f043f5",
+  "sha256_prefix": "b9a19f612dbcccac",
+  "hex": "4358423102000003000202000307010b020105086e617669676174651505052f636172740005091281a6616374696f6ea9436172742e76696577007e43524392fdcc98",
+  "b64": "Q1hCMQIAAAMAAgIAAwcBCwIBBQhuYXZpZ2F0ZRUFBS9jYXJ0AAUJEoGmYWN0aW9uqUNhcnQudmlldwB+Q1JDkv3MmA=="
+}

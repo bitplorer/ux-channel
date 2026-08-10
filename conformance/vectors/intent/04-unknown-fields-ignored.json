@@ -1,0 +1,9 @@
+{
+  "v": "1",
+  "action": "Counter.inc",
+  "args": {},
+  "future_extension": {
+    "note": "receivers must ignore unknown top-level fields"
+  },
+  "x_custom": 42
+}

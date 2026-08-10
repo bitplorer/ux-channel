@@ -1,0 +1,136 @@
+{
+  "suite": "ux-channel-cxb-expected-0.1",
+  "oracle": "ux_channel.wire.cxb.encode_cxb_python",
+  "package_version": "0.1.0",
+  "media_type": "application/ux-channel+cxb",
+  "magic": "CXB1",
+  "magic_z": "CXBZ",
+  "vectors": [
+    {
+      "source": "vectors/intent/01-minimal.json",
+      "file": "expected/cxb/intent__01-minimal.cxb",
+      "category": "intent",
+      "magic": "CXB1",
+      "len": 42,
+      "sha256": "1db8a30c4ef098630b7dc494d174677f6e720be625879713dece6d19912806a4",
+      "sha256_prefix": "1db8a30c4ef09863"
+    },
+    {
+      "source": "vectors/intent/02-with-request-id.json",
+      "file": "expected/cxb/intent__02-with-request-id.cxb",
+      "category": "intent",
+      "magic": "CXB1",
+      "len": 72,
+      "sha256": "98b9f449b8769c8b2734770b0fd0c95a3a88ef8e4872e0d7ef3c5f1ce96d43b7",
+      "sha256_prefix": "98b9f449b8769c8b"
+    },
+    {
+      "source": "vectors/intent/03-with-cap-placeholder.json",
+      "file": "expected/cxb/intent__03-with-cap-placeholder.cxb",
+      "category": "intent",
+      "magic": "CXB1",
+      "len": 103,
+      "sha256": "abb2fb0367b2cfec1af4e299f62ccf1b1ec6f7dc711168810e800ba3ff8aaec8",
+      "sha256_prefix": "abb2fb0367b2cfec"
+    },
+    {
+      "source": "vectors/intent/04-unknown-fields-ignored.json",
+      "file": "expected/cxb/intent__04-unknown-fields-ignored.cxb",
+      "category": "intent",
+      "magic": "CXB1",
+      "len": 126,
+      "sha256": "e6f0f97a12c3b3db4fbb2a4499e7103ce180066f2efff881390504db319eb589",
+      "sha256_prefix": "e6f0f97a12c3b3db"
+    },
+    {
+      "source": "vectors/result/01-ok-morph.json",
+      "file": "expected/cxb/result__01-ok-morph.cxb",
+      "category": "result",
+      "magic": "CXB1",
+      "len": 145,
+      "sha256": "ea6c2a68c55f515da3c56d30b46ea62b3698aed6d86ae4ea26985eaf3139af1e",
+      "sha256_prefix": "ea6c2a68c55f515d"
+    },
+    {
+      "source": "vectors/result/02-ok-toast.json",
+      "file": "expected/cxb/result__02-ok-toast.cxb",
+      "category": "result",
+      "magic": "CXB1",
+      "len": 86,
+      "sha256": "1d6cbf14c70bce675cd13c95600b8c8efe9648a8b1a396186ba1cf399437233e",
+      "sha256_prefix": "1d6cbf14c70bce67"
+    },
+    {
+      "source": "vectors/result/03-error-unauthorized.json",
+      "file": "expected/cxb/result__03-error-unauthorized.cxb",
+      "category": "result",
+      "magic": "CXB1",
+      "len": 133,
+      "sha256": "5372c13d8b86e32724e2e1d5123b0632643f11e17196c30eeba9ce450854974a",
+      "sha256_prefix": "5372c13d8b86e327"
+    },
+    {
+      "source": "vectors/result/04-error-validation.json",
+      "file": "expected/cxb/result__04-error-validation.cxb",
+      "category": "result",
+      "magic": "CXB1",
+      "len": 142,
+      "sha256": "a6479edddfb6de5fe406afd2cf1292ff5bd70336bf52febf1b32c518e2d4f577",
+      "sha256_prefix": "a6479edddfb6de5f"
+    },
+    {
+      "source": "vectors/result/05-ok-navigate-safe.json",
+      "file": "expected/cxb/result__05-ok-navigate-safe.cxb",
+      "category": "result",
+      "magic": "CXB1",
+      "len": 67,
+      "sha256": "b9a19f612dbcccac3e334fec0352d2a0f587f58d56c27fdaf8a1351a68f043f5",
+      "sha256_prefix": "b9a19f612dbcccac"
+    },
+    {
+      "source": "vectors/result/06-ok-signal-and-noop.json",
+      "file": "expected/cxb/result__06-ok-signal-and-noop.cxb",
+      "category": "result",
+      "magic": "CXB1",
+      "len": 109,
+      "sha256": "6e4fe48b08d01bf24455d9351a8e4ea0c5e2ac9903c08dc64755fd5213837420",
+      "sha256_prefix": "6e4fe48b08d01bf2"
+    },
+    {
+      "source": "vectors/result/07-ok-multi-ops.json",
+      "file": "expected/cxb/result__07-ok-multi-ops.cxb",
+      "category": "result",
+      "magic": "CXB1",
+      "len": 214,
+      "sha256": "a78e26a8d48f75545bf3e52f67298810c9a25d164e067564f37871a158d22999",
+      "sha256_prefix": "a78e26a8d48f7554"
+    },
+    {
+      "source": "vectors/trace/01-single-hop.json",
+      "file": "expected/cxb/trace__01-single-hop.cxb",
+      "category": "trace",
+      "magic": "CXB1",
+      "len": 198,
+      "sha256": "ec8a86c9104a4f5440f38787620976850d4dfe9835d5b978ac888afa0a20ed0c",
+      "sha256_prefix": "ec8a86c9104a4f54"
+    },
+    {
+      "source": "vectors/trace/02-multi-hop.json",
+      "file": "expected/cxb/trace__02-multi-hop.cxb",
+      "category": "trace",
+      "magic": "CXB1",
+      "len": 344,
+      "sha256": "fe2384e8647f91e4999ae8ce36dbe4f21a2154924df63c72b2a94995b31a947b",
+      "sha256_prefix": "fe2384e8647f91e4"
+    },
+    {
+      "source": "vectors/trace/03-missing-trace-still-valid.json",
+      "file": "expected/cxb/trace__03-missing-trace-still-valid.cxb",
+      "category": "trace",
+      "magic": "CXB1",
+      "len": 90,
+      "sha256": "735e938f993cd15961ee6bbb265df71545daeedd04fcc787f993f76036cf48f5",
+      "sha256_prefix": "735e938f993cd159"
+    }
+  ]
+}

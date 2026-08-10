@@ -1,0 +1,10 @@
+{
+  "v": "1",
+  "action": "Cart.add",
+  "args": {
+    "sku": "abc-123",
+    "qty": 2
+  },
+  "cap": "see:cap/02-oracle-token.json",
+  "request_id": "req-cap-001"
+}

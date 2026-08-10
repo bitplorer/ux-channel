@@ -1,0 +1,46 @@
+{
+  "ir_version": "1",
+  "suite": "ux-channel-conformance-0.1",
+  "description": "Language-agnostic golden vectors for Intent / Result / ops / cap / optional trace / handshake + CXB expected blobs",
+  "vectors": {
+    "intent": [
+      {"file": "intent/01-minimal.json", "kind": "positive", "notes": "smallest valid Intent"},
+      {"file": "intent/02-with-request-id.json", "kind": "positive"},
+      {"file": "intent/03-with-cap-placeholder.json", "kind": "positive", "notes": "cap string placeholder; see cap/02-oracle-token.json"},
+      {"file": "intent/04-unknown-fields-ignored.json", "kind": "positive", "notes": "receivers must ignore unknown top-level fields"}
+    ],
+    "result": [
+      {"file": "result/01-ok-morph.json", "kind": "positive"},
+      {"file": "result/02-ok-toast.json", "kind": "positive"},
+      {"file": "result/03-error-unauthorized.json", "kind": "negative", "expect_error_code": "unauthorized"},
+      {"file": "result/04-error-validation.json", "kind": "negative", "expect_error_code": "validation"},
+      {"file": "result/05-ok-navigate-safe.json", "kind": "positive"},
+      {"file": "result/06-ok-signal-and-noop.json", "kind": "positive"},
+      {"file": "result/07-ok-multi-ops.json", "kind": "positive"}
+    ],
+    "cap": [
+      {"file": "cap/01-valid-notes.md", "kind": "notes"},
+      {"file": "cap/02-oracle-token.json", "kind": "oracle", "notes": "illustrative token with known secret + args_hash algorithm"}
+    ],
+    "trace": [
+      {"file": "trace/01-single-hop.json", "kind": "positive", "optional": true},
+      {"file": "trace/02-multi-hop.json", "kind": "positive", "optional": true},
+      {"file": "trace/03-missing-trace-still-valid.json", "kind": "positive", "notes": "absence of trace must not break basic interop"}
+    ],
+    "handshake": [
+      {"file": "handshake/01-surface-hello.json", "kind": "positive", "optional": true, "notes": "Phase 1.5/3 surface capability advertisement"}
+    ]
+  },
+  "cxb_expected": {
+    "index": "expected/cxb/index.json",
+    "notes": "Frozen CXB1 blobs from pure-Python oracle; validated by validate_cxb_expected.py and Rust uxc_check"
+  },
+  "phase1_exit_criteria": [
+    "All positive Intent/Result vectors round-trip through JSON encode/decode",
+    "Unknown fields ignored",
+    "Error codes stable for unauthorized and validation",
+    "Structural harness (validate_json_vectors.py) passes",
+    "At least one second implementation can load the suite",
+    "Cap concrete tokens + CXB expected blobs added under expected/ (oracle path started)"
+  ]
+}

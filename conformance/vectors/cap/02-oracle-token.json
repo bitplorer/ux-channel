@@ -1,0 +1,25 @@
+{
+  "description": "Illustrative capability token generated with a known conformance secret. Real package tokens use ux_channel.serde for args canonicalization; this uses stdlib json sorted keys for portability until the exact oracle is extracted.",
+  "oracle": {
+    "secret": "conformance-oracle-secret-32chars!!",
+    "salt": "ux-channel-cap",
+    "serializer": "itsdangerous.URLSafeTimedSerializer",
+    "args_hash_algo": "sha256(json.dumps(args, sort_keys=True, separators=(',', ':'), default=str).encode()).hexdigest()[:32]"
+  },
+  "sealed_args": {
+    "sku": "abc-123",
+    "qty": 2
+  },
+  "payload": {
+    "action": "Cart.add",
+    "args_hash": "96e4f83e3793b646323a67f314b51044",
+    "sub": "user:42",
+    "scopes": ["cart:write"]
+  },
+  "token": ".eJwNzTEOgzAMheG7eEYVwW4CWXsMVFVOMCVLqeKgDoi71-vT9_SfwLmV_QMRHlzbjZcFOuD61tfGutk8eaF1RMEwYfLkcUD2YUVH6e56IuOFG0QXRo_Ym-hAj2TPQ6VGGgxo3r-iEGfIFom_WprA8_oD5XckXw.ank-Fg.HIk4N8tAZHe6Uhw8s6oLu02uPxg",
+  "expect": {
+    "verify_same_args": "ok",
+    "verify_qty_3": "args_hash mismatch",
+    "verify_wrong_action": "action mismatch"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "ok": false,
+  "ops": [],
+  "error": {
+    "code": "unauthorized",
+    "message": "capability expired — re-render control via ch.control"
+  },
+  "meta": {
+    "action": "Cart.add"
+  }
+}

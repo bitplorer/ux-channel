@@ -1,0 +1,13 @@
+{
+  "ok": true,
+  "ops": [
+    {
+      "op": "morph",
+      "target": "#status",
+      "html": "<div>Ready</div>"
+    }
+  ],
+  "meta": {
+    "action": "Status.refresh"
+  }
+}

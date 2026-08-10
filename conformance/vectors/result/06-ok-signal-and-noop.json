@@ -1,0 +1,17 @@
+{
+  "ok": true,
+  "ops": [
+    {
+      "op": "signal_set",
+      "name": "cart.count",
+      "value": 3
+    },
+    {
+      "op": "noop",
+      "reason": "legacy client ignored"
+    }
+  ],
+  "meta": {
+    "action": "Cart.add"
+  }
+}
