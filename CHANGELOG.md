@@ -1,8 +1,20 @@
+## 2026-08-10 — thorough cleanup wave (professional names)
+
+- `paint` → `render` (`renderers`, `kit`)
+- `zones` → `catalog`
+- `recipes` → `patterns`, `planes` → `state_planes`, `jsonutil` → `json_codec`
+- `Channel.mental_model` → `Channel.describe`
+- `examples/dx_dashboard` → `examples/dashboard`
+- String import paths fixed after shim removal (`ux_channel.realtime.*`)
+- Layout check forbids legacy package dirs
+
+---
+
 ## 2026-08-10 — professional package names (no DX/meta jargon)
 
 - `host/dx.py` → `host/channel.py`
-- `ops_dx/` → `devtools/` (`dx_*` modules → dashboard/log/errors)
-- `bridge_meta/` → `bridge/`
+- `devtools/` → `devtools/` (`dx_*` modules → dashboard/log/errors)
+- `bridge/` → `bridge/`
 
 ---
 
@@ -90,7 +102,7 @@ Ticket helpers (`sign_push`, `sign_ws`, …) unchanged — not the cap API.
 ## 2026-08-10 — Python zones (anti-flat layout)
 
 ### Added
-- `ux_channel.zones.*` — intent hubs (protocol, host, render, …)
+- `ux_channel.catalog.*` — intent hubs (protocol, host, render, …)
 - `python/LAYOUT.md` — every top-level module mapped to a zone
 - `scripts/check_python_layout.py` — fail if orphans appear
 - FAQ: flat tree vs stale/drift clarified

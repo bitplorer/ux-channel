@@ -9,7 +9,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from ux_channel import Channel, ChannelConfig, Result, morph
-from ux_channel.paint.demo import attr_string, demo_button, demo_page, demo_scripts, script_tags
+from ux_channel.render.kit import attr_string, demo_button, demo_page, demo_scripts, script_tags
 from ux_channel.asgi.fastapi import mount_channel
 from ux_channel.transport.push import PushBus, get_push_bus
 from ux_channel.security.push_security import (

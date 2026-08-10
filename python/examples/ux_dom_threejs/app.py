@@ -1,5 +1,5 @@
 from ux_channel.bridge.bridge_api import mount_html, mount_ops, update_ops, register_simple_manifest
-from ux_channel.paint.demo import (
+from ux_channel.render.kit import (
     attr_string,
     demo_button,
     demo_page,

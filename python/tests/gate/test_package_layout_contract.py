@@ -48,3 +48,10 @@ def test_package_public_api():
     assert callable(morph)
     svc = CapService("dev-secret-key-32chars-minimum!!!!")
     assert svc.mint("T", {})
+
+
+def test_no_legacy_package_dirs():
+    from pathlib import Path
+    root = Path(__import__("ux_channel").__file__).resolve().parent
+    for name in ("paint", "ops_dx", "bridge_meta", "day1", "zones", "security_plane"):
+        assert not (root / name).exists(), name

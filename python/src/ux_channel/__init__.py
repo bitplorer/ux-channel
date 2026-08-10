@@ -75,7 +75,7 @@ from ux_channel.host.regions import RegionBook, RegionContext, RegionDef
 from ux_channel.host.region_component import Region
 from ux_channel.host.flow import Flow, FailFlow, attach_flow
 from ux_channel.host.ssr_state import ssr_state, attach_ssr_state, SsrState, SessionVar, Namespace
-from ux_channel.host.planes import (
+from ux_channel.host.state_planes import (
     planes,
     attach_planes,
     Planes,
@@ -95,14 +95,14 @@ from ux_channel.devtools.inspect_api import inspect_channel, inspect_enabled
 from ux_channel.devtools.audit import attach_audit, AuditBundle
 
 # ── HTML safety + control attrs ───────────────────────────────────────────
-from ux_channel.paint.html import (
+from ux_channel.render.html import (
     ControlAttrs,
     action_attrs,
     attr_escape,
     form_open,
     json_attr,
 )
-from ux_channel.paint.html_safe import SafeHtml, esc, mark_safe, user_content
+from ux_channel.render.html_safe import SafeHtml, esc, mark_safe, user_content
 
 # ── Error plane ───────────────────────────────────────────────────────────
 from ux_channel.protocol.error_map import (

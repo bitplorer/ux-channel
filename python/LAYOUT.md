@@ -1,36 +1,35 @@
-# Python layout — packages only (no shims)
+# Python layout
 
-See [STABILITY.md](STABILITY.md) for rules.
+See [STABILITY.md](STABILITY.md).
 
 ```text
-App  →  day1/  or  root __init__ exports
+App  →  api/  or  root exports
          │
          ▼
- protocol/   host/   paint/   security/   transport/   …
-   Cap*       Channel  morph    CSRF        batch
-   Intent     Region   HTML     limits      push
-   ops        state
+ protocol/   host/   render/   security/   transport/   …
+   Cap*       Channel  morph     CSRF        batch
+   Intent     Region   HTML      limits      push
+   ops        state    renderers
 ```
 
 | Package | Intent |
 |---------|--------|
-| `day1` | App imports |
+| `api` | Application surface |
 | `protocol` | IR + caps (Rust-parity) |
 | `host` | Channel, regions, actions, state |
-| `paint` | Morph / HTML |
+| `render` | Morph / HTML / placement / renderers |
 | `security` | Auth doors / limits |
 | `transport` | Streaming helpers |
 | `foundations` | Quantity / provenance / io |
 | `realtime` | WebRTC |
 | `bridge` | Bridge contracts |
-| `devtools` | DX / audit / CLI |
-| `wire` `asgi` `bridges` … | Product planes |
+| `bridges` | npm presets |
+| `devtools` | DX tooling / audit / CLI |
+| `catalog` | Package navigator |
 
 ```python
-from ux_channel.api import Channel, Region
-from ux_channel.host.regions import RegionBook
-from ux_channel.protocol.capability import CapService
+from ux_channel import Channel, Region
+from ux_channel.host.channel import Channel
+from ux_channel.protocol import CapService
+from ux_channel.render.renderers import HtmlRenderer
 ```
-
-`PACKAGE_MAP.json` lists every implementation module.  
-`scripts/sync_python_layout.py --check` forbids top-level alias modules.

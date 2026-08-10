@@ -21,7 +21,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from ux_channel import Channel, ChannelConfig
-from ux_channel.paint.html import ControlAttrs
+from ux_channel.render.html import ControlAttrs
 from ux_channel.security.security import channel_header_ok
 
 

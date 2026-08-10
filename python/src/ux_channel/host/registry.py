@@ -59,7 +59,7 @@ from ux_channel.security.limits import (
     enforce_result_limits,
 )
 from ux_channel.host.nonce import NonceStore
-from ux_channel.paint.render import ChainRenderer, HtmlRenderer, StringRenderer
+from ux_channel.render.renderers import ChainRenderer, HtmlRenderer, StringRenderer
 from ux_channel.devtools.trace import FrameKind, get_tracer, new_trace_id
 from ux_channel.security.security import sanitize_op_hrefs, validate_action_name
 
@@ -70,7 +70,7 @@ def _sec(kind: str, **kw) -> None:
     except Exception:
         logger.debug("security_events emit failed kind=%s", kind, exc_info=True)
 
-from ux_channel.protocol.jsonutil import JsonLimitError, check_json_limits
+from ux_channel.protocol.json_codec import JsonLimitError, check_json_limits
 from ux_channel.protocol.types import Intent, Result
 
 if TYPE_CHECKING:
@@ -78,7 +78,7 @@ if TYPE_CHECKING:
 
 ActionHandler = Callable[..., Any]
 _principal_override: contextvars.ContextVar = contextvars.ContextVar("uid_principal", default=None)
-logger = logging.getLogger("ux_channel.registry")
+logger = logging.getLogger("ux_channel.host.registry")
 _request_var: contextvars.ContextVar[Any] = contextvars.ContextVar("ux_channel_request", default=None)
 
 

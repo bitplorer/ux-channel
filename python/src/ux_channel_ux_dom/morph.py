@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any, Optional
 
-from ux_channel.paint.morph_ir import MorphNode, elem, lower_html, morph_ops, text_node
+from ux_channel.render.morph_ir import MorphNode, elem, lower_html, morph_ops, text_node
 from ux_channel_ux_dom.tree import tree_to_dict
 
 

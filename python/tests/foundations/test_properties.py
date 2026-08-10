@@ -23,9 +23,9 @@ from ux_channel.foundations.quantity import (
     refuse_session_quantity,
 )
 from ux_channel.security.tree_cap import TreeEnvelope, nest_envelope, validate_control, TreeCapError
-from ux_channel.paint.slot_compile import stable_uid
+from ux_channel.render.slot_compile import stable_uid
 from ux_channel.security.attenuate import attenuate, verify_attenuated, AttenuationError
-from ux_channel.host.planes import path_is_risky as planes_risky
+from ux_channel.host.state_planes import path_is_risky as planes_risky
 
 
 SECRET = "hypothesis-ux-channel-secret-key!!"

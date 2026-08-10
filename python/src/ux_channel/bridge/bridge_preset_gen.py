@@ -492,7 +492,7 @@ def render_preset_py(spec: dict[str, Any]) -> str:
         "from pathlib import Path",
         "from typing import Any, Mapping, Optional",
         "",
-        "from ux_channel.paint.placement import Placement",
+        "from ux_channel.render.placement import Placement",
         "",
         f'PACKAGE = "{pkg}"',
         f"METHODS = ({methods_t},)",

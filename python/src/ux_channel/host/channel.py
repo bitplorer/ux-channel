@@ -9,7 +9,7 @@ PUBLIC / PRIVATE
 * Does **not** own HTML trees (ux-dom / templates do).
 * Owns registration, capabilities, ephemeral draft, Results, live plane.
 
-See ``Channel.mental_model()`` and docs/API_SURFACE.md.
+See ``Channel.describe()`` and docs/API_SURFACE.md.
 """
 
 
@@ -24,8 +24,8 @@ from typing import Any, Callable, Mapping, Optional, Sequence, Union  # noqa: F4
 from ux_channel.host.config import ChannelConfig
 from ux_channel.protocol.encode import Go, Navigate
 from ux_channel.host.factory import create_channel
-from ux_channel.paint.html import action_attrs
-from ux_channel.paint.html_safe import esc, user_content
+from ux_channel.render.html import action_attrs
+from ux_channel.render.html_safe import esc, user_content
 from ux_channel.protocol.ops import (
     Op,
     clear_errors,
@@ -188,7 +188,7 @@ class UiBuilder:
 
 
 # ---------------------------------------------------------------------------
-# Public API mental model (keep small — decades of DX)
+# Public API architecture overview (keep small — decades of DX)
 # ---------------------------------------------------------------------------
 # Public API: boot → region → on → control → runtime → draft/done → media → bridge
 # Power: webrtc, sign_*, live, flow, before/after, multi, diagnose, enterprise
@@ -298,7 +298,7 @@ class Channel:
         from ux_channel.host.regions import attach_regions
         from ux_channel.host.flow import apply_surface, attach_flow
         from ux_channel.host.region_component import attach_region_classes
-        from ux_channel.paint.html_document import attach_document
+        from ux_channel.render.html_document import attach_document
         from ux_channel.devtools.enterprise import attach_enterprise
 
         attach_regions(self)
@@ -422,7 +422,7 @@ class Channel:
 
 
     @classmethod
-    def mental_model(cls) -> str:
+    def describe(cls) -> str:
         """One source of truth: control plane data — not HTML, not alias soup."""
         return (
             "uxchannel — one truth\n"
@@ -496,15 +496,15 @@ class Channel:
         * ``Channel.help()`` — decision tree
         * ``Channel.help("counter")`` — named recipe
         * ``Channel.help("aliases")`` — use-this-not-that
-        * ``Channel.help("public_api")`` — mental model
+        * ``Channel.help("public_api")`` — architecture overview
         """
-        from ux_channel.host.recipes import RECIPE_NAMES, decision_tree, recipe_text
+        from ux_channel.host.patterns import RECIPE_NAMES, decision_tree, recipe_text
 
         if not topic:
             return decision_tree() + "\nRecipes: " + ", ".join(RECIPE_NAMES)
         key = topic.strip().lower().replace("_", "-")
-        if key in ("public_api", "mental", "model", "mental-model"):
-            return cls.mental_model()
+        if key in ("public_api", "describe", "architecture", "overview"):
+            return cls.describe()
         if key in ("alias", "aliases", "rename", "prefer", "codec"):
             return (
                 "Product speech (use these)\n"
@@ -558,7 +558,7 @@ class Channel:
             "webrtc": (lambda w: w.diagnose() if w is not None else {})(getattr(self, "webrtc", None)),
             "media": (lambda m: m.diagnose() if m is not None else {})(getattr(self, "media", None)),
             "bridge": (lambda b: b.diagnose() if b is not None else {})(getattr(self, "bridge", None)),
-            "otel": __import__("ux_channel.otel", fromlist=["status"]).status(),
+            "otel": __import__("ux_channel.devtools.otel", fromlist=["status"]).status(),
             "presence": getattr(getattr(self, "live", None), "presence_snapshot", lambda: {})(),
         }
 
@@ -749,7 +749,7 @@ class Channel:
         **trust_fields: Any,
     ) -> Any:
         """Low-level protocol attrs. Prefer :meth:`control`."""
-        from ux_channel.paint.html import ControlAttrs
+        from ux_channel.render.html import ControlAttrs
 
         sealed = self._trusted_params(trust, **trust_fields)
         action_name, target = self._resolve_action_target(action, target)

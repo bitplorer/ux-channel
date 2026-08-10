@@ -3,7 +3,7 @@
 from fastapi import FastAPI
 
 from ux_channel import Channel, ChannelConfig
-from ux_channel.paint.demo import attr_string, demo_page, demo_scripts, script_tags
+from ux_channel.render.kit import attr_string, demo_page, demo_scripts, script_tags
 
 
 def _ch():

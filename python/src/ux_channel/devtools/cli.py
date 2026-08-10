@@ -23,7 +23,7 @@ from pathlib import Path
 from typing import Optional
 
 from ux_channel.devtools.errors import DxError, DxUsageError
-from ux_channel.paint.demo import (
+from ux_channel.render.kit import (
     attr_string,
     demo_button,
     demo_page,
@@ -222,9 +222,9 @@ def cmd_doctor(args: argparse.Namespace) -> int:
 def cmd_dx(_: argparse.Namespace) -> int:
     """Print mental model + decision tree (ux-dom-style teaching surface)."""
     from ux_channel import Channel
-    from ux_channel.host.recipes import RECIPE_NAMES
+    from ux_channel.host.patterns import RECIPE_NAMES
 
-    print(Channel.mental_model())
+    print(Channel.describe())
     print()
     print(Channel.help())
     print()
@@ -251,7 +251,7 @@ def cmd_templates(_: argparse.Namespace) -> int:
 
 
 def cmd_recipe(args: argparse.Namespace) -> int:
-    from ux_channel.host.recipes import RECIPE_NAMES, decision_tree, recipe_text
+    from ux_channel.host.patterns import RECIPE_NAMES, decision_tree, recipe_text
 
     if args.list or not args.name:
         if args.tree:
@@ -308,7 +308,7 @@ def cmd_bridge(args: argparse.Namespace) -> int:
 
     if action == "recipe":
         log.section("bridge recipe")
-        from ux_channel.host.recipes import recipe_text
+        from ux_channel.host.patterns import recipe_text
 
         try:
             body = recipe_text("bridge-npm")

@@ -21,7 +21,7 @@ from typing import Any, Mapping, Optional, Sequence
 
 from ux_channel.protocol.errors import ActionError
 from ux_channel.protocol.ops import morph, navigate
-from ux_channel.paint.render import ChainRenderer, HtmlRenderer, StringRenderer
+from ux_channel.render.renderers import ChainRenderer, HtmlRenderer, StringRenderer
 from ux_channel.protocol.types import Result
 
 

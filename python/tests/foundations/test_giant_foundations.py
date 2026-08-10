@@ -23,8 +23,8 @@ from ux_channel.security.tree_cap import (
     validate_control,
 )
 from ux_channel.devtools.forensics import attach_forensics
-from ux_channel.paint.morph_ir import elem, region
-from ux_channel.paint.projections import project_all
+from ux_channel.render.morph_ir import elem, region
+from ux_channel.render.projections import project_all
 from ux_channel.bridge.bridge_protocol import (
     SealedBridgeProtocol,
     get_sealed_registry,

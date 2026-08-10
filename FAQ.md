@@ -45,11 +45,11 @@ Full decision table: [`python/ONTOLOGY.md`](python/ONTOLOGY.md).
 Historical growth — **not** “one module does everything.” Each `.py` file is a focused unit; the directory listing is what feels flat. **Navigate by zone**, not alphabet:
 
 ```python
-from ux_channel.zones import host, protocol
+from ux_channel.catalog import host, protocol
 print(host.help())
 ```
 
-Full map: [`python/LAYOUT.md`](python/LAYOUT.md). Apps still use `from ux_channel.host.day1 import Channel, Region`.
+Full map: [`python/LAYOUT.md`](python/LAYOUT.md). Apps still use `from ux_channel.host.api import Channel, Region`.
 
 ### Is the Python code stale / drifted from Rust?
 
@@ -58,10 +58,10 @@ No for the **protocol zone** (caps, wire, CXB, vectors). `make verify` + `make v
 ### How should new Python apps import the library?
 
 ```python
-from ux_channel.host.day1 import Channel, ChannelConfig, Region, state, agents
+from ux_channel.host.api import Channel, ChannelConfig, Region, state, agents
 ```
 
-Same objects as `from ux_channel import …`, but documents day-1 intent. See [`python/STRUCTURE.md`](python/STRUCTURE.md).
+Same objects as `from ux_channel import …`, but documents application API intent. See [`python/STRUCTURE.md`](python/STRUCTURE.md).
 
 ### What is ux-channel in one sentence?
 

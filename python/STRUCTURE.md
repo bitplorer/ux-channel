@@ -15,7 +15,7 @@ python/
   LAYOUT.md             ← every module mapped to a zone (anti-flat)
   STRUCTURE.md          ← this file (what may change)
   README.md
-  ux_channel/zones/     ← navigational re-export hubs by intent
+  ux_channel/catalog/     ← navigational re-export hubs by intent
   docs/
     start/              ← day-1 layers, API surface, golden path
     regions/            ← region recipes

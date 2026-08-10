@@ -522,7 +522,7 @@ from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 
 from ux_channel import Channel
-from ux_channel.paint.demo import demo_button, demo_page, demo_scripts, attr_string
+from ux_channel.render.kit import demo_button, demo_page, demo_scripts, attr_string
 
 from app.config import get_channel_config
 
@@ -610,7 +610,7 @@ from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 
 from ux_channel import Channel
-from ux_channel.paint.demo import demo_button, demo_page
+from ux_channel.render.kit import demo_button, demo_page
 
 from app.config import get_channel_config
 

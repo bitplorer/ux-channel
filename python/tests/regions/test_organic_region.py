@@ -1,7 +1,7 @@
 """Low-friction organic API — auto uid/action, button(fn), page(*parts)."""
 
 from ux_channel import Channel, Intent
-from ux_channel.paint.demo import attr_string, demo_button, demo_page, demo_scripts, script_tags
+from ux_channel.render.kit import attr_string, demo_button, demo_page, demo_scripts, script_tags
 
 SECRET = "dev-secret-key-32chars-minimum!!!!"
 

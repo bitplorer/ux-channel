@@ -60,7 +60,7 @@ ticket = ch.webrtc.sign_ticket("lobby", sub=user_id)
 * Put WebRTC helpers on `from ux_channel import …`  
 
 ```python
-print(Channel.mental_model())
+print(Channel.describe())
 ```
 
 Next: [API_SURFACE.md](API_SURFACE.md) · [WEBRTC.md](../webrtc/WEBRTC.md) · [SCAFFOLD.md](../dx/SCAFFOLD.md)

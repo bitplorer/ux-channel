@@ -11,9 +11,9 @@ from ux_channel.protocol.capability import CapService
 from ux_channel.security.attenuate import AttenuationError, attenuate, verify_attenuated
 from ux_channel.bridge.bridge_protocol import BridgeFirewallError, SealedBridgeProtocol
 from ux_channel.devtools.intent_log import MemoryIntentLog, attach_intent_log
-from ux_channel.paint.morph_ir import MorphNode, elem, lower_html, morph_ops, project_agent, region
+from ux_channel.render.morph_ir import MorphNode, elem, lower_html, morph_ops, project_agent, region
 from ux_channel.foundations.provenance import ProvenanceError, require_provenance, stamp
-from ux_channel.paint.slot_compile import compile_tree, stable_uid
+from ux_channel.render.slot_compile import compile_tree, stable_uid
 
 
 SECRET = "foundation-test-secret-key-32bytes-min!!"
@@ -111,7 +111,7 @@ def test_6_provenance_required_for_money():
 
 def test_layers_no_ux_dom_import_in_foundations():
     import ux_channel.security.attenuate as a
-    import ux_channel.paint.morph_ir as m
+    import ux_channel.render.morph_ir as m
     import ast, inspect
 
     for mod in (a, m):

@@ -5,7 +5,7 @@
 | Source | What we kept |
 |--------|----------------|
 | **Attached / release 0.1.0** | `src/` layout, full `docs/`, full `tests/` tree, `examples/`, package `scripts/`, `ux_channel_ux_dom`, domain docs |
-| **Monorepo evolution** | `zones/`, `day1`, sorted `args_hash`, gate tests, Rust interop, `LAYOUT`/`ONTOLOGY`/`STRUCTURE`, verify/CI |
+| **Monorepo evolution** | `catalog/`, `day1`, sorted `args_hash`, gate tests, Rust interop, `LAYOUT`/`ONTOLOGY`/`STRUCTURE`, verify/CI |
 
 ## Not lost
 

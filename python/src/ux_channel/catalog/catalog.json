@@ -79,8 +79,7 @@
       "idempotency": "ux_channel.host.idempotency",
       "live": "ux_channel.host.live",
       "nonce": "ux_channel.host.nonce",
-      "planes": "ux_channel.host.planes",
-      "recipes": "ux_channel.host.recipes",
+      "patterns": "ux_channel.host.patterns",
       "region_cli": "ux_channel.host.region_cli",
       "region_component": "ux_channel.host.region_component",
       "region_directory": "ux_channel.host.region_directory",
@@ -89,25 +88,14 @@
       "ssr_state": "ux_channel.host.ssr_state",
       "state": "ux_channel.host.state",
       "state_api": "ux_channel.host.state_api",
+      "state_planes": "ux_channel.host.state_planes",
       "testing": "ux_channel.host.testing"
-    },
-    "paint": {
-      "demo": "ux_channel.paint.demo",
-      "html": "ux_channel.paint.html",
-      "html_document": "ux_channel.paint.html_document",
-      "html_safe": "ux_channel.paint.html_safe",
-      "morph_ir": "ux_channel.paint.morph_ir",
-      "placement": "ux_channel.paint.placement",
-      "projections": "ux_channel.paint.projections",
-      "render": "ux_channel.paint.render",
-      "response": "ux_channel.paint.response",
-      "slot_compile": "ux_channel.paint.slot_compile"
     },
     "protocol": {
       "capability": "ux_channel.protocol.capability",
       "encode": "ux_channel.protocol.encode",
       "error_map": "ux_channel.protocol.error_map",
-      "jsonutil": "ux_channel.protocol.jsonutil",
+      "json_codec": "ux_channel.protocol.json_codec",
       "ops": "ux_channel.protocol.ops",
       "serde": "ux_channel.protocol.serde",
       "types": "ux_channel.protocol.types"
@@ -121,6 +109,18 @@
       "webrtc_turn": "ux_channel.realtime.webrtc_turn",
       "webrtc_ui": "ux_channel.realtime.webrtc_ui",
       "whip": "ux_channel.realtime.whip"
+    },
+    "render": {
+      "html": "ux_channel.render.html",
+      "html_document": "ux_channel.render.html_document",
+      "html_safe": "ux_channel.render.html_safe",
+      "kit": "ux_channel.render.kit",
+      "morph_ir": "ux_channel.render.morph_ir",
+      "placement": "ux_channel.render.placement",
+      "projections": "ux_channel.render.projections",
+      "renderers": "ux_channel.render.renderers",
+      "response": "ux_channel.render.response",
+      "slot_compile": "ux_channel.render.slot_compile"
     },
     "security": {
       "attenuate": "ux_channel.security.attenuate",

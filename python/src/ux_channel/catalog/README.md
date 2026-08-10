@@ -3,7 +3,7 @@
 The package has many top-level modules. **Zones group them by intent.**
 
 ```python
-from ux_channel.zones import host
+from ux_channel.catalog import host
 print(host.help())
 ```
 

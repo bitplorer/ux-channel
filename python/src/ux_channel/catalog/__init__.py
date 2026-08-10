@@ -1,6 +1,6 @@
-"""Package navigator (not an implementation layer).
+"""Package catalog — navigation helpers (not an implementation plane).
 
-    from ux_channel.zones import help_public, catalog
+    from ux_channel.catalog import help_public, help_package, catalog
 """
 from __future__ import annotations
 

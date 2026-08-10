@@ -137,7 +137,7 @@ def cprofile_to_speedscope(stats: pstats.Stats, *, name: str = "ux-channel") -> 
         ],
         "name": name,
         "activeProfileIndex": 0,
-        "exporter": "ux_channel.profiling",
+        "exporter": "ux_channel.devtools.profiling",
     }
 
 

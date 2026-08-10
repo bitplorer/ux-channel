@@ -1,6 +1,6 @@
 """Cohesive package: **transport**
 
-batch, push, ws helpers. ASGI adapters live in asgi/.
+batch, push, ws helpers. ASGI adapters in asgi/.
 
 Modules: backoff, batch, concurrency, cors, intent_sync, middleware, outbox, push, stream, ws_limits, ws_protocol
 

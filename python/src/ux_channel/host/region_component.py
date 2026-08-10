@@ -471,7 +471,7 @@ class Region:
             fn = getattr(self, method)
         else:
             fn = method
-        from ux_channel.paint.demo import demo_button
+        from ux_channel.render.kit import demo_button
         return demo_button(self.ch, label, fn, **kwargs)
 
     def controls(self, *specs: tuple[str, str] | tuple[str, str, dict], **btn_kwargs: Any) -> str:

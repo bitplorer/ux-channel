@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Any, Callable, Sequence
 
 from ux_channel.components.base import ChannelComponent
-from ux_channel.paint.html_safe import esc, user_content
+from ux_channel.render.html_safe import esc, user_content
 from ux_channel.protocol.ops import push_url
 from ux_channel.protocol.types import Result
 

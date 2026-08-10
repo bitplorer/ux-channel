@@ -18,7 +18,7 @@ from ux_channel.bridge.plugins import (
     set_hub,
 )
 from ux_channel.host.registry import ActionRegistry
-from ux_channel.paint.render import HtmlRenderer
+from ux_channel.render.renderers import HtmlRenderer
 
 
 def _maybe_redis_stores(redis_url: str | None):
@@ -166,7 +166,7 @@ def create_channel(
         except Exception:
             import logging
 
-            logging.getLogger("ux_channel.factory").exception(
+            logging.getLogger("ux_channel.host.factory").exception(
                 "ws limiter configure failed (non-fatal; ws rate limits may be off)"
             )
     if redis_url:
@@ -181,7 +181,7 @@ def create_channel(
         except Exception:
             import logging
 
-            logging.getLogger("ux_channel.factory").exception(
+            logging.getLogger("ux_channel.host.factory").exception(
                 "ticket revocation list attach failed for redis_url (non-fatal)"
             )
 
@@ -239,14 +239,14 @@ def create_channel(
             if not ok:
                 import logging
 
-                logging.getLogger("ux_channel.factory").warning(
+                logging.getLogger("ux_channel.host.factory").warning(
                     "observe=otel but OpenTelemetry attach failed "
                     "(install ux-channel[otel])"
                 )
         except Exception as exc:
             import logging
 
-            logging.getLogger("ux_channel.factory").warning(
+            logging.getLogger("ux_channel.host.factory").warning(
                 "observe=otel attach error: %s", exc
             )
 

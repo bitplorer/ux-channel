@@ -167,7 +167,7 @@ def attach_intent_log(
             log_ref.append(intent, result, principal=principal)
         except Exception:
             import logging
-            logging.getLogger("ux_channel.intent_log").exception("intent log append failed")
+            logging.getLogger("ux_channel.devtools.intent_log").exception("intent log append failed")
         return result
 
     reg.after(_intent_log_after)

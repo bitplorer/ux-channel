@@ -6,7 +6,7 @@ from fastapi.testclient import TestClient
 
 from ux_channel import ActionRegistry, Result, toast
 from ux_channel.protocol.capability import CapService
-from ux_channel.protocol.jsonutil import JsonLimitError, check_json_limits
+from ux_channel.protocol.json_codec import JsonLimitError, check_json_limits
 from ux_channel.protocol.types import Intent
 
 

@@ -23,7 +23,7 @@ from collections import deque
 from dataclasses import asdict, dataclass, field
 from typing import Any, Callable, Deque, List, Optional
 
-logger = logging.getLogger("ux_channel.security")
+logger = logging.getLogger("ux_channel.security.security")
 
 
 @dataclass

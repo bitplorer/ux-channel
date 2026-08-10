@@ -15,7 +15,7 @@ from ux_channel.bridges import (
     SpotlightBridge,
 )
 from ux_channel.bridge.bridge_preset_gen import list_known_presets
-from ux_channel.paint.demo import fx_script_tags
+from ux_channel.render.kit import fx_script_tags
 
 
 def _ch():

@@ -116,7 +116,7 @@ def bulkhead_after_hook(
             except Exception:
                 import logging
 
-                logging.getLogger("ux_channel.bulkhead").exception(
+                logging.getLogger("ux_channel.security.bulkhead").exception(
                     "bulkhead release failed — concurrency slot may leak"
                 )
             # scrub internal flag from outward meta if present on result

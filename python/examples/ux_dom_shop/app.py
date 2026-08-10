@@ -15,14 +15,14 @@ from ux_dom import Document
 from ux_dom.dom import button, div, form, h1, h2, input_, label, p, raw, span
 
 from ux_channel import Channel, ChannelConfig, Region
-from ux_channel.paint.demo import (
+from ux_channel.render.kit import (
     attr_string,
     demo_button,
     demo_page,
     demo_scripts,
     script_tags,
 )
-from ux_channel.paint.response import HTMLResponse as UidHTMLResponse
+from ux_channel.render.response import HTMLResponse as UidHTMLResponse
 
 # --- app / channel ---------------------------------------------------------
 

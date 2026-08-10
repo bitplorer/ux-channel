@@ -39,6 +39,42 @@ PACKAGE = {pkg!r}
 __all__ = ["MEMBERS", "PACKAGE"]
 '''
 
+CATALOG_INIT = '''\
+"""Package catalog — navigation helpers (not an implementation plane).
+
+    from ux_channel.catalog import help_public, help_package, catalog
+"""
+from __future__ import annotations
+
+import json
+from pathlib import Path
+
+catalog = json.loads((Path(__file__).parent / "catalog.json").read_text(encoding="utf-8"))
+__all__ = ["catalog", "help_public", "help_package"]
+
+
+def help_public() -> str:
+    pe = catalog.get("public_entry", {})
+    rp = catalog.get("rust_parity", {})
+    pkgs = ", ".join(sorted(catalog.get("packages", {})))
+    return (
+        f"Public: {pe.get('preferred', 'ux_channel.api')}\\n"
+        f"Host API: {', '.join(pe.get('host_api', []))}\\n"
+        f"Cap (Rust-parity): {', '.join(pe.get('cap_api', []))}\\n"
+        f"Packages: {pkgs}\\n"
+        f"Policy: {catalog.get('policy')}\\n"
+        f"Rust parity: {rp}\\n"
+    )
+
+
+def help_package(name: str) -> str:
+    members = catalog.get("packages", {}).get(name)
+    if not members:
+        return f"unknown package: {name}\\n"
+    rows = "\\n".join(f"  {k:28} {v}" for k, v in sorted(members.items()))
+    return f"package={name}\\n{rows}\\n"
+'''
+
 
 def load_map() -> dict:
     return json.loads(MAP_PATH.read_text(encoding="utf-8"))
@@ -64,7 +100,7 @@ def regenerate(meta: dict) -> list[str]:
             init.write_text(text, encoding="utf-8")
             actions.append(f"write {init.relative_to(ROOT)}")
 
-    # Refuse shims: any top-level .py other than roots is an error source — delete generated leftovers
+    # Refuse shims: any top-level .py other than roots is an error source
     allowed = {"__init__", "__main__", "_version"}
     for path in PKG.glob("*.py"):
         if path.stem in allowed:
@@ -74,8 +110,8 @@ def regenerate(meta: dict) -> list[str]:
             path.unlink()
             actions.append(f"removed shim {path.name}")
 
-    # catalog for navigation
-    catalog = {
+    # navigation catalog
+    catalog_data = {
         "policy": "no_shims",
         "public_entry": meta.get("public_entry", {}),
         "rust_parity": meta.get("rust_parity", {}),
@@ -84,53 +120,21 @@ def regenerate(meta: dict) -> list[str]:
             for pkg, stems in sorted(by_pkg.items())
         },
     }
-    zones = PKG / "zones"
-    zones.mkdir(exist_ok=True)
-    cat_path = zones / "catalog.json"
-    cat_text = json.dumps(catalog, indent=2) + "\n"
+    catalog_dir = PKG / "catalog"
+    catalog_dir.mkdir(exist_ok=True)
+    cat_path = catalog_dir / "catalog.json"
+    cat_text = json.dumps(catalog_data, indent=2) + "\n"
     if not cat_path.exists() or cat_path.read_text(encoding="utf-8") != cat_text:
         cat_path.write_text(cat_text, encoding="utf-8")
-        actions.append("write zones/catalog.json")
+        actions.append("write catalog/catalog.json")
 
-    zinit = zones / "__init__.py"
-    ztext = '''\
-"""Package navigator (not an implementation layer).
-
-    from ux_channel.zones import help_public, catalog
-"""
-from __future__ import annotations
-
-import json
-from pathlib import Path
-
-catalog = json.loads((Path(__file__).parent / "catalog.json").read_text(encoding="utf-8"))
-__all__ = ["catalog", "help_public", "help_package"]
-
-
-def help_public() -> str:
-    pe = catalog.get("public_entry", {})
-    rp = catalog.get("rust_parity", {})
-    pkgs = ", ".join(sorted(catalog.get("packages", {})))
-    return (
-        f"Public: {pe.get(\'preferred\', \'ux_channel.api\')}\\n"
-        f"Host API: {', '.join(pe.get('host_api', []))}\\n"
-        f"Cap (Rust-parity): {', '.join(pe.get('cap_api', []))}\\n"
-        f"Packages: {pkgs}\\n"
-        f"Policy: {catalog.get('policy')}\\n"
-        f"Rust parity: {rp}\\n"
-    )
-
-
-def help_package(name: str) -> str:
-    members = catalog.get("packages", {}).get(name)
-    if not members:
-        return f"unknown package: {name}\\n"
-    rows = "\\n".join(f"  {k:28} {v}" for k, v in sorted(members.items()))
-    return f"package={name}\\n{rows}\\n"
-'''
-    if not zinit.exists() or zinit.read_text(encoding="utf-8") != ztext:
-        zinit.write_text(ztext, encoding="utf-8")
-        actions.append("write zones/__init__.py")
+    zinit = catalog_dir / "__init__.py"
+    # preserve hand-written catalog init if marked; else write standard
+    if zinit.exists() and "MANUAL_PUBLIC_API" in zinit.read_text(encoding="utf-8"):
+        pass
+    elif not zinit.exists() or zinit.read_text(encoding="utf-8") != CATALOG_INIT:
+        zinit.write_text(CATALOG_INIT, encoding="utf-8")
+        actions.append("write catalog/__init__.py")
     return actions
 
 
@@ -140,27 +144,38 @@ def check(meta: dict) -> list[str]:
     for stem, pkg in modules.items():
         if not (PKG / pkg / f"{stem}.py").exists():
             problems.append(f"missing {pkg}/{stem}.py")
-    # no top-level shims
     allowed = {"__init__", "__main__", "_version"}
     for path in PKG.glob("*.py"):
         if path.stem not in allowed:
             problems.append(f"forbidden top-level module (no shims): {path.name}")
-    # api package must exist
     if not (PKG / "api" / "__init__.py").exists():
         problems.append("missing public package api/")
+    if not (PKG / "render" / "__init__.py").exists():
+        problems.append("missing package render/")
+    if (PKG / "paint").exists():
+        problems.append("legacy package paint/ must not exist")
+    if (PKG / "ops_dx").exists():
+        problems.append("legacy package ops_dx/ must not exist")
+    if (PKG / "zones").exists():
+        problems.append("legacy package zones/ must not exist")
     sys.path.insert(0, str(ROOT / "python" / "src"))
     try:
         from ux_channel import CapService, Channel, Region, RegionBook
         from ux_channel.api import Channel as C2
+        from ux_channel.host.channel import Channel as C3
         from ux_channel.host.regions import RegionBook as RB
         from ux_channel.protocol.capability import CapService as CS
-        assert Channel is C2
+        from ux_channel.render import morph_ir
+        from ux_channel.render.renderers import HtmlRenderer
+
+        assert Channel is C2 is C3
         assert RegionBook is RB
         assert CapService is CS
+        assert hasattr(Channel, "describe") and not hasattr(Channel, "mental_model")
         svc = CapService("dev-secret-key-32chars-minimum!!!!")
         assert hasattr(svc, "mint") and not hasattr(svc, "sign")
-        # private import from package path works
         from ux_channel.host.regions import _id_str  # noqa: F401
+        _ = morph_ir, HtmlRenderer
     except Exception as exc:
         problems.append(f"import smoke: {exc}")
     return problems

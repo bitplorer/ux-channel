@@ -41,7 +41,7 @@
 | `ux_channel.io_channel` (gate + room claim) | device drivers in core |
 | `Quantity.from_store(..., source=…, revision=…)` | bare numbers in session/client |
 | `agents(ch).dispatch` | dual agent APIs |
-| `from ux_channel.paint.morph_ir import region` | Morph `slot` (removed) |
+| `from ux_channel.render.morph_ir import region` | Morph `slot` (removed) |
 | `state(ch)` | teaching `planes()` as day-1 |
 
 ## Public tiers

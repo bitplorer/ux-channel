@@ -16,7 +16,7 @@ from ux_channel.protocol import serde as _serde
 
 from typing import Any, Optional
 
-from ux_channel.paint.placement import Placement
+from ux_channel.render.placement import Placement
 
 __all__ = ["BridgePlane", "attach_bridge", "BRIDGE_PUBLIC_API"]
 
@@ -366,7 +366,7 @@ class BridgePlane:
             "static": "ux-bridge.js",
             "packages": self.packages(),
             "contracts": __import__(
-                "ux_channel.bridge_contract", fromlist=["get_contract_registry"]
+                "ux_channel.bridge.bridge_contract", fromlist=["get_contract_registry"]
             ).get_contract_registry().packages(),
             "npm_workspace": "packages/@ux-channel/*",
             "strategy_doc": "docs/NPM.md",

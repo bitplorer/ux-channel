@@ -11,7 +11,7 @@ uxchannel doctor
 ```
 
 ```python
-print(Channel.mental_model())
+print(Channel.describe())
 print(Channel.help())              # decision tree
 print(Channel.help("aliases"))     # use this, not that
 print(Channel.help("counter"))     # recipe
@@ -108,7 +108,7 @@ attrs.action         # action name
 ## Demo HTML path (P2)
 
 ```python
-from ux_channel.paint.demo import demo_button, demo_page  # preferred
+from ux_channel.render.kit import demo_button, demo_page  # preferred
 # ch.button / ch.page → DeprecationWarning (still work)
 ```
 

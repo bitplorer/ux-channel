@@ -6,7 +6,7 @@ from typing import Any, Callable, Optional
 
 from ux_channel.components.base import ChannelComponent
 from ux_channel.components.modal import Modal
-from ux_channel.paint.html_safe import esc
+from ux_channel.render.html_safe import esc
 from ux_channel.protocol.types import Result
 
 OnConfirm = Callable[[], Result | None]

@@ -8,7 +8,7 @@ from ux_channel.bridge.bridge_api import (
     update_ops,
 )
 from ux_channel.bridge.plugins import BridgeManifest, PluginHub, set_hub
-from ux_channel.paint.render import ChainRenderer, StringRenderer
+from ux_channel.render.renderers import ChainRenderer, StringRenderer
 from ux_channel.transport.stream import ResultStream, format_sse, iter_result_sse
 from ux_channel.protocol.types import Intent
 

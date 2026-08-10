@@ -45,7 +45,7 @@
 Print the map anytime::
 
     from ux_channel import Channel
-    print(Channel.mental_model())
+    print(Channel.describe())
 
 Layer doc: [LAYERS.md](LAYERS.md) · Foundations: [FOUNDATIONS.md](../foundations/FOUNDATIONS.md).
 
@@ -79,7 +79,7 @@ from ux_channel import Channel, ChannelConfig, Region, agents, state, attach_aud
 | I/O channel | `from ux_channel.foundations.io_channel import IoGate, IoProtocol, IoRoomClaim` |
 | Workplace | `from ux_channel.workplace import workplace` |
 | Nested caps | `from ux_channel.security.attenuate import attenuate` |
-| Morph IR | `from ux_channel.paint.morph_ir import elem, region` |
+| Morph IR | `from ux_channel.render.morph_ir import elem, region` |
 | Sealed guests | `from ux_channel.bridge.bridge_protocol import SealedBridgeProtocol` |
 | Peer (tests) | `from ux_channel.devtools.agent_peer import dispatch_peer` |
 

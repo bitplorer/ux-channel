@@ -53,12 +53,12 @@ import functools
 
 import logging
 
-logger = logging.getLogger("ux_channel.regions")
+logger = logging.getLogger("ux_channel.host.regions")
 
 from dataclasses import dataclass, field
 from typing import Any, Callable, Mapping, Optional, Sequence, Union
 
-from ux_channel.paint.html_safe import SafeHtml, esc
+from ux_channel.render.html_safe import SafeHtml, esc
 from ux_channel.protocol.types import Result
 
 

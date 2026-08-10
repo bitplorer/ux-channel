@@ -7,7 +7,7 @@ from fastapi.responses import HTMLResponse
 
 from ux_channel import Channel, ChannelConfig
 from ux_channel.bridges import ConfettiBridge, CountUpBridge
-from ux_channel.paint.demo import attr_string, demo_scripts
+from ux_channel.render.kit import attr_string, demo_scripts
 
 app = FastAPI(title="js-multi-live-chaos")
 ch = Channel.boot(
@@ -67,7 +67,7 @@ def _host_html(island) -> str:
     parts = []
     for k, v in attrs.items():
         # attrs already use data-channel-bridge-* keys with JSON string values
-        from ux_channel.paint.html import attr_escape
+        from ux_channel.render.html import attr_escape
 
         parts.append(f'{k}="{attr_escape(str(v))}"')
     return f'<div {" ".join(parts)} class="bridge-host" style="position:relative;min-height:6rem"></div>'

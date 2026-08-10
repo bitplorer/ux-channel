@@ -28,7 +28,7 @@ from ux_channel.protocol.types import Result
 
 __all__ = ["Agents", "agents", "attach_agents", "EffectReport"]
 
-_log = logging.getLogger("ux_channel.agents_api")
+_log = logging.getLogger("ux_channel.devtools.agents_api")
 
 
 @dataclass(frozen=True)
@@ -434,7 +434,7 @@ class Agents:
             ],
             "law": "agent tool == button Intent (same registry)",
             "not": "DOM / project_agent tree dumps (use situation)",
-            "peer_impl": "ux_channel.agent_peer",
+            "peer_impl": "ux_channel.devtools.agent_peer",
         }
 
 

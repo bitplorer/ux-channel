@@ -11,7 +11,7 @@ If two names sound similar, the table here decides which one you mean.
 | [LAYOUT.md](LAYOUT.md) | **Cohesive packages** + legacy shims |
 | [STRUCTURE.md](STRUCTURE.md) | Permanent vs moving |
 | [docs/start/LAYERS.md](docs/start/LAYERS.md) | Import tiers |
-| [docs/start/GOLDEN_PATH.md](docs/start/GOLDEN_PATH.md) | Day-1 walkthrough |
+| [docs/start/GOLDEN_PATH.md](docs/start/GOLDEN_PATH.md) | Application API walkthrough |
 | [docs/start/API_SURFACE.md](docs/start/API_SURFACE.md) | What is frozen public |
 | [docs/regions/REGIONS.md](docs/regions/REGIONS.md) | Region usage recipes |
 | [docs/regions/REGIONS_FS.md](docs/regions/REGIONS_FS.md) | File-based region discovery |
@@ -73,11 +73,11 @@ Think in **five strata**. Never mix them.
 |-----------|----------|-----------------|----------------|
 | Re-paint a **server-owned HTML fragment** after an action | **Region** | `from ux_channel import Region` · `@ch.region` · `ch.regions` | Bridge, ChannelComponent (unless you want a kit block) |
 | Host a **Chart.js / Leaflet / npm island** | **Bridge** | `from ux_channel.bridges import …` | Region (regions return HTML strings; bridges return mount attrs + bridge ops) |
-| Drop-in **server-driven UI kit** (Badge, Modal…) without ux-dom | **ChannelComponent** | `from ux_channel.components import …` | Calling it “Component” (clashes with ux-dom); not day-1 required |
-| Mutate session / guard client paths | **state** | `from ux_channel import state` → `state(ch)` | `planes()` as day-1 (power helper only) |
+| Drop-in **server-driven UI kit** (Badge, Modal…) without ux-dom | **ChannelComponent** | `from ux_channel.components import …` | Calling it “Component” (clashes with ux-dom); not application API required |
+| Mutate session / guard client paths | **state** | `from ux_channel import state` → `state(ch)` | `planes()` as application API (power helper only) |
 | Agent tools / situation / effects | **agents** | `from ux_channel import agents` → `agents(ch)` | Dual agent APIs / raw MCP unless you need MCP plane |
 | Low-level “patch this selector” without a region registry | **ops** | `from ux_channel.protocol.ops import morph, toast, …` | Hand-building ops when `ch.done(refresh=[…])` already does it |
-| Multi-surface structure (HTML is one projection) | **morph_ir** | `from ux_channel.paint.morph_ir import elem, region` | Treating morph_ir `region()` as an HTML tag |
+| Multi-surface structure (HTML is one projection) | **morph_ir** | `from ux_channel.render.morph_ir import elem, region` | Treating morph_ir `region()` as an HTML tag |
 | Framework-agnostic attrs/scripts for the page shell | **Placement** | `ux_channel.placement` | Putting markup ownership inside Channel |
 | File/package auto-discovery of Region classes | **RegionDirectory** | `region_directory` / config `regions=` | Assuming core Intent plane needs it (it does **not**) |
 | Scaffold region files from CLI | **region CLI** | `uxchannel region add …` | Confusing CLI with runtime |
@@ -145,13 +145,13 @@ All three register into the same **RegionBook** (`ch.regions`): uid → loader/r
 
 ### 4.4 Modules (so folder noise does not confuse)
 
-| File | Ontological role | Day-1? |
+| File | Ontological role | Application API? |
 |------|------------------|--------|
 | [`regions.py`](src/ux_channel/host/regions.py) | **RegionBook**, `@region` decorator, context, revalidate | Yes (via Channel) |
 | [`region_component.py`](src/ux_channel/host/region_component.py) | Class-style **Region**, `@Region.action`, `ch.use` | Yes if you prefer classes |
 | [`region_directory.py`](src/ux_channel/host/region_directory.py) | Opt-in FS/package discovery | No — shell feature |
 | [`region_cli.py`](src/ux_channel/host/region_cli.py) | Scaffold files for discovery | No — DX only |
-| [`morph_ir.py`](src/ux_channel/paint/morph_ir.py) | IR node named `region` = morph **target**, same law | Power |
+| [`morph_ir.py`](src/ux_channel/render/morph_ir.py) | IR node named `region` = morph **target**, same law | Power |
 | [`ops.py`](src/ux_channel/protocol/ops.py) | `morph`/`swap` builders the refresh path emits | Power / implicit |
 | [`live.py`](src/ux_channel/host/live.py) | Bind topics → region uids (in-process) | Power |
 | [`components/*`](src/ux_channel/components/) | Optional kit built **on** regions | Optional |
@@ -183,12 +183,12 @@ All three register into the same **RegionBook** (`ch.regions`): uid → loader/r
 
 ---
 
-## 6. Day-1 golden path (only imports you need)
+## 6. Application API golden path (only imports you need)
 
 **Preferred** (narrow surface — fewer footguns):
 
 ```python
-from ux_channel.host.day1 import Channel, ChannelConfig, Region, state, agents, attach_audit
+from ux_channel.host.api import Channel, ChannelConfig, Region, state, agents, attach_audit
 ```
 
 **Also frozen** (same objects):
@@ -235,7 +235,7 @@ Structure permanence: [STRUCTURE.md](STRUCTURE.md).
 ## 7. Import map by intent (not by alphabet)
 
 ```text
-DAY-1 (prefer: from ux_channel.host.day1 import …)
+DAY-1 (prefer: from ux_channel.host.api import …)
   Channel, ChannelConfig     boot façade
   Region                     class-style slot
   RegionBook, RegionContext  via regions / Channel
@@ -284,7 +284,7 @@ Alphabetized `ls ux_channel/` is **not** the product map. This section is.
 |--------------|-----------------|------------|
 | One module does action + chart npm + session | Mixes strata 2/3/4 | Split: action mutates; region paints; bridge mounts chart |
 | Naming a Bridge method `region_*` | Implies morph slot | Use `mount_*` / bridge ops |
-| Teaching `planes()` on day-1 | Power safety API | `state(ch)` only |
+| Teaching `planes()` on application API | Power safety API | `state(ch)` only |
 | Using region for a full page rewrite | Wrong grain | `navigate` / template page + small regions |
 | Expecting regions to work multi-worker via `live` alone | live is in-process | Push bus / Redis for cross-worker |
 | Hand-minting caps in the browser | Forgable | `ch.control` / server `sign` |
@@ -324,9 +324,9 @@ python/
   ONTOLOGY.md                 ← you are here (concepts)
   LAYOUT.md                   ← every module → zone (anti-flat)
   STRUCTURE.md                ← permanent vs moving (host)
-  ux_channel/zones/           ← navigational packages
+  ux_channel/catalog/           ← navigational packages
   README.md                   ← package entry + tests
-  ux_channel/day1.py          ← narrow day-1 imports
+  ux_channel/api.py          ← narrow application API imports
   docs/start/                 ← layers, golden path, API surface
   docs/regions/               ← region recipes + FS + components note
   docs/core/                  ← wire / CXB / errors (IR)
@@ -338,7 +338,7 @@ python/
     ops.py · morph_ir.py      ← ops / multi-surface IR
     bridges/ · components/    ← optional, not core ontology
     capability.py · wire/     ← authority + codecs
-    channel.py                     ← Channel façade (day-1)
+    channel.py                     ← Channel façade (application API)
 ```
 
 **Rule of thumb for newcomers:**  

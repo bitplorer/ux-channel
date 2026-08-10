@@ -1,7 +1,7 @@
 """
 Pulse Desk — production-shaped demo for uxchannel 0.1.
 
-Day-1 API only (see Channel.mental_model()):
+Day-1 API only (see Channel.describe()):
 
     boot → @region → @on → control → scripts → draft/done → webrtc
 
@@ -18,7 +18,7 @@ from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 
 from ux_channel import Channel, ChannelConfig
-from ux_channel.paint.demo import (
+from ux_channel.render.kit import (
     attr_string,
     demo_button,
     demo_page,
@@ -336,7 +336,7 @@ def desk():
     <p class="meta">
       action <code>{ch.path}/action</code>
       · rtc <code>{ch.webrtc.path}</code>
-      · day-1 <code>Channel.mental_model()</code>
+      · day-1 <code>Channel.describe()</code>
     </p>
     """
     return HTMLResponse(

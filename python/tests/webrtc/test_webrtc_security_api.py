@@ -34,8 +34,8 @@ def test_diagnose_security_posture():
     assert d["require_ticket"] is True
 
 
-def test_mental_model_mentions_webrtc():
-    text = Channel.mental_model()
+def test_describe_mentions_webrtc():
+    text = Channel.describe()
     assert "webrtc" in text.lower()
 
 

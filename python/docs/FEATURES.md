@@ -764,7 +764,7 @@ from ux_channel.foundations.quantity import Quantity
 from ux_channel.foundations.io_channel import IoGate, IoRoomClaim
 from ux_channel.workplace import workplace
 from ux_channel.transport.outbox import attach_outbox, drain_outbox
-from ux_channel.paint.morph_ir import elem, region
+from ux_channel.render.morph_ir import elem, region
 from ux_channel.security.host_csrf import intent_headers
 from ux_channel.bridge.bridge_protocol import SealedBridgeProtocol
 from ux_channel.bridge.guest_runtime import GuestRuntime

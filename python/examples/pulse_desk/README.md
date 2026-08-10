@@ -27,7 +27,7 @@ Open **two browser tabs** on `/call` for P2P. Use http://localhost (secure conte
 ## Mental model
 
 ```text
-print(Channel.mental_model())
+print(Channel.describe())
 # Day-1: boot → @region → @on → control → scripts → draft/done → webrtc
 ```
 

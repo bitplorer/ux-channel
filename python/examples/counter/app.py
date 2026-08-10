@@ -11,7 +11,7 @@ from fastapi.responses import HTMLResponse
 from ux_channel import ActionRegistry, Result, morph, toast
 from ux_channel.asgi.fastapi import mount_channel
 from ux_channel.host.config import ChannelConfig
-from ux_channel.paint.html import action_attrs
+from ux_channel.render.html import action_attrs
 
 cfg = ChannelConfig.development(secret="dev-secret-key-32chars-minimum!!!!")
 reg = ActionRegistry.from_config(cfg)

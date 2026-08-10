@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from ux_channel import Result, Channel, sel
-from ux_channel.paint.demo import attr_string, demo_button, demo_page, demo_scripts, script_tags
+from ux_channel.render.kit import attr_string, demo_button, demo_page, demo_scripts, script_tags
 from ux_channel.protocol.types import Intent
 
 SECRET = "dev-secret-key-32chars-minimum!!!!"

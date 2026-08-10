@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any, Mapping, Optional
 
-from ux_channel.paint.placement import Placement
+from ux_channel.render.placement import Placement
 
 
 class BridgeFactoryMixin:

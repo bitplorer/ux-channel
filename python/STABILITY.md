@@ -1,62 +1,64 @@
-# Python host — single truth (no shims)
+# Python host — single truth (professional packages)
 
 ## Layout law
 
 ```text
 ux_channel/
   __init__.py          # frozen public re-exports
-  api/                # app-facing surface (same symbols, intentional package)
-  protocol/            # Intent, Result, CapService, ops  (Rust-parity)
+  api/                 # curated application surface
+  protocol/            # Intent, Result, CapService, ops (Rust-parity)
   host/                # Channel, Region, RegionBook, state, registry
-  paint/               # morph, HTML, placement
+  render/              # morph IR, HTML safety, placement, renderers
   security/            # CSRF, limits, attenuate
   transport/           # batch, push, ws helpers
   foundations/         # quantity, provenance, io
-  realtime/            # webrtc / media
-  bridge/         # bridge contracts
-  devtools/              # audit, CLI, observability
-  wire/ asgi/ bridges/ components/ agents/ mcp/ workplace/ …
-  PACKAGE_MAP.json     # module → package inventory
+  realtime/            # WebRTC / media
+  bridge/              # bridge contracts / scaffold
+  bridges/             # npm island presets
+  devtools/            # audit, CLI, observability, dashboards
+  asgi/ wire/ agents/ mcp/ workplace/ …
+  catalog/             # package navigator (not an implementation plane)
+  PACKAGE_MAP.json
 ```
 
-**There are no top-level `ux_channel/foo.py` aliases.**  
-If a module moved, you import the package path.
+**No top-level module aliases. No day1 / dx / ops_dx / paint / zones jargon packages.**
 
-## Import flow (cognitive)
-
-```text
-App code     →  ux_channel.api  or  ux_channel (public symbols)
-Extensions   →  ux_channel.host.* / protocol.* / paint.* / …
-Shared law   →  CapService.mint/verify  (same as Rust)
-```
+## Import flow
 
 ```python
-# Apps
-from ux_channel.api import Channel, Region, CapService, state
+from ux_channel import Channel, Region, CapService, state
+from ux_channel.api import Channel, Region, CapService   # same objects, narrow
 
-# By package (preferred power imports)
-from ux_channel.protocol import CapService, Intent, Result, morph
+from ux_channel.protocol import CapService, Intent, Result, morph, toast
 from ux_channel.host import Channel, Region, RegionBook
-from ux_channel.paint import morph_ir
+from ux_channel.host.channel import Channel             # implementation module
+from ux_channel.render import morph_ir, renderers
+from ux_channel.devtools import audit
+from ux_channel.bridge import bridge_plane
 ```
+
+## Rename history (do not reintroduce)
+
+| Forbidden | Use instead |
+|-----------|-------------|
+| `day1` | `api` |
+| `host.dx` / `dx.py` | `host.channel` |
+| `ops_dx` | `devtools` |
+| `dx_dashboard` / `dx_log` | `dashboard` / `log` |
+| `bridge_meta` | `bridge` |
+| `paint` | `render` |
+| `paint.render` | `render.renderers` |
+| `paint.demo` | `render.kit` |
+| `zones` | `catalog` |
+| `recipes` | `patterns` |
+| `jsonutil` | `json_codec` |
+| `planes` | `state_planes` |
+| `mental_model()` | `Channel.describe()` |
+| `CapService.sign` | `CapService.mint` |
 
 ## Change process
 
-1. Put code in the correct package (see PACKAGE_MAP / package_docs).  
-2. `python3 scripts/sync_python_layout.py` (refreshes package `__init__` + catalog).  
-3. `python3 scripts/sync_python_layout.py --check` must pass (CI).  
-4. Export new public symbols only via root `__init__` + `api` if they are application API.  
-5. `make verify` and `make test-python-host`.
-
-## Tests
-
-| Tier | Command |
-|------|---------|
-| Gate | `make verify` |
-| Host | `make test-python-host` |
-
-## Forbidden
-
-- Top-level shim/alias modules  
-- Dual names for Rust surface (`sign` vs `mint`, etc.)  
-- Re-introducing flat `ux_channel/<100 modules>.py`
+1. Code goes in the correct package (`PACKAGE_MAP.json`).
+2. `python3 scripts/sync_python_layout.py` then `--check`.
+3. Export public symbols only via root / `api` / package `__init__` (`MANUAL_PUBLIC_API`).
+4. `make verify` + `make test-python-host`.

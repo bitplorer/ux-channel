@@ -15,7 +15,7 @@ from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 
 from ux_channel import Channel, ChannelConfig, agents, state
-from ux_channel.paint.demo import attr_string, demo_button, script_tags
+from ux_channel.render.kit import attr_string, demo_button, script_tags
 from ux_channel.foundations.quantity import Quantity, QuantityError
 
 SECRET = "payment-agents-demo-secret-key-32b!!"

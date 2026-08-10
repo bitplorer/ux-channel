@@ -30,7 +30,7 @@ from __future__ import annotations
 
 from typing import Any, Mapping, Optional, Sequence
 
-from ux_channel.host.planes import (
+from ux_channel.host.state_planes import (
     ClientPlane,
     ClientSafetyError,
     Db,
@@ -204,7 +204,7 @@ def attach_state(
     strict: bool = True,
     client_strict: Optional[bool] = None,
 ) -> ChannelState:
-    from ux_channel.host.planes import attach_planes
+    from ux_channel.host.state_planes import attach_planes
 
     allow_list = tuple(allow) or tuple(persist_allowlist)
     strict_flag = strict if client_strict is None else client_strict

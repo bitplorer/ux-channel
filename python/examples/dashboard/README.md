@@ -4,7 +4,7 @@
 
 ```bash
 cd ux-channel
-PYTHONPATH=src python examples/dx_dashboard/run.py
+PYTHONPATH=src python examples/dashboard/run.py
 ```
 
 Open `reports/dx-example/dashboard.html` (and `dashboard.json`).

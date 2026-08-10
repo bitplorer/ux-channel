@@ -5,7 +5,7 @@ from pathlib import Path
 
 from ux_channel.bridge.bridge_scaffold import create_bridge_package, explain_bridge, render_adapter_js
 from ux_channel.devtools.cli import main
-from ux_channel.host.recipes import RECIPE_NAMES, recipe_text
+from ux_channel.host.patterns import RECIPE_NAMES, recipe_text
 
 
 def test_explain():

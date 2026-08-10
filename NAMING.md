@@ -65,10 +65,10 @@ Some packages avoid colliding with a module file name:
 | Package folder | Why that name | Module you import for the core idea |
 |----------------|---------------|-------------------------------------|
 | `security/` | lives at `security/` (no top-level security.py) | `security.security` or shim `ux_channel.security` |
-| `paint/` | cannot be named `render/` (would shadow `render.py`) | morph/html live under `paint/` |
+| `render/` | cannot be named `render/` (would shadow `render.py`) | morph/html live under `render/` |
 | `realtime/` | cannot be named `media/` (would shadow `media.py`) | webrtc/sfu modules |
 
-**Speech:** say “security package”, “paint package”; imports may use plane suffix for physics of Python packaging.
+**Speech:** say “security package”, “render package”; imports may use plane suffix for physics of Python packaging.
 
 Package paths keep `from ux_channel.security.security import safe_href` working.
 
@@ -127,13 +127,20 @@ Wire keys are **not** renamed to match prose. Prose maps *to* wire keys in TERMI
 | Package | Role | Not named |
 |---------|------|-----------|
 | `api` | Curated application exports | ~~day1~~ |
-| `host` | Channel, regions, state | ~~dx~~ as package |
-| `host.channel` | Channel implementation module | ~~host.dx~~ |
+| `host` | Channel, regions, state | — |
+| `host.channel` | Channel implementation | ~~host.dx~~ |
 | `protocol` | IR + caps | — |
-| `paint` | Morph / HTML (DOM paint plane) | — |
+| `render` | Morph / HTML / renderers | ~~paint~~ |
+| `render.renderers` | HtmlRenderer stack | ~~paint.render~~ |
+| `render.kit` | Demo/scaffold HTML helpers | ~~paint.demo~~ |
 | `security` | Auth doors | ~~security_plane~~ |
 | `devtools` | Audit, CLI, observability | ~~ops_dx~~ |
 | `bridge` | Contracts / scaffold | ~~bridge_meta~~ |
 | `bridges` | npm island presets | — |
+| `catalog` | Package map navigator | ~~zones~~ |
+| `host.patterns` | Composition patterns | ~~recipes~~ |
+| `host.state_planes` | State plane helpers | ~~planes~~ |
+| `protocol.json_codec` | JSON helpers | ~~jsonutil~~ |
 
-Avoid jargon folders (`day1`, `ops_dx`, `*_meta`, implementation file `dx.py`).
+`Channel.describe()` replaces `mental_model()`. Caps use `mint` / `verify` only.
+

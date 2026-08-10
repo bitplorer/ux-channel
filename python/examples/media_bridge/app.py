@@ -9,7 +9,7 @@ from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 
 from ux_channel import Channel, ChannelConfig
-from ux_channel.paint.demo import (
+from ux_channel.render.kit import (
     attr_string,
     demo_button,
     demo_page,

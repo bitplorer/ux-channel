@@ -32,7 +32,7 @@ def test_min_matches_channel():
 
 
 def test_demo_scripts_order_mentions_bridge_before_adapters():
-    from ux_channel.paint.demo import bridge_script_tags, demo_scripts
+    from ux_channel.render.kit import bridge_script_tags, demo_scripts
     from ux_channel import Channel, ChannelConfig
     from fastapi import FastAPI
 

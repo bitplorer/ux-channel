@@ -35,7 +35,7 @@ token = svc.mint("Cart.add", {"sku": "a", "qty": 1})
 | **api/** | App surface |
 | **protocol/** | IR + CapService (Rust-parity) |
 | **host/** | Channel, regions, state, actions |
-| **paint/** | Morph / HTML / placement |
+| **render/** | Morph / HTML / placement |
 | **security/** | CSRF, limits, attenuate |
 | **transport/** | batch / push / ws helpers |
 | **foundations/** | quantity, provenance, io |

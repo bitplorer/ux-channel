@@ -4,7 +4,7 @@ from fastapi import FastAPI
 
 from ux_channel import Channel, ChannelConfig
 from ux_channel.bridges import ChartBridge, ChartSeries
-from ux_channel.paint.placement import Placement
+from ux_channel.render.placement import Placement
 
 
 def _ch():
@@ -77,7 +77,7 @@ def test_multi_series():
 
 
 def test_recipe():
-    from ux_channel.host.recipes import recipe_text
+    from ux_channel.host.patterns import recipe_text
 
     text = recipe_text("chart-widget")
     assert "ChartBridge(ch)" in text

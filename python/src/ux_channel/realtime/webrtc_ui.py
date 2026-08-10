@@ -172,7 +172,7 @@ class RtcSession:
 
     def scripts_html(self, *, inspector: bool = False) -> str:
         """Demo HTML only — prefer Placement.scripts via ch.media / ch.runtime."""
-        from ux_channel.paint.demo import script_tags
+        from ux_channel.render.kit import script_tags
 
         ch = self.plane.channel
         if hasattr(ch, "runtime"):

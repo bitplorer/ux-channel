@@ -1035,7 +1035,7 @@ class WebRTCPlane:
             "kinds": sorted(SIGNAL_KINDS),
             "store": type(self.store()).__name__,
             "metrics": __import__(
-                "ux_channel.webrtc_metrics", fromlist=["rtc_metrics"]
+                "ux_channel.realtime.webrtc_metrics", fromlist=["rtc_metrics"]
             ).rtc_metrics.snapshot(),
             "use_redis": bool(getattr(cfg, "webrtc_use_redis", None) if cfg else False),
             "dtls_pinning": False,  # browser WebRTC: not available to apps

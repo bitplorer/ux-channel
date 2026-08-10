@@ -14,9 +14,9 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from ux_channel import Channel, ChannelConfig
-from ux_channel.paint.demo import attr_string, demo_button, demo_page, demo_scripts, script_tags
+from ux_channel.render.kit import attr_string, demo_button, demo_page, demo_scripts, script_tags
 from ux_channel.host.channel import CHANNEL_PUBLIC_API
-from ux_channel.paint.placement import Placement, ScriptRef
+from ux_channel.render.placement import Placement, ScriptRef
 from ux_channel.protocol.types import Intent, Result
 
 

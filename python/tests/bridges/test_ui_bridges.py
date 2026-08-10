@@ -18,7 +18,7 @@ from ux_channel.bridges import (
     SwiperBridge,
 )
 from ux_channel.bridge.bridge_preset_gen import list_known_presets
-from ux_channel.paint.demo import bridge_script_tags, ui_script_tags
+from ux_channel.render.kit import bridge_script_tags, ui_script_tags
 
 
 def _ch():

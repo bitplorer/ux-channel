@@ -77,7 +77,7 @@ CXB frame details live in package `docs/core/CXB.md` (already treated as normati
 | Quantity | `from ux_channel.foundations.quantity import Quantity` |
 | I/O channel | `from ux_channel.foundations.io_channel import IoGate, IoRoomClaim` |
 | Workplace / mesh | `from ux_channel.workplace import workplace, issue_mesh_membership` |
-| Morph IR | `from ux_channel.paint.morph_ir import ...` |
+| Morph IR | `from ux_channel.render.morph_ir import ...` |
 | Nested caps | `from ux_channel.security.attenuate import attenuate` |
 
 These are frozen *names*; they are not required for day-1 apps.

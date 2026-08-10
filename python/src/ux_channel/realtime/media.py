@@ -31,7 +31,7 @@ from dataclasses import dataclass, field
 from html import escape
 from typing import Any, Literal, Mapping, Optional
 
-from ux_channel.paint.placement import Placement
+from ux_channel.render.placement import Placement
 from ux_channel.realtime.sfu import SfuAdapter, get_sfu
 
 MediaMode = Literal["auto", "mesh", "sfu"]
@@ -94,7 +94,7 @@ class MediaPlugin:
     @property
     def scripts_html(self) -> str:
         """Demo convenience — prefer ``ux_channel.demo.script_tags(self)``."""
-        from ux_channel.paint.demo import script_tags
+        from ux_channel.render.kit import script_tags
 
         if self._scripts_html:
             return self._scripts_html
@@ -102,14 +102,14 @@ class MediaPlugin:
 
     @property
     def attr_string(self) -> str:
-        from ux_channel.paint.demo import attr_string
+        from ux_channel.render.kit import attr_string
 
         if self._attr_string:
             return self._attr_string
         return attr_string(self.attrs)
 
     def to_placement(self) -> "Placement":
-        from ux_channel.paint.placement import Placement
+        from ux_channel.render.placement import Placement
 
         return Placement(
             attrs=dict(self.attrs),
@@ -276,7 +276,7 @@ class SfuBridge:
         inspector: bool,
     ) -> tuple[list, str]:
         """Return (ScriptRef list, demo HTML string). Data list is the truth."""
-        from ux_channel.paint.placement import ScriptRef
+        from ux_channel.render.placement import ScriptRef
 
         ch = self.channel
         base = (getattr(ch, "path", None) or "/ux-channel").rstrip("/")
@@ -305,7 +305,7 @@ class SfuBridge:
                 )
             )
         # Demo HTML (not truth) — client JSON embedded for boot
-        from ux_channel.paint.demo import script_tags
+        from ux_channel.render.kit import script_tags
 
         html = script_tags(refs)
         html += (
@@ -419,7 +419,7 @@ class MediaPlane:
         attrs = dict(d.get("attrs") or p.attrs)
         attrs["data-channel-media-mode"] = "mesh"
         attrs["data-channel-media-provider"] = "mesh"
-        from ux_channel.paint.placement import ScriptRef
+        from ux_channel.render.placement import ScriptRef
 
         base = (getattr(self.channel, "path", None) or "/ux-channel").rstrip("/")
         refs = [

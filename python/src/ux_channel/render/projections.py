@@ -4,7 +4,7 @@ Multi-surface projections from Morph IR.
 =================================================================
 PUBLIC / PRIVATE
 =================================================================
-* **Power public:** ``from ux_channel.paint.projections import project_all``
+* **Power public:** ``from ux_channel.render.projections import project_all``
 * **Not AX** — ``project_agent_view`` is Morph IR; world model is ``agents(ch).situation``.
 """
 
@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from typing import Any, Optional
 
-from ux_channel.paint.morph_ir import MorphNode, lower_html, project_agent, project_json
+from ux_channel.render.morph_ir import MorphNode, lower_html, project_agent, project_json
 from ux_channel.protocol.ops import morph as morph_op
 
 __all__ = [

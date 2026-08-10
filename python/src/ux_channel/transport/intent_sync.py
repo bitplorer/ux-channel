@@ -22,7 +22,7 @@ from typing import Any, Callable, List, Optional, Protocol
 
 from ux_channel.protocol.types import Intent, Result
 
-logger = logging.getLogger("ux_channel.intent_sync")
+logger = logging.getLogger("ux_channel.transport.intent_sync")
 
 __all__ = [
     "IntentSyncMessage",

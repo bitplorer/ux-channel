@@ -28,8 +28,8 @@ from ux_channel import (
     toast,
     update_ops,
 )
-from ux_channel.paint.html import action_attrs
-from ux_channel.paint.render import ChainRenderer, HtmlRenderer, StringRenderer
+from ux_channel.render.html import action_attrs
+from ux_channel.render.renderers import ChainRenderer, HtmlRenderer, StringRenderer
 
 # ---------------------------------------------------------------------------
 # Toy \"library\" object — stands in for pandas/polars/ux-dom in real apps

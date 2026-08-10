@@ -215,7 +215,7 @@ class ChannelTracer:
             except Exception:
                 import logging
 
-                logging.getLogger("ux_channel.trace").debug(
+                logging.getLogger("ux_channel.devtools.trace").debug(
                     "trace subscriber failed", exc_info=True
                 )
         return frame

@@ -17,8 +17,8 @@ def test_templates_include_media():
     assert "media" in available_templates()
 
 
-def test_mental_model_and_doctor():
-    mm = Channel.mental_model()
+def test_describe_and_doctor():
+    mm = Channel.describe()
     assert "Public API" in mm and "media.plugin" in mm and "ux-dom" in mm
     ch = Channel.boot(
         FastAPI(),

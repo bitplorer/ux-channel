@@ -4,7 +4,7 @@
 Usage::
 
     cd /path/to/ux-channel
-    PYTHONPATH=src python examples/dx_dashboard/run.py
+    PYTHONPATH=src python examples/dashboard/run.py
     # open reports/dx-example/dashboard.html
 """
 

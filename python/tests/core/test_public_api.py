@@ -11,8 +11,8 @@ from ux_channel.realtime.webrtc import reset_rtc_store
 
 
 class TestPublicApi(unittest.TestCase):
-    def test_mental_model_string(self):
-        text = Channel.mental_model()
+    def test_describe_string(self):
+        text = Channel.describe()
         self.assertIn("Public API", text)
         self.assertIn("boot", text)
         self.assertIn("Placement", text)

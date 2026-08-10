@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from typing import Any, Callable, Optional
 
 from ux_channel.components.base import ChannelComponent
-from ux_channel.paint.html_safe import esc
+from ux_channel.render.html_safe import esc
 from ux_channel.protocol.types import Result
 
 Validator = Callable[[dict[str, str]], dict[str, list[str]]]
@@ -57,7 +57,7 @@ class Form(ChannelComponent):
         self.success_redirect = success_redirect
 
     def render(self, **state: Any) -> str:
-        from ux_channel.paint.html import form_open
+        from ux_channel.render.html import form_open
 
         values: dict[str, str] = dict(state.get("values") or {})
         errors: dict[str, list[str]] = dict(state.get("errors") or {})

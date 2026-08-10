@@ -22,8 +22,8 @@ from __future__ import annotations
 
 from typing import Any, Mapping, Optional, Protocol, runtime_checkable
 
-from ux_channel.paint.html import action_attrs, button as html_button
-from ux_channel.paint.html_safe import esc
+from ux_channel.render.html import action_attrs, button as html_button
+from ux_channel.render.html_safe import esc
 from ux_channel.protocol.ops import morph, toast
 from ux_channel.protocol.types import Result
 
@@ -140,7 +140,7 @@ def to_html(value: Any) -> str:
     """
     if value is None:
         return ""
-    from ux_channel.paint.html_safe import SafeHtml, esc
+    from ux_channel.render.html_safe import SafeHtml, esc
 
     if isinstance(value, SafeHtml):
         return str(value)
@@ -268,7 +268,7 @@ class RegistryHost:
         return region_root(uid_id, to_html(inner), tag=tag, **attrs)
 
     def form(self, action: str, **kwargs: Any) -> str:
-        from ux_channel.paint.html import form_open
+        from ux_channel.render.html import form_open
 
         sign = kwargs.pop("sign", True)
         sub = kwargs.pop("sub", None)

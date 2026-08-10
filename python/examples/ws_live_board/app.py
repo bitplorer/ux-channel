@@ -24,7 +24,7 @@ from fastapi.responses import HTMLResponse
 from ux_dom.dom import button, div, h1, h2, p, raw, span
 
 from ux_channel import Channel, ChannelConfig, Region
-from ux_channel.paint.demo import (
+from ux_channel.render.kit import (
     attr_string,
     demo_button,
     demo_page,

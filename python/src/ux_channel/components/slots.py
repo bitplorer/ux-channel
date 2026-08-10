@@ -27,7 +27,7 @@ from typing import Any, Callable, Iterable, Mapping, Optional, Sequence, Union
 
 from ux_channel.components.base import ChannelComponent
 from ux_channel.components.primitive import to_html
-from ux_channel.paint.html_safe import esc
+from ux_channel.render.html_safe import esc
 
 # Avoid circular import of fragment from compose — define render pipeline here
 # and let compose.fragment re-export / call into slots.render_fragment.

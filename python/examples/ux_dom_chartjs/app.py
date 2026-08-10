@@ -25,7 +25,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
 from ux_channel import Channel, ChannelConfig, Region, Result
-from ux_channel.paint.demo import attr_string, mount_html, script_tags
+from ux_channel.render.kit import attr_string, mount_html, script_tags
 
 STATIC = Path(__file__).resolve().parent / "static"
 

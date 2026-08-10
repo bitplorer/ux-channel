@@ -121,7 +121,7 @@ from ux_channel.realtime.whip import ...
 Never put free `sign_rtc_ticket` on `uxchannel` root for product apps — use `ch.webrtc`.
 
 ```python
-print(Channel.mental_model())
+print(Channel.describe())
 # Day-1 includes webrtc plane; layers stay submodules
 ```
 

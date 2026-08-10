@@ -14,9 +14,9 @@
 | Reference adapters | `from ux_channel.io_adapters import ScannerAdapter, LightsAdapter, LabDutAdapter` |
 | Nested caps | `from ux_channel.security.attenuate import attenuate` |
 | Tree caps | `from ux_channel.security.tree_cap import TreeEnvelope` |
-| Morph IR | `from ux_channel.paint.morph_ir import elem, region` |
-| Projections | `from ux_channel.paint.projections import project_all` |
-| Stable uids | `from ux_channel.paint.slot_compile import stable_uid` |
+| Morph IR | `from ux_channel.render.morph_ir import elem, region` |
+| Projections | `from ux_channel.render.projections import project_all` |
+| Stable uids | `from ux_channel.render.slot_compile import stable_uid` |
 | Intent log / forensics | `attach_audit` · `intent_log` · `forensics` |
 | Sealed bridge | `from ux_channel.bridge.bridge_protocol import SealedBridgeProtocol` |
 | Guest runtime | `from ux_channel.bridge.guest_runtime import GuestRuntime` |
@@ -25,7 +25,7 @@
 ```python
 from ux_channel.foundations.quantity import Quantity
 from ux_channel.foundations.io_channel import IoGate, IoProtocol, IoMethodSpec, IoKind, IoRoomClaim
-from ux_channel.paint.morph_ir import elem, region
+from ux_channel.render.morph_ir import elem, region
 
 q = Quantity.from_store(3, "seats", source="db.booking.9.seats", revision=2)
 tree = region("cart", elem("span", "3"))
@@ -77,8 +77,8 @@ r = ag.dispatch("Cart.add", {"sku": "x"}, peer=ag.peer("bot-1"))
 ## Multi-surface Morph IR
 
 ```python
-from ux_channel.paint.morph_ir import region, elem
-from ux_channel.paint.projections import project_all
+from ux_channel.render.morph_ir import region, elem
+from ux_channel.render.projections import project_all
 
 views = project_all(region("cart", elem("span", "3")))
 ```

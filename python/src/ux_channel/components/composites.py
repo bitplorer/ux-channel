@@ -19,7 +19,7 @@ from ux_channel.components.flash import Flash
 from ux_channel.components.form import Field, Form
 from ux_channel.components.list_view import ListView
 from ux_channel.components.primitive import region_root, to_html
-from ux_channel.paint.html_safe import esc
+from ux_channel.render.html_safe import esc
 from ux_channel.protocol.types import Result
 
 

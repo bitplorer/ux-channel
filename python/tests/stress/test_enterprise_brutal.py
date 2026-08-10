@@ -262,7 +262,7 @@ def test_http_forged_cap_rejected():
 
 
 def test_xss_user_content_escaped():
-    from ux_channel.paint.html_safe import esc, user_content
+    from ux_channel.render.html_safe import esc, user_content
 
     evil = '<script>alert(1)</script>'
     assert "<script>" not in esc(evil)

@@ -40,7 +40,7 @@ from typing import Any, Optional
 
 from ux_channel.devtools.trace import ChannelTracer, TraceFrame, get_tracer
 
-logger = logging.getLogger("ux_channel.otel")
+logger = logging.getLogger("ux_channel.devtools.otel")
 
 __all__ = [
     "attach_otel",

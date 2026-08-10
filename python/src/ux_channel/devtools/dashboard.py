@@ -411,7 +411,7 @@ def build_sections(
         "actions": actions if actions is not None else "—",
         "regions": regions if regions is not None else "—",
         "media_mode": doc.get("media_mode") or "—",
-        "public_api": doc.get("day1") or "—",
+        "public_api": doc.get("public_api") or "—",
     }
 
     policy = {

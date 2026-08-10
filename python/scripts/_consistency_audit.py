@@ -108,7 +108,7 @@ def main() -> int:
         except ModuleNotFoundError:
             pass
 
-    morph_ir = importlib.import_module("ux_channel.morph_ir")
+    morph_ir = importlib.import_module("ux_channel.render.morph_ir")
     assert callable(morph_ir.region)
     assert not hasattr(morph_ir, "slot")
 

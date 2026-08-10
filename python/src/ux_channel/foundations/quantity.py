@@ -120,7 +120,7 @@ def as_quantity(value: Any) -> Optional[Quantity]:
 
 def path_looks_like_quantity(path: str) -> bool:
     """True when a state/client path looks like durable measure authority."""
-    from ux_channel.host.planes import path_is_risky
+    from ux_channel.host.state_planes import path_is_risky
 
     return path_is_risky(path)
 

@@ -25,7 +25,7 @@ import copy
 from dataclasses import dataclass, field
 from typing import Any, Mapping, Optional, Sequence
 
-from ux_channel.paint.placement import Placement
+from ux_channel.render.placement import Placement
 
 __all__ = [
     "ChartBridge",
