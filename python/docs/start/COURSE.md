@@ -27,7 +27,7 @@ Browser --Intent+cap--> Host --> Registry --> Action
 | **Components** | `ux_channel.components` | *optional* channel-side blocks (not ux-dom) |
 | **Agents** | `ux_channel.agents`, `.mcp` | optional agent/tool plane |
 | **Redis** | `ux_channel.redis_extra` | multi-worker stores |
-| **Demo** | `ux_channel.demo` | raw HTML page/button (examples only) |
+| **Demo** | `ux_channel.render.kit` | raw HTML page/button (examples only) |
 
 ## Rules that stay true for decades
 

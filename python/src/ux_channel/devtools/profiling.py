@@ -1,5 +1,5 @@
 # Copyright (c) 2026 UX-CHANNEL
-"""Internal / maintainer profiling helpers (not a day-1 user API).
+"""Internal / maintainer profiling helpers (not a application user API).
 
 Dispatch parallelism, bulkheads, and batch concurrency are **library-internal**
 defaults for safety under load. Applications should not need to tune them.

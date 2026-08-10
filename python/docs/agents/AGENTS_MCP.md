@@ -1,9 +1,9 @@
 # Agents + MCP (full surface)
 
-AX day-1 remains **`agents(ch)`**. MCP is an optional **HTTP/JSON-RPC viewport**
+AX application remains **`agents(ch)`**. MCP is an optional **HTTP/JSON-RPC viewport**
 onto the same registry — never a second product.
 
-## Day-1 (always)
+## Application (always)
 
 ```python
 from ux_channel import agents

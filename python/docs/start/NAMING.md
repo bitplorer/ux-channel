@@ -27,7 +27,7 @@ Monorepo intent table (mint/sign, Region/registry): **[NAMING.md](../../../NAMIN
 2. No alias map; no dual kwargs next to product names
 3. Apps return `ch.done` / `ch.fail.*` only
 4. Wire keys immortal (`ops`, `ok`, `error`, `data-channel-*`)
-5. Markup strings only in `ux_channel.demo`
+5. Markup strings only in `ux_channel.render.kit`
 6. **AX** = `agents(ch)` only
 7. **Quantity** = store-grounded measure (`magnitude` + `unit` + provenance)
 8. **region** = morph paint surface (`@ch.region` and Morph IR `region(uid)`)

@@ -6,7 +6,7 @@ Everything not listed here is internal or explicit submodule and may change with
 
 ---
 
-## 1. Day-1 core (frozen — do not rename)
+## 1. Application core (frozen — do not rename)
 
 ```python
 from ux_channel import (
@@ -80,13 +80,13 @@ CXB frame details live in package `docs/core/CXB.md` (already treated as normati
 | Morph IR | `from ux_channel.render.morph_ir import ...` |
 | Nested caps | `from ux_channel.security.attenuate import attenuate` |
 
-These are frozen *names*; they are not required for day-1 apps.
+These are frozen *names*; they are not required for application apps.
 
 ---
 
 ## 6. Explicitly **not** public (may move or change)
 
-- `ux_channel.demo` (training wheels only)
+- `ux_channel.render.kit` (training wheels only)
 - Bridge scaffold / preset generators
 - Inspector / DX-only endpoints and dashboards
 - Redis / push-bus internals
@@ -103,7 +103,7 @@ These are frozen *names*; they are not required for day-1 apps.
 
 **Allowed without unfreeze:** bugfixes, docs, tests, new adapters/examples, additive optional kwargs with safe defaults, new power modules under import-by-concern.
 
-**Requires major / explicit unfreeze:** renaming day-1 verbs, second agent product API, drivers in core, breaking wire `v` / op names.
+**Requires major / explicit unfreeze:** renaming application verbs, second agent product API, drivers in core, breaking wire `v` / op names.
 
 ---
 
@@ -112,3 +112,8 @@ These are frozen *names*; they are not required for day-1 apps.
 - Package: `docs/start/FREEZE_0.1.md`, `docs/start/API_SURFACE.md`, `docs/start/PRINCIPLES.md`
 - `SPEC/intent-result-ops.md`, `SPEC/capability.md`
 - Package `docs/core/WIRE.md`, `docs/core/RESULT.md`, `docs/core/CXB.md`
+
+
+## Stores
+
+`MemoryStateStore` lives in `ux_channel.host.stores` (not `host.state`).

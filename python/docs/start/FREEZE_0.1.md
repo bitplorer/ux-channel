@@ -1,6 +1,6 @@
 # uxchannel 0.1 — surface freeze
 
-## Frozen day-1 (core)
+## Frozen application (core)
 
 Do not rename or dual-path these without a major version:
 
@@ -36,7 +36,7 @@ Core **boot does not import** these.
 
 ## Requires major / explicit unfreeze
 
-* Renaming day-1 verbs  
+* Renaming application verbs  
 * Second agent product API  
 * Drivers in core  
 * Breaking wire `uid` / op names  

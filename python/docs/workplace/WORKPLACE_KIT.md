@@ -1,6 +1,6 @@
 # Workplace starter kit
 
-Copy-paste deploy target: [`examples/workplace_kit/`](../examples/workplace_kit/).
+Copy-paste deploy target: [`examples/workplace_kit/`](../../examples/workplace_kit/).
 
 ## What it includes
 

@@ -33,7 +33,7 @@ Full narrative (flows, algorithms, CXB negotiation status): [`HOW_IT_WORKS.md`](
 | `SPEC/capability.md` | Cap semantics |
 | `SPEC/INVARIANTS.md` | Testable laws |
 | `SPEC/BREAKING_CHANGE_POLICY.md` | When a major is required |
-| `PUBLIC_API_FREEZE.md` | Day-1 public names (host package) |
+| `PUBLIC_API_FREEZE.md` | Application public names (host package) |
 | `conformance/manifest.json` + `vectors/**` | Executable interop law |
 | `conformance/expected/cxb/**` | Frozen CXB blobs (append-only tags) |
 | Peer: `types`, `wire_json` | IR encode/decode floor |

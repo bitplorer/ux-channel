@@ -2,7 +2,7 @@
 Document / runtime **Placement** for Channel (no HTML strings).
 
 ux-dom and templates consume ``ch.runtime().scripts`` and ``ch.body_attrs()``.
-Demo HTML lives only in ``ux_channel.demo``.
+Demo HTML lives only in ``ux_channel.render.kit``.
 
 Region SSR is separate: ``ch.html(uid)`` from RegionBook (see flow.attach_flow).
 """
@@ -88,7 +88,7 @@ def attach_document(channel: Any) -> None:
         """
         Attribute **dict** for your document body (Placement data, not HTML).
 
-        Demo: ``ux_channel.demo.attr_string(ch.body_attrs(...))``.
+        Demo: ``ux_channel.render.kit.attr_string(ch.body_attrs(...))``.
         """
         dev_b, insp = _env_flags(dev, inspector)
         ep = endpoint or f"{channel.path.rstrip('/')}/action"

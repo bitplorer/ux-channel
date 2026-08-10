@@ -11,7 +11,7 @@ Intent → Action → Result(ops) is the product. Everything else is a layer
 
 ux-dom / Jinja / Django templates own markup. Channel owns **control**,
 **trust**, **regions**, **ops**. Demo `ch.button` / `ch.page` are not the
-product path (`ux_channel.demo`).
+product path (`ux_channel.render.kit`).
 
 ## 3. One name per concept
 

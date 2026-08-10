@@ -7,4 +7,4 @@ from ux_channel.catalog import host
 print(host.help())
 ```
 
-Full tables: [`../LAYOUT.md`](../LAYOUT.md) · concepts: [`../ONTOLOGY.md`](../ONTOLOGY.md)
+Full tables: [`../../../LAYOUT.md`](../../../LAYOUT.md) · concepts: [`../../../ONTOLOGY.md`](../../../ONTOLOGY.md)

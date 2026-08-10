@@ -1,3 +1,4 @@
+# MANUAL_PUBLIC_API
 """
 Bridge **presets** — data + ops for npm / ux-fx / ux-ui adapters.
 

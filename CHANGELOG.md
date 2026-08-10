@@ -1,3 +1,13 @@
+## 2026-08-10 — deeper + wider monorepo consistency
+
+- Active tree jargon sweep (demo→render.kit, CapService.sign→mint, …)
+- Product surfaces: `wire` (core+cxb), `asgi.mount_channel`
+- repo_health: forbidden layout dirs + required files + stale path scan
+- Makefile: layout, test-python-gate, test-python-host
+- Docs map + broken link neutralization; gate wire/asgi/api identity tests
+
+---
+
 ## 2026-08-10 — deeper: stores module, api via packages, identity law
 
 - `host/state.py` → `host/stores.py` (no collision with `state()` API)

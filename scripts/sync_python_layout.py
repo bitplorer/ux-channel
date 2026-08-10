@@ -152,12 +152,9 @@ def check(meta: dict) -> list[str]:
         problems.append("missing public package api/")
     if not (PKG / "render" / "__init__.py").exists():
         problems.append("missing package render/")
-    if (PKG / "paint").exists():
-        problems.append("legacy package paint/ must not exist")
-    if (PKG / "ops_dx").exists():
-        problems.append("legacy package ops_dx/ must not exist")
-    if (PKG / "zones").exists():
-        problems.append("legacy package zones/ must not exist")
+    for legacy in ("paint", "ops_dx", "bridge_meta", "day1", "zones", "security_plane"):
+        if (PKG / legacy).exists():
+            problems.append(f"legacy package {legacy}/ must not exist")
     sys.path.insert(0, str(ROOT / "python" / "src"))
     try:
         from ux_channel import CapService, Channel, Region, RegionBook

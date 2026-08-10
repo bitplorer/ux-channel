@@ -55,7 +55,7 @@ while unlocking **10–100×** on hot paths where it matters.
 2. **Native failure → Python** — never fail closed on accelerator bugs  
 3. **Default path snapshots** — concurrent mutation cannot tear frames  
 4. **Intern cannot explode** — freq≥2, entry/byte budgets  
-5. **JSON floor** remains day-1 for browsers  
+5. **JSON floor** remains application for browsers  
 6. **complete recovery** still ships the document  
 
 ### L4 native contract (`cxb_native/` in-repo crate)

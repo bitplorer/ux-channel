@@ -20,7 +20,7 @@ def test_bridge_mount_spec_is_placement():
     assert "<" not in str(spec.as_dict())  # no HTML tags in data
     assert not hasattr(ch.bridge, "media") or ch.bridge.media is None or True
     # media must NOT be a bridge concern
-    assert "media" not in ch.bridge.diagnose().get("day1", [])
+    assert "media" not in ch.bridge.diagnose().get("api", [])
     d = ch.bridge.diagnose()
     assert "ch.media" in d.get("media", "")
 

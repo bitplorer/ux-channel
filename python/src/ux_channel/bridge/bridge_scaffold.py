@@ -236,7 +236,7 @@ def render_python_snippet(package: str, methods: Sequence[str]) -> str:
     methods_tuple = f"({methods_t},)" if methods_t else "()"
     return (
         '"""Bridge preset entry (auto-generated).\n\n'
-        "Day-1 — callable factory façade::\n\n"
+        "Application — callable factory façade::\n\n"
         f"    from .preset import {cls}\n\n"
         f"    widgets = {cls}(ch)\n"
         '    w = widgets("island-1", props={})\n'
@@ -318,7 +318,7 @@ def render_readme(package: str, methods: Sequence[str], npm_dep: str = "") -> st
 
 Callable **factory façade** (default codegen).
 
-## Day-1 Python
+## Application Python
 
 ```python
 from preset import {cls}          # or: from bridges.<mod> import {cls}

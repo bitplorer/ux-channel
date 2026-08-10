@@ -9,7 +9,7 @@
 | npm island ops | **uxchannel `ch.bridge`** |
 | Data façade (no Chart.js) | **`ChartBridge(ch)` factory / generated presets** |
 
-## Day-1
+## Application
 
 ```python
 charts = ChartBridge(ch)

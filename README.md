@@ -52,7 +52,7 @@ Read top → bottom if you are new. Layers do not mix “law” with “demo.”
 |------|------|
 | [SPEC/](SPEC/) | IR, capability, invariants, breaking-change policy |
 | [conformance/](conformance/) | Golden JSON vectors + CXB expected blobs + harnesses |
-| [PUBLIC_API_FREEZE.md](PUBLIC_API_FREEZE.md) | Day-1 public names (host package alignment) |
+| [PUBLIC_API_FREEZE.md](PUBLIC_API_FREEZE.md) | Application public names (host package alignment) |
 
 ### C. Product packages + demos
 
@@ -152,7 +152,7 @@ python3 demos/python_forward/forward_to_rust.py --base http://127.0.0.1:8787 --m
 ## Principles (non-negotiable)
 
 1. One IR — Intent / Result / ops; no parallel RPC style  
-2. JSON floor — browsers & day-1 always work  
+2. JSON floor — browsers & application always work  
 3. Caps travel on the Intent  
 4. Peers over FFI  
 5. Optional envelopes never required for basic interop  

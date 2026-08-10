@@ -66,7 +66,7 @@ def decision_tree() -> str:
         "  → recipe production + uxchannel check --env production\n"
         "\n"
         "Do NOT use for product UI\n"
-        "  Channel HTML façade  (removed — ux_channel.demo only)\n"
+        "  Channel HTML façade  (removed — ux_channel.render.kit only)\n"
         "  ch.webrtc.page / call chrome  (removed — host owns UI)\n"
     )
 

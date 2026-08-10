@@ -11,7 +11,7 @@
 | [API_SURFACE](start/API_SURFACE.md) | What is public |
 | [LAYERS](start/LAYERS.md) | Where to import |
 | [HOW_TO](start/HOW_TO.md) | Recipes |
-| [FREEZE_0.1](start/FREEZE_0.1.md) | Frozen day-1 speech |
+| [FREEZE_0.1](start/FREEZE_0.1.md) | Frozen application speech |
 
 ## By plane (ontology)
 
@@ -32,7 +32,7 @@
 | [production/](production/) | Deploy, soak, enterprise, Redis |
 | [dx/](dx/) | DX, scaffold, inspector, examples |
 
-## Day-1 imports
+## Application imports
 
 ```python
 from ux_channel import Channel, ChannelConfig, agents, state, attach_audit
@@ -40,4 +40,4 @@ from ux_channel import Channel, ChannelConfig, agents, state, attach_audit
 
 Power layers: import by home (`ux_channel.quantity`, `.workplace`, `.io_channel`, …).
 
-- [Stack with ux-channel](STACK.md)
+- `Stack with ux-channel`

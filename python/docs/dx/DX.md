@@ -18,7 +18,7 @@ print(Channel.help("counter"))     # recipe
 ch.doctor()                        # health + hints
 ```
 
-## Day-1 only (16 names)
+## Application only (16 names)
 
 `boot` · `on` · `region` · `control` · `scripts` · `body_attr_string` ·  
 `draft` · `done` · `fail` · `refresh` · `sign` · `diagnose` ·  
@@ -65,7 +65,7 @@ export UX_CHANNEL_STRICT_DX=1   # warn on ch.button / ch.page
 
 ## Long-term stability rules
 
-1. **Root API frozen** — day-1 names only grow with a major version.
+1. **Root API frozen** — application names only grow with a major version.
 2. **No UI chrome in channel** — plugins are placement bags.
 3. **One media façade** — `ch.media`; mesh/sfu are modes.
 4. **Caps by default** — never ship `require_cap=False` to prod.

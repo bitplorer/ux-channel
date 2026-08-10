@@ -8,7 +8,7 @@ uxchannel does **not** own documents. It emits:
 * ``scripts`` — ordered script *references* (URLs), not ``<script>`` strings
 
 ux-dom / Jinja / React turn Placement into markup. Demo HTML helpers live in
-``ux_channel.demo`` only.
+``ux_channel.render.kit`` only.
 """
 
 from __future__ import annotations

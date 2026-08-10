@@ -5,11 +5,11 @@
 | Source | What we kept |
 |--------|----------------|
 | **Attached / release 0.1.0** | `src/` layout, full `docs/`, full `tests/` tree, `examples/`, package `scripts/`, `ux_channel_ux_dom`, domain docs |
-| **Monorepo evolution** | `catalog/`, `day1`, sorted `args_hash`, gate tests, Rust interop, `LAYOUT`/`ONTOLOGY`/`STRUCTURE`, verify/CI |
+| **Monorepo evolution** | `catalog/`, `api`, sorted `args_hash`, gate tests, Rust interop, `LAYOUT`/`ONTOLOGY`/`STRUCTURE`, verify/CI |
 
 ## Not lost
 
-- All `ux_channel` modules from release (**plus** `day1` + `zones`)
+- All `ux_channel` modules from release (**plus** `api` + `zones`)
 - Cap algorithm **fixed** to sorted compact JSON (Rust/oracle compatible) — do not revert to unsorted serde dumps
 - Full documentation encyclopedia under `docs/`
 - Full optional test suites under `tests/{core,regions,…}`

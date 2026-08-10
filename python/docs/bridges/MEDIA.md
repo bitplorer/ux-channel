@@ -63,7 +63,7 @@ Need **TURN** for real NATs (`ch.webrtc.ice` / env secrets).
 | Media bytes | LiveKit SFU or browser mesh |
 | UI chrome | host (ux_dom, etc.) |
 
-## Day-1
+## Application
 
 `ch.media.plugin` · `session` · `mesh` · `sfu` · `mode` · `ice` · `diagnose`
 

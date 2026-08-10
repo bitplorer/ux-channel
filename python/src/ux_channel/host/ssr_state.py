@@ -382,7 +382,7 @@ class SsrState:
     """
     Server UI state bag (one per Channel).
 
-    Day-1:  ``local`` · ``@region`` · ``@action`` · ``bind``
+    Application:  ``local`` · ``@region`` · ``@action`` · ``bind``
     Many:   ``namespace``
     Power:  ``changes`` · ``map`` · ``refresh=`` · ``feeds``
     """

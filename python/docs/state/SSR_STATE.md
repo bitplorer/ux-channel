@@ -2,7 +2,7 @@
 
 Server UI locals → region re-paint. Simple by default; **namespace** when you have many.
 
-## Day-1
+## Application
 
 ```python
 ui = ssr_state(ch)

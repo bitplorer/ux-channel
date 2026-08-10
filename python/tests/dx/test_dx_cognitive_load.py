@@ -33,7 +33,7 @@ def test_channel_help_and_aliases():
     assert "ch.control" in Channel.help()
     prefer = Channel.help("prefer")
     assert "done" in prefer and "media.plugin" in prefer
-    assert "Channel.boot" in Channel.help("day1") or "boot" in Channel.help("day1")
+    assert "Channel.boot" in Channel.help("api") or "boot" in Channel.help("api")
     assert "draft" in Channel.help("counter")
     assert not hasattr(Channel, "aliases")
 

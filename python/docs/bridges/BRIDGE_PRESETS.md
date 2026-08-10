@@ -1,6 +1,6 @@
 # Bridge presets — factory default + contract-driven props
 
-## Day-1
+## Application
 
 ```python
 charts = ChartBridge(ch)

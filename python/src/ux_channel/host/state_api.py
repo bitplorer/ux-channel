@@ -59,7 +59,7 @@ Client = ClientPlane
 
 class ChannelState:
     """
-    ``st.session`` / ``st.client`` / ``st.db`` — that is the whole day-1 map.
+    ``st.session`` / ``st.client`` / ``st.db`` — that is the whole application map.
 
     ::
 

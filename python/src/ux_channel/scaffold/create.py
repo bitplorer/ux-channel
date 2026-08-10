@@ -513,7 +513,7 @@ Mental model
 * ``Channel.boot`` mounts ``/ux-channel/action``, static JS, optional ``/rtc``, SSE, WS.
 * ``@ch.region`` defines a morph target (stable ``data-channel-id``).
 * ``@ch.on(refresh=[...])`` mutates state and re-renders regions.
-* Demo HTML uses ``ux_channel.demo``; production apps use ux-dom + ``ch.control``.
+* Demo HTML uses ``ux_channel.render.kit``; production apps use ux-dom + ``ch.control``.
 """
 
 from __future__ import annotations

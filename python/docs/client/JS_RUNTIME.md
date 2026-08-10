@@ -58,4 +58,4 @@ node scripts/js_multi_live_chaos.mjs http://127.0.0.1:8767
 node scripts/js_live_chaos.mjs http://127.0.0.1:8766/         # single-script path
 ```
 
-See also [CSRF_CHANNEL_HEADER.md](CSRF_CHANNEL_HEADER.md) · [BRIDGES.md](BRIDGES.md) if present.
+See also [CSRF_CHANNEL_HEADER.md](CSRF_CHANNEL_HEADER.md) · `BRIDGES.md` if present.

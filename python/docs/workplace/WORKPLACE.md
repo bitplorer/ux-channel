@@ -1,10 +1,10 @@
 # Workplace — policy-shaped rooms
 
 **Product form of the I/O channel course:** one room’s membership claim, sealed
-adapters, claim-aware agents, and audit — without replacing day-1 `Channel`.
+adapters, claim-aware agents, and audit — without replacing application `Channel`.
 
 ```text
-Channel     day-1: boot · region · on · control · done
+Channel     application: boot · region · on · control · done
 Workplace   power: claim · gate · run_io · dispatch · situation
 Adapters    your drivers (never in core)
 ```

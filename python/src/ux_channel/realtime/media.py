@@ -19,7 +19,7 @@ Application::
     ch.media.sfu    # SfuBridge (tokens + plugin)
 
 Host places **Placement data** (``p.scripts``, ``p.attrs``, ``p.client``).
-HTML strings are only via ``ux_channel.demo.script_tags`` / ``attr_string``.
+HTML strings are only via ``ux_channel.render.kit.script_tags`` / ``attr_string``.
 """
 
 from __future__ import annotations
@@ -50,7 +50,7 @@ MEDIA_PUBLIC_API = (
     "diagnose",
     "ice",
 )
-# Power: .mesh / .sfu adapters — not day-1 names
+# Power: .mesh / .sfu adapters — not application names
 
 
 def _esc(s: object) -> str:
@@ -67,7 +67,7 @@ class MediaPlugin:
     Media placement — **data only** (extends Placement fields).
 
     Primary truth: ``scripts`` (URLs), ``attrs`` (dict), ``client`` (dict).
-    Use ``ux_channel.demo.script_tags`` / ``attr_string`` for demo markup.
+    Use ``ux_channel.render.kit.script_tags`` / ``attr_string`` for demo markup.
     """
 
     mode: str
@@ -93,7 +93,7 @@ class MediaPlugin:
 
     @property
     def scripts_html(self) -> str:
-        """Demo convenience — prefer ``ux_channel.demo.script_tags(self)``."""
+        """Demo convenience — prefer ``ux_channel.render.kit.script_tags(self)``."""
         from ux_channel.render.kit import script_tags
 
         if self._scripts_html:
@@ -337,7 +337,7 @@ class MediaPlane:
         self.channel = channel
         self._sfu = SfuBridge(channel)
 
-    # --- day-1 properties --------------------------------------------------
+    # --- application properties --------------------------------------------------
 
     @property
     def mesh(self) -> Any:
@@ -382,7 +382,7 @@ class MediaPlane:
 
             p = ch.media.plugin("lobby", sub=user_id)
             # p.attrs, p.client, p.scripts  — data only
-            # demo: ux_channel.demo.script_tags(p) / attr_string(p)
+            # demo: ux_channel.render.kit.script_tags(p) / attr_string(p)
         """
         resolved = self.resolve_mode(mode)
         if resolved == "sfu":

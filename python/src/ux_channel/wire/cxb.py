@@ -38,7 +38,7 @@ Frame layout (v1) — read this once
       │      └─ 1=Intent  2=Result  3=generic doc
       └─ magic (or whole frame zlib'd as CXBZ when smaller)
 
-Day-1 API (only names you need)
+Application API (only names you need)
 ------------------------------
 * format: ``"cxb"``
 * media type: ``application/ux-channel+cxb``

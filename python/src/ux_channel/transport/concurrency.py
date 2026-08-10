@@ -4,7 +4,7 @@
 # https://opensource.org/licenses/MIT
 """Internal parallel + concurrent dispatch for **ux-channel**.
 
-**Application code should not tune this for day-1 work.**
+**Application code should not tune this for application work.**
 Use ``registry.dispatch`` / HTTP / regions. Parallelism, bulkheads, and batch
 ordering are library-internal safety defaults.
 

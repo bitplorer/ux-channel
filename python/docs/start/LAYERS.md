@@ -16,7 +16,7 @@
 ```text
   ux-dom / templates          markup only
         │
-  Channel (day-1)            boot · region · on · control · done/fail
+  Channel (application)            boot · region · on · control · done/fail
         │
   agents(ch)                 AX — tools · situation · dispatch · effects
   state(ch)                  session · client · db guards
@@ -42,13 +42,13 @@
 | `Quantity.from_store(..., source=…, revision=…)` | bare numbers in session/client |
 | `agents(ch).dispatch` | dual agent APIs |
 | `from ux_channel.render.morph_ir import region` | Morph `slot` (removed) |
-| `state(ch)` | teaching `planes()` as day-1 |
+| `state(ch)` | teaching `planes()` as application |
 
 ## Public tiers
 
 | Tier | Stability | Examples |
 |------|-----------|----------|
-| **Day-1 public** | Frozen speech | `Channel`, `agents`, `state`, `attach_audit` |
+| **Application public** | Frozen speech | `Channel`, `agents`, `state`, `attach_audit` |
 | **Power public** | Stable; import by home | `Quantity`, `attenuate`, `morph_ir.elem` / `region` |
 | **Internal** | May move | peer impl details, host plumbing |
 

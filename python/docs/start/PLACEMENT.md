@@ -11,7 +11,7 @@ ux-dom    →  <script>, <body attrs>, <video>…
 demo.py  →  optional HTML strings for scaffolds/tests only
 ```
 
-## Day-1
+## Application
 
 | API | Returns |
 |-----|---------|
@@ -21,7 +21,7 @@ demo.py  →  optional HTML strings for scaffolds/tests only
 | `ch.bridge.mount_spec(...)` | `Placement` for widget host |
 | `ch.bridge.mount_ops(...)` | Result ops |
 
-## Not day-1 (demo / power)
+## Not application (demo / power)
 
 | Avoid as truth | Instead |
 |----------------|---------|

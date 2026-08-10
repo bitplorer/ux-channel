@@ -1,4 +1,4 @@
-//! Capability tokens — compatible with Python `CapabilityService` /
+//! Capability tokens — compatible with Python `CapService` /
 //! `itsdangerous.URLSafeTimedSerializer` (django-concat + HMAC-SHA1 +
 //! optional zlib, URL-safe base64, timed signature).
 //!
@@ -20,7 +20,7 @@ use thiserror::Error;
 
 type HmacSha1 = Hmac<Sha1>;
 
-/// Default salt used by Python `CapabilityService`.
+/// Default salt used by Python `CapService`.
 pub const DEFAULT_SALT: &str = "ux-channel-cap";
 
 /// Conformance oracle secret from `conformance/vectors/cap/02-oracle-token.json`.
@@ -130,7 +130,7 @@ impl CapService {
         self.max_age
     }
 
-    /// Canonical args hash — matches oracle notes and Python `CapabilityService._hash_args`
+    /// Canonical args hash — matches oracle notes and Python `CapService._hash_args`
     /// when args are plain JSON (stdlib sorted-keys compact JSON, sha256[:32]).
     pub fn hash_args(args: &Value) -> String {
         let canon = canonical_args_json(args);

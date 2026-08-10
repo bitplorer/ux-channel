@@ -35,7 +35,7 @@ Wire protocol version field: **`"v": "1"`**.
 | `bridge.*` | npm bridge lifecycle |
 | `noop` | Dropped / no-op |
 
-Schema file: [uid-result.schema.json](uid-result.schema.json).
+Schema file: `uid-result.schema.json`.
 
 
 ## Refresh errors (0.1)

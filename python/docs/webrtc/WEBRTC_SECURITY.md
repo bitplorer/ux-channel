@@ -97,7 +97,7 @@ uxchannel mesh **signaling does not select layers** — that is the browser (mes
 
 ## Public API pattern (ux-channel)
 
-**Day-1 (only):**
+**Application (only):**
 
 ```text
 ch.webrtc.enabled | path | ws_path | sign_ticket | body_attrs | diagnose
@@ -122,7 +122,7 @@ Never put free `sign_rtc_ticket` on `uxchannel` root for product apps — use `c
 
 ```python
 print(Channel.describe())
-# Day-1 includes webrtc plane; layers stay submodules
+# Application includes webrtc plane; layers stay submodules
 ```
 
 ---

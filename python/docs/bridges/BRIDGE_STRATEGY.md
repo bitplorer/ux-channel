@@ -103,7 +103,7 @@ If you expose `ch.bridge.media` for discoverability, it must be a **thin alias**
 
 | Today | Long-term |
 |-------|-----------|
-| `from ux_channel.bridge.bridge_api import …` | `ch.bridge.*` day-1 optional layer |
+| `from ux_channel.bridge.bridge_api import …` | `ch.bridge.*` application optional layer |
 | `ch.media.plugin` | unchanged canonical media API |
 | CDN livekit in plugin scripts | app `npm i` or optional `@ux-channel/media-livekit` |
 | Ad-hoc `static/*.js` adapters | `packages/@ux-channel/adapter-*` |
@@ -113,7 +113,7 @@ If you expose `ch.bridge.media` for discoverability, it must be a **thin alias**
 * Fold LiveKit into `bridge.mount` / `bridge.call`  
 * Ship full `livekit-client` inside the wheel  
 * One mega `@ux-channel/all` package  
-* Framework-specific React/Vue wrappers inside **this** repo’s day-1 (publish separately if needed)  
+* Framework-specific React/Vue wrappers inside **this** repo’s application (publish separately if needed)  
 * `ch.bridge.media` that returns a different lifecycle than `ch.media`
 
 ---

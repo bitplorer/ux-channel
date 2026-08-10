@@ -83,7 +83,7 @@ async def feeder():
 # FastAPI lifespan: asyncio.create_task(feeder())
 ```
 
-Runnable demo: [`examples/sse_live_ticker/`](../examples/sse_live_ticker/).
+Runnable demo: [`examples/sse_live_ticker/`](../../examples/sse_live_ticker/).
 
 ---
 
@@ -374,7 +374,7 @@ get_push_bus().publish("sarrafa.public", result)
 | [PRODUCTION.md](../production/PRODUCTION.md) | Deploy checklist |
 | [FASTAPI.md](FASTAPI.md) | Routes |
 | [RESULT.md](../core/RESULT.md) | Ops shape |
-| [examples/sse_live_ticker/](../examples/sse_live_ticker/) | Auto-tick demo |
+| [examples/sse_live_ticker/](../../examples/sse_live_ticker/) | Auto-tick demo |
 
 ---
 

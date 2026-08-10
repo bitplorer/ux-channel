@@ -468,7 +468,7 @@ def render_preset_py(spec: dict[str, Any]) -> str:
         "",
         "Produced by: ``uxchannel bridge preset``",
         "",
-        "Day-1 — callable factory (props = npm package fields from contract)::",
+        "Application — callable factory (props = npm package fields from contract)::",
         "",
         f"    widgets = {cls}(ch)",
         f"    w = widgets('island-id', ...package props...)",

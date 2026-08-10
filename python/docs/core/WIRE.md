@@ -25,7 +25,7 @@ Env: `UX_CHANNEL_WIRE`, `UX_CHANNEL_WIRE_ENGINE`, `UX_CHANNEL_WIRE_WORKERS` (bat
 
 | Format | Media type | When |
 |--------|------------|------|
-| json | `application/ux-channel+json` | Day-1, browsers |
+| json | `application/ux-channel+json` | Application, browsers |
 | msgpack | `application/ux-channel+msgpack` | Opt-in binary |
 | cbor | `application/ux-channel+cbor` | Opt-in binary |
 | **cxb** | `application/ux-channel+cxb` | Domain binary (Intent/Result/ops) |

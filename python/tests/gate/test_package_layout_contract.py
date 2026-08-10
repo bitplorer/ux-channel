@@ -94,3 +94,22 @@ def test_root_identity_with_packages():
     assert u.morph is morph
     assert u.attach_audit is attach_audit
     assert u.esc is esc
+
+
+def test_wire_and_asgi_surfaces():
+    from ux_channel.wire import MEDIA_TYPES, encode, decode, encode_cxb, is_cxb
+    from ux_channel.asgi import mount_channel
+
+    assert MEDIA_TYPES and encode and decode and encode_cxb and is_cxb
+    assert callable(mount_channel)
+
+
+def test_api_is_subset_of_root_identity():
+    import ux_channel as u
+    import ux_channel.api as api
+
+    for name in api.__all__:
+        if name.startswith("_"):
+            continue
+        assert hasattr(u, name), name
+        assert getattr(api, name) is getattr(u, name), name

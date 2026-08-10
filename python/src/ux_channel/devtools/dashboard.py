@@ -33,7 +33,7 @@ Pipeline::
 
     Context  +  Extensions  →  Model (sections + panels)  →  Shell
 
-Day-1::
+Application::
 
     uxchannel dashboard
 

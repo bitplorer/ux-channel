@@ -17,12 +17,12 @@ python/
   README.md
   ux_channel/catalog/     ← navigational re-export hubs by intent
   docs/
-    start/              ← day-1 layers, API surface, golden path
+    start/              ← application layers, API surface, golden path
     regions/            ← region recipes
     core/               ← wire / CXB (shared law narrative)
   tests/                ← monorepo gate (must stay green)
   src/ux_channel/
-    day1.py             ← preferred day-1 import façade
+    api.py             ← preferred application import façade
     __init__.py         ← full frozen root exports (__all__)
     … modules …
 ```
@@ -36,11 +36,11 @@ python/
 | Wire IR types | `types`, `ops`, `errors`, `error_map` | Shared language with Rust |
 | Codecs | `wire/*`, encode helpers | Conformance vectors |
 | Caps | `capability` (`sign`/`verify`, sorted `args_hash`) | Security interop law |
-| Channel façade | `dx.Channel`, `config.ChannelConfig` | Day-1 speech |
+| Channel façade | `dx.Channel`, `config.ChannelConfig` | Application speech |
 | Regions core | `regions`, `region_component` | Product identity of host |
 | Registry / context | `registry`, `context` | Action dispatch |
 | HTML safety | `html_safe`, control attrs | XSS boundary |
-| Day-1 exports | `day1.__all__`, root `__all__` names for day-1 symbols | User import contract |
+| Application exports | `api.__all__`, root `__all__` names for application symbols | User import contract |
 
 **Gate:** `python/tests` + shared `conformance/` must pass (`make verify`).
 
@@ -50,7 +50,7 @@ python/
 
 | Area | Modules | Notes |
 |------|---------|-------|
-| state / planes | `state_api`, `planes`, `ssr_state` | Prefer `state(ch)` day-1 |
+| state / planes | `state_api`, `planes`, `ssr_state` | Prefer `state(ch)` application |
 | agents | `agents_api`, `agents/*` | Prefer `agents(ch)` |
 | ASGI | `asgi/*` | Host adapters |
 | morph_ir | `morph_ir` | Multi-surface IR |
@@ -76,12 +76,12 @@ python/
 
 | Preference | Pattern |
 |------------|---------|
-| **New app code** | `from ux_channel.host.day1 import Channel, Region, …` |
+| **New app code** | `from ux_channel.host.api import Channel, Region, …` |
 | **Still OK** | `from ux_channel import Channel, Region` (same objects) |
 | **Power features** | `from ux_channel.bridges import …` (by concern) |
 | **Avoid** | Deep imports of private helpers; grab-bag `import *` from root in libraries |
 
-**Rule:** if a symbol is not in `day1.__all__` and not documented in ONTOLOGY §3, treat it as power/internal until you read its module docstring.
+**Rule:** if a symbol is not in `api.__all__` and not documented in ONTOLOGY §3, treat it as power/internal until you read its module docstring.
 
 ---
 

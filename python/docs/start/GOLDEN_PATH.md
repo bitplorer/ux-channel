@@ -1,4 +1,4 @@
-> **Media-first (day-1):** prefer ``ch.media.plugin(room, sub=…)`` (``mode='mesh'|'sfu'|'auto'``). ``ch.webrtc`` remains the mesh power plane.
+> **Media-first (application):** prefer ``ch.media.plugin(room, sub=…)`` (``mode='mesh'|'sfu'|'auto'``). ``ch.webrtc`` remains the mesh power plane.
 
 # Golden path — uxchannel 0.1
 
@@ -42,7 +42,7 @@ def index():
 </html>"""
 ```
 
-## Optional P2P (still day-1 shaped)
+## Optional P2P (still application shaped)
 
 ```python
 ticket = ch.webrtc.sign_ticket("lobby", sub=user_id)

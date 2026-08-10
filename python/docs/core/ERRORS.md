@@ -11,7 +11,7 @@ Every action response is a **Result**:
 HTTP status is a **secondary** signal for caches/proxies/browsers.  
 **Clients must branch on `ok` / `error.code`, not only status.**
 
-Source of truth: [`ux_channel/error_map.py`](../src/ux_channel/error_map.py).
+Source of truth: [`ux_channel/error_map.py`](../../src/ux_channel/protocol/error_map.py).
 
 ## Code → HTTP status
 

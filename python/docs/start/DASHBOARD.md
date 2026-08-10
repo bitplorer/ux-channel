@@ -43,7 +43,7 @@ doctor + latencies + runtime
    shell HTML  ·or·  consume JSON yourself
 ```
 
-## Day-1
+## Application
 
 ```bash
 uxchannel dashboard

@@ -126,21 +126,21 @@ Wire keys are **not** renamed to match prose. Prose maps *to* wire keys in TERMI
 
 | Package | Role | Not named |
 |---------|------|-----------|
-| `api` | Curated application exports | ~~day1~~ |
+| `api` | Curated application exports | ~~api~~ |
 | `host` | Channel, regions, state | — |
-| `host.channel` | Channel implementation | ~~host.dx~~ |
+| `host.channel` | Channel implementation | ~~host.channel~~ |
 | `protocol` | IR + caps | — |
 | `render` | Morph / HTML / renderers | ~~paint~~ |
 | `render.renderers` | HtmlRenderer stack | ~~paint.render~~ |
 | `render.kit` | Demo/scaffold HTML helpers | ~~paint.demo~~ |
-| `security` | Auth doors | ~~security_plane~~ |
-| `devtools` | Audit, CLI, observability | ~~ops_dx~~ |
-| `bridge` | Contracts / scaffold | ~~bridge_meta~~ |
+| `security` | Auth doors | ~~security~~ |
+| `devtools` | Audit, CLI, observability | ~~devtools~~ |
+| `bridge` | Contracts / scaffold | ~~bridge~~ |
 | `bridges` | npm island presets | — |
 | `catalog` | Package map navigator | ~~zones~~ |
 | `host.patterns` | Composition patterns | ~~recipes~~ |
 | `host.state_planes` | State plane helpers | ~~planes~~ |
-| `protocol.json_codec` | JSON helpers | ~~jsonutil~~ |
+| `protocol.json_codec` | JSON helpers | ~~json_codec~~ |
 
-`Channel.describe()` replaces `mental_model()`. Caps use `mint` / `verify` only.
+`Channel.describe()` replaces `describe()`. Caps use `mint` / `verify` only.
 

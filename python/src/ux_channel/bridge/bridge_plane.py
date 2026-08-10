@@ -7,7 +7,7 @@ One truth
 * ``ch.bridge.mount_ops / update_ops / call_ops / destroy_ops`` → Result ops
 * Media is **only** ``ch.media`` — not under bridge
 
-HTML for demos: ``ux_channel.demo.mount_html(spec)``.
+HTML for demos: ``ux_channel.render.kit.mount_html(spec)``.
 """
 
 from __future__ import annotations

@@ -41,19 +41,19 @@ _RULES: list[tuple[str, re.Pattern[str], str, str]] = [
         "demo-button",
         re.compile(r"""\bch\.button\s*\("""),
         "ch.button was removed from Channel",
-        "ux-dom + ch.control(...).as_dict()  or  ux_channel.demo.demo_button",
+        "ux-dom + ch.control(...).as_dict()  or  ux_channel.render.kit.demo_button",
     ),
     (
         "demo-scripts",
         re.compile(r"""\bch\.scripts\s*\("""),
         "ch.scripts was removed from Channel",
-        "ch.runtime().scripts + ux_channel.demo.script_tags",
+        "ch.runtime().scripts + ux_channel.render.kit.script_tags",
     ),
     (
         "demo-page",
         re.compile(r"""\bch\.page\s*\("""),
         "ch.page was removed from Channel",
-        "ux_channel.demo.demo_page / ux-dom + ch.runtime()",
+        "ux_channel.render.kit.demo_page / ux-dom + ch.runtime()",
     ),
     (
         "webrtc-plugin",

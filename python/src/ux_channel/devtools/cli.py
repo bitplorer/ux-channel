@@ -228,7 +228,7 @@ def cmd_dx(_: argparse.Namespace) -> int:
     print()
     print(Channel.help())
     print()
-    print("Day-1 names:", ", ".join(Channel.public_api_names()))
+    print("Application names:", ", ".join(Channel.public_api_names()))
     print("Recipes:", ", ".join(RECIPE_NAMES))
     print()
     print("Scaffold:")
@@ -763,13 +763,13 @@ def main(argv: Optional[list[str]] = None) -> int:
     p.add_argument("--json-report", action="store_true", dest="json_report")
     p.set_defaults(func=cmd_dashboard)
 
-    p = sub.add_parser("dx", help="print mental model + day-1 DX guide")
+    p = sub.add_parser("dx", help="print mental model + application DX guide")
     p.set_defaults(func=cmd_dx)
 
     p = sub.add_parser("templates", help="list create-app templates")
     p.set_defaults(func=cmd_templates)
 
-    p = sub.add_parser("recipe", help="print a named day-1 recipe (code)")
+    p = sub.add_parser("recipe", help="print a named application recipe (code)")
     p.add_argument("name", nargs="?", default="", help="counter|form|media-mesh|…")
     p.add_argument("--list", action="store_true", help="list recipe names")
     p.add_argument("--tree", action="store_true", help="decision tree")

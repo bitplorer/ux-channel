@@ -3,10 +3,10 @@
 ## Philosophy (non-negotiable)
 
 1. **Channel is control plane, not a UI framework**  
-   Intent → Action → Result(ops). HTML documents belong to ux-dom/templates/`ux_channel.demo`.
+   Intent → Action → Result(ops). HTML documents belong to ux-dom/templates/`ux_channel.render.kit`.
 
 2. **One API per job**  
-   Prefer a single day-1 name; power layers stay off the façade teaching surface.
+   Prefer a single application name; power layers stay off the façade teaching surface.
 
 3. **Placement is data**  
    `attrs` + `client` + `scripts[]` — never HTML as the source of truth.
@@ -27,7 +27,7 @@
 6. **Idempotent DX**  
    Contract method edits, OTel attach, CLI ops — re-run safe.
 
-## Day-1 surface (`CHANNEL_PUBLIC_API`)
+## Application surface (`CHANNEL_PUBLIC_API`)
 
 ```
 boot · on · region · control · runtime · draft · done · fail · refresh

@@ -27,7 +27,7 @@ The library already:
 * Safe sequential batch by default
 * Internal parallel fan-out only where isolation is safe
 
-Day-1 DX never asks you to pick thread pools or parallel flags.
+Application DX never asks you to pick thread pools or parallel flags.
 
 ## For maintainers / tests only
 

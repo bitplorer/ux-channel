@@ -22,6 +22,8 @@ Env: ``UX_CHANNEL_WIRE``, ``UX_CHANNEL_WIRE_ENGINE``, ``UX_CHANNEL_WIRE_WORKERS`
 
 from __future__ import annotations
 
+# MANUAL_PUBLIC_API — sync must not overwrite
+
 from ux_channel.wire.core import (
     MEDIA_TYPES,
     Codec,
@@ -48,6 +50,7 @@ from ux_channel.wire.core import (
     size_of,
     try_decode,
 )
+from ux_channel.wire.cxb import decode_cxb, encode_cxb, is_cxb
 from ux_channel.wire.negotiate import (
     decode_http_body,
     encode_http_body,
@@ -58,6 +61,9 @@ from ux_channel.wire.negotiate import (
 )
 
 __all__ = [
+    "encode_cxb",
+    "decode_cxb",
+    "is_cxb",
     "MEDIA_TYPES",
     "Codec",
     "WireBlob",

@@ -20,6 +20,7 @@ CLI::
    invents a second UI framework.
 """
 
+# MANUAL_PUBLIC_API
 from __future__ import annotations
 
 from ux_channel.scaffold.create import (

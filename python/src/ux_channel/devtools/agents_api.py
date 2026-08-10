@@ -439,7 +439,7 @@ class Agents:
 
 
 def agents(channel: Any) -> Agents:
-    """Day-1: ``ag = agents(ch)``."""
+    """Application: ``ag = agents(ch)``."""
     existing = getattr(channel, "agents_api", None)
     if isinstance(existing, Agents):
         return existing

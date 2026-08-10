@@ -18,14 +18,14 @@
 1. **One façade:** `Channel` after `boot` — not five frameworks.
 2. **Root is tiny:** protocol + Channel + regions. Layers stay submodules.
 3. **ux-dom owns markup;** Channel owns control, trust, regions, ops.
-4. **WebRTC day-1 is `ch.webrtc`**, never a forest of free functions on root.
+4. **WebRTC application is `ch.webrtc`**, never a forest of free functions on root.
 5. **Demo helpers ≠ product UI** — `button`/`page` are training wheels.
 6. **AX ≠ foundations** — `agents(ch)` is product; quantity/IR modules are physics.
 7. **Import by concern** — no grab-bag package.
 
 ```text
         ┌─────────────────────────────────────┐
-        │  Day-1 (learn once)                 │
+        │  Application (learn once)                 │
         │  boot region on control scripts     │
         │  draft done fail webrtc             │
         │  agents(ch)  state(ch)  attach_audit│
@@ -49,7 +49,7 @@ Print the map anytime::
 
 Layer doc: [LAYERS.md](LAYERS.md) · Foundations: [FOUNDATIONS.md](../foundations/FOUNDATIONS.md).
 
-## Day-1 imports
+## Application imports
 
 ```python
 from ux_channel import Channel, ChannelConfig, Region, agents, state, attach_audit
@@ -115,7 +115,7 @@ python scripts/_consistency_audit.py
 
 ## Concurrency (internal)
 
-Not a day-1 application API. Dispatch is thread-safe by default; apps use
+Not a application application API. Dispatch is thread-safe by default; apps use
 ``registry.dispatch`` / HTTP. Maintainers: ``scripts/profile_p95.py`` and
 ``docs/start/CONCURRENCY.md``.
 

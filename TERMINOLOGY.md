@@ -174,7 +174,7 @@ Terms are grouped: **big picture → messages → security → wire → HTTP →
 | **Type** | Class `Region` (class style) **or** a function registered with `@ch.region`. |
 | **Does** | `render(ctx) → HTML` for that single uid. |
 | **Not** | **Not** renamed to RegionBook. **Not** a bridge, action, or whole page. |
-| **Import** | `from ux_channel.host.day1 import Region` · `from ux_channel import Region` |
+| **Import** | `from ux_channel.host.api import Region` · `from ux_channel import Region` |
 | **Where** | `ux_channel.host.region_component` (shim: `ux_channel.region_component`). |
 
 **You almost always mean this word when you say “a region.”**
@@ -328,7 +328,7 @@ RegionBook = the whole book (registry on the channel)
 | | |
 |--|--|
 | **Is** | Rule: **JSON always works** for interop (`application/ux-channel+json`). |
-| **Does** | Guarantees browsers and day-1 clients need no binary codec. |
+| **Does** | Guarantees browsers and application clients need no binary codec. |
 | **Not** | Not “JSON is the only codec forever.” Binary is opt-in **above** the floor. |
 | **Where** | `wire_json.rs`; media type constant in docs. |
 

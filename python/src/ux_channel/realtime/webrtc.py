@@ -682,7 +682,7 @@ def webrtc_enabled(config: Any) -> bool:
 #   html  →  STUN only (safe in data-* / plugin client seed)
 #   live  →  STUN + short-lived TURN (after ticket / server auth only)
 #
-# Day-1: just call ch.webrtc.plugin(...) — both are wired for you.
+# Application: just call ch.webrtc.plugin(...) — both are wired for you.
 # Power: ch.webrtc.ice.servers() / ch.webrtc.ice.live(sub=...) / ch.webrtc.ice.url
 #
 
@@ -735,7 +735,7 @@ class WebRTCPlane:
     """
     P2P plane attached as ``ch.webrtc`` after ``Channel.boot``.
 
-    Day-1 (only these)
+    Application (only these)
     ------------------
     * ``enabled`` / ``path`` / ``ws_path`` — signaling endpoints
     * ``sign_ticket(room)`` — mint room door for private rooms

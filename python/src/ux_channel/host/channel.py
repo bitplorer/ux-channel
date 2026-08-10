@@ -267,7 +267,7 @@ class Channel:
 
     Demo only (not production UI kit)
     ---------------------------------
-    HTML helpers live in ``ux_channel.demo`` only.
+    HTML helpers live in ``ux_channel.render.kit`` only.
     Real apps: **ux-dom** (or Jinja) + ``control`` attrs only.
 
     Layers (import submodules)

@@ -78,7 +78,7 @@ run_checked(gate, lab, "flash", [], claim=lab_claim, quantity=q, audit=audit)
 PYTHONPATH=src uvicorn examples.io_mesh_workplace.app:app --host 0.0.0.0 --port 8080
 ```
 
-See [examples/io_mesh_workplace/README.md](../examples/io_mesh_workplace/README.md).
+See [examples/io_mesh_workplace/README.md](../../examples/io_mesh_workplace/README.md).
 
 ## Reference adapters
 
@@ -102,4 +102,4 @@ See [examples/io_mesh_workplace/README.md](../examples/io_mesh_workplace/README.
 | `IoAuditLog` | I/O policy tape |
 | `IoAdapter` | Port **you** implement for real hardware |
 
-Day-1 remains: `Channel` · `agents` · `state` · `attach_audit` · `webrtc`.
+Application remains: `Channel` · `agents` · `state` · `attach_audit` · `webrtc`.

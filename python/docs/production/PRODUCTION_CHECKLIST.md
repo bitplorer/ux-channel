@@ -8,7 +8,7 @@
 | **Import** | `ux_channel` |
 | **CLI** | `uxchannel` |
 
-Use with a real workplace app ([workplace_pos](../examples/workplace_pos/), [workplace_lab](../examples/workplace_lab/)).
+Use with a real workplace app ([workplace_pos](../../examples/workplace_pos/), [workplace_lab](../../examples/workplace_lab/)).
 
 ## Secret & env
 

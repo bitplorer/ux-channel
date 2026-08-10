@@ -12,4 +12,4 @@
 | **Redis** | Optional nonce, rate, state, push |
 
 
-See [MOAT.md](MOAT.md) for layering of capability / morph IR / sealed bridges.
+See `MOAT.md` for layering of capability / morph IR / sealed bridges.

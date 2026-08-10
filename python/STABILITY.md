@@ -21,7 +21,7 @@ ux_channel/
   PACKAGE_MAP.json
 ```
 
-**No top-level module aliases. No day1 / dx / ops_dx / paint / zones jargon packages.**
+**No top-level module aliases. No api / dx / devtools / paint / zones jargon packages.**
 
 ## Import flow
 
@@ -41,20 +41,20 @@ from ux_channel.bridge import bridge_plane
 
 | Forbidden | Use instead |
 |-----------|-------------|
-| `day1` | `api` |
-| `host.dx` / `dx.py` | `host.channel` |
-| `ops_dx` | `devtools` |
+| `api` | `api` |
+| `host.channel` / `dx.py` | `host.channel` |
+| `devtools` | `devtools` |
 | `dx_dashboard` / `dx_log` | `dashboard` / `log` |
-| `bridge_meta` | `bridge` |
+| `bridge` | `bridge` |
 | `paint` | `render` |
 | `paint.render` | `render.renderers` |
 | `paint.demo` | `render.kit` |
 | `zones` | `catalog` |
 | `recipes` | `patterns` |
-| `jsonutil` | `json_codec` |
+| `json_codec` | `json_codec` |
 | `planes` | `state_planes` |
-| `mental_model()` | `Channel.describe()` |
-| `CapService.sign` | `CapService.mint` |
+| `describe()` | `Channel.describe()` |
+| `CapService.mint` | `CapService.mint` |
 
 ## Change process
 
@@ -85,7 +85,7 @@ Deep modules remain available as `ux_channel.<package>.<module>`.
 | Path | Meaning |
 |------|---------|
 | `ux_channel.host.stores` | **Module** — memory/null stores (`MemoryStateStore`) |
-| `ux_channel.host.state_api.state` | **Function** — day-1 `state(ch)` API |
+| `ux_channel.host.state_api.state` | **Function** — application `state(ch)` API |
 | `from ux_channel import state` | The function (root re-export) |
 
 The store module is `host.stores` (not `host.state`) so `state()` never collides.

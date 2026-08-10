@@ -25,7 +25,7 @@ same change as the code.
 | **Tests** | Primary suites (under `tests/`) |
 | **Docs** | Normative or how-to pages |
 
-**Day-1 path only needs:** [GOLDEN_PATH](start/GOLDEN_PATH.md) + Channel + regions + ops.  
+**Application path only needs:** [GOLDEN_PATH](start/GOLDEN_PATH.md) + Channel + regions + ops.  
 Everything else is **power / plane** import-by-home.
 
 ---
@@ -738,7 +738,7 @@ Site nav: `mkdocs.yml`.
 
 | Concern | Truth |
 |---------|--------|
-| Public day-1 imports | `ux_channel/__init__.py` + API_SURFACE.md |
+| Public application imports | `ux_channel/__init__.py` + API_SURFACE.md |
 | Feature list | **This file** |
 | CXB bytes | CXB.md + `wire/cxb.py` |
 | Wire policy | WIRE.md + `wire/core.py` |
@@ -752,7 +752,7 @@ Site nav: `mkdocs.yml`.
 ## 25. Quick “what do I import?” card
 
 ```python
-# Day-1
+# Application
 from ux_channel import Channel, ChannelConfig, agents, state, attach_audit
 from ux_channel import toast, morph  # via ops re-export patterns in docs
 

@@ -29,7 +29,7 @@ Related:
 Protobuf wins on **generic closed RPC** with codegen. ux-channel documents are:
 
 - **Open** (`args`, `meta`, freeform ops)
-- **Browser day-1** (JSON must work with zero codegen)
+- **Browser application** (JSON must work with zero codegen)
 - **Op-centric** (shared Result.ops vocabulary across apps)
 
 CXB is a **domain-native** binary for **Intent / Result / ops**:
@@ -37,7 +37,7 @@ CXB is a **domain-native** binary for **Intent / Result / ops**:
 | Concern | Protobuf | CXB |
 |---------|----------|-----|
 | Schema / codegen | Required | **None** — field registry in code |
-| Browser day-1 | Needs wasm/codegen | JSON remains default; CXB opt-in |
+| Browser application | Needs wasm/codegen | JSON remains default; CXB opt-in |
 | Open maps | Awkward `Struct` / `Any` | Freeform blobs (msgpack→JSON) |
 | Op union | Oneof per service | Shared dense key tags 1–63 + free keys |
 | Evolution | Field numbers | Fixed tags **+** extension map |
@@ -48,7 +48,7 @@ CXB is a **domain-native** binary for **Intent / Result / ops**:
 
 ---
 
-## 2. Day-1 application API (nothing else required)
+## 2. Application application API (nothing else required)
 
 ```python
 from ux_channel.wire import encode, decode, configure_wire
@@ -91,7 +91,7 @@ from ux_channel.wire.cxb import (
 
 | Backend | Location | Role |
 |---------|----------|------|
-| **Rust `.so` (default when built)** | [`cxb_native/cxb_rs/`](../../cxb_native/cxb_rs/) → `ux_channel._cxb_native` | CXB1 + CXBZ accelerator |
+| **Rust `.so` (default when built)** | ``cxb_native/cxb_rs/`` → `ux_channel._cxb_native` | CXB1 + CXBZ accelerator |
 | **Pure Python (always shipped)** | [`src/ux_channel/wire/cxb.py`](../../src/ux_channel/wire/cxb.py) | Full oracle + safety fallback |
 
 ### 3.1 Selection rules
@@ -131,7 +131,7 @@ A Rust crate **inside** the Python repo is intentional:
 - Wheels may ship the `.so`  
 - Same crate can later grow a standalone peer binary  
 
-See [`cxb_native/README.md`](../../cxb_native/README.md).
+See ``cxb_native/README.md``.
 
 ---
 
@@ -586,7 +586,7 @@ PYTHONPATH=src pytest tests/core/test_cxb_*.py tests/core/test_wire_cxb*.py -q
 
 | Use case | Why JSON |
 |----------|----------|
-| **Browser day-1** | Zero WASM, debuggable DevTools |
+| **Browser application** | Zero WASM, debuggable DevTools |
 | **Public APIs / curl** | Universal tooling |
 | **Tiny single-field docs** | CXB header overhead not worth it |
 | **Human debugging** | Readable bodies |

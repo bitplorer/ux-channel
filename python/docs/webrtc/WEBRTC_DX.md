@@ -1,4 +1,4 @@
-> **Media-first (day-1):** prefer ``ch.media.plugin(room, sub=…)`` (``mode='mesh'|'sfu'|'auto'``). ``ch.webrtc`` remains the mesh power plane.
+> **Media-first (application):** prefer ``ch.media.plugin(room, sub=…)`` (``mode='mesh'|'sfu'|'auto'``). ``ch.webrtc`` remains the mesh power plane.
 
 # WebRTC DX — plugin + ICE (low cognitive load)
 
@@ -7,7 +7,7 @@
 Channel owns **signaling, tickets, client runtime, ICE placement rules**.  
 Hosts own **all UI**.
 
-## Day-1 (two calls)
+## Application (two calls)
 
 ```python
 ch = Channel.boot(app, config=ChannelConfig.production(secret))

@@ -1,6 +1,6 @@
 # Agents (AX)
 
-**AX** = Agent Experience. Day-1 entry: **`agents(ch)`** only.
+**AX** = Agent Experience. Application entry: **`agents(ch)`** only.
 
 Foundations (Quantity, caps, Morph IR, peer impl) live in organic modules —
 see [FOUNDATIONS.md](../foundations/FOUNDATIONS.md). They are **not** a second agent API.

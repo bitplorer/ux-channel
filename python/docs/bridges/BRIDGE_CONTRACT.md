@@ -107,7 +107,7 @@ uxBridge.register("chartjs", {
   update(chart, props) { /* ... */ },
   call(chart, method, args) {
     if (method === "resetZoom" && chart.resetZoom) return chart.resetZoom(...args);
-    if (typeof chart[method] === "function") return chart[method](...args);
+    if (typeof chart[method] === "function") return chart`method(...args)`;
     throw new Error("unknown method " + method);
   },
   destroy(chart) { chart.destroy(); },
