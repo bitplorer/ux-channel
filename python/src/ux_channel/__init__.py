@@ -1,30 +1,27 @@
 """ux-channel — Intent → Action → Result(ops) for server-driven UI.
 
-**Install:** ``pip install ux-channel`` · **Import:** ``ux_channel`` · **CLI:** ``uxchannel``
+**Install:** ``pip install ux-channel`` · **CLI:** ``uxchannel``
 
-Application surface
--------------------
+Application
+-----------
 ::
 
-    from ux_channel import Channel, Region, CapService, state
-    # or: from ux_channel.api import Channel, Region, CapService, state
-
-    ch = Channel.boot(...)
+    from ux_channel import Channel, Region, CapService, state, agents, morph
+    # same objects: from ux_channel.api import ...
 
 Power packages (import by intent)
 ---------------------------------
-``protocol`` · ``host`` · ``render`` · ``security`` · ``transport`` ·
-``foundations`` · ``realtime`` · ``bridge`` · ``bridges`` · ``asgi`` ·
-``devtools`` · ``wire`` · ``components`` · ``agent_runtime`` · ``mcp`` · ``workplace``
+``protocol`` · ``host`` · ``render`` · ``security`` · ``wire`` · ``asgi`` ·
+``agent_runtime`` · ``mcp`` · ``devtools`` · ``bridge`` · ``realtime`` · …
 
-Layout: ``python/STABILITY.md`` · Naming: root ``NAMING.md``.
+See ``MENTAL_MODEL.md`` · ``python/STABILITY.md`` · ``PUBLIC_API_FREEZE.md``.
 """
 
 from __future__ import annotations
 
 from ux_channel._version import __version__, __version_info__
 
-# ── Protocol (package surface + encode) ───────────────────────────────────
+# ── Protocol (wire law) ───────────────────────────────────────────────────
 from ux_channel.protocol import (
     ActionError,
     ActionNotFound,
@@ -52,6 +49,11 @@ from ux_channel.protocol import (
     swap,
     toast,
 )
+from ux_channel.protocol.error_map import (
+    ERROR_HTTP_STATUS,
+    catalog as error_catalog,
+    http_status_for,
+)
 
 # ── Host runtime ──────────────────────────────────────────────────────────
 from ux_channel.host import (
@@ -64,15 +66,24 @@ from ux_channel.host import (
     RegionDef,
     create_channel,
 )
-from ux_channel.host.state_api import ChannelState, Client, attach_state, state
 from ux_channel.host.channel import UiBuilder, sel
 from ux_channel.host.context import ActionContext, Principal
 from ux_channel.host.flow import FailFlow, Flow, attach_flow
 from ux_channel.host.idempotency import MemoryIdempotencyStore
 from ux_channel.host.nonce import MemoryNonceStore
-from ux_channel.host.region_directory import RegionDirectory, attach_region_directory, path_to_uid
-from ux_channel.host.ssr_state import Namespace, SessionVar, SsrState, attach_ssr_state, ssr_state
-from ux_channel.host.stores import MemoryStateStore, NullStateStore, StateConflict
+from ux_channel.host.region_directory import (
+    RegionDirectory,
+    attach_region_directory,
+    path_to_uid,
+)
+from ux_channel.host.ssr_state import (
+    Namespace,
+    SessionVar,
+    SsrState,
+    attach_ssr_state,
+    ssr_state,
+)
+from ux_channel.host.state_api import ChannelState, Client, attach_state, state
 from ux_channel.host.state_planes import (
     RISKY_SEGMENTS,
     ClientPlane,
@@ -83,16 +94,17 @@ from ux_channel.host.state_planes import (
     path_is_risky,
     planes,
 )
+from ux_channel.host.stores import MemoryStateStore, NullStateStore, StateConflict
 from ux_channel.host.testing import ChannelTest
 
-# ── Devtools / AX ─────────────────────────────────────────────────────
+# ── AX / audit ────────────────────────────────────────────────────────────
 from ux_channel.devtools import AuditBundle, attach_audit, inspect_channel, inspect_enabled
 from ux_channel.devtools.agents_api import Agents, EffectReport, attach_agents
 from ux_channel.devtools.agents_api import agents as _agents_facade
 
 agents = _agents_facade
 
-# ── Render ────────────────────────────────────────────────────────────────
+# ── Render helpers (common on controls) ───────────────────────────────────
 from ux_channel.render import (
     ControlAttrs,
     SafeHtml,
@@ -103,101 +115,67 @@ from ux_channel.render import (
 )
 from ux_channel.render.html import attr_escape, form_open, json_attr
 
-# ── Error plane ───────────────────────────────────────────────────────────
-from ux_channel.protocol.error_map import (
-    ERROR_HTTP_STATUS,
-    catalog as error_catalog,
-    http_status_for,
-)
+# ── Public star-import surface (__all__) ──────────────────────────────────
+# Application + stable core only. Other names above remain importable as
+# ``from ux_channel import X`` for compatibility but are *power* re-exports
+# (prefer ``ux_channel.host`` / ``protocol`` / ``render`` / ``devtools``).
 
 __all__ = [
     "__version__",
     "__version_info__",
-    # protocol
-    "ErrorObject",
+    # construction
+    "Channel",
+    "ChannelConfig",
+    "create_channel",
+    "Region",
+    "RegionBook",
+    "ActionRegistry",
+    # wire + caps (Rust-parity)
     "Intent",
     "Result",
+    "ErrorObject",
+    "Op",
+    "CapService",
+    "CapError",
     "ActionError",
     "ActionNotFound",
     "ChannelError",
-    "Op",
-    "clear_errors",
-    "focus",
+    # op builders
     "morph",
+    "toast",
     "navigate",
-    "noop",
     "push_url",
-    "reload",
+    "swap",
     "remove",
-    "scroll",
     "set_attr",
     "set_text",
     "signal_set",
-    "swap",
-    "toast",
+    "clear_errors",
+    "focus",
+    "scroll",
+    "reload",
+    "noop",
     "Go",
     "Navigate",
-    "CapError",
-    "CapService",
-    # host
-    "ActionRegistry",
+    # handler context
     "ActionContext",
     "Principal",
-    "ChannelConfig",
-    "MemoryStateStore",
-    "NullStateStore",
-    "StateConflict",
-    "MemoryNonceStore",
-    "MemoryIdempotencyStore",
-    "Channel",
-    "UiBuilder",
-    "sel",
-    "RegionBook",
-    "RegionContext",
-    "RegionDef",
-    "Region",
-    "Flow",
-    "FailFlow",
-    "attach_flow",
-    "ssr_state",
-    "attach_ssr_state",
-    "SsrState",
-    "SessionVar",
-    "Namespace",
-    "planes",
-    "attach_planes",
-    "Planes",
-    "ClientPlane",
-    "Db",
-    "ClientSafetyError",
-    "path_is_risky",
-    "RISKY_SEGMENTS",
+    # application façades
     "state",
     "attach_state",
-    "ChannelState",
-    "Client",
     "agents",
     "attach_agents",
     "Agents",
-    "EffectReport",
-    "RegionDirectory",
-    "path_to_uid",
-    "attach_region_directory",
-    "inspect_channel",
-    "inspect_enabled",
     "attach_audit",
     "AuditBundle",
+    # common control/render
     "ControlAttrs",
     "action_attrs",
-    "attr_escape",
-    "form_open",
-    "json_attr",
-    "SafeHtml",
     "esc",
+    "SafeHtml",
     "mark_safe",
     "user_content",
-    "ERROR_HTTP_STATUS",
-    "error_catalog",
+    # error plane
     "http_status_for",
-    "create_channel",
-    "ChannelTest"]
+    "ERROR_HTTP_STATUS",
+]

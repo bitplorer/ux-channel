@@ -94,3 +94,10 @@ Rust peer: same cap algorithm + CXB decode vs `conformance/`.
 2. Layout: [python/STABILITY.md](python/STABILITY.md).
 3. Model: [MENTAL_MODEL.md](MENTAL_MODEL.md).
 4. Gate: `python/tests/gate/` + `make verify`.
+
+
+## Star-import vs attribute import
+
+* ``from ux_channel import *`` only pulls ``__all__`` (application + stable core).
+* ``from ux_channel import MemoryStateStore`` still works (power re-export bound on root).
+* Prefer power packages for new code: ``host.stores``, ``host.ssr_state``, etc.

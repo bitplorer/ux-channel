@@ -1,3 +1,11 @@
+## 2026-08-10 — deeper: root __all__ application tier
+
+- Root __all__ ~50 application/stable symbols (was 88)
+- Power re-exports still bound (e.g. MemoryStateStore) but not star-imported
+- api package aligned; freeze + STABILITY document tiers
+
+---
+
 ## 2026-08-10 — cleanup noise: drop PACKAGE/MEMBERS, thin STRUCTURE
 
 - Remove PACKAGE/MEMBERS layout leftovers from all package __init__

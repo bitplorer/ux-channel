@@ -66,3 +66,13 @@ def test_components_not_named_component():
 
     assert "Component" not in getattr(components, "__all__", ())
     assert not hasattr(components, "Component")
+
+
+def test_root_all_is_application_tier():
+    """Root __all__ stays a curated surface; power stays importable but not star-exported."""
+    import ux_channel
+    assert "Channel" in ux_channel.__all__
+    assert "CapService" in ux_channel.__all__
+    assert "MemoryStateStore" not in ux_channel.__all__
+    assert hasattr(ux_channel, "MemoryStateStore")  # power re-export still bound
+    assert len(ux_channel.__all__) <= 60
