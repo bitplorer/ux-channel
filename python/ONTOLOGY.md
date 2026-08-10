@@ -8,6 +8,8 @@ If two names sound similar, the table here decides which one you mean.
 
 | Doc | When |
 |-----|------|
+| [LAYOUT.md](LAYOUT.md) | **Zone map of every module** (escape the flat list) |
+| [STRUCTURE.md](STRUCTURE.md) | Permanent vs moving |
 | [docs/start/LAYERS.md](docs/start/LAYERS.md) | Import tiers |
 | [docs/start/GOLDEN_PATH.md](docs/start/GOLDEN_PATH.md) | Day-1 walkthrough |
 | [docs/start/API_SURFACE.md](docs/start/API_SURFACE.md) | What is frozen public |
@@ -307,8 +309,10 @@ Interop is at Intent/Result/cap — not at `@ch.region`.
 
 ```text
 python/
-  ONTOLOGY.md                 ← you are here (map)
+  ONTOLOGY.md                 ← you are here (concepts)
+  LAYOUT.md                   ← every module → zone (anti-flat)
   STRUCTURE.md                ← permanent vs moving (host)
+  ux_channel/zones/           ← navigational packages
   README.md                   ← package entry + tests
   ux_channel/day1.py          ← narrow day-1 imports
   docs/start/                 ← layers, golden path, API surface

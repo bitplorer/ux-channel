@@ -56,6 +56,7 @@ REQUIRED = [
     "python/tests/test_day1_regions.py",
     "python/ux_channel/day1.py",
     "python/STRUCTURE.md",
+    "python/LAYOUT.md",
     "Makefile",
     "pytest.ini",
 ]

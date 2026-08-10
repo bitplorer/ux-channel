@@ -8,7 +8,7 @@ Importing from ``ux_channel.day1`` documents intent: *I only need the frozen cor
 Full package root (``from ux_channel import Channel``) remains supported and frozen.
 This is an additive clarity layer, not a rename.
 
-See: ``python/ONTOLOGY.md``, ``python/STRUCTURE.md``, ``docs/start/API_SURFACE.md``.
+See: ``python/LAYOUT.md`` (zones), ``python/ONTOLOGY.md``, ``python/STRUCTURE.md``.
 """
 from __future__ import annotations
 

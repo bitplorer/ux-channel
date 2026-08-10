@@ -14,6 +14,21 @@ Words: [TERMINOLOGY.md](TERMINOLOGY.md) · Flows: [HOW_IT_WORKS.md](HOW_IT_WORKS
 
 Full decision table: [`python/ONTOLOGY.md`](python/ONTOLOGY.md).
 
+### Why does `ux_channel` look like one huge flat folder?
+
+Historical growth — **not** “one module does everything.” Each `.py` file is a focused unit; the directory listing is what feels flat. **Navigate by zone**, not alphabet:
+
+```python
+from ux_channel.zones import host, protocol
+print(host.help())
+```
+
+Full map: [`python/LAYOUT.md`](python/LAYOUT.md). Apps still use `from ux_channel.day1 import Channel, Region`.
+
+### Is the Python code stale / drifted from Rust?
+
+No for the **protocol zone** (caps, wire, CXB, vectors). `make verify` + `make verify-http` (cross-mint) prove it. Optional planes (webrtc, bridges, …) are host-only and not required for Rust interop.
+
 ### How should new Python apps import the library?
 
 ```python

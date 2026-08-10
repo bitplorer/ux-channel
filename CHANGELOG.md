@@ -1,3 +1,15 @@
+## 2026-08-10 — Python zones (anti-flat layout)
+
+### Added
+- `ux_channel.zones.*` — intent hubs (protocol, host, render, …)
+- `python/LAYOUT.md` — every top-level module mapped to a zone
+- `scripts/check_python_layout.py` — fail if orphans appear
+- FAQ: flat tree vs stale/drift clarified
+
+Implementations keep stable import paths (no mass rename breakage).
+
+---
+
 ## 2026-08-10 — Python host long-term stability structure
 
 ### Added
