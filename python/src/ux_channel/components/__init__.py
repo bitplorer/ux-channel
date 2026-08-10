@@ -102,5 +102,4 @@ __all__ = [
     "Dashboard",
     "DataTable",
     "LoginCard",
-    "MediaCard",
-]
+    "MediaCard"]

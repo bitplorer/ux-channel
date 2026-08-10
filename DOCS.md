@@ -55,3 +55,11 @@ make test-python-gate  # interop + layout freeze
 make test-python-host  # regions / state / core
 make test-rust
 ```
+
+## Background essays (not day-to-day API)
+
+| Doc | Role |
+|-----|------|
+| [ux-channel-core-ideas.md](ux-channel-core-ideas.md) | Design notes |
+| [ux-channel-design-causal-surface.md](ux-channel-design-causal-surface.md) | Causal surface |
+| [ux-channel-roadmap.md](ux-channel-roadmap.md) | Roadmap |

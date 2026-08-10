@@ -10,5 +10,4 @@ from ux_channel.security.attenuate import attenuate
 from ux_channel.security.host_csrf import intent_headers
 from ux_channel.security.security import safe_href
 
-PACKAGE = "security"
-__all__ = ["PACKAGE", "intent_headers", "attenuate", "safe_href"]
+__all__ = ["intent_headers", "attenuate", "safe_href"]

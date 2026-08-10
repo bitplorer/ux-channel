@@ -185,3 +185,19 @@ def test_security_and_agent_policy_are_distinct_modules():
     import ux_channel.security.policy as sp
     import ux_channel.agent_runtime.policy as ap
     assert sp.__file__ != ap.__file__
+
+
+def test_no_package_members_noise():
+    """Package inits must not export layout leftovers PACKAGE/MEMBERS."""
+    from pathlib import Path
+    import ux_channel
+    root = Path(ux_channel.__file__).resolve().parent
+    for init in root.rglob("__init__.py"):
+        text = init.read_text(encoding="utf-8")
+        assert "MEMBERS" not in text, init
+        # PACKAGE= constant or in __all__ is noise (not public API)
+        for line in text.splitlines():
+            if line.strip().startswith("PACKAGE"):
+                raise AssertionError(f"PACKAGE leftover in {init}")
+            if "__all__" in line and "PACKAGE" in line:
+                raise AssertionError(f"PACKAGE in __all__ line in {init}")

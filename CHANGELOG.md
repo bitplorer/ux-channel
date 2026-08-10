@@ -1,3 +1,12 @@
+## 2026-08-10 — cleanup noise: drop PACKAGE/MEMBERS, thin STRUCTURE
+
+- Remove PACKAGE/MEMBERS layout leftovers from all package __init__
+- Real exports on io_adapters, asgi, realtime, transport, static
+- python/STRUCTURE.md pointer-only; DOCS background essay section
+- Gate freezes no PACKAGE/MEMBERS noise
+
+---
+
 ## 2026-08-10 — remove MANUAL_PUBLIC_API magic comment
 
 - Not a shell var or Python export — was only a layout-script guard string

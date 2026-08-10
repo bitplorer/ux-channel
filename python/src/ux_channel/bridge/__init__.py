@@ -10,5 +10,4 @@ from __future__ import annotations
 
 from ux_channel.bridge.bridge_plane import BRIDGE_PUBLIC_API, attach_bridge
 
-PACKAGE = "bridge"
-__all__ = ["PACKAGE", "attach_bridge", "BRIDGE_PUBLIC_API"]
+__all__ = ["attach_bridge", "BRIDGE_PUBLIC_API"]

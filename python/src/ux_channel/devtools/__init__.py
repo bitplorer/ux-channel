@@ -9,11 +9,8 @@ from __future__ import annotations
 from ux_channel.devtools.audit import AuditBundle, attach_audit
 from ux_channel.devtools.inspect_api import inspect_channel, inspect_enabled
 
-PACKAGE = "devtools"
 __all__ = [
-    "PACKAGE",
     "attach_audit",
     "AuditBundle",
     "inspect_channel",
-    "inspect_enabled",
-]
+    "inspect_enabled"]

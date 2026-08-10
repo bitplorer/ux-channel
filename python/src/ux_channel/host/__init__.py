@@ -18,9 +18,7 @@ from ux_channel.host.region_component import Region
 from ux_channel.host.regions import RegionBook, RegionContext, RegionDef
 from ux_channel.host.registry import ActionRegistry
 
-PACKAGE = "host"
 __all__ = [
-    "PACKAGE",
     "Channel",
     "ChannelConfig",
     "Region",
@@ -28,5 +26,4 @@ __all__ = [
     "RegionContext",
     "RegionDef",
     "ActionRegistry",
-    "create_channel",
-]
+    "create_channel"]

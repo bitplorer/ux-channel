@@ -8,5 +8,4 @@ from __future__ import annotations
 
 from ux_channel.foundations.quantity import Quantity
 
-PACKAGE = "foundations"
-__all__ = ["PACKAGE", "Quantity"]
+__all__ = ["Quantity"]

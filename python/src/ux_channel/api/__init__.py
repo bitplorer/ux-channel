@@ -43,5 +43,4 @@ __all__ = [
     "AuditBundle",
     "ActionContext",
     "Principal",
-    "create_channel",
-]
+    "create_channel"]

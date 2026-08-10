@@ -32,5 +32,4 @@ __all__ = [
     "ScaffoldOptions",
     "available_templates",
     "create_app",
-    "validate_scaffold",
-]
+    "validate_scaffold"]

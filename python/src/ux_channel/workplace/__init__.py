@@ -62,8 +62,7 @@ __all__ = [
     "workplace_from_membership",
     "workplace_from_rtc",
     "claim_from_mesh_rtc",
-    "revoke_mesh_membership",
-]
+    "revoke_mesh_membership"]
 
 
 def workplace_from_membership(

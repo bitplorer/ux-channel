@@ -198,8 +198,7 @@ __all__ = [
     "RedisIdempotencyStore",
     "RedisPushBackend",
     "RedisPushBus",
-    "RedisIntentLog",
-]
+    "RedisIntentLog"]
 
 
 class RedisStateStore:
@@ -696,8 +695,7 @@ __all__ = [
     "RedisPushBackend",
     "RedisPushBus",
     "RedisStateStore",
-    "RedisRtcStore",
-]
+    "RedisRtcStore"]
 
 
 class RedisIntentLog:

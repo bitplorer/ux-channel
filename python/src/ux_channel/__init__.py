@@ -200,5 +200,4 @@ __all__ = [
     "error_catalog",
     "http_status_for",
     "create_channel",
-    "ChannelTest",
-]
+    "ChannelTest"]

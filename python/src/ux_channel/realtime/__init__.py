@@ -1,5 +1,11 @@
-"""Realtime package — WebRTC, SFU, media placement (optional plane)."""
+"""Realtime — WebRTC, SFU, media placement (optional plane).
+
+::
+
+    from ux_channel.realtime import media, webrtc
+"""
 from __future__ import annotations
 
-PACKAGE = "realtime"
-__all__ = ["PACKAGE"]
+from . import media, webrtc
+
+__all__ = ["media", "webrtc"]

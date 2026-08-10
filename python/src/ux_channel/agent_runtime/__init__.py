@@ -27,9 +27,7 @@ from ux_channel.agent_runtime.session import AgentSession
 from ux_channel.agent_runtime.peer import AgentPeer, dispatch_peer, peer_intent
 from ux_channel.agent_runtime.tools import ToolMeta, agent_tool, tools_from_registry
 
-PACKAGE = "agent_runtime"
 __all__ = [
-    "PACKAGE",
     "AgentPolicy",
     "AgentSession",
     "AgentRunner",
@@ -43,5 +41,4 @@ __all__ = [
     "MultiAuditSink",
     "AgentPeer",
     "dispatch_peer",
-    "peer_intent",
-]
+    "peer_intent"]

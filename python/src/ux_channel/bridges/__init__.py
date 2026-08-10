@@ -65,8 +65,7 @@ __all__ = [
     "GenericBridge",
     # script paths
     "FX_SCRIPT",
-    "UI_SCRIPT",
-]
+    "UI_SCRIPT"]
 
 FX_SCRIPT = "/ux-channel/static/adapters/ux-fx.js"
 UI_SCRIPT = "/ux-channel/static/adapters/ux-ui.js"

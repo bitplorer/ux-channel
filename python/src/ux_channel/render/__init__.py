@@ -10,9 +10,7 @@ from ux_channel.render import html_safe, morph_ir, placement, renderers
 from ux_channel.render.html_safe import SafeHtml, esc, mark_safe, user_content
 from ux_channel.render.html import ControlAttrs, action_attrs
 
-PACKAGE = "render"
 __all__ = [
-    "PACKAGE",
     "morph_ir",
     "html_safe",
     "placement",
@@ -22,5 +20,4 @@ __all__ = [
     "mark_safe",
     "user_content",
     "ControlAttrs",
-    "action_attrs",
-]
+    "action_attrs"]

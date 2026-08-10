@@ -91,5 +91,4 @@ __all__ = [
     "response_headers_for",
     "set_batch_workers",
     "size_of",
-    "try_decode",
-]
+    "try_decode"]

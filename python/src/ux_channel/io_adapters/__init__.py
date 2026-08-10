@@ -1,16 +1,11 @@
-"""Cohesive package: **io_adapters**
+"""I/O adapters — lab DUT, lights, scanner hardware helpers.
 
-Implementation package.
+::
 
-Modules: lab_dut, lights, scanner
-
-Import: ``from ux_channel.io_adapters.MODULE import Symbol``
-Public apps: ``from ux_channel.api import …`` or ``from ux_channel import …``
-
-Source of truth: PACKAGE_MAP.json
+    from ux_channel.io_adapters import lab_dut, lights, scanner
 """
 from __future__ import annotations
 
-MEMBERS = ['lab_dut', 'lights', 'scanner']
-PACKAGE = 'io_adapters'
-__all__ = ["MEMBERS", "PACKAGE"]
+from . import lab_dut, lights, scanner
+
+__all__ = ["lab_dut", "lights", "scanner"]

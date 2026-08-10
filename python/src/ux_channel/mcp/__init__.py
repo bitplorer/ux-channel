@@ -23,5 +23,4 @@ __all__ = [
     "enrich_tools",
     "classify_tool",
     "subscribe_info",
-    "publish_effects_invalidation",
-]
+    "publish_effects_invalidation"]

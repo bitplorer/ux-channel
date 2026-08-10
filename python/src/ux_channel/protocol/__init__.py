@@ -28,9 +28,7 @@ from ux_channel.protocol.ops import (
 from ux_channel.protocol.types import ErrorObject, Intent, Result
 from ux_channel.protocol.encode import Go, Navigate
 
-PACKAGE = "protocol"
 __all__ = [
-    "PACKAGE",
     "CapService",
     "CapError",
     "Intent",
@@ -55,5 +53,4 @@ __all__ = [
     "noop",
     "push_url",
     "Go",
-    "Navigate",
-]
+    "Navigate"]
