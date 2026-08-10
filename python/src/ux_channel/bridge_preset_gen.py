@@ -1,11 +1,12 @@
-"""Compatibility shim — implementation: ``ux_channel.bridge_meta.bridge_preset_gen``.
+"""Compatibility shim — full alias of ``ux_channel.bridge_meta.bridge_preset_gen`` (stable 0.x import path).
 
-Stable: ``from ux_channel.bridge_preset_gen import ...``
-Preferred package path: ``ux_channel.bridge_meta.bridge_preset_gen``
+All public and private attributes match the implementation module so
+internal ``from ux_channel.bridge_preset_gen import _helper`` keeps working.
 """
 from __future__ import annotations
 
-from ux_channel.bridge_meta.bridge_preset_gen import *  # noqa: F403
-import ux_channel.bridge_meta.bridge_preset_gen as _impl
+from importlib import import_module as _import_module
+import sys as _sys
 
-__all__ = list(getattr(_impl, "__all__", [n for n in dir(_impl) if not n.startswith("_")]))
+_impl = _import_module('ux_channel.bridge_meta.bridge_preset_gen')
+_sys.modules[__name__] = _impl

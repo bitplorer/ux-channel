@@ -57,7 +57,8 @@ def test_partial_refresh_ok_with_meta():
 
 def test_client_js_has_error_hooks():
     from pathlib import Path
-    js = Path("src/ux_channel/static/ux-channel.js").read_text()
+    from ux_channel import __file__ as _ucf
+    js = (Path(_ucf).resolve().parent / "static" / "ux-channel.js").read_text()
     for token in (
         "channel:error",
         "channel:refreshErrors",

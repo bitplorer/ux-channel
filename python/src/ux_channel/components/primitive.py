@@ -93,7 +93,7 @@ def region_button(
     """Signed control button using any ActionRegistry-like ``.sign``."""
     sealed = dict(trust or {})
     cap = None
-    if mint_cap and hasattr(registry, "sign"):
+    if mint_cap and hasattr(registry, "mint"):
         cap = registry.mint(action, sealed, once=once, sub=sub)
     return html_button(
         label,
@@ -370,7 +370,7 @@ def as_host(channel_or_registry: Any) -> ChannelHost:
     ):
         if hasattr(channel_or_registry, "wrap"):
             return channel_or_registry  # type: ignore[return-value]
-    if hasattr(channel_or_registry, "sign") and hasattr(channel_or_registry, "action"):
+    if hasattr(channel_or_registry, "mint") and hasattr(channel_or_registry, "action"):
         return RegistryHost(channel_or_registry)  # type: ignore[return-value]
     raise TypeError(
         "expected Channel, ActionRegistry, or RegistryHost — "

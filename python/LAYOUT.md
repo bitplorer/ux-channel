@@ -18,7 +18,7 @@ Apps import day-1 or cohesive packages
         ▼                  ▼
   shared law w/ Rust    day-1 apps
 
-Legacy: top-level `ux_channel.regions` etc. are **thin shims** → same objects.
+Legacy: top-level `ux_channel.regions` etc. are **full module aliases** (`sys.modules[name] = impl`) so private helpers and all attributes stay available.
 ```
 
 

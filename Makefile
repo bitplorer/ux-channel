@@ -1,5 +1,5 @@
 # Convenience targets — prefer these over remembering commands.
-.PHONY: help health verify verify-http peer-demo peer-stop test-rust test-python python-path
+.PHONY: help health verify verify-http peer-demo peer-stop test-rust test-python-host test-python python-path
 
 help:
 	@echo "Targets:"
@@ -31,6 +31,24 @@ peer-stop:
 
 test-rust:
 	cd rust && cargo test --lib
+
+test-python-host:
+	@python3 -c "import fastapi" 2>/dev/null || python3 -m pip install -q fastapi httpx starlette
+	PYTHONPATH="$(CURDIR)/python/src:$${PYTHONPATH:-}" python3 -m pytest \
+		$(CURDIR)/python/tests/gate \
+		$(CURDIR)/python/tests/regions \
+		$(CURDIR)/python/tests/core/test_day1_api.py \
+		$(CURDIR)/python/tests/core/test_api_surface.py \
+		$(CURDIR)/python/tests/core/test_registry.py \
+		$(CURDIR)/python/tests/core/test_flow.py \
+		$(CURDIR)/python/tests/core/test_control.py \
+		$(CURDIR)/python/tests/core/test_capability_regression.py \
+		$(CURDIR)/python/tests/state/test_draft_rmw.py \
+		$(CURDIR)/python/tests/state/test_ssr_state.py \
+		$(CURDIR)/python/tests/state/test_state_flat.py \
+		$(CURDIR)/python/tests/state/test_state_depth.py \
+		$(CURDIR)/python/tests/dx/test_channel_dx.py \
+		-q --tb=line
 
 test-python:
 	@python3 -c "import itsdangerous, pytest" 2>/dev/null || python3 -m pip install -q -r "$(CURDIR)/requirements-dev.txt"

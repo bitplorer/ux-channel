@@ -70,12 +70,12 @@ def dispatch_peer(
     reg = channel.registry
     args_d = dict(args or {})
     cap = None
-    should_sign = peer is None or getattr(peer, "sign_caps", True)
-    if should_sign and getattr(reg, "require_cap", False):
-        sign = getattr(reg, "sign", None)
-        if callable(sign):
+    should_mint = peer is None or getattr(peer, "sign_caps", True)
+    if should_mint and getattr(reg, "require_cap", False):
+        mint_fn = getattr(reg, "mint", None)
+        if callable(mint_fn):
             sub = getattr(peer, "id", None) if peer else None
-            cap = sign(action, args_d, sub=sub)
+            cap = mint_fn(action, args_d, sub=sub)
     intent = Intent(action=action, args=dict(args_d), cap=cap)
     if async_:
         return reg.dispatch_async(intent, principal=principal)

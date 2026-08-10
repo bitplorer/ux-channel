@@ -655,7 +655,7 @@ CHANNEL_PUBLIC = frozenset(
         # power / registry
         "action",
         "register",
-        "sign",
+        "mint",
         "before",
         "after",
         "registry",

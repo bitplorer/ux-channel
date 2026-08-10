@@ -203,7 +203,7 @@ DAY1_CHANNEL_API = (
     "draft",
     "done",
     "fail",
-    "sign",
+    "mint",  # CapService.mint — Rust-parity (not sign)
     "media",  # Placement bags — not HTML
     "bridge",  # widget mount_spec + ops — not HTML
     "config",
@@ -262,7 +262,7 @@ class Channel:
 
     Power (when you need them)
     --------------------------
-    ``sign`` / ``sign_push`` / ``sign_ws``, ``live``, ``before``/``after``,
+    ``mint`` / ``sign_push`` / ``sign_ws``, ``live``, ``before``/``after``,
     ``multi``, ``patch``, ``flow``, ``diagnose``, ``audit*``, ``policies``.
 
     Demo only (not production UI kit)

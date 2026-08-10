@@ -1,3 +1,14 @@
+## 2026-08-10 — Python host stability: shims + day-1 mint + host suite
+
+### Fixed
+- Top-level import shims are full module aliases (private names like `_id_str` work)
+- Day-1 Channel API lists **`mint`** (not `sign`) for caps
+- Components/agent_peer use `registry.mint` detection
+- Host regression suite: regions, state, day1, control — 201 passed
+- `make test-python-host` target
+
+---
+
 ## 2026-08-10 — Rust-parity names for shared cap API
 
 ### Breaking (0.1 alignment with Rust)
