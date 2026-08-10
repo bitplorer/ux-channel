@@ -84,6 +84,18 @@ def check() -> list[str]:
     sys.path.insert(0, str(ROOT / "python" / "src"))
     import ux_channel as u
 
+    # Import-weight: root must not load agent kernel runner or devtools.trace eagerly
+    heavy = (
+        "ux_channel.agent_runtime.runner",
+        "ux_channel.agent_runtime.tools",
+        "ux_channel.devtools.trace",
+        "ux_channel.realtime",
+        "ux_channel.mcp",
+    )
+    for mod in heavy:
+        if mod in sys.modules:
+            problems.append(f"eager heavy import after ux_channel load: {mod}")
+
     for plane in L4_PLANES:
         if plane in getattr(u, "__all__", ()):
             problems.append(f"root __all__ must not include L4 plane {plane}")

@@ -1,31 +1,17 @@
-"""Agent execution kernel — production-safe non-human callers.
+"""Agent execution kernel — non-human tool callers (L4 plane).
 
-This is **not** a second Channel. It is the only path agents / MCP tools
-should use to hit the same action registry humans reach via Intent + caps.
+Import specific modules to avoid loading the full kernel::
 
-Boundary
---------
-* Human UI path: ``Channel`` + Intent + caps (untouched).
-* Agent/tool path: ``AgentRunner.call_tool`` → policy → session budget → Intent.
-* Product façade: ``from ux_channel import agents`` → ``agents(ch)`` (devtools).
-* MCP transport: ``ux_channel.mcp`` builds on ``AgentRunner``.
-* Island guests: ``bridge.guest_runtime`` (separate trust class — not this package).
+    from ux_channel.agent_runtime.peer import AgentPeer, dispatch_peer
+    from ux_channel.agent_runtime import AgentRunner  # lazy
 
-See root ``MENTAL_MODEL.md`` § Caller planes.
+Application façade remains::
+
+    from ux_channel import agents
 """
 from __future__ import annotations
 
-from ux_channel.agent_runtime.tool_audit import (
-    AuditEvent,
-    LoggingAuditSink,
-    MemoryAuditSink,
-    MultiAuditSink,
-)
-from ux_channel.agent_runtime.policy import AgentPolicy
-from ux_channel.agent_runtime.runner import AgentRunner, ToolCall
-from ux_channel.agent_runtime.session import AgentSession
-from ux_channel.agent_runtime.peer import AgentPeer, dispatch_peer, peer_intent
-from ux_channel.agent_runtime.tools import ToolMeta, agent_tool, tools_from_registry
+from typing import Any
 
 __all__ = [
     "AgentPolicy",
@@ -41,4 +27,34 @@ __all__ = [
     "MultiAuditSink",
     "AgentPeer",
     "dispatch_peer",
-    "peer_intent"]
+    "peer_intent",
+]
+
+_LAZY = {
+    "AgentPolicy": "ux_channel.agent_runtime.policy",
+    "AgentSession": "ux_channel.agent_runtime.session",
+    "AgentRunner": "ux_channel.agent_runtime.runner",
+    "ToolCall": "ux_channel.agent_runtime.runner",
+    "agent_tool": "ux_channel.agent_runtime.tools",
+    "tools_from_registry": "ux_channel.agent_runtime.tools",
+    "ToolMeta": "ux_channel.agent_runtime.tools",
+    "AuditEvent": "ux_channel.agent_runtime.tool_audit",
+    "LoggingAuditSink": "ux_channel.agent_runtime.tool_audit",
+    "MemoryAuditSink": "ux_channel.agent_runtime.tool_audit",
+    "MultiAuditSink": "ux_channel.agent_runtime.tool_audit",
+    "AgentPeer": "ux_channel.agent_runtime.peer",
+    "dispatch_peer": "ux_channel.agent_runtime.peer",
+    "peer_intent": "ux_channel.agent_runtime.peer",
+}
+
+
+def __getattr__(name: str) -> Any:
+    mod_name = _LAZY.get(name)
+    if mod_name is None:
+        raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+    import importlib
+
+    mod = importlib.import_module(mod_name)
+    val = getattr(mod, name)
+    globals()[name] = val
+    return val

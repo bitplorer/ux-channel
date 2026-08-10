@@ -1,3 +1,11 @@
+## 2026-08-10 — deeper: lazy L4/L5 load (import weight)
+
+- agent_runtime package uses lazy __getattr__ (peer without runner)
+- host.registry lazy-loads devtools.trace (L5)
+- longevity + gate freeze: no runner/trace/realtime/mcp on root import
+
+---
+
 ## 2026-08-10 — execute longevity: strata map, checker, core/L4 boundary
 
 - PACKAGE_MAP strata L1–L5 + core_packages / plane_packages

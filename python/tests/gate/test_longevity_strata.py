@@ -46,3 +46,24 @@ def test_core_packages_listed_L1_L2():
         assert meta["strata"][pkg] in ("L1", "L2")
     for pkg in meta["plane_packages"]:
         assert meta["strata"][pkg] == "L4"
+
+
+def test_root_import_weight():
+    """Importing ux_channel must not load agent runner / devtools.trace / realtime."""
+    import importlib
+    import sys
+
+    for m in list(sys.modules):
+        if m.startswith("ux_channel"):
+            del sys.modules[m]
+    importlib.invalidate_caches()
+    import ux_channel  # noqa: F401
+
+    for heavy in (
+        "ux_channel.agent_runtime.runner",
+        "ux_channel.agent_runtime.tools",
+        "ux_channel.devtools.trace",
+        "ux_channel.realtime",
+        "ux_channel.mcp",
+    ):
+        assert heavy not in sys.modules, heavy

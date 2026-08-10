@@ -50,6 +50,13 @@ from ux_channel.host.context import ActionContext, AuthResolver, Principal
 from ux_channel.protocol.encode import Navigate, encode_result
 from ux_channel.protocol.errors import ActionError
 from ux_channel.host.hooks import AfterHook, BeforeHook, HookList
+
+def _trace_api():
+    """Lazy L5 tooling — keep host registry free of eager devtools import."""
+    from ux_channel.devtools import trace as _trace
+
+    return _trace
+
 from ux_channel.host.idempotency import IdempotencyStore
 from ux_channel.security.limits import (
     DEFAULT_MAX_HTML_BYTES,
@@ -60,7 +67,6 @@ from ux_channel.security.limits import (
 )
 from ux_channel.host.nonce import NonceStore
 from ux_channel.render.renderers import ChainRenderer, HtmlRenderer, StringRenderer
-from ux_channel.devtools.trace import FrameKind, get_tracer, new_trace_id
 from ux_channel.security.security import sanitize_op_hrefs, validate_action_name
 
 def _sec(kind: str, **kw) -> None:
@@ -204,7 +210,7 @@ class ActionRegistry:
             reg.before(_policy_before)
 
             if getattr(config, "trace_enabled", False):
-                get_tracer().configure(
+                _trace_api().get_tracer().configure(
                     TraceConfig(
                         enabled=True,
                         retain=int(getattr(config, "trace_retain", 500) or 500),
@@ -441,7 +447,7 @@ class ActionRegistry:
                 )
 
         if not intent.request_id:
-            intent.request_id = "req_" + new_trace_id()[3:]
+            intent.request_id = "req_" + _trace_api().new_trace_id()[3:]
 
         try:
             validate_action_name(intent.action)
@@ -467,9 +473,9 @@ class ActionRegistry:
                 None,
             )
 
-        tr = get_tracer()
+        tr = _trace_api().get_tracer()
         tr.emit(
-            FrameKind.INTENT_IN,
+            _trace_api().FrameKind.INTENT_IN,
             f"intent {intent.action}",
             request_id=intent.request_id,
             action=intent.action,
@@ -489,7 +495,7 @@ class ActionRegistry:
             cached = self.idempotency_store.get(intent.idempotency_key)
             if cached is not None:
                 tr.emit(
-                    FrameKind.CUSTOM,
+                    _trace_api().FrameKind.CUSTOM,
                     "idempotency hit",
                     request_id=intent.request_id,
                     action=intent.action,
@@ -500,7 +506,7 @@ class ActionRegistry:
         handler = self._actions.get(intent.action)
         if handler is None:
             tr.emit(
-                FrameKind.HANDLER_ERROR,
+                _trace_api().FrameKind.HANDLER_ERROR,
                 f"unknown action: {intent.action}",
                 request_id=intent.request_id,
                 action=intent.action,
@@ -563,7 +569,7 @@ class ActionRegistry:
             if not intent.cap:
                 _sec("cap_fail", action=intent.action, reason="missing capability")
                 tr.emit(
-                    FrameKind.CAP_FAIL,
+                    _trace_api().FrameKind.CAP_FAIL,
                     "missing capability",
                     request_id=intent.request_id,
                     action=intent.action,
@@ -607,7 +613,7 @@ class ActionRegistry:
                     ):
                         raise CapError("capability replay (nonce)")
                 tr.emit(
-                    FrameKind.CAP_OK,
+                    _trace_api().FrameKind.CAP_OK,
                     "capability verified",
                     request_id=intent.request_id,
                     action=intent.action,
@@ -619,7 +625,7 @@ class ActionRegistry:
             except CapError as exc:
                 _sec("cap_fail", action=getattr(intent, "action", ""), reason=str(exc))
                 tr.emit(
-                    FrameKind.CAP_FAIL,
+                    _trace_api().FrameKind.CAP_FAIL,
                     str(exc),
                     request_id=intent.request_id,
                     action=intent.action,
@@ -688,8 +694,8 @@ class ActionRegistry:
             )
         except LimitExceeded as exc:
             logger.error("payload_too_large action=%s err=%s", intent.action, exc)
-            get_tracer().emit(
-                FrameKind.LIMIT,
+            _trace_api().get_tracer().emit(
+                _trace_api().FrameKind.LIMIT,
                 f"payload_too_large: {exc}",
                 request_id=intent.request_id,
                 action=intent.action,
@@ -722,7 +728,7 @@ class ActionRegistry:
             hosts = tuple(getattr(cfg, "navigate_allowed_hosts", ()) or ())
         result.ops = sanitize_op_hrefs(list(result.ops), allowed_hosts=hosts)
 
-        tr = get_tracer()
+        tr = _trace_api().get_tracer()
         if tr.enabled:
             tr.record_result_ops(
                 result,
@@ -731,7 +737,7 @@ class ActionRegistry:
                 trace_id=tid if isinstance(tid, str) else None,
             )
             tr.emit(
-                FrameKind.RESULT_OUT,
+                _trace_api().FrameKind.RESULT_OUT,
                 f"result ok={result.ok} ops={len(result.ops)}",
                 request_id=intent.request_id,
                 action=intent.action,
@@ -882,7 +888,7 @@ class ActionRegistry:
         principal: Optional[Principal],
         cap_data: Optional[dict],
     ) -> Optional[Result]:
-        tr = get_tracer()
+        tr = _trace_api().get_tracer()
         for hook in self.hooks.before:
             early = hook(intent, args)
             if inspect.isawaitable(early):
@@ -906,7 +912,7 @@ class ActionRegistry:
                         f"before-hook must return Result or None, got {type(early).__name__}"
                     )
                 tr.emit(
-                    FrameKind.HOOK_SHORT,
+                    _trace_api().FrameKind.HOOK_SHORT,
                     f"before-hook short-circuit {type(hook).__name__}",
                     request_id=intent.request_id,
                     action=intent.action,
@@ -922,7 +928,7 @@ class ActionRegistry:
         principal: Optional[Principal],
         cap_data: Optional[dict],
     ) -> Optional[Result]:
-        tr = get_tracer()
+        tr = _trace_api().get_tracer()
         for hook in self.hooks.before:
             early = hook(intent, args)
             if inspect.isawaitable(early):
@@ -933,7 +939,7 @@ class ActionRegistry:
                         f"before-hook must return Result or None, got {type(early).__name__}"
                     )
                 tr.emit(
-                    FrameKind.HOOK_SHORT,
+                    _trace_api().FrameKind.HOOK_SHORT,
                     f"before-hook short-circuit {type(hook).__name__}",
                     request_id=intent.request_id,
                     action=intent.action,
@@ -1082,9 +1088,9 @@ class ActionRegistry:
 
             try:
                 bound = self._bind_args(handler, args, ctx)
-                tr = get_tracer()
+                tr = _trace_api().get_tracer()
                 tr.emit(
-                    FrameKind.HANDLER_START,
+                    _trace_api().FrameKind.HANDLER_START,
                     f"handler {intent.action}",
                     request_id=intent.request_id,
                     action=intent.action,
@@ -1105,7 +1111,7 @@ class ActionRegistry:
                     if inspect.isawaitable(value):
                         value = await value  # type: ignore[misc]
                 tr.emit(
-                    FrameKind.HANDLER_END,
+                    _trace_api().FrameKind.HANDLER_END,
                     f"handler done {intent.action}",
                     request_id=intent.request_id,
                     action=intent.action,
