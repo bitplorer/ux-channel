@@ -8,18 +8,19 @@ Brand lines
 | **Import** | ``ux_channel`` |
 | **CLI** | ``uxchannel`` |
 
-Day-1
------
+Application surface
+-------------------
 ``Channel.boot`` → ``@region`` / ``@on`` → ``control`` → ``agents`` / ``state`` → ``done``.
 
-Prefer ``from ux_channel.host.day1 import Channel, Region, …`` for new apps
-(same objects as root; narrower speech). See ``python/ONTOLOGY.md`` + ``STRUCTURE.md``.
+Application imports: ``from ux_channel import Channel, Region, …``
+or ``from ux_channel.api import Channel, Region, …`` (same objects; curated surface).
+See ``python/STABILITY.md`` + ``python/ONTOLOGY.md``.
 
 Import map (stable)
 -------------------
 ::
 
-    # Day-1
+    # Application API
     from ux_channel import Channel, ChannelConfig, agents, state, attach_audit
 
     # Power — import by concern (not on root)

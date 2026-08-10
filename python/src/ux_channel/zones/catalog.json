@@ -1,7 +1,7 @@
 {
   "policy": "no_shims",
   "public_entry": {
-    "preferred": "ux_channel.day1",
+    "preferred": "ux_channel.api",
     "root": "ux_channel",
     "cap_api": [
       "CapService",

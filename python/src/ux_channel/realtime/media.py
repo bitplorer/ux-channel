@@ -41,10 +41,10 @@ __all__ = [
     "MediaPlugin",
     "SfuBridge",
     "attach_media",
-    "DAY1_MEDIA_API",
+    "MEDIA_PUBLIC_API",
 ]
 
-DAY1_MEDIA_API = (
+MEDIA_PUBLIC_API = (
     "plugin",  # only placement entry
     "mode",
     "diagnose",
@@ -449,7 +449,7 @@ class MediaPlane:
             "default_mode": self.mode,
             "mesh": mesh_d,
             "sfu": self._sfu.diagnose(),
-            "day1": list(DAY1_MEDIA_API),
+            "public_api": list(MEDIA_PUBLIC_API),
             "boundary": "channel places plugins; SFU/mesh transport owns media bytes",
         }
 

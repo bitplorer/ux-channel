@@ -1,4 +1,4 @@
-"""First-class parallel / concurrent dispatch for ux-channel — day-1 guarantees."""
+"""First-class parallel / concurrent dispatch for ux-channel — public API guarantees."""
 
 from __future__ import annotations
 

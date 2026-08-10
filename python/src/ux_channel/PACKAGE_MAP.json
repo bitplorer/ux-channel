@@ -134,7 +134,7 @@
     "ws_security": "security"
   },
   "public_entry": {
-    "preferred": "ux_channel.day1",
+    "preferred": "ux_channel.api",
     "root": "ux_channel",
     "cap_api": [
       "CapService",
@@ -174,7 +174,7 @@
     "top_level_modules_forbidden": true,
     "public_entry": [
       "ux_channel",
-      "ux_channel.day1"
+      "ux_channel.api"
     ],
     "implementations_only_under_packages": true
   },

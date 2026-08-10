@@ -1,4 +1,4 @@
-"""ssr_state — day-1, namespace isolation, power."""
+"""ssr_state — public API, namespace isolation, power."""
 
 from __future__ import annotations
 
@@ -20,7 +20,7 @@ def _boot():
     return app, ch, ssr_state(ch)
 
 
-def test_day1_session():
+def test_public_api_session():
     _, ch, ui = _boot()
     n = ui.session("n", 0)
 

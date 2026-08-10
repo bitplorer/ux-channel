@@ -15,7 +15,7 @@ from fastapi.testclient import TestClient
 
 from ux_channel import Channel, ChannelConfig
 from ux_channel.paint.demo import attr_string, demo_button, demo_page, demo_scripts, script_tags
-from ux_channel.host.dx import DAY1_CHANNEL_API
+from ux_channel.host.dx import CHANNEL_PUBLIC_API
 from ux_channel.paint.placement import Placement, ScriptRef
 from ux_channel.protocol.types import Intent, Result
 
@@ -32,11 +32,11 @@ def _ch(**kw):
     return app, ch
 
 
-def test_day1_surface_complete_and_bound():
+def test_public_api_surface_complete_and_bound():
     app, ch = _ch()
-    for name in DAY1_CHANNEL_API:
-        assert hasattr(ch, name), f"missing day-1: {name}"
-    assert len(DAY1_CHANNEL_API) <= 20  # freeze cognitive load
+    for name in CHANNEL_PUBLIC_API:
+        assert hasattr(ch, name), f"missing public API: {name}"
+    assert len(CHANNEL_PUBLIC_API) <= 20  # freeze cognitive load
 
 
 def test_control_and_cap_pipeline():

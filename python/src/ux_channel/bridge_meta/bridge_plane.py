@@ -18,9 +18,9 @@ from typing import Any, Optional
 
 from ux_channel.paint.placement import Placement
 
-__all__ = ["BridgePlane", "attach_bridge", "DAY1_BRIDGE_API"]
+__all__ = ["BridgePlane", "attach_bridge", "BRIDGE_PUBLIC_API"]
 
-DAY1_BRIDGE_API = (
+BRIDGE_PUBLIC_API = (
     "mount_spec",
     "mount_ops",
     "update_ops",
@@ -370,7 +370,7 @@ class BridgePlane:
             ).get_contract_registry().packages(),
             "npm_workspace": "packages/@ux-channel/*",
             "strategy_doc": "docs/NPM.md",
-            "day1": list(DAY1_BRIDGE_API),
+            "public_api": list(BRIDGE_PUBLIC_API),
             "docs": "docs/BRIDGE_STRATEGY.md",
         }
 

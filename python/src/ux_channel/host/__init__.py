@@ -4,7 +4,7 @@ Preferred::
 
     from ux_channel.host import Channel, Region, RegionBook, ChannelConfig
     # or day-1:
-    from ux_channel.day1 import Channel, Region
+    from ux_channel.api import Channel, Region
 """
 from __future__ import annotations
 

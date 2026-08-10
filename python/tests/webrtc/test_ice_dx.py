@@ -25,7 +25,7 @@ def _ch(monkeypatch=None, **kw):
     return app, ch
 
 
-def test_day1_includes_ice():
+def test_public_api_includes_ice():
     assert "ice" in DAY1_WEBRTC_API
 
 

@@ -25,7 +25,7 @@ def test_codegen_mount_prop_keys_from_contract():
         for k in keys:
             assert f'"{k}"' in code
         assert "invented css" in code.lower() or "No invented css" in code
-        assert 'css=' not in code.split("Day-1")[1][:500]
+        assert 'css=' not in code.split("Public API")[1][:500]
 
 
 def test_leaflet_props_in_codegen():

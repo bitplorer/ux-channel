@@ -14,7 +14,7 @@ os.chdir(ROOT)
 
 import ux_channel
 from ux_channel import Channel, ChannelConfig, Result
-from ux_channel.host.dx import DAY1_CHANNEL_API
+from ux_channel.host.dx import CHANNEL_PUBLIC_API
 from fastapi import FastAPI
 
 issues: list[tuple[str, str, str]] = []
@@ -35,7 +35,7 @@ def main() -> int:
     )
     ch = Channel.boot(FastAPI(), config=cfg)
 
-    for name in DAY1_CHANNEL_API:
+    for name in CHANNEL_PUBLIC_API:
         if not hasattr(ch, name):
             note("critical", "day1", f"missing {name}")
 
@@ -44,7 +44,7 @@ def main() -> int:
         for n in dir(ch)
         if not n.startswith("_") and callable(getattr(ch, n, None))
     )
-    note("info", "surface", f"callable surface={len(public)} day1={len(DAY1_CHANNEL_API)}")
+    note("info", "surface", f"callable surface={len(public)} day1={len(CHANNEL_PUBLIC_API)}")
 
     for md in sorted((ROOT / "docs").glob("*.md")):
         text = md.read_text(encoding="utf-8", errors="ignore")

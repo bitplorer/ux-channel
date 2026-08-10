@@ -25,7 +25,7 @@ def _boot(**kw):
     return app, ch
 
 
-def test_day1_plugin_not_page_panel():
+def test_public_api_plugin_not_page_panel():
     assert "plugin" in DAY1_WEBRTC_API
     assert "session" not in DAY1_WEBRTC_API  # power: ch.webrtc.session(...).plugin()
     assert "page" not in DAY1_WEBRTC_API

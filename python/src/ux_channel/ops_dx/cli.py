@@ -228,7 +228,7 @@ def cmd_dx(_: argparse.Namespace) -> int:
     print()
     print(Channel.help())
     print()
-    print("Day-1 names:", ", ".join(Channel.day1_names()))
+    print("Day-1 names:", ", ".join(Channel.public_api_names()))
     print("Recipes:", ", ".join(RECIPE_NAMES))
     print()
     print("Scaffold:")

@@ -26,7 +26,7 @@ def test_no_top_level_implementation_modules():
 
 
 def test_public_paths():
-    from ux_channel.day1 import CapService, Channel, Region, RegionBook
+    from ux_channel.api import CapService, Channel, Region, RegionBook
     from ux_channel.host.regions import RegionBook as RB
     from ux_channel.protocol.capability import CapService as CS
 
@@ -34,7 +34,7 @@ def test_public_paths():
     assert CapService is CS
     svc = CapService("dev-secret-key-32chars-minimum!!!!")
     assert hasattr(svc, "mint") and not hasattr(svc, "sign")
-    assert "mint" in Channel.day1_names()
+    assert "mint" in Channel.public_api_names()
     assert Region is not RegionBook
 
 
@@ -42,7 +42,7 @@ def test_package_public_api():
     """Cohesive packages expose primary symbols without deep paths."""
     from ux_channel.protocol import CapService, Intent, Result, morph
     from ux_channel.host import Channel, Region, RegionBook
-    from ux_channel.day1 import Channel as C2
+    from ux_channel.api import Channel as C2
 
     assert Channel is C2
     assert callable(morph)

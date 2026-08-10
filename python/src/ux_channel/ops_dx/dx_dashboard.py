@@ -411,7 +411,7 @@ def build_sections(
         "actions": actions if actions is not None else "—",
         "regions": regions if regions is not None else "—",
         "media_mode": doc.get("media_mode") or "—",
-        "day1": doc.get("day1") or "—",
+        "public_api": doc.get("day1") or "—",
     }
 
     policy = {
@@ -873,7 +873,7 @@ class _BuiltinSections:
             Panel.as_table(
                 "core.inventory",
                 "Inventory",
-                [(k, inv[k]) for k in ("path", "action_endpoint", "actions", "regions", "media_mode", "day1") if k in inv],
+                [(k, inv[k]) for k in ("path", "action_endpoint", "actions", "regions", "media_mode", "public_api") if k in inv],
                 order=20,
                 use_case="inventory",
             )

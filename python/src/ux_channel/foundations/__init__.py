@@ -5,7 +5,7 @@ Quantity, provenance, io_channel.
 Modules: io_channel, provenance, quantity
 
 Import: ``from ux_channel.foundations.MODULE import Symbol``
-Public apps: ``from ux_channel.day1 import …`` or ``from ux_channel import …``
+Public apps: ``from ux_channel.api import …`` or ``from ux_channel import …``
 
 Source of truth: PACKAGE_MAP.json
 """

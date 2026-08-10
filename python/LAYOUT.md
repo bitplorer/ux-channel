@@ -27,7 +27,7 @@ App  →  day1/  or  root __init__ exports
 | `wire` `asgi` `bridges` … | Product planes |
 
 ```python
-from ux_channel.day1 import Channel, Region
+from ux_channel.api import Channel, Region
 from ux_channel.host.regions import RegionBook
 from ux_channel.protocol.capability import CapService
 ```

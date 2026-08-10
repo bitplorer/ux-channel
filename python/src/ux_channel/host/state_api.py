@@ -148,7 +148,7 @@ class ChannelState:
     def describe(self) -> dict[str, Any]:
         return {
             "api": "state(ch) → session | client | db",
-            "day1": self.help().strip().splitlines(),
+            "public_api": self.help().strip().splitlines(),
             "kinds": {
                 "session": "server draft — st.session / st.namespace",
                 "client": "browser — st.client(path, value)",

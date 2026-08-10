@@ -1,10 +1,10 @@
 """Rust-parity names for shared surface; host types stay distinct."""
 from ux_channel import CapError, CapService, Region, RegionBook
-from ux_channel.day1 import CapService as Day1Cap, Region as Day1Region
+from ux_channel.api import CapService as ApiCap, Region as ApiRegion
 
 
 def test_cap_service_rust_parity_names():
-    assert CapService is Day1Cap
+    assert CapService is ApiCap
     svc = CapService("dev-secret-key-32chars-minimum!!!!")
     assert hasattr(svc, "mint") and hasattr(svc, "verify")
     assert hasattr(CapService, "hash_args")
@@ -21,5 +21,5 @@ def test_cap_error_name():
 
 def test_region_host_only_names():
     """Region / RegionBook are host-only; not renamed for Rust (Rust has no twin)."""
-    assert Region is Day1Region
+    assert Region is ApiRegion
     assert Region is not RegionBook

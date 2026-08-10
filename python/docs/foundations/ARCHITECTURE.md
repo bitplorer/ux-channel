@@ -27,7 +27,7 @@
 6. **Idempotent DX**  
    Contract method edits, OTel attach, CLI ops — re-run safe.
 
-## Day-1 surface (`DAY1_CHANNEL_API`)
+## Day-1 surface (`CHANNEL_PUBLIC_API`)
 
 ```
 boot · on · region · control · runtime · draft · done · fail · refresh

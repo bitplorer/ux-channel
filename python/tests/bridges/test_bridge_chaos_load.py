@@ -194,7 +194,7 @@ def test_all_catalog_presets_generate_and_import():
             code = (root / "preset.py").read_text()
             assert "def __call__" in code and "def commit" in code
             # no invented css teach
-            assert "css={" not in code.split("Day-1")[1][:400]
+            assert "css={" not in code.split("Public API")[1][:400]
             # import & exercise
             mod_name = f"preset_{row['key'].replace('.', '_')}"
             spec = importlib.util.spec_from_file_location(mod_name, root / "preset.py")
@@ -311,7 +311,7 @@ def test_load_many_presets_sequential():
 
 
 def test_capability_regression_bridge_day1():
-    """Day-1 API still present after all refactors."""
+    """Public API API still present after all refactors."""
     ch = _ch()
     assert hasattr(ch, "bridge")
     for name in (

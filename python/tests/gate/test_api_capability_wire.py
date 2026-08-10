@@ -1,13 +1,13 @@
-"""Capability + wire smoke for day-1 host (complements interop suite)."""
+"""Capability + wire smoke for public API host (complements interop suite)."""
 from __future__ import annotations
 
 from ux_channel.protocol.capability import CapError, CapService
-from ux_channel.day1 import CapService as Day1Cap
+from ux_channel.api import CapService as ApiCap
 from ux_channel.wire import decode, encode
 
 
-def test_day1_cap_is_same_class():
-    assert Day1Cap is CapService
+def test_public_api_cap_is_same_class():
+    assert ApiCap is CapService
 
 
 def test_sign_verify_and_reject_tampered_args(secret):

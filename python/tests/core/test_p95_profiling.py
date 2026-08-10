@@ -50,7 +50,7 @@ class TestP95Profiling(unittest.TestCase):
         for lat in report["latencies"]:
             self.assertLess(lat["p95_ms"], 100.0, msg=lat)
 
-    def test_day1_dispatch_no_concurrency_api(self):
+    def test_public_api_dispatch_no_concurrency_api(self):
         reg = ActionRegistry(
             secret="test-secret-key-32chars-minimum!!!!", require_cap=False
         )

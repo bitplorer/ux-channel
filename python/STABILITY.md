@@ -5,7 +5,7 @@
 ```text
 ux_channel/
   __init__.py          # frozen public re-exports
-  day1/                # app-facing surface (same symbols, intentional package)
+  api/                # app-facing surface (same symbols, intentional package)
   protocol/            # Intent, Result, CapService, ops  (Rust-parity)
   host/                # Channel, Region, RegionBook, state, registry
   paint/               # morph, HTML, placement
@@ -25,14 +25,14 @@ If a module moved, you import the package path.
 ## Import flow (cognitive)
 
 ```text
-App code     →  ux_channel.day1  or  ux_channel (public symbols)
+App code     →  ux_channel.api  or  ux_channel (public symbols)
 Extensions   →  ux_channel.host.* / protocol.* / paint.* / …
 Shared law   →  CapService.mint/verify  (same as Rust)
 ```
 
 ```python
 # Apps
-from ux_channel.day1 import Channel, Region, CapService, state
+from ux_channel.api import Channel, Region, CapService, state
 
 # By package (preferred power imports)
 from ux_channel.protocol import CapService, Intent, Result, morph
@@ -45,7 +45,7 @@ from ux_channel.paint import morph_ir
 1. Put code in the correct package (see PACKAGE_MAP / package_docs).  
 2. `python3 scripts/sync_python_layout.py` (refreshes package `__init__` + catalog).  
 3. `python3 scripts/sync_python_layout.py --check` must pass (CI).  
-4. Export new public symbols only via root `__init__` + `day1` if they are day-1.  
+4. Export new public symbols only via root `__init__` + `api` if they are application API.  
 5. `make verify` and `make test-python-host`.
 
 ## Tests

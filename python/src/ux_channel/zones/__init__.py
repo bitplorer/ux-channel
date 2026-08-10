@@ -16,7 +16,7 @@ def help_public() -> str:
     rp = catalog.get("rust_parity", {})
     pkgs = ", ".join(sorted(catalog.get("packages", {})))
     return (
-        f"Public: {pe.get('preferred', 'ux_channel.day1')}\n"
+        f"Public: {pe.get('preferred', 'ux_channel.api')}\n"
         f"Host API: {', '.join(pe.get('host_api', []))}\n"
         f"Cap (Rust-parity): {', '.join(pe.get('cap_api', []))}\n"
         f"Packages: {pkgs}\n"

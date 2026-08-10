@@ -682,7 +682,7 @@ class SsrState:
             "prefix": self.prefix,
             "subscriptions": self.graph(),
             "snapshot": self.snapshot(),
-            "day1": [
+            "public_api": [
                 'ui = ssr_state(ch)',
                 'n = ui.session("n", 0)',
                 "@ui.region / @ui.action / n.add(1) / ui.bind",

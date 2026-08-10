@@ -5,7 +5,7 @@ Audit, CLI, observability, agents façade.
 Modules: agent_peer, agents_api, audit, cli, codegen, dx_dashboard, dx_errors, dx_log, enterprise, explain, forensics, info, inspect_api, intent_log, metrics_prom, observability, otel, profiling, pydantic_actions, schema_models, ticket_revoke, trace, upgrade_check
 
 Import: ``from ux_channel.ops_dx.MODULE import Symbol``
-Public apps: ``from ux_channel.day1 import …`` or ``from ux_channel import …``
+Public apps: ``from ux_channel.api import …`` or ``from ux_channel import …``
 
 Source of truth: PACKAGE_MAP.json
 """

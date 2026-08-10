@@ -1,18 +1,19 @@
-"""Day-1 public surface — prefer this import style for new application code.
+"""Application API — curated exports for product code.
 
-Why this module exists
-----------------------
-``ux_channel`` is large. Day-1 apps should not browse 180 modules.
-Importing from ``ux_channel.day1`` documents intent: *I only need the frozen core*.
+This package is the **narrow public surface** for application authors.
+It re-exports the same objects as the package root; it is not a second
+implementation.
 
-Includes ``Region`` (one slot) and ``RegionBook`` (registry / ``ch.regions``).
-Cap create/verify: ``CapService.mint`` / ``CapService.verify`` (Rust-parity names).
+Prefer either::
 
-Full package root (``from ux_channel import Channel``) remains supported and frozen.
-This is an additive clarity layer, not a rename.
+    from ux_channel import Channel, Region, CapService, state
 
-See: ``python/LAYOUT.md`` (cohesive packages), ``python/ONTOLOGY.md``.
-Implementations live under ``ux_channel.host``, ``ux_channel.protocol``, etc.
+or, when you want an explicit “API surface only” import path::
+
+    from ux_channel.api import Channel, Region, CapService, state
+
+Power features live under cohesive packages (``host``, ``protocol``,
+``paint``, ``asgi``, …) — import those by intent, not from here.
 """
 from __future__ import annotations
 

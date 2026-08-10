@@ -7,7 +7,7 @@ Source of truth: python/src/ux_channel/PACKAGE_MAP.json
   python3 scripts/sync_python_layout.py --check  # CI
 
 Policy: implementations live only under cohesive packages. Public API is
-``ux_channel`` root + ``ux_channel.day1``. There are no top-level module shims.
+``ux_channel`` root + ``ux_channel.api``. There are no top-level module shims.
 """
 from __future__ import annotations
 
@@ -28,7 +28,7 @@ PKG_INIT = '''\
 Modules: {modules}
 
 Import: ``from ux_channel.{pkg}.MODULE import Symbol``
-Public apps: ``from ux_channel.day1 import …`` or ``from ux_channel import …``
+Public apps: ``from ux_channel.api import …`` or ``from ux_channel import …``
 
 Source of truth: PACKAGE_MAP.json
 """
@@ -112,7 +112,7 @@ def help_public() -> str:
     rp = catalog.get("rust_parity", {})
     pkgs = ", ".join(sorted(catalog.get("packages", {})))
     return (
-        f"Public: {pe.get(\'preferred\', \'ux_channel.day1\')}\\n"
+        f"Public: {pe.get(\'preferred\', \'ux_channel.api\')}\\n"
         f"Host API: {', '.join(pe.get('host_api', []))}\\n"
         f"Cap (Rust-parity): {', '.join(pe.get('cap_api', []))}\\n"
         f"Packages: {pkgs}\\n"
@@ -145,13 +145,13 @@ def check(meta: dict) -> list[str]:
     for path in PKG.glob("*.py"):
         if path.stem not in allowed:
             problems.append(f"forbidden top-level module (no shims): {path.name}")
-    # day1 package must exist
-    if not (PKG / "day1" / "__init__.py").exists():
-        problems.append("missing public package day1/")
+    # api package must exist
+    if not (PKG / "api" / "__init__.py").exists():
+        problems.append("missing public package api/")
     sys.path.insert(0, str(ROOT / "python" / "src"))
     try:
         from ux_channel import CapService, Channel, Region, RegionBook
-        from ux_channel.day1 import Channel as C2
+        from ux_channel.api import Channel as C2
         from ux_channel.host.regions import RegionBook as RB
         from ux_channel.protocol.capability import CapService as CS
         assert Channel is C2

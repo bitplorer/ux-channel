@@ -28,12 +28,12 @@ Read in this order unless you already know the stack.
 | [OPERATIONAL.md](OPERATIONAL.md) | Verify / CI |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | System shape |
 | [FAQ.md](FAQ.md) | Common questions |
-| [python/docs/start/](python/docs/start/) | Day-1 encyclopedia |
+| [python/docs/start/](python/docs/start/) | Application API encyclopedia |
 
 ## Import cheat-sheet
 
 ```python
-from ux_channel.day1 import Channel, Region, CapService, state
+from ux_channel.api import Channel, Region, CapService, state
 from ux_channel.protocol import CapService, Intent, Result, morph, toast
 from ux_channel.host import Channel, Region, RegionBook
 ```

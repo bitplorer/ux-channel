@@ -1,17 +1,17 @@
-"""Day-1 region stability — pure Channel plane (no FastAPI required)."""
+"""Public API region stability — pure Channel plane (no FastAPI required)."""
 from __future__ import annotations
 
 from pathlib import Path
 
 from ux_channel import Channel, Intent, Region
-from ux_channel.day1 import Channel as Day1Channel
+from ux_channel.api import Channel as ApiChannel
 from ux_channel.host.region_component import class_to_uid
 
 SECRET = "dev-secret-key-32chars-minimum!!!!"
 
 
-def test_day1_facade_channel_is_same():
-    assert Day1Channel is Channel
+def test_public_api_facade_channel_is_same():
+    assert ApiChannel is Channel
 
 
 def test_refresh_morph_preserves_data_channel_id():

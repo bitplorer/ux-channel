@@ -5,10 +5,10 @@ from ux_channel.host.dx import DAY1_WEBRTC_API
 from ux_channel.realtime.webrtc import WebRTCPlane, reset_rtc_store
 
 
-def test_day1_webrtc_api_minimal():
+def test_public_api_webrtc_api_minimal():
     assert "sign_ticket" in DAY1_WEBRTC_API
     assert "diagnose" in DAY1_WEBRTC_API
-    # power methods stay off day-1 list
+    # power methods stay off public API list
     assert "store" not in DAY1_WEBRTC_API
     assert "default_ice_servers" not in DAY1_WEBRTC_API
 

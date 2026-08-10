@@ -9,7 +9,7 @@ export PYTHONPATH="$PWD/python/src${PYTHONPATH:+:$PYTHONPATH}"
 ```
 
 ```python
-from ux_channel.day1 import Channel, ChannelConfig, Region, CapService, state
+from ux_channel.api import Channel, ChannelConfig, Region, CapService, state
 
 ch = Channel.boot(secret="…")
 
@@ -32,7 +32,7 @@ token = svc.mint("Cart.add", {"sku": "a", "qty": 1})
 
 | Package | Intent |
 |---------|--------|
-| **day1/** | App surface |
+| **api/** | App surface |
 | **protocol/** | IR + CapService (Rust-parity) |
 | **host/** | Channel, regions, state, actions |
 | **paint/** | Morph / HTML / placement |

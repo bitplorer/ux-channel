@@ -101,7 +101,7 @@ class TestLayerImports(unittest.TestCase):
         self.assertIn("counters", rtc_metrics.snapshot())
 
     def test_ch_webrtc_after_boot(self):
-        """Day-1 WebRTC DX is ch.webrtc — not root free functions."""
+        """Public API WebRTC DX is ch.webrtc — not root free functions."""
         from fastapi import FastAPI
 
         from ux_channel import Channel, ChannelConfig

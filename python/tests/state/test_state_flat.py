@@ -19,7 +19,7 @@ def _boot(**kw):
     return app, ch, state(ch, **kw)
 
 
-def test_day1_session_region_action():
+def test_public_api_session_region_action():
     _, ch, st = _boot()
     n = st.session("n", 0)
 

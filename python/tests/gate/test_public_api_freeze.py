@@ -1,15 +1,15 @@
-"""Frozen day-1 / root public API — renames here are user-visible breaks."""
+"""Frozen application / root public API — renames here are user-visible breaks."""
 from __future__ import annotations
 
 import importlib.util
 
 import ux_channel
-import ux_channel.day1 as day1
+import ux_channel.api as api
 
 
 FORBIDDEN_ROOT = {"Think", "Component", "ComponentSet", "toast_message"}
 
-DAY1_REQUIRED = {
+API_REQUIRED = {
     "Channel",
     "ChannelConfig",
     "Region",
@@ -50,15 +50,15 @@ def test_stable_core_on_root():
         assert getattr(ux_channel, name) is not None
 
 
-def test_day1_facade_is_subset_of_root():
-    for name in day1.__all__:
+def test_api_facade_is_subset_of_root():
+    for name in api.__all__:
         assert hasattr(ux_channel, name), name
-        assert getattr(day1, name) is getattr(ux_channel, name), name
+        assert getattr(api, name) is getattr(ux_channel, name), name
 
 
-def test_day1_has_required_names():
-    for name in DAY1_REQUIRED:
-        assert name in day1.__all__, name
+def test_api_has_required_names():
+    for name in API_REQUIRED:
+        assert name in api.__all__, name
 
 
 def test_components_not_named_component():

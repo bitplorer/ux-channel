@@ -24,7 +24,7 @@ Ask: **what job does this do?** Then match the table. If two spellings exist, th
 | IR request document | **`Intent`** | — | Result |
 | IR response document | **`Result`** | — | Intent |
 | Wire codecs JSON/CXB | **`wire`** package | — | capability |
-| Day-1 app imports | **`ux_channel.day1`** | root `ux_channel` exports | power packages |
+| Application API app imports | **`ux_channel.api`** | root `ux_channel` exports | power packages |
 | Cohesive code home | **`host` / `protocol` / …** packages | `zones.*` (navigation only) | “zone = implementation” |
 | npm / JS island | **`Bridge`** | `bridges/*` | Region |
 | Session/client/db guards API | **`state(ch)`** | `state_api` module | database driver |
@@ -95,7 +95,7 @@ Wire keys are **not** renamed to match prose. Prose maps *to* wire keys in TERMI
 4. **Wire keys immortal** (`ops`, `ok`, `error`, `data-channel-*`).
 5. **Region** always means one slot; registry always means the book/`ch.regions`.
 6. **Bridge** never called region; **action** never called op.
-7. **AX** = `agents(ch)` only; **state** day-1 = `state(ch)` only.
+7. **AX** = `agents(ch)` only; **state** application API = `state(ch)` only.
 
 ---
 

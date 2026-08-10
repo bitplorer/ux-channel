@@ -4,7 +4,7 @@ Channel — the app-facing façade for ux-channel.
 =================================================================
 PUBLIC / PRIVATE
 =================================================================
-* **Day-1 public:** ``Channel.boot`` → ``@region`` / ``@on`` / ``control`` /
+* **Public API public:** ``Channel.boot`` → ``@region`` / ``@on`` / ``control`` /
   ``draft`` / ``done`` / ``fail`` / ``webrtc`` / …
 * Does **not** own HTML trees (ux-dom / templates do).
 * Owns registration, capabilities, ephemeral draft, Results, live plane.
@@ -190,11 +190,11 @@ class UiBuilder:
 # ---------------------------------------------------------------------------
 # Public API mental model (keep small — decades of DX)
 # ---------------------------------------------------------------------------
-# Day-1: boot → region → on → control → runtime → draft/done → media → bridge
+# Public API: boot → region → on → control → runtime → draft/done → media → bridge
 # Power: webrtc, sign_*, live, flow, before/after, multi, diagnose, enterprise
 # Demo HTML — ux_channel.demo only (not on Channel)
 # Layers: webrtc / scaffold / sfu / otel — never grow root exports
-DAY1_CHANNEL_API = (
+CHANNEL_PUBLIC_API = (
     "boot",
     "on",
     "region",
@@ -209,12 +209,12 @@ DAY1_CHANNEL_API = (
     "config",
     "path",
 )
-# Power (not day-1): refresh, diagnose, body_attrs, html, live, webrtc, patch, …
-# Power layers (not day-1): webrtc under ch.media
+# Power (not public API): refresh, diagnose, body_attrs, html, live, webrtc, patch, …
+# Power layers (not public API): webrtc under ch.media
 
-from ux_channel.realtime.media import DAY1_MEDIA_API  # re-export for audits
+from ux_channel.realtime.media import MEDIA_PUBLIC_API  # re-export for audits
 
-DAY1_WEBRTC_API = (
+WEBRTC_PUBLIC_API = (
     "enabled",
     "path",
     "ws_path",
@@ -232,7 +232,7 @@ class Channel:
 
     Construct only via ``Channel.boot`` (tests: ``from_registry``).
 
-    Day-1 (learn only these)
+    Public API (learn only these)
     ------------------------
     ::
 
@@ -430,7 +430,7 @@ class Channel:
             "Channel owns: actions, caps, regions, Result ops, placement DATA\n"
             "You own: all HTML (ux-dom / templates / React)\n"
             "\n"
-            "Day-1\n"
+            "Public API\n"
             "  boot → @region → @on → control → runtime → draft/done\n"
             "  media.plugin → Placement (attrs, client, scripts[])\n"
             "  bridge.mount_spec → Placement + mount_ops (widgets only)\n"
@@ -444,9 +444,9 @@ class Channel:
         )
 
     @classmethod
-    def day1_names(cls) -> tuple[str, ...]:
-        """Stable list of day-1 façade names (tests + docs)."""
-        return DAY1_CHANNEL_API
+    def public_api_names(cls) -> tuple[str, ...]:
+        """Stable list of public API façade names (tests + docs)."""
+        return CHANNEL_PUBLIC_API
 
     def doctor(self) -> dict[str, Any]:
         """DX health check (ux-dom-style doctor): diagnose + actionable hints."""
@@ -476,7 +476,7 @@ class Channel:
             "path": self.path,
             "regions": len(regions) if isinstance(regions, list) else regions,
             "media_mode": mode,
-            "day1": list(DAY1_CHANNEL_API),
+            "public_api": list(CHANNEL_PUBLIC_API),
             "diagnose": d,
             "hints": hints,
             "next": [
@@ -496,14 +496,14 @@ class Channel:
         * ``Channel.help()`` — decision tree
         * ``Channel.help("counter")`` — named recipe
         * ``Channel.help("aliases")`` — use-this-not-that
-        * ``Channel.help("day1")`` — mental model
+        * ``Channel.help("public_api")`` — mental model
         """
         from ux_channel.host.recipes import RECIPE_NAMES, decision_tree, recipe_text
 
         if not topic:
             return decision_tree() + "\nRecipes: " + ", ".join(RECIPE_NAMES)
         key = topic.strip().lower().replace("_", "-")
-        if key in ("day1", "mental", "model", "mental-model"):
+        if key in ("public_api", "mental", "model", "mental-model"):
             return cls.mental_model()
         if key in ("alias", "aliases", "rename", "prefer", "codec"):
             return (

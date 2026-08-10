@@ -294,7 +294,7 @@ def _meta_json(opts: ScaffoldOptions) -> str:
                 "with_webrtc": bool(opts.with_webrtc),
                 "with_ux_dom": bool(opts.with_ux_dom),
                 "port": opts.port,
-                "day1": [
+                "public_api": [
                     "Channel.boot",
                     "@region",
                     "@on",

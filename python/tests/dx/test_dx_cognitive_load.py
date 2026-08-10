@@ -1,4 +1,4 @@
-"""Cognitive-load DX: recipes, help, aliases, day-1 freeze, strict warnings."""
+"""Cognitive-load DX: recipes, help, aliases, public API freeze, strict warnings."""
 
 from __future__ import annotations
 
@@ -10,15 +10,15 @@ from fastapi import FastAPI
 from ux_channel import Channel, ChannelConfig
 from ux_channel.paint.demo import attr_string, demo_button, demo_page, demo_scripts, script_tags
 from ux_channel.ops_dx.cli import main as cli_main
-from ux_channel.host.dx import DAY1_CHANNEL_API
+from ux_channel.host.dx import CHANNEL_PUBLIC_API
 from ux_channel.host.recipes import RECIPE_NAMES, decision_tree, recipe_text
 
 
-def test_day1_freeze_size():
-    # Long-term: do not grow day-1 without a major version discussion
-    assert len(DAY1_CHANNEL_API) <= 18
-    assert "control" in DAY1_CHANNEL_API and "media" in DAY1_CHANNEL_API
-    assert "button" not in DAY1_CHANNEL_API and "page" not in DAY1_CHANNEL_API
+def test_public_api_freeze_size():
+    # Long-term: do not grow public API without a major version discussion
+    assert len(CHANNEL_PUBLIC_API) <= 18
+    assert "control" in CHANNEL_PUBLIC_API and "media" in CHANNEL_PUBLIC_API
+    assert "button" not in CHANNEL_PUBLIC_API and "page" not in CHANNEL_PUBLIC_API
 
 
 def test_decision_tree_and_recipes():

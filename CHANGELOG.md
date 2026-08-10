@@ -1,3 +1,11 @@
+## 2026-08-10 — rename day1 → api (professional public surface)
+
+- Package `ux_channel.api` replaces informal `day1`
+- `CHANNEL_PUBLIC_API` / `Channel.public_api_names()` replace day1_* naming
+- Root `from ux_channel import …` remains the primary professional import
+
+---
+
 ## 2026-08-10 — package public APIs + docs map + mint consistency
 
 - `protocol` / `host` / `paint` expose primary symbols on the package
@@ -86,7 +94,7 @@ Implementations keep stable import paths (no mass rename breakage).
 ## 2026-08-10 — Python host long-term stability structure
 
 ### Added
-- `ux_channel.day1` — narrow frozen import façade for apps
+- `ux_channel.api` — narrow frozen import façade for apps
 - `python/STRUCTURE.md` — permanent vs moving inside the host package
 - Day-1 tests: regions (morph uid, refresh), public API freeze, cap/wire smoke
 - Gate now covers host UX plane, not only IR interop

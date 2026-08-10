@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from ux_channel import Channel, ChannelConfig
-from ux_channel.host.dx import DAY1_CHANNEL_API
+from ux_channel.host.dx import CHANNEL_PUBLIC_API
 from ux_channel.realtime.media import DAY1_MEDIA_API
 
 
@@ -22,8 +22,8 @@ def _boot(**kw):
     return app, ch
 
 
-def test_day1_includes_media():
-    assert "media" in DAY1_CHANNEL_API
+def test_public_api_includes_media():
+    assert "media" in CHANNEL_PUBLIC_API
     for name in DAY1_MEDIA_API:
         assert name in (
             "plugin",

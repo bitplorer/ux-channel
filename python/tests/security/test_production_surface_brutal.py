@@ -13,7 +13,7 @@ from fastapi.testclient import TestClient
 
 from ux_channel import Channel, ChannelConfig, Intent, Result
 from ux_channel.paint.demo import attr_string, demo_button, script_tags
-from ux_channel.host.dx import DAY1_CHANNEL_API
+from ux_channel.host.dx import CHANNEL_PUBLIC_API
 from ux_channel.protocol.error_map import ERROR_HTTP_STATUS, http_status_for
 from ux_channel.paint.placement import Placement
 
@@ -34,14 +34,14 @@ def _boot(**kw: Any) -> tuple[FastAPI, Channel, TestClient]:
     return app, ch, TestClient(app)
 
 
-def test_day1_closed_and_no_alias_map():
-    assert len(DAY1_CHANNEL_API) == 13
-    assert "refresh" not in DAY1_CHANNEL_API
-    assert "diagnose" not in DAY1_CHANNEL_API
+def test_public_api_closed_and_no_alias_map():
+    assert len(CHANNEL_PUBLIC_API) == 13
+    assert "refresh" not in CHANNEL_PUBLIC_API
+    assert "diagnose" not in CHANNEL_PUBLIC_API
     assert not hasattr(Channel, "aliases")
     assert not hasattr(Result, "fail")
     app, ch, _ = _boot()
-    for n in DAY1_CHANNEL_API:
+    for n in CHANNEL_PUBLIC_API:
         assert hasattr(ch, n), n
     assert not hasattr(ch, "multi")
     assert not hasattr(ch, "page")
