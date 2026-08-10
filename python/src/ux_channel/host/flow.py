@@ -523,7 +523,7 @@ def attach_flow(channel: Any) -> Flow:
 
         def decorator(fn: Handler):
             import inspect
-            from ux_channel.ops_dx.enterprise import ActionPolicy, require_roles
+            from ux_channel.devtools.enterprise import ActionPolicy, require_roles
 
             action_name = explicit_name or fn.__name__
 

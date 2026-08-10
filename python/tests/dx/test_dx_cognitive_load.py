@@ -9,8 +9,8 @@ from fastapi import FastAPI
 
 from ux_channel import Channel, ChannelConfig
 from ux_channel.paint.demo import attr_string, demo_button, demo_page, demo_scripts, script_tags
-from ux_channel.ops_dx.cli import main as cli_main
-from ux_channel.host.dx import CHANNEL_PUBLIC_API
+from ux_channel.devtools.cli import main as cli_main
+from ux_channel.host.channel import CHANNEL_PUBLIC_API
 from ux_channel.host.recipes import RECIPE_NAMES, decision_tree, recipe_text
 
 

@@ -6,10 +6,10 @@ import json
 import tempfile
 from io import StringIO
 
-from ux_channel.ops_dx.cli import main
-from ux_channel.ops_dx.dx_log import DxLog, configure_log, get_log, log_exception
-from ux_channel.ops_dx.dx_errors import DxUsageError
-from ux_channel.ops_dx.otel import attach_otel, detach_otel, otel_available, status
+from ux_channel.devtools.cli import main
+from ux_channel.devtools.log import DxLog, configure_log, get_log, log_exception
+from ux_channel.devtools.errors import DxUsageError
+from ux_channel.devtools.otel import attach_otel, detach_otel, otel_available, status
 
 
 def test_json_log_lines_are_parseable():
@@ -60,7 +60,7 @@ def test_otel_status_and_attach_without_sdk():
 
 
 def test_observability_json_hook():
-    from ux_channel.ops_dx.observability import observability_after_hook
+    from ux_channel.devtools.observability import observability_after_hook
     from ux_channel.protocol.types import Intent, Result
 
     hook = observability_after_hook(json_logs=True, log_all=True, log_slow_ms=99999)

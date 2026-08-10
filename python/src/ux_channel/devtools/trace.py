@@ -24,7 +24,7 @@ INTENDED USAGE
 --------------
 ::
 
-    from ux_channel.ops_dx.trace import get_tracer, TraceConfig
+    from ux_channel.devtools.trace import get_tracer, TraceConfig
     tracer = get_tracer()
     tracer.configure(TraceConfig(enabled=True, retain=500))
 

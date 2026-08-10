@@ -31,7 +31,7 @@ One JSON object per line (stderr):
 ### Action hooks
 
 ```python
-from ux_channel.ops_dx.observability import observability_after_hook
+from ux_channel.devtools.observability import observability_after_hook
 reg.after(observability_after_hook(json_logs=True, log_slow_ms=100))
 ```
 
@@ -55,7 +55,7 @@ ch = Channel.boot(app, config=cfg)
 Or manual:
 
 ```python
-from ux_channel.ops_dx.otel import setup_otel, attach_otel, status
+from ux_channel.devtools.otel import setup_otel, attach_otel, status
 setup_otel(service_name="myapp")  # respects existing TracerProvider
 attach_otel()
 print(status())

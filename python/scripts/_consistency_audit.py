@@ -14,7 +14,7 @@ os.chdir(ROOT)
 
 import ux_channel
 from ux_channel import Channel, ChannelConfig, Result
-from ux_channel.host.dx import CHANNEL_PUBLIC_API
+from ux_channel.host.channel import CHANNEL_PUBLIC_API
 from fastapi import FastAPI
 
 issues: list[tuple[str, str, str]] = []

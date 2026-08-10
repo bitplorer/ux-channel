@@ -7,7 +7,7 @@ import inspect
 import unittest
 from pathlib import Path
 
-import ux_channel.ops_dx.dx_dashboard as dx
+import ux_channel.devtools.dashboard as dx
 
 
 class TestDashboardClarity(unittest.TestCase):

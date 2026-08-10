@@ -6,9 +6,9 @@ import pytest
 from fastapi import FastAPI
 
 from ux_channel import Channel, ChannelConfig, ClientSafetyError, Intent, state
-from ux_channel.bridge_meta.bridge_contract import MethodSpec
-from ux_channel.ops_dx.agent_peer import AgentPeer, dispatch_peer
-from ux_channel.bridge_meta.guest_runtime import (
+from ux_channel.bridge.bridge_contract import MethodSpec
+from ux_channel.devtools.agent_peer import AgentPeer, dispatch_peer
+from ux_channel.bridge.guest_runtime import (
     GuestBudget,
     GuestRuntime,
     GuestRuntimeError,
@@ -22,10 +22,10 @@ from ux_channel.security.tree_cap import (
     nest_envelope,
     validate_control,
 )
-from ux_channel.ops_dx.forensics import attach_forensics
+from ux_channel.devtools.forensics import attach_forensics
 from ux_channel.paint.morph_ir import elem, region
 from ux_channel.paint.projections import project_all
-from ux_channel.bridge_meta.bridge_protocol import (
+from ux_channel.bridge.bridge_protocol import (
     SealedBridgeProtocol,
     get_sealed_registry,
     reset_sealed_registry,

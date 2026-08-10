@@ -221,7 +221,7 @@ def test_http_pen_missing_channel_header():
     cfg = ChannelConfig.production(SECRET, allow_memory_stores=True, rate_limit_per_minute=0)
     ch = Channel.boot(app, config=cfg)
     # re-bind enterprise after boot with production config
-    from ux_channel.ops_dx.enterprise import attach_enterprise
+    from ux_channel.devtools.enterprise import attach_enterprise
     attach_enterprise(ch)
 
     @ch.on("Ping.x")

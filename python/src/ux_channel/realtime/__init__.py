@@ -1,6 +1,6 @@
 """Cohesive package: **realtime**
 
-WebRTC/SFU/media optional plane.
+WebRTC / SFU / media optional plane.
 
 Modules: media, sfu, webrtc, webrtc_http, webrtc_metrics, webrtc_turn, webrtc_ui, whip
 

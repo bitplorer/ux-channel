@@ -739,7 +739,7 @@ class RedisIntentLog:
         import json
         import time
 
-        from ux_channel.ops_dx.intent_log import IntentLogEntry
+        from ux_channel.devtools.intent_log import IntentLogEntry
         from ux_channel.protocol.types import Intent
 
         if isinstance(intent, Intent):
@@ -802,7 +802,7 @@ class RedisIntentLog:
     def since(self, seq: int = 0) -> list:
         import json
 
-        from ux_channel.ops_dx.intent_log import IntentLogEntry
+        from ux_channel.devtools.intent_log import IntentLogEntry
 
         def _read(r: Any) -> list:
             raw = r.lrange(self._list_key, 0, -1) or []

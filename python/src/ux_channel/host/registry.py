@@ -60,7 +60,7 @@ from ux_channel.security.limits import (
 )
 from ux_channel.host.nonce import NonceStore
 from ux_channel.paint.render import ChainRenderer, HtmlRenderer, StringRenderer
-from ux_channel.ops_dx.trace import FrameKind, get_tracer, new_trace_id
+from ux_channel.devtools.trace import FrameKind, get_tracer, new_trace_id
 from ux_channel.security.security import sanitize_op_hrefs, validate_action_name
 
 def _sec(kind: str, **kw) -> None:
@@ -180,9 +180,9 @@ class ActionRegistry:
             previous_secrets=tuple(getattr(config, "previous_secrets", ()) or ()),
         )
         if install_defaults:
-            from ux_channel.ops_dx.observability import observability_after_hook
+            from ux_channel.devtools.observability import observability_after_hook
             from ux_channel.security.ratelimit import MemoryRateLimiter, rate_limit_hook
-            from ux_channel.ops_dx.trace import TraceConfig, get_tracer
+            from ux_channel.devtools.trace import TraceConfig, get_tracer
 
             # Wave 5: policy engine (no-op until rules registered)
             def _policy_before(intent, args=None, principal=None, **kw):

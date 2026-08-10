@@ -145,7 +145,7 @@ def demo_button(
     class_name: str = "",
     **trust_or_attrs: Any,
 ) -> str:
-    from ux_channel.host.dx import sel
+    from ux_channel.host.channel import sel
 
     sealed: dict[str, Any] = dict(trust or {})
     html_attrs: dict[str, str] = {}
@@ -188,7 +188,7 @@ def demo_link(
     href: str = "#",
     **trust_or_attrs: Any,
 ) -> str:
-    from ux_channel.host.dx import sel
+    from ux_channel.host.channel import sel
     from ux_channel.paint.html import action_attrs
 
     sealed: dict[str, Any] = dict(trust or {})

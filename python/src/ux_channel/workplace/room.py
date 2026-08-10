@@ -8,7 +8,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Mapping, Optional, Sequence
 
-from ux_channel.ops_dx.agents_api import Agents, agents as agents_facade
+from ux_channel.devtools.agents_api import Agents, agents as agents_facade
 from ux_channel.foundations.io_channel import (
     IoAdapter,
     IoAuditLog,

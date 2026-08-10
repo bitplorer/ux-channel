@@ -1,3 +1,11 @@
+## 2026-08-10 — professional package names (no DX/meta jargon)
+
+- `host/dx.py` → `host/channel.py`
+- `ops_dx/` → `devtools/` (`dx_*` modules → dashboard/log/errors)
+- `bridge_meta/` → `bridge/`
+
+---
+
 ## 2026-08-10 — rename day1 → api (professional public surface)
 
 - Package `ux_channel.api` replaces informal `day1`
@@ -61,7 +69,7 @@ Ticket helpers (`sign_push`, `sign_ws`, …) unchanged — not the cap API.
 ## 2026-08-10 — cohesive packages (mature library structure)
 
 ### Structure
-- Physical packages: `protocol`, `host`, `paint`, `security`, `transport`, `foundations`, `realtime`, `bridge_meta`, `ops_dx`
+- Physical packages: `protocol`, `host`, `paint`, `security`, `transport`, `foundations`, `realtime`, `bridge`, `devtools`
 - Top-level modules are **thin compatibility shims** (0.x imports unchanged)
 - Coupling rules documented in `python/LAYOUT.md`
 - No features removed; gate 31 + Rust green

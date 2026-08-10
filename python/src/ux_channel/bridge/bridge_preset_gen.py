@@ -19,13 +19,13 @@ import re
 from pathlib import Path
 from typing import Any, Sequence
 
-from ux_channel.bridge_meta.bridge_scaffold import (
+from ux_channel.bridge.bridge_scaffold import (
     create_bridge_package,
     default_methods,
     slugify,
 )
-from ux_channel.ops_dx.dx_errors import DxConflictError, DxUsageError
-from ux_channel.ops_dx.dx_log import get_log
+from ux_channel.devtools.errors import DxConflictError, DxUsageError
+from ux_channel.devtools.log import get_log
 
 __all__ = [
     "KNOWN_PRESETS",

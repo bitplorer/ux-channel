@@ -4,13 +4,13 @@ import json
 import tempfile
 from pathlib import Path
 
-from ux_channel.bridge_meta.bridge_scaffold import (
+from ux_channel.bridge.bridge_scaffold import (
     add_contract_method,
     create_bridge_package,
     list_contract_methods,
     remove_contract_method,
 )
-from ux_channel.ops_dx.cli import main
+from ux_channel.devtools.cli import main
 
 
 def test_add_remove_methods_api():

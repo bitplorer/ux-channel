@@ -39,7 +39,7 @@ Day-1::
 
 Extend (team metrics only — do not re-implement Status)::
 
-    from ux_channel.ops_dx.dx_dashboard import Widget, register_plugin
+    from ux_channel.devtools.dashboard import Widget, register_plugin
 
     class Cost:
         id = "team.cost"
@@ -436,7 +436,7 @@ def build_sections(
 
     # Observability: OTel + channel tracer (prefer live snapshot over stale diagnose alone)
     try:
-        from ux_channel.ops_dx.otel import dashboard_snapshot as _otel_dash
+        from ux_channel.devtools.otel import dashboard_snapshot as _otel_dash
 
         observability = _otel_dash(frame_limit=12)
     except Exception as exc:
@@ -1230,7 +1230,7 @@ def run_dashboard_suite(
     if include_profile:
         from ux_channel.transport.batch import dispatch_batch
         from ux_channel.transport.concurrency import dispatch_parallel
-        from ux_channel.ops_dx.profiling import run_suite
+        from ux_channel.devtools.profiling import run_suite
         from ux_channel.host.registry import ActionRegistry
         from ux_channel.protocol.types import Intent, Result
 

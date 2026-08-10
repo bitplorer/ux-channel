@@ -316,7 +316,7 @@ class RegistryHost:
 
     @property
     def ui(self) -> Any:
-        from ux_channel.host.dx import UiBuilder
+        from ux_channel.host.channel import UiBuilder
 
         return UiBuilder()
 

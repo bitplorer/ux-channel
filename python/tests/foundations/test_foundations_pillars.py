@@ -6,11 +6,11 @@ import pytest
 from fastapi import FastAPI
 
 from ux_channel import Channel, ChannelConfig, Intent
-from ux_channel.bridge_meta.bridge_contract import MethodSpec
+from ux_channel.bridge.bridge_contract import MethodSpec
 from ux_channel.protocol.capability import CapService
 from ux_channel.security.attenuate import AttenuationError, attenuate, verify_attenuated
-from ux_channel.bridge_meta.bridge_protocol import BridgeFirewallError, SealedBridgeProtocol
-from ux_channel.ops_dx.intent_log import MemoryIntentLog, attach_intent_log
+from ux_channel.bridge.bridge_protocol import BridgeFirewallError, SealedBridgeProtocol
+from ux_channel.devtools.intent_log import MemoryIntentLog, attach_intent_log
 from ux_channel.paint.morph_ir import MorphNode, elem, lower_html, morph_ops, project_agent, region
 from ux_channel.foundations.provenance import ProvenanceError, require_provenance, stamp
 from ux_channel.paint.slot_compile import compile_tree, stable_uid

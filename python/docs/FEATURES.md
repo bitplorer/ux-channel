@@ -55,7 +55,7 @@ from ux_channel import Channel, ChannelConfig, agents, state, attach_audit
 | **What** | Process façade: registry, config, ASGI mount, DX helpers |
 | **Use when** | Every app — single entry to boot the control plane |
 | **API** | `Channel`, `Channel.boot(app, config=...)`, `UiBuilder`, `sel` |
-| **Implements** | `dx.py`, `factory.py`, `config.py`, `registry.py` |
+| **Implements** | `channel.py`, `factory.py`, `config.py`, `registry.py` |
 | **Config** | `ChannelConfig.development` / production builders; secret, path, CSRF, wire |
 | **Tests** | `tests/core/`, `tests/asgi/`, `tests/dx/` |
 | **Docs** | [GOLDEN_PATH](start/GOLDEN_PATH.md) · [API_SURFACE](start/API_SURFACE.md) · [LAYERS](start/LAYERS.md) |
@@ -109,7 +109,7 @@ dense keys for common fields are fixed in [CXB.md](core/CXB.md).
 | **What** | Named server handlers: `action` string → callable |
 | **Use when** | Every interactive control that hits the server |
 | **API** | `@ch.region` / `@on` patterns via Channel DX; `ActionRegistry`; `ActionContext`, `Principal` |
-| **Implements** | `registry.py`, `context.py`, `dx.py`, `actions_file.py` |
+| **Implements** | `registry.py`, `context.py`, `channel.py`, `actions_file.py` |
 | **Tests** | `tests/core/`, `tests/asgi/` |
 | **Docs** | [HOW_TO](start/HOW_TO.md) · [COOKBOOK](start/COOKBOOK.md) |
 
@@ -391,7 +391,7 @@ own forward-looking header policy.
 |--|--|
 | **What** | Operator dashboard for channel health / graphs; pluggable sections |
 | **Use when** | Local DX, staging ops visibility — not a lock-in admin framework |
-| **Implements** | `dx_dashboard.py`, `dx.py`, `dx_log.py`, `dx_errors.py` |
+| **Implements** | `dx_dashboard.py`, `channel.py`, `dx_log.py`, `dx_errors.py` |
 | **Docs** | [DASHBOARD](start/DASHBOARD.md) · [DX](dx/DX.md) · [INSPECTOR](dx/INSPECTOR.md) |
 
 ---
@@ -766,8 +766,8 @@ from ux_channel.workplace import workplace
 from ux_channel.transport.outbox import attach_outbox, drain_outbox
 from ux_channel.paint.morph_ir import elem, region
 from ux_channel.security.host_csrf import intent_headers
-from ux_channel.bridge_meta.bridge_protocol import SealedBridgeProtocol
-from ux_channel.bridge_meta.guest_runtime import GuestRuntime
+from ux_channel.bridge.bridge_protocol import SealedBridgeProtocol
+from ux_channel.bridge.guest_runtime import GuestRuntime
 ```
 
 CLI: **`uxchannel`**.

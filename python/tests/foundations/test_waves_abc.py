@@ -161,7 +161,7 @@ def test_sparkline_adapter_shipped():
 
 
 def test_metrics_prom():
-    from ux_channel.ops_dx.metrics_prom import PrometheusMetrics
+    from ux_channel.devtools.metrics_prom import PrometheusMetrics
 
     m = PrometheusMetrics()
     m.incr("ux_channel.actions", tags={"ok": "true"})

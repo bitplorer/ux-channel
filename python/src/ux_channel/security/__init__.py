@@ -1,6 +1,6 @@
 """Cohesive package: **security**
 
-CSRF, attenuate, rate limits. Auth doors, limits, CSRF.
+CSRF, attenuate, rate limits.
 
 Modules: attenuate, bulkhead, host_csrf, limits, policy, push_security, ratelimit, security, security_events, tree_cap, ws_security
 

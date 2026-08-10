@@ -80,7 +80,7 @@ def test_cors_helper():
 
 def test_schema_models_optional():
     pytest.importorskip("pydantic")
-    from ux_channel.ops_dx.schema_models import IntentModel, ResultModel
+    from ux_channel.devtools.schema_models import IntentModel, ResultModel
 
     m = IntentModel(action="Orders.place", args={"id": "1"})
     assert m.action == "Orders.place"

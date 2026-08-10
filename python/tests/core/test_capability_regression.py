@@ -15,7 +15,7 @@ from fastapi.testclient import TestClient
 
 from ux_channel import Channel, ChannelConfig
 from ux_channel.paint.demo import attr_string, demo_button, demo_page, demo_scripts, script_tags
-from ux_channel.host.dx import CHANNEL_PUBLIC_API
+from ux_channel.host.channel import CHANNEL_PUBLIC_API
 from ux_channel.paint.placement import Placement, ScriptRef
 from ux_channel.protocol.types import Intent, Result
 
@@ -149,7 +149,7 @@ def test_aliases_no_false_bridge_media_alias():
 
 
 def test_otel_status_no_crash():
-    from ux_channel.ops_dx.otel import status
+    from ux_channel.devtools.otel import status
 
     st = status()
     assert "available" in st
@@ -157,7 +157,7 @@ def test_otel_status_no_crash():
 
 def test_json_dx_log_still_works():
     from io import StringIO
-    from ux_channel.ops_dx.dx_log import get_log
+    from ux_channel.devtools.log import get_log
 
     buf = StringIO()
     log = get_log()

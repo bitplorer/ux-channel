@@ -6,7 +6,7 @@ import unittest
 from fastapi import FastAPI
 
 from ux_channel import Channel, ChannelConfig
-from ux_channel.host.dx import CHANNEL_PUBLIC_API, WEBRTC_PUBLIC_API
+from ux_channel.host.channel import CHANNEL_PUBLIC_API, WEBRTC_PUBLIC_API
 from ux_channel.realtime.webrtc import reset_rtc_store
 
 

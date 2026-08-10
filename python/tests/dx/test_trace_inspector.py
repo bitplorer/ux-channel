@@ -7,9 +7,9 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from ux_channel import ActionRegistry, Result, morph, toast
-from ux_channel.bridge_meta.bridge_api import mount_ops
+from ux_channel.bridge.bridge_api import mount_ops
 from ux_channel.host.config import ChannelConfig
-from ux_channel.ops_dx.trace import (
+from ux_channel.devtools.trace import (
     FrameKind,
     TraceConfig,
     enable_tracing,

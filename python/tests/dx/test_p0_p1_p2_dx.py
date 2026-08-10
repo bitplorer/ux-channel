@@ -11,13 +11,13 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from ux_channel import Channel, ChannelConfig
-from ux_channel.ops_dx.cli import main as cli_main
+from ux_channel.devtools.cli import main as cli_main
 from ux_channel.paint.demo import demo_button, demo_page, attr_string
-from ux_channel.ops_dx.explain import explain, explain_code
+from ux_channel.devtools.explain import explain, explain_code
 from ux_channel.paint.html import ControlAttrs
 from ux_channel.host.recipes import RECIPE_NAMES, recipe_text
 from ux_channel.protocol.types import Intent, Result
-from ux_channel.ops_dx.upgrade_check import scan_path
+from ux_channel.devtools.upgrade_check import scan_path
 
 
 def _boot(**kw):

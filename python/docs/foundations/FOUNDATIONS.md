@@ -18,8 +18,8 @@
 | Projections | `from ux_channel.paint.projections import project_all` |
 | Stable uids | `from ux_channel.paint.slot_compile import stable_uid` |
 | Intent log / forensics | `attach_audit` · `intent_log` · `forensics` |
-| Sealed bridge | `from ux_channel.bridge_meta.bridge_protocol import SealedBridgeProtocol` |
-| Guest runtime | `from ux_channel.bridge_meta.guest_runtime import GuestRuntime` |
+| Sealed bridge | `from ux_channel.bridge.bridge_protocol import SealedBridgeProtocol` |
+| Guest runtime | `from ux_channel.bridge.guest_runtime import GuestRuntime` |
 | Agent peer | `agents(ch).dispatch` · power: `ux_channel.agent_peer` |
 
 ```python

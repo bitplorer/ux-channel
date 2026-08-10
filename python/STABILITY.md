@@ -13,8 +13,8 @@ ux_channel/
   transport/           # batch, push, ws helpers
   foundations/         # quantity, provenance, io
   realtime/            # webrtc / media
-  bridge_meta/         # bridge contracts
-  ops_dx/              # audit, CLI, observability
+  bridge/         # bridge contracts
+  devtools/              # audit, CLI, observability
   wire/ asgi/ bridges/ components/ agents/ mcp/ workplace/ …
   PACKAGE_MAP.json     # module → package inventory
 ```

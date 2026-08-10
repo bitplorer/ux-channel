@@ -40,7 +40,7 @@ def inspect_channel(
     sections = tuple(sections or ("ux", "ax", "dx"))
     out: dict[str, Any] = {"inspect_schema": 1, "ok": True, "uid": region}
 
-    from ux_channel.ops_dx.agents_api import agents
+    from ux_channel.devtools.agents_api import agents
 
     ag = agents(channel)
     reg = channel.registry

@@ -13,7 +13,7 @@ from fastapi.testclient import TestClient
 
 from ux_channel import Channel, ChannelConfig, Intent, Result
 from ux_channel.paint.demo import attr_string, demo_button, script_tags
-from ux_channel.host.dx import CHANNEL_PUBLIC_API
+from ux_channel.host.channel import CHANNEL_PUBLIC_API
 from ux_channel.protocol.error_map import ERROR_HTTP_STATUS, http_status_for
 from ux_channel.paint.placement import Placement
 

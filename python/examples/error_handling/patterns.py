@@ -153,7 +153,7 @@ def pattern_map_status(result: Result) -> dict[str, Any]:
 
 
 def pattern_dx_usage() -> dict[str, Any]:
-    from ux_channel.ops_dx.dx_errors import DxUsageError
+    from ux_channel.devtools.errors import DxUsageError
 
     err = DxUsageError("missing --out", hint="uxchannel dashboard --out reports/dx")
     return err.as_dict()

@@ -22,8 +22,8 @@ App  →  day1/  or  root __init__ exports
 | `transport` | Streaming helpers |
 | `foundations` | Quantity / provenance / io |
 | `realtime` | WebRTC |
-| `bridge_meta` | Bridge contracts |
-| `ops_dx` | DX / audit / CLI |
+| `bridge` | Bridge contracts |
+| `devtools` | DX / audit / CLI |
 | `wire` `asgi` `bridges` … | Product planes |
 
 ```python

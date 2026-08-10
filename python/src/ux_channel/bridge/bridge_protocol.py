@@ -15,7 +15,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Iterable, Mapping, MutableMapping, Optional, Sequence
 
-from ux_channel.bridge_meta.bridge_contract import BridgeContract, MethodSpec, ValidationError
+from ux_channel.bridge.bridge_contract import BridgeContract, MethodSpec, ValidationError
 
 __all__ = [
     "BridgeFirewallError",

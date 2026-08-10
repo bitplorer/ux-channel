@@ -299,7 +299,7 @@ class Channel:
         from ux_channel.host.flow import apply_surface, attach_flow
         from ux_channel.host.region_component import attach_region_classes
         from ux_channel.paint.html_document import attach_document
-        from ux_channel.ops_dx.enterprise import attach_enterprise
+        from ux_channel.devtools.enterprise import attach_enterprise
 
         attach_regions(self)
         attach_enterprise(self)
@@ -310,7 +310,7 @@ class Channel:
         from ux_channel.host.live import attach_live
         from ux_channel.realtime.webrtc import attach_webrtc
         from ux_channel.realtime.media import attach_media
-        from ux_channel.bridge_meta.bridge_plane import attach_bridge
+        from ux_channel.bridge.bridge_plane import attach_bridge
 
         attach_live(self)
         attach_webrtc(self)
@@ -377,7 +377,7 @@ class Channel:
         import logging as _logging
         _blog = _logging.getLogger("ux_channel.boot")
         try:
-            from ux_channel.ops_dx.agents_api import agents as _agents
+            from ux_channel.devtools.agents_api import agents as _agents
 
             _agents(ch)
         except Exception:
@@ -386,7 +386,7 @@ class Channel:
         cfg = config
         if cfg is not None and getattr(cfg, "audit", False):
             try:
-                from ux_channel.ops_dx.audit import attach_audit
+                from ux_channel.devtools.audit import attach_audit
 
                 attach_audit(ch, redis_url=redis_url)
             except Exception:
@@ -411,7 +411,7 @@ class Channel:
                 _blog.debug("region directory attach skipped", exc_info=True)
         # inspect helper (always bind; inspect_enabled gates use)
         try:
-            from ux_channel.ops_dx.inspect_api import inspect_channel
+            from ux_channel.devtools.inspect_api import inspect_channel
 
             ch.inspect = lambda region=None, **kw: inspect_channel(  # type: ignore
                 ch, region, **kw
@@ -523,7 +523,7 @@ class Channel:
         if key in ("doctor", "health"):
             return "Boot a Channel and call ch.doctor() — or: uxchannel doctor"
         if key in ("bridge", "bridges", "npm", "preset"):
-            from ux_channel.bridge_meta.bridge_scaffold import explain_bridge
+            from ux_channel.bridge.bridge_scaffold import explain_bridge
             return explain_bridge()
         if key in RECIPE_NAMES:
             return recipe_text(key)
@@ -536,7 +536,7 @@ class Channel:
 
     def explain(self, result_or_code: Any, message: str = "") -> dict[str, Any]:
         """Map a Result/error code to a teachable fix + recipe link."""
-        from ux_channel.ops_dx.explain import explain as _explain
+        from ux_channel.devtools.explain import explain as _explain
 
         return _explain(result_or_code, message)
 
@@ -680,7 +680,7 @@ class Channel:
 
     def revoke_ticket(self, ticket: str, *, ttl_s: float | None = None) -> None:
         """Revoke a push/WS ticket (logout / ban)."""
-        from ux_channel.ops_dx.ticket_revoke import get_revocation_list
+        from ux_channel.devtools.ticket_revoke import get_revocation_list
 
         age = ttl_s
         if age is None and self.config is not None:

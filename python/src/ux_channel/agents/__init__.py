@@ -33,7 +33,7 @@ class _AgentsPackage(ModuleType):
     """Module that is also the product ``agents(ch)`` façade when imported as attribute."""
 
     def __call__(self, channel: Any, **kwargs: Any) -> Any:
-        from ux_channel.ops_dx.agents_api import agents as _facade
+        from ux_channel.devtools.agents_api import agents as _facade
 
         return _facade(channel, **kwargs)
 
@@ -43,7 +43,7 @@ _mod.__class__ = _AgentsPackage  # type: ignore[misc]
 
 try:
     import ux_channel as _parent
-    from ux_channel.ops_dx.agents_api import agents as _facade_fn
+    from ux_channel.devtools.agents_api import agents as _facade_fn
 
     if getattr(_parent, "agents", None) is _mod:
         pass
@@ -51,8 +51,8 @@ try:
 except Exception:
     pass
 
-from ux_channel.ops_dx.agents_api import Agents, EffectReport, agents, attach_agents  # noqa: E402
-from ux_channel.ops_dx.agent_peer import AgentPeer, dispatch_peer, peer_intent  # noqa: E402
+from ux_channel.devtools.agents_api import Agents, EffectReport, agents, attach_agents  # noqa: E402
+from ux_channel.devtools.agent_peer import AgentPeer, dispatch_peer, peer_intent  # noqa: E402
 
 __all__ = [
     "AgentPolicy",

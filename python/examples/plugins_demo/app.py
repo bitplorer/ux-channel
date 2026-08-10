@@ -1,4 +1,4 @@
-from ux_channel.bridge_meta.bridge_api import mount_html, mount_ops, update_ops, register_simple_manifest
+from ux_channel.bridge.bridge_api import mount_html, mount_ops, update_ops, register_simple_manifest
 """
 Multi-library plug-and-play demo.
 

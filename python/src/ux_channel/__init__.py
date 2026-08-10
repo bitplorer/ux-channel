@@ -70,7 +70,7 @@ from ux_channel.host.nonce import MemoryNonceStore
 from ux_channel.host.idempotency import MemoryIdempotencyStore
 
 # ── Façade + regions ──────────────────────────────────────────────────────
-from ux_channel.host.dx import Channel, UiBuilder, sel
+from ux_channel.host.channel import Channel, UiBuilder, sel
 from ux_channel.host.regions import RegionBook, RegionContext, RegionDef
 from ux_channel.host.region_component import Region
 from ux_channel.host.flow import Flow, FailFlow, attach_flow
@@ -86,13 +86,13 @@ from ux_channel.host.planes import (
     RISKY_SEGMENTS,
 )
 from ux_channel.host.state_api import state, attach_state, ChannelState, Client
-from ux_channel.ops_dx.agents_api import agents as _agents_facade, attach_agents, Agents, EffectReport
+from ux_channel.devtools.agents_api import agents as _agents_facade, attach_agents, Agents, EffectReport
 
 agents = _agents_facade
 
 from ux_channel.host.region_directory import RegionDirectory, path_to_uid, attach_region_directory
-from ux_channel.ops_dx.inspect_api import inspect_channel, inspect_enabled
-from ux_channel.ops_dx.audit import attach_audit, AuditBundle
+from ux_channel.devtools.inspect_api import inspect_channel, inspect_enabled
+from ux_channel.devtools.audit import attach_audit, AuditBundle
 
 # ── HTML safety + control attrs ───────────────────────────────────────────
 from ux_channel.paint.html import (

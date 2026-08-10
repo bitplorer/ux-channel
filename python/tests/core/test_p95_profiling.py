@@ -7,7 +7,7 @@ import unittest
 from pathlib import Path
 
 from ux_channel.transport.concurrency import dispatch_parallel
-from ux_channel.ops_dx.profiling import measure_latency, run_suite
+from ux_channel.devtools.profiling import measure_latency, run_suite
 from ux_channel.host.registry import ActionRegistry
 from ux_channel.protocol.types import Intent, Result
 

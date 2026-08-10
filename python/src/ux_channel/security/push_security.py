@@ -56,7 +56,7 @@ def _ticket_not_revoked(ticket: str | None) -> tuple[bool, str]:
     if not ticket:
         return True, "ok"
     try:
-        from ux_channel.ops_dx.ticket_revoke import get_revocation_list
+        from ux_channel.devtools.ticket_revoke import get_revocation_list
         if get_revocation_list().is_revoked(ticket):
             return False, "push ticket revoked"
     except Exception:

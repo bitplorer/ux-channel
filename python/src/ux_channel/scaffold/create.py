@@ -127,7 +127,7 @@ def create_app(opts: ScaffoldOptions) -> Path:
 
     # Auto bridge presets (importable bridges/<name>/)
     if opts.bridges:
-        from ux_channel.bridge_meta.bridge_preset_gen import create_bridge_preset, write_bridges_index
+        from ux_channel.bridge.bridge_preset_gen import create_bridge_preset, write_bridges_index
 
         bridges_root = root / "bridges"
         bridges_root.mkdir(parents=True, exist_ok=True)

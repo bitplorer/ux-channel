@@ -227,7 +227,7 @@ def revoke_mesh_membership(
 
     RTC revoke uses the shared revocation list; workplace verify checks it too.
     """
-    from ux_channel.ops_dx.ticket_revoke import get_revocation_list
+    from ux_channel.devtools.ticket_revoke import get_revocation_list
     from ux_channel.workplace.ticket import revoke_workplace_ticket
 
     age = float(ttl_s) if ttl_s is not None else float(membership.max_age or 3600)

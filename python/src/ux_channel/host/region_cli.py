@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from ux_channel.ops_dx.dx_errors import DxUsageError
+from ux_channel.devtools.errors import DxUsageError
 
 
 def cmd_region(args: Any, *, get_log) -> int:

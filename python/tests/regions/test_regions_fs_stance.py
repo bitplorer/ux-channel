@@ -9,7 +9,7 @@ import pytest
 from fastapi import FastAPI
 
 from ux_channel import Channel, ChannelConfig, Intent, agents
-from ux_channel.ops_dx.inspect_api import inspect_channel, inspect_enabled
+from ux_channel.devtools.inspect_api import inspect_channel, inspect_enabled
 from ux_channel.host.region_component import Region
 from ux_channel.host.region_directory import path_to_uid, attach_region_directory
 
@@ -200,7 +200,7 @@ def test_free_on_still_works():
 def test_cli_region_add(tmp_path):
     from ux_channel.host.region_cli import cmd_region
     from types import SimpleNamespace
-    from ux_channel.ops_dx.dx_log import get_log
+    from ux_channel.devtools.log import get_log
 
     out = tmp_path / "regions"
     args = SimpleNamespace(

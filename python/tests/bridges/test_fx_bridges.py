@@ -14,7 +14,7 @@ from ux_channel.bridges import (
     ParticlesBridge,
     SpotlightBridge,
 )
-from ux_channel.bridge_meta.bridge_preset_gen import list_known_presets
+from ux_channel.bridge.bridge_preset_gen import list_known_presets
 from ux_channel.paint.demo import fx_script_tags
 
 

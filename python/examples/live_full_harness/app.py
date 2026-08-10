@@ -7,9 +7,9 @@ from fastapi.responses import HTMLResponse, JSONResponse
 
 from ux_channel import Channel, ChannelConfig
 from ux_channel.paint.demo import demo_button, demo_page
-from ux_channel.ops_dx.dx_dashboard import build_dashboard_model, render_dashboard_html
-from ux_channel.ops_dx.otel import attach_otel, dashboard_snapshot, setup_otel, status as otel_status
-from ux_channel.ops_dx.trace import TraceConfig, get_tracer
+from ux_channel.devtools.dashboard import build_dashboard_model, render_dashboard_html
+from ux_channel.devtools.otel import attach_otel, dashboard_snapshot, setup_otel, status as otel_status
+from ux_channel.devtools.trace import TraceConfig, get_tracer
 
 app = FastAPI(title="ux-channel live full harness")
 cfg = ChannelConfig.development(

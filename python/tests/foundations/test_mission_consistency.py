@@ -7,7 +7,7 @@ from fastapi.testclient import TestClient
 
 from ux_channel import Channel, ChannelConfig, Intent, __all__ as ROOT_ALL
 from ux_channel.paint.demo import attr_string, demo_button, demo_page, demo_scripts, script_tags
-from ux_channel.host.dx import CHANNEL_PUBLIC_API, DAY1_WEBRTC_API
+from ux_channel.host.channel import CHANNEL_PUBLIC_API, DAY1_WEBRTC_API
 from ux_channel.realtime.webrtc import WebRTCPlane, reset_rtc_store
 from ux_channel.realtime.webrtc_http import handle_rtc_poll, handle_rtc_post
 from ux_channel.realtime.webrtc_ui import RtcPlugin, RtcSession

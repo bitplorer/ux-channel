@@ -44,7 +44,7 @@ from ux_channel.security.security import (
     warn_trusted_proxy,
 )
 from ux_channel.protocol.types import Intent, Result
-from ux_channel.ops_dx.trace import FrameKind, get_tracer
+from ux_channel.devtools.trace import FrameKind, get_tracer
 
 try:
     from fastapi import APIRouter, FastAPI, Request, Response, WebSocket
@@ -420,7 +420,7 @@ def mount_channel(
     @router.get("/version")
     async def version_endpoint():
         """Package + protocol version (safe for probes and client skew checks)."""
-        from ux_channel.ops_dx.info import package_info
+        from ux_channel.devtools.info import package_info
         return package_info(registry)
 
     @router.get("/health")
@@ -745,7 +745,7 @@ def mount_channel(
     async def ready() -> Response:
         """Readiness — registry importable; light package diagnostics."""
         ok = registry is not None and hasattr(registry, "dispatch_async")
-        from ux_channel.ops_dx.info import package_info
+        from ux_channel.devtools.info import package_info
         payload = package_info(registry if ok else None)
         payload["ok"] = ok
         payload["status"] = "ready" if ok else "not_ready"
@@ -754,11 +754,11 @@ def mount_channel(
     if trace_http:
         
         @router.get("/dx")
-        async def ux_dx_dashboard():
+        async def ux_dashboard():
             """Development DX dashboard HTML (disabled feel in production via config)."""
             from fastapi.responses import HTMLResponse
 
-            from ux_channel.ops_dx.dx_dashboard import build_dashboard_model, render_dashboard_html
+            from ux_channel.devtools.dashboard import build_dashboard_model, render_dashboard_html
 
             cfg_env = str(getattr(config, "environment", "production") or "production")
             if cfg_env == "production" and not bool(getattr(config, "inspect_enabled", False)):

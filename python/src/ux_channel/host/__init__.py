@@ -3,7 +3,7 @@
 Preferred::
 
     from ux_channel.host import Channel, Region, RegionBook, ChannelConfig
-    # or day-1:
+    # or application API:
     from ux_channel.api import Channel, Region
 """
 from __future__ import annotations
@@ -11,7 +11,7 @@ from __future__ import annotations
 # MANUAL_PUBLIC_API — sync_python_layout must not overwrite this file
 
 from ux_channel.host.config import ChannelConfig
-from ux_channel.host.dx import Channel
+from ux_channel.host.channel import Channel
 from ux_channel.host.region_component import Region
 from ux_channel.host.regions import RegionBook, RegionContext, RegionDef
 from ux_channel.host.registry import ActionRegistry

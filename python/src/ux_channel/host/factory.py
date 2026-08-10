@@ -10,7 +10,7 @@ from __future__ import annotations
 import os
 from typing import Any, Optional, Tuple
 
-from ux_channel.bridge_meta.plugins import (
+from ux_channel.bridge.plugins import (
     PluginHub,
     get_hub,
     load_builtin_hosts,
@@ -171,7 +171,7 @@ def create_channel(
             )
     if redis_url:
         try:
-            from ux_channel.ops_dx.ticket_revoke import (
+            from ux_channel.devtools.ticket_revoke import (
                 RedisRevocationStore,
                 TicketRevocationList,
                 set_revocation_list,
@@ -231,8 +231,8 @@ def create_channel(
     cfg_obs = mount_config or config
     if cfg_obs is not None and str(getattr(cfg_obs, "observe", "") or "").lower() == "otel":
         try:
-            from ux_channel.ops_dx.otel import attach_otel, setup_otel
-            from ux_channel.ops_dx.trace import get_tracer
+            from ux_channel.devtools.otel import attach_otel, setup_otel
+            from ux_channel.devtools.trace import get_tracer
 
             setup_otel(service_name="ux_channel")
             ok = attach_otel(get_tracer())

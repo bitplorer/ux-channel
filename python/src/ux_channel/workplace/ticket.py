@@ -103,7 +103,7 @@ def verify_workplace_ticket_payload(
 
     # Logout / ban denylist (same store as push tickets)
     try:
-        from ux_channel.ops_dx.ticket_revoke import get_revocation_list
+        from ux_channel.devtools.ticket_revoke import get_revocation_list
 
         if get_revocation_list().is_revoked(ticket):
             raise WorkplaceTicketError("workplace ticket revoked")
@@ -199,7 +199,7 @@ def claim_from_rtc_ticket(
 
 def revoke_workplace_ticket(ticket: str, *, ttl_s: float | None = None) -> None:
     """Revoke a workplace membership ticket (logout / ban)."""
-    from ux_channel.ops_dx.ticket_revoke import get_revocation_list
+    from ux_channel.devtools.ticket_revoke import get_revocation_list
 
     age = 3600.0 if ttl_s is None else float(ttl_s)
     get_revocation_list().revoke(ticket, ttl_s=age)

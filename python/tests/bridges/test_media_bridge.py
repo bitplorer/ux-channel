@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from ux_channel import Channel, ChannelConfig
-from ux_channel.host.dx import CHANNEL_PUBLIC_API
+from ux_channel.host.channel import CHANNEL_PUBLIC_API
 from ux_channel.realtime.media import DAY1_MEDIA_API
 
 

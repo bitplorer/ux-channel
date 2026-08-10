@@ -80,8 +80,8 @@ from ux_channel import Channel, ChannelConfig, Region, agents, state, attach_aud
 | Workplace | `from ux_channel.workplace import workplace` |
 | Nested caps | `from ux_channel.security.attenuate import attenuate` |
 | Morph IR | `from ux_channel.paint.morph_ir import elem, region` |
-| Sealed guests | `from ux_channel.bridge_meta.bridge_protocol import SealedBridgeProtocol` |
-| Peer (tests) | `from ux_channel.ops_dx.agent_peer import dispatch_peer` |
+| Sealed guests | `from ux_channel.bridge.bridge_protocol import SealedBridgeProtocol` |
+| Peer (tests) | `from ux_channel.devtools.agent_peer import dispatch_peer` |
 
 ### Quantity (canonical)
 

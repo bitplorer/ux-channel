@@ -129,7 +129,7 @@ kind = result.meta.get("error_kind")      # auth | validation | network | …
 ## 5. DX / CLI errors
 
 ```python
-from ux_channel.ops_dx.dx_errors import DxUsageError, DxNotFoundError
+from ux_channel.devtools.errors import DxUsageError, DxNotFoundError
 
 raise DxUsageError("missing --out", hint="uxchannel dashboard --out reports/dx")
 # exit_code=2, code=dx.usage

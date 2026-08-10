@@ -120,3 +120,20 @@ Wire keys are **not** renamed to match prose. Prose maps *to* wire keys in TERMI
 | [python/ONTOLOGY.md](python/ONTOLOGY.md) | Host concepts |
 | [python/LAYOUT.md](python/LAYOUT.md) | Packages + shims |
 | [python/docs/start/NAMING.md](python/docs/start/NAMING.md) | Quantity, AX, workplace laws |
+
+
+## Package names (professional)
+
+| Package | Role | Not named |
+|---------|------|-----------|
+| `api` | Curated application exports | ~~day1~~ |
+| `host` | Channel, regions, state | ~~dx~~ as package |
+| `host.channel` | Channel implementation module | ~~host.dx~~ |
+| `protocol` | IR + caps | — |
+| `paint` | Morph / HTML (DOM paint plane) | — |
+| `security` | Auth doors | ~~security_plane~~ |
+| `devtools` | Audit, CLI, observability | ~~ops_dx~~ |
+| `bridge` | Contracts / scaffold | ~~bridge_meta~~ |
+| `bridges` | npm island presets | — |
+
+Avoid jargon folders (`day1`, `ops_dx`, `*_meta`, implementation file `dx.py`).

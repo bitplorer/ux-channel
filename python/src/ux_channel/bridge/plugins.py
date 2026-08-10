@@ -25,7 +25,7 @@ INTENDED USAGE
 --------------
 Built-in::
 
-    from ux_channel.bridge_meta.plugins import PluginHub, get_hub
+    from ux_channel.bridge.plugins import PluginHub, get_hub
     hub = get_hub()
     hub.add_renderer(MyRenderer())
 

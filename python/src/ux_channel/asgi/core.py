@@ -7,7 +7,7 @@ from typing import Any, Callable, Optional
 from ux_channel.host.registry import ActionRegistry
 from ux_channel.security.security import content_length_ok, origin_allowed
 from ux_channel.transport.stream import ResultStream, format_sse
-from ux_channel.ops_dx.trace import FrameKind, get_tracer
+from ux_channel.devtools.trace import FrameKind, get_tracer
 from ux_channel.protocol.types import Intent, Result
 from ux_channel.wire.core import MEDIA_TYPES
 from ux_channel.wire.negotiate import decode_http_body, encode_http_body, response_headers_for

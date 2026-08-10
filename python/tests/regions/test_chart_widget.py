@@ -89,7 +89,7 @@ def test_generated_preset_factory():
     import tempfile
     from pathlib import Path
 
-    from ux_channel.bridge_meta.bridge_preset_gen import create_bridge_preset
+    from ux_channel.bridge.bridge_preset_gen import create_bridge_preset
 
     with tempfile.TemporaryDirectory() as td:
         root = create_bridge_preset(td, "leaflet", force=True)

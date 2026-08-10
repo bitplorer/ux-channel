@@ -6,7 +6,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from ux_channel.ops_dx.cli import main
+from ux_channel.devtools.cli import main
 
 
 class TestProfileDx(unittest.TestCase):

@@ -22,7 +22,7 @@ import sys
 from pathlib import Path
 from typing import Optional
 
-from ux_channel.ops_dx.dx_errors import DxError, DxUsageError
+from ux_channel.devtools.errors import DxError, DxUsageError
 from ux_channel.paint.demo import (
     attr_string,
     demo_button,
@@ -30,12 +30,12 @@ from ux_channel.paint.demo import (
     demo_scripts,
     script_tags,
 )
-from ux_channel.ops_dx.dx_log import configure_log, get_log, log_exception
+from ux_channel.devtools.log import configure_log, get_log, log_exception
 
 
 def cmd_info(_: argparse.Namespace) -> int:
     from ux_channel import __version__
-    from ux_channel.ops_dx.info import package_info
+    from ux_channel.devtools.info import package_info
 
     log = get_log()
     log.section("info")
@@ -286,7 +286,7 @@ def cmd_region(args: argparse.Namespace) -> int:
 def cmd_bridge(args: argparse.Namespace) -> int:
     """DX: scaffold / explain / edit contract methods for npm bridges."""
     log = get_log()
-    from ux_channel.bridge_meta.bridge_scaffold import (
+    from ux_channel.bridge.bridge_scaffold import (
         add_contract_method,
         create_bridge_package,
         explain_bridge,
@@ -324,7 +324,7 @@ def cmd_bridge(args: argparse.Namespace) -> int:
 
     if action in ("catalog", "list-presets"):
         log.section("bridge catalog")
-        from ux_channel.bridge_meta.bridge_preset_gen import list_known_presets
+        from ux_channel.bridge.bridge_preset_gen import list_known_presets
 
         print("Pick a name, then:")
         print("  uxchannel bridge preset <name> --out bridges")
@@ -354,7 +354,7 @@ def cmd_bridge(args: argparse.Namespace) -> int:
             methods = [m.strip() for m in args.methods.split(",") if m.strip()]
         dest = Path(args.out or "bridges")
         log.section("bridge preset")
-        from ux_channel.bridge_meta.bridge_preset_gen import create_bridge_preset
+        from ux_channel.bridge.bridge_preset_gen import create_bridge_preset
 
         root = create_bridge_preset(
             dest,
@@ -489,7 +489,7 @@ def cmd_bridge(args: argparse.Namespace) -> int:
 
 
 def cmd_upgrade_check(args: argparse.Namespace) -> int:
-    from ux_channel.ops_dx.upgrade_check import format_report, scan_path
+    from ux_channel.devtools.upgrade_check import format_report, scan_path
 
     log = get_log()
     path = args.path or "."
@@ -514,8 +514,8 @@ def cmd_profile(args: argparse.Namespace) -> int:
 
     from ux_channel.transport.batch import dispatch_batch
     from ux_channel.transport.concurrency import dispatch_parallel
-    from ux_channel.ops_dx.dx_log import get_log
-    from ux_channel.ops_dx.profiling import run_suite
+    from ux_channel.devtools.log import get_log
+    from ux_channel.devtools.profiling import run_suite
     from ux_channel.host.registry import ActionRegistry
     from ux_channel.protocol.types import Intent, Result
 
@@ -601,8 +601,8 @@ def cmd_dashboard(args: argparse.Namespace) -> int:
     """Observe-only DX dashboard (status · guidance · performance · inventory)."""
     from pathlib import Path
 
-    from ux_channel.ops_dx.dx_dashboard import run_dashboard_suite
-    from ux_channel.ops_dx.dx_log import get_log
+    from ux_channel.devtools.dashboard import run_dashboard_suite
+    from ux_channel.devtools.log import get_log
 
     log = get_log()
     out = Path(args.out) if getattr(args, "out", None) else Path.cwd() / "reports" / "dx"

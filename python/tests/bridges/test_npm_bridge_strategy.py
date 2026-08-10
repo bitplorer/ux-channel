@@ -5,7 +5,7 @@ from pathlib import Path
 from fastapi import FastAPI
 
 from ux_channel import Channel, ChannelConfig
-from ux_channel.bridge_meta.bridge_api import mount_html, mount_ops
+from ux_channel.bridge.bridge_api import mount_html, mount_ops
 from ux_channel.paint.demo import mount_html as demo_host
 from ux_channel.paint.placement import Placement
 

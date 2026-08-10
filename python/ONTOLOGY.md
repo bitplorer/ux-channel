@@ -338,7 +338,7 @@ python/
     ops.py · morph_ir.py      ← ops / multi-surface IR
     bridges/ · components/    ← optional, not core ontology
     capability.py · wire/     ← authority + codecs
-    dx.py                     ← Channel façade (day-1)
+    channel.py                     ← Channel façade (day-1)
 ```
 
 **Rule of thumb for newcomers:**  

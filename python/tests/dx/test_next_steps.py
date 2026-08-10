@@ -9,7 +9,7 @@ from starlette.applications import Starlette
 from starlette.testclient import TestClient as StarletteClient
 
 from ux_channel import ActionRegistry, Result, toast
-from ux_channel.ops_dx.codegen import generate_ts_client
+from ux_channel.devtools.codegen import generate_ts_client
 from ux_channel.host.config import ChannelConfig
 from ux_channel.paint.html_safe import esc, user_content
 from ux_channel.protocol.types import Intent

@@ -1,13 +1,13 @@
 """Advanced stage tests: plugins, bridge helpers, SSE formatting."""
 
 from ux_channel import Result, create_channel
-from ux_channel.bridge_meta.bridge_api import (
+from ux_channel.bridge.bridge_api import (
     mount_html,
     mount_ops,
     register_simple_manifest,
     update_ops,
 )
-from ux_channel.bridge_meta.plugins import BridgeManifest, PluginHub, set_hub
+from ux_channel.bridge.plugins import BridgeManifest, PluginHub, set_hub
 from ux_channel.paint.render import ChainRenderer, StringRenderer
 from ux_channel.transport.stream import ResultStream, format_sse, iter_result_sse
 from ux_channel.protocol.types import Intent

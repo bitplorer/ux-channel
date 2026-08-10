@@ -13,7 +13,7 @@ from ux_channel.transport.intent_sync import (
     MemoryIntentSyncBus,
     attach_intent_sync,
 )
-from ux_channel.ops_dx.intent_log import attach_intent_log
+from ux_channel.devtools.intent_log import attach_intent_log
 from ux_channel.redis_extra.resilience import RedisUnavailable, ResilientRedis
 
 

@@ -15,7 +15,7 @@ from typing import Any, Optional
 from ux_channel.host.registry import ActionRegistry
 from ux_channel.security.security import channel_header_ok, content_length_ok, origin_allowed
 from ux_channel.transport.stream import ResultStream, format_sse
-from ux_channel.ops_dx.trace import FrameKind, get_tracer
+from ux_channel.devtools.trace import FrameKind, get_tracer
 from ux_channel.protocol.types import Intent, Result
 
 try:
@@ -159,11 +159,11 @@ def channel_routes(
         return JSONResponse(body)
 
     async def version_ep(_: Request) -> Response:
-        from ux_channel.ops_dx.info import package_info
+        from ux_channel.devtools.info import package_info
         return JSONResponse(package_info(registry))
 
     async def ready(_: Request) -> Response:
-        from ux_channel.ops_dx.info import package_info
+        from ux_channel.devtools.info import package_info
         body = package_info(registry)
         body["ok"] = True
         body["status"] = "ready"

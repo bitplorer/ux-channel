@@ -9,7 +9,7 @@ PUBLIC / PRIVATE
       from ux_channel import agents
       agents(ch).dispatch(action, args, peer=agents(ch).peer("bot-1"))
 
-* **Power / tests:** ``from ux_channel.ops_dx.agent_peer import dispatch_peer``
+* **Power / tests:** ``from ux_channel.devtools.agent_peer import dispatch_peer``
 
 Same Intent grammar, same caps, same registry as a human button.
 Does **not** implement tools_for / situation / effects (that is AX).

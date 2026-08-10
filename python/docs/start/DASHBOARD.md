@@ -54,7 +54,7 @@ Live thin view (dev): `GET /ux-channel/dx` — status/inventory without profile 
 ## Extend (team data only)
 
 ```python
-from ux_channel.ops_dx.dx_dashboard import Widget, register_plugin
+from ux_channel.devtools.dashboard import Widget, register_plugin
 
 class Cost:
     id = "team.cost"

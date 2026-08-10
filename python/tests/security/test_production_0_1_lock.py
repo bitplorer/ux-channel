@@ -19,7 +19,7 @@ from unittest import mock
 
 from ux_channel.protocol import serde as _serde
 from ux_channel.host.config import ChannelConfig
-from ux_channel.ops_dx.dx_dashboard import DASHBOARD_MODEL_SCHEMA, build_dashboard_model
+from ux_channel.devtools.dashboard import DASHBOARD_MODEL_SCHEMA, build_dashboard_model
 from ux_channel.security.host_csrf import CHANNEL_CSRF_HEADER, CHANNEL_CSRF_VALUE
 from ux_channel_ux_dom.csrf import (
     UX_DOM_CSRF_META_NAME,

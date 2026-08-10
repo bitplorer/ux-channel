@@ -15,7 +15,7 @@ from ux_channel.security.security_events import (
     get_security_bus,
     set_security_bus,
 )
-from ux_channel.ops_dx.ticket_revoke import (
+from ux_channel.devtools.ticket_revoke import (
     TicketRevocationList,
     get_revocation_list,
     set_revocation_list,

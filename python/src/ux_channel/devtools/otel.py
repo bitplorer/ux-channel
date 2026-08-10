@@ -38,7 +38,7 @@ import threading
 import time
 from typing import Any, Optional
 
-from ux_channel.ops_dx.trace import ChannelTracer, TraceFrame, get_tracer
+from ux_channel.devtools.trace import ChannelTracer, TraceFrame, get_tracer
 
 logger = logging.getLogger("ux_channel.otel")
 
@@ -213,7 +213,7 @@ def attach_otel(tracer: Optional[ChannelTracer] = None) -> bool:
             "(pip install ux-channel[otel])"
         )
         try:
-            from ux_channel.ops_dx.dx_log import get_log
+            from ux_channel.devtools.log import get_log
 
             get_log().warn(
                 "OpenTelemetry not installed",
@@ -273,7 +273,7 @@ def attach_otel(tracer: Optional[ChannelTracer] = None) -> bool:
     _attached = True
     logger.info("otel attached to ChannelTracer (request-scoped spans)")
     try:
-        from ux_channel.ops_dx.dx_log import get_log
+        from ux_channel.devtools.log import get_log
 
         get_log().ok("OpenTelemetry attached", event="otel_attached")
     except Exception:

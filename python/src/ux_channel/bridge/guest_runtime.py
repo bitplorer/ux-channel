@@ -17,7 +17,7 @@ from ux_channel.protocol import serde as _serde
 from dataclasses import dataclass, field
 from typing import Any, Mapping, Optional, Sequence
 
-from ux_channel.bridge_meta.bridge_protocol import (
+from ux_channel.bridge.bridge_protocol import (
     BridgeFirewallError,
     SealedBridgeProtocol,
     get_sealed_registry,

@@ -58,9 +58,9 @@ from typing import (
     runtime_checkable,
 )
 
-from ux_channel.bridge_meta.bridge_contract import MethodSpec
-from ux_channel.bridge_meta.bridge_protocol import BridgeFirewallError, SealedBridgeProtocol
-from ux_channel.bridge_meta.guest_runtime import event_to_intent_args
+from ux_channel.bridge.bridge_contract import MethodSpec
+from ux_channel.bridge.bridge_protocol import BridgeFirewallError, SealedBridgeProtocol
+from ux_channel.bridge.guest_runtime import event_to_intent_args
 from ux_channel.foundations.quantity import Quantity, QuantityBudget, QuantityError
 
 __all__ = [

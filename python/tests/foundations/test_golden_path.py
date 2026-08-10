@@ -14,7 +14,7 @@ from ux_channel import (
     MemoryStateStore,
     Result,
 )
-from ux_channel.ops_dx.cli import main as cli_main
+from ux_channel.devtools.cli import main as cli_main
 from ux_channel.host.factory import create_channel
 
 
