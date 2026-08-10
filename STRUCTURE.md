@@ -3,6 +3,8 @@
 **Purpose:** Stop mixing *law* with *example*.  
 Long-term stability comes from a small permanent core; confusion comes from treating demos and transports as the product.
 
+Full narrative (flows, algorithms, CXB negotiation status): [`HOW_IT_WORKS.md`](HOW_IT_WORKS.md).
+
 ```text
 ┌─────────────────────────────────────────────────────────────┐
 │  PERMANENT (contract) — change only via major IR version    │

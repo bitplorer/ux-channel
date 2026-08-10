@@ -5,6 +5,8 @@
 
 This folder is the living design + conformance + second-implementation surface for turning **ux-channel** from a strong Python library into a **wire-native peer platform**.
 
+**New here?** Start with **[HOW_IT_WORKS.md](HOW_IT_WORKS.md)** — full walkthrough with flow diagrams, algorithms, file map, failure catalog, and “what you get at the end.” Do not assume prior knowledge of IR / caps / CXB.
+
 ---
 
 ## What this is
@@ -23,6 +25,7 @@ JSON is the floor; CXB is the dense upgrade; caps travel with the Intent.
 
 | Path | Role |
 |------|------|
+| **`HOW_IT_WORKS.md`** | **Human walkthrough** — diagrams, order of steps, codecs, failures |
 | `SPEC/` | Normative drafts: IR, Capability, Invariants, Breaking-change policy |
 | `STRUCTURE.md` | Permanent vs moving (do not mix law with demos) |
 | `OPERATIONAL.md` | Secrets, env vars, HTTP honesty — **read before running `uxc_peer`** |
