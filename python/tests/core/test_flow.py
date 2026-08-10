@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from ux_channel import Channel, ChannelTest, Result
+from ux_channel import Channel, Result
+from ux_channel.host.testing import ChannelTest
 
 SECRET = "dev-secret-key-32chars-minimum!!!!"
 

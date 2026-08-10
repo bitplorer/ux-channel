@@ -5,7 +5,8 @@ from __future__ import annotations
 import pytest
 from fastapi import FastAPI
 
-from ux_channel import Channel, ChannelConfig, ClientSafetyError, state
+from ux_channel import Channel, ChannelConfig, state
+from ux_channel.host.state_planes import ClientSafetyError
 
 
 def _st(**kw):

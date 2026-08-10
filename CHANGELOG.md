@@ -1,3 +1,11 @@
+## 2026-08-10 — deeper: root binds application only (power off root)
+
+- Root no longer re-exports stores, ssr_state, planes, ChannelTest, sel, …
+- Import power from packages (host.stores, host.testing, host.state_planes, …)
+- Tests/examples migrated; gate freezes MemoryStateStore off root
+
+---
+
 ## 2026-08-10 — deeper: root __all__ application tier
 
 - Root __all__ ~50 application/stable symbols (was 88)

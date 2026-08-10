@@ -9,7 +9,8 @@ from dataclasses import dataclass, field
 
 import pytest
 
-from ux_channel import Channel, ChannelTest, Intent, Result
+from ux_channel import Channel, Intent, Result
+from ux_channel.host.testing import ChannelTest
 from ux_channel.render.kit import attr_string, demo_button, demo_page, demo_scripts, script_tags
 from ux_channel.security.bulkhead import install_bulkhead
 

@@ -30,11 +30,13 @@ ux_channel/
 **Forbidden package names (must not reappear):**  
 `day1`, `ops_dx`, `bridge_meta`, `paint`, `zones`, `security_plane`, `host/dx.py`, `host/state.py` (use `host/stores.py`).
 
-## Root ``__all__`` tiers
+## Root surface
 
-* **In ``__all__``:** application + stable core (Channel, caps, ops, state, agents, …).
-* **Bound but not in ``__all__``:** power re-exports (stores, ssr_state, planes, ChannelTest, …).
-* Prefer ``from ux_channel.host.stores import MemoryStateStore`` in new code.
+* Root binds **only** the application / stable core (see ``__all__``).
+* Power modules are **not** re-exported on root — import packages::
+
+      from ux_channel.host.stores import MemoryStateStore
+      from ux_channel.host.testing import ChannelTest
 
 ## Identity law
 

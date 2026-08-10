@@ -3,7 +3,8 @@ ChannelTest — low-ceremony tests for actions without raw Intent JSON.
 
 ::
 
-    from ux_channel import Channel, ChannelTest
+    from ux_channel import Channel
+    from ux_channel.host.testing import ChannelTest
 
     ch = Channel.boot(secret="…")
     t = ChannelTest(ch)

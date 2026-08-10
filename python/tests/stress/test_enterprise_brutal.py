@@ -13,7 +13,8 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from ux_channel import Channel, ChannelConfig, ChannelTest, Intent, Result
+from ux_channel import Channel, ChannelConfig, Intent, Result
+from ux_channel.host.testing import ChannelTest
 from ux_channel.security.bulkhead import install_bulkhead
 from ux_channel.protocol.capability import CapError
 from ux_channel.host.nonce import MemoryNonceStore

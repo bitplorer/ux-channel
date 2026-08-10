@@ -9,10 +9,10 @@ Application
     from ux_channel import Channel, Region, CapService, state, agents, morph
     # same objects: from ux_channel.api import ...
 
-Power packages (import by intent)
----------------------------------
-``protocol`` · ``host`` · ``render`` · ``security`` · ``wire`` · ``asgi`` ·
-``agent_runtime`` · ``mcp`` · ``devtools`` · ``bridge`` · ``realtime`` · …
+Power packages (import by intent — not re-exported on root)
+------------------------------------------------------------
+``protocol`` · ``host`` · ``host.stores`` · ``render`` · ``security`` ·
+``wire`` · ``asgi`` · ``agent_runtime`` · ``mcp`` · ``devtools`` · …
 
 See ``MENTAL_MODEL.md`` · ``python/STABILITY.md`` · ``PUBLIC_API_FREEZE.md``.
 """
@@ -21,7 +21,7 @@ from __future__ import annotations
 
 from ux_channel._version import __version__, __version_info__
 
-# ── Protocol (wire law) ───────────────────────────────────────────────────
+# Protocol (wire law)
 from ux_channel.protocol import (
     ActionError,
     ActionNotFound,
@@ -49,62 +49,28 @@ from ux_channel.protocol import (
     swap,
     toast,
 )
-from ux_channel.protocol.error_map import (
-    ERROR_HTTP_STATUS,
-    catalog as error_catalog,
-    http_status_for,
-)
+from ux_channel.protocol.error_map import ERROR_HTTP_STATUS, http_status_for
 
-# ── Host runtime ──────────────────────────────────────────────────────────
+# Host application runtime
 from ux_channel.host import (
     ActionRegistry,
     Channel,
     ChannelConfig,
     Region,
     RegionBook,
-    RegionContext,
-    RegionDef,
     create_channel,
 )
-from ux_channel.host.channel import UiBuilder, sel
 from ux_channel.host.context import ActionContext, Principal
-from ux_channel.host.flow import FailFlow, Flow, attach_flow
-from ux_channel.host.idempotency import MemoryIdempotencyStore
-from ux_channel.host.nonce import MemoryNonceStore
-from ux_channel.host.region_directory import (
-    RegionDirectory,
-    attach_region_directory,
-    path_to_uid,
-)
-from ux_channel.host.ssr_state import (
-    Namespace,
-    SessionVar,
-    SsrState,
-    attach_ssr_state,
-    ssr_state,
-)
-from ux_channel.host.state_api import ChannelState, Client, attach_state, state
-from ux_channel.host.state_planes import (
-    RISKY_SEGMENTS,
-    ClientPlane,
-    ClientSafetyError,
-    Db,
-    Planes,
-    attach_planes,
-    path_is_risky,
-    planes,
-)
-from ux_channel.host.stores import MemoryStateStore, NullStateStore, StateConflict
-from ux_channel.host.testing import ChannelTest
+from ux_channel.host.state_api import attach_state, state
 
-# ── AX / audit ────────────────────────────────────────────────────────────
-from ux_channel.devtools import AuditBundle, attach_audit, inspect_channel, inspect_enabled
-from ux_channel.devtools.agents_api import Agents, EffectReport, attach_agents
+# AX / audit façades
+from ux_channel.devtools import AuditBundle, attach_audit
+from ux_channel.devtools.agents_api import Agents, attach_agents
 from ux_channel.devtools.agents_api import agents as _agents_facade
 
 agents = _agents_facade
 
-# ── Render helpers (common on controls) ───────────────────────────────────
+# Common control / HTML helpers
 from ux_channel.render import (
     ControlAttrs,
     SafeHtml,
@@ -113,24 +79,16 @@ from ux_channel.render import (
     mark_safe,
     user_content,
 )
-from ux_channel.render.html import attr_escape, form_open, json_attr
-
-# ── Public star-import surface (__all__) ──────────────────────────────────
-# Application + stable core only. Other names above remain importable as
-# ``from ux_channel import X`` for compatibility but are *power* re-exports
-# (prefer ``ux_channel.host`` / ``protocol`` / ``render`` / ``devtools``).
 
 __all__ = [
     "__version__",
     "__version_info__",
-    # construction
     "Channel",
     "ChannelConfig",
     "create_channel",
     "Region",
     "RegionBook",
     "ActionRegistry",
-    # wire + caps (Rust-parity)
     "Intent",
     "Result",
     "ErrorObject",
@@ -140,7 +98,6 @@ __all__ = [
     "ActionError",
     "ActionNotFound",
     "ChannelError",
-    # op builders
     "morph",
     "toast",
     "navigate",
@@ -157,10 +114,8 @@ __all__ = [
     "noop",
     "Go",
     "Navigate",
-    # handler context
     "ActionContext",
     "Principal",
-    # application façades
     "state",
     "attach_state",
     "agents",
@@ -168,14 +123,12 @@ __all__ = [
     "Agents",
     "attach_audit",
     "AuditBundle",
-    # common control/render
     "ControlAttrs",
     "action_attrs",
     "esc",
     "SafeHtml",
     "mark_safe",
     "user_content",
-    # error plane
     "http_status_for",
     "ERROR_HTTP_STATUS",
 ]

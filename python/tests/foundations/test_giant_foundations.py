@@ -5,7 +5,8 @@ from __future__ import annotations
 import pytest
 from fastapi import FastAPI
 
-from ux_channel import Channel, ChannelConfig, ClientSafetyError, Intent, state
+from ux_channel import Channel, ChannelConfig, Intent, state
+from ux_channel.host.state_planes import ClientSafetyError
 from ux_channel.bridge.bridge_contract import MethodSpec
 from ux_channel.agent_runtime.peer import AgentPeer, dispatch_peer
 from ux_channel.bridge.guest_runtime import (

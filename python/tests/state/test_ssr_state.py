@@ -6,7 +6,8 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from ux_channel import Channel, ChannelConfig, Intent, ssr_state
+from ux_channel import Channel, ChannelConfig, Intent
+from ux_channel.host.ssr_state import ssr_state
 
 
 def _boot():

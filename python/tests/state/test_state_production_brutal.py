@@ -17,11 +17,10 @@ from fastapi.testclient import TestClient
 from ux_channel import (
     Channel,
     ChannelConfig,
-    ClientSafetyError,
     Intent,
-    path_is_risky,
     state,
 )
+from ux_channel.host.state_planes import ClientSafetyError, path_is_risky
 
 
 def _ch(**state_kw):

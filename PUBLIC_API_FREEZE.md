@@ -101,3 +101,11 @@ Rust peer: same cap algorithm + CXB decode vs `conformance/`.
 * ``from ux_channel import *`` only pulls ``__all__`` (application + stable core).
 * ``from ux_channel import MemoryStateStore`` still works (power re-export bound on root).
 * Prefer power packages for new code: ``host.stores``, ``host.ssr_state``, etc.
+
+## Power is not on root
+
+Stores, SSR state, planes, ChannelTest, inspect helpers, etc. import from packages::
+
+    from ux_channel.host.stores import MemoryStateStore
+    from ux_channel.host.testing import ChannelTest
+    from ux_channel.host.ssr_state import ssr_state

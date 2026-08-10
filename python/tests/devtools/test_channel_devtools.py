@@ -5,7 +5,8 @@ from __future__ import annotations
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from ux_channel import Result, Channel, sel
+from ux_channel import Result, Channel
+from ux_channel.host.channel import sel
 from ux_channel.render.kit import attr_string, demo_button, demo_page, demo_scripts, script_tags
 from ux_channel.protocol.types import Intent
 

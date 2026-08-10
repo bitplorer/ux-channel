@@ -8,7 +8,8 @@ from __future__ import annotations
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 
-from ux_channel import ActionRegistry, Go, Result, focus, form_open, morph, toast
+from ux_channel import ActionRegistry, Go, Result, focus, morph, toast
+from ux_channel.render.html import form_open
 from ux_channel.asgi.fastapi import mount_channel
 from ux_channel.render.html import attr_escape
 

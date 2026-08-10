@@ -7,13 +7,9 @@ from pathlib import Path
 
 import pytest
 
-from ux_channel import (
-    Channel,
-    ChannelConfig,
-    ChannelTest,
-    MemoryStateStore,
-    Result,
-)
+from ux_channel import Channel, ChannelConfig, Result
+from ux_channel.host.stores import MemoryStateStore
+from ux_channel.host.testing import ChannelTest
 from ux_channel.devtools.cli import main as cli_main
 from ux_channel.host.factory import create_channel
 

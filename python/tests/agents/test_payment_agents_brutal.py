@@ -19,12 +19,12 @@ from fastapi import FastAPI
 from ux_channel import (
     Channel,
     ChannelConfig,
-    ClientSafetyError,
     Intent,
     agents,
     attach_audit,
     state,
 )
+from ux_channel.host.state_planes import ClientSafetyError
 from ux_channel.host.context import Principal
 from ux_channel.foundations.quantity import Quantity, QuantityError
 

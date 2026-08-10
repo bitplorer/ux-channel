@@ -16,11 +16,11 @@ from fastapi.testclient import TestClient
 from ux_channel import (
     Channel,
     ChannelConfig,
-    ClientSafetyError,
     Intent,
     Result,
     state,
 )
+from ux_channel.host.state_planes import ClientSafetyError
 from ux_channel.host.ssr_state import ssr_state
 
 
