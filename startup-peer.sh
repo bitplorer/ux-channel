@@ -5,7 +5,7 @@
 # (see OPERATIONAL.md).
 set -eu
 ROOT="$(CDPATH= cd -- "$(dirname "$0")" && pwd)"
-cd "$ROOT/peers/ux_channel_rs"
+cd "$ROOT/rust"
 if curl -sf -o /dev/null --max-time 2 http://127.0.0.1:8787/ux-channel/health; then
   exit 0
 fi

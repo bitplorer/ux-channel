@@ -288,7 +288,7 @@ P7 Hardening ──────────────────────�
 - `uxc_check` proves vectors + oracle + CXB expected + optional live HTTP
 - Python forward example returns `Result.ops` unchanged
 - **CXB expected blobs** frozen from pure-Python oracle (14 files)
-- **Rust CXB** encode/decode in `peers/ux_channel_rs` (decode oracle blobs green)
+- **Rust CXB** encode/decode in `rust` (decode oracle blobs green)
 
 **Immediate remaining order**
 

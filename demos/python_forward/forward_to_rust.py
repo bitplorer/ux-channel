@@ -9,9 +9,9 @@ Usage:
   UXC_ALLOW_ORACLE_SECRET=1 cargo run --bin uxc_peer
 
   # terminal B
-  python3 peers/python_forward/forward_to_rust.py
-  python3 peers/python_forward/forward_to_rust.py --base http://127.0.0.1:8787
-  python3 peers/python_forward/forward_to_rust.py --mint-via-peer
+  python3 demos/python_forward/forward_to_rust.py
+  python3 demos/python_forward/forward_to_rust.py --base http://127.0.0.1:8787
+  python3 demos/python_forward/forward_to_rust.py --mint-via-peer
 """
 from __future__ import annotations
 

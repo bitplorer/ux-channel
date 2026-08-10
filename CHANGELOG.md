@@ -6,6 +6,16 @@ Format: newest first. “Law” vs “demo” follows [STRUCTURE.md](STRUCTURE.m
 
 ---
 
+## 2026-08-10 — production monorepo layout
+
+### Changed
+- **Architecture decision:** keep Python + Rust together; share `SPEC/` + `conformance/`
+- First-class roots: `python/` (host), `rust/` (peer crate), `demos/` (examples only)
+- Removed ambiguous `peers/` nesting for production code
+- Added `ARCHITECTURE.md`
+
+---
+
 ## 2026-08-10 — documentation completeness + structure
 
 ### Added

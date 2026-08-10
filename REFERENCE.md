@@ -17,13 +17,14 @@
 | [STRUCTURE.md](STRUCTURE.md) | Process | Law vs demo |
 | [AGENTS.md](AGENTS.md) | Process | Agent checklist |
 | [README.md](README.md) | Index | Status + verify |
+| [ARCHITECTURE.md](ARCHITECTURE.md) | Process | Monorepo layout + package boundaries |
 | [CHANGELOG.md](CHANGELOG.md) | History | What landed in this tree |
 | [SPEC/](SPEC/) | Law | Normative field rules |
 | [conformance/](conformance/) | Law | Golden vectors + harnesses |
 | [PUBLIC_API_FREEZE.md](PUBLIC_API_FREEZE.md) | Law | Host package public names |
 | [ux-channel-*.md](ux-channel-roadmap.md) | Planning | Thesis / causal / roadmap (not law) |
-| [peers/ux_channel_rs/README.md](peers/ux_channel_rs/README.md) | Peer | Rust build + HTTP notes |
-| [peers/python_forward/README.md](peers/python_forward/README.md) | Peer | Tiny Python → Rust forward |
+| [rust/README.md](rust/README.md) | Peer | Rust build + HTTP notes |
+| [demos/python_forward/README.md](demos/python_forward/README.md) | Peer | Tiny Python → Rust forward |
 | [python/README.md](python/README.md) | Host | **Full Python library** (`ux_channel/`) |
 
 ---
@@ -176,7 +177,7 @@ No cap required **unless** you send a `cap` field (then it must verify).
 ## 4. Module map (Rust peer)
 
 ```text
-peers/ux_channel_rs/src/
+rust/src/
   lib.rs          crate root + re-exports
   types.rs        Intent, ResultDoc, Op, ErrorObject, Trace  [PERMANENT]
   wire_json.rs    JSON encode/decode + canonical JSON        [PERMANENT]
@@ -235,7 +236,7 @@ Run: `./verify.sh` or harness scripts in `conformance/harness/`.
 |------|------|
 | [`python/ux_channel/`](python/ux_channel/) | Full host library (wire, capability, ASGI, …) |
 | [`python/docs/core/`](python/docs/core/) | WIRE.md, CXB.md |
-| [`peers/python_forward/forward_to_rust.py`](peers/python_forward/forward_to_rust.py) | Thin Intent POST client |
+| [`demos/python_forward/forward_to_rust.py`](demos/python_forward/forward_to_rust.py) | Thin Intent POST client |
 | [`conformance/harness/*.py`](conformance/harness/) | Vector validators |
 
 See [`python/README.md`](python/README.md).
@@ -247,7 +248,7 @@ See [`python/README.md`](python/README.md).
 UXC_ALLOW_ORACLE_SECRET=1 UXC_PORT=8787 cargo run --bin uxc_peer
 
 # mint via peer (no itsdangerous required on host)
-python3 peers/python_forward/forward_to_rust.py --mint-via-peer --sku abc-123 --qty 2
+python3 demos/python_forward/forward_to_rust.py --mint-via-peer --sku abc-123 --qty 2
 ```
 
 | Flag | Does |

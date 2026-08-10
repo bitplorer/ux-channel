@@ -1,8 +1,8 @@
 #!/bin/sh
-# One-command green check for the wire-native package.
+# One-command green check for law + both product packages.
 # Usage:
-#   ./verify.sh           # harnesses + cargo test + uxc_check
-#   ./verify.sh --http    # also live HTTP against demo peer on :8787
+#   ./verify.sh           # harnesses + rust tests + uxc_check
+#   ./verify.sh --http    # also live peer smoke + demo forward
 set -eu
 ROOT="$(CDPATH= cd -- "$(dirname "$0")" && pwd)"
 cd "$ROOT"
@@ -24,20 +24,20 @@ echo "== CXB expected =="
 python3 conformance/harness/validate_cxb_expected.py
 
 echo "== Rust unit tests =="
-cd peers/ux_channel_rs
+cd rust
 cargo test --lib
 
 echo "== uxc_check (in-process) =="
-cargo run --quiet --bin uxc_check -- ../../conformance
+cargo run --quiet --bin uxc_check -- ../conformance
 
 if [ "$HTTP" -eq 1 ]; then
   echo "== live HTTP =="
   cd "$ROOT"
   sh ./startup-peer.sh
-  cd peers/ux_channel_rs
-  cargo run --quiet --bin uxc_check -- ../../conformance --http http://127.0.0.1:8787
-  echo "== python forward =="
-  python3 "$ROOT/peers/python_forward/forward_to_rust.py" --mint-via-peer >/dev/null
+  cd rust
+  cargo run --quiet --bin uxc_check -- ../conformance --http http://127.0.0.1:8787
+  echo "== python forward (demo) =="
+  python3 "$ROOT/demos/python_forward/forward_to_rust.py" --mint-via-peer >/dev/null
   echo "python forward: ok"
 fi
 

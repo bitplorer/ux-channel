@@ -74,14 +74,14 @@ Machine index: [`manifest.json`](manifest.json). Full HTTP recipes: [`../REFEREN
 - [x] Manifest + harness interface described
 - [x] Concrete cap oracle token
 - [x] CXB expected blobs under `expected/cxb/`
-- [x] Second-language peer loads the suite (`peers/ux_channel_rs` `uxc_check`)
+- [x] Second-language peer loads the suite (`rust` `uxc_check`)
 
 ## How to run
 
 ```bash
 python3 conformance/harness/validate_json_vectors.py
 python3 conformance/harness/validate_cxb_expected.py   # oracle if PYTHONPATH set
-cd peers/ux_channel_rs && cargo run --bin uxc_check -- ../../conformance
+cd rust && cargo run --bin uxc_check -- ../../conformance
 ```
 
 ## Related

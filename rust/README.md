@@ -2,8 +2,8 @@
 
 **Status:** types + JSON wire + **cap verify** + **CXB** + **HTTP action endpoint** + `uxc_check`.
 
-Operators: read repo-root [`OPERATIONAL.md`](../../OPERATIONAL.md) before running `uxc_peer`.
-Humans: [`TERMINOLOGY.md`](../../TERMINOLOGY.md) → [`HOW_IT_WORKS.md`](../../HOW_IT_WORKS.md) → [`REFERENCE.md`](../../REFERENCE.md) / [`FAQ.md`](../../FAQ.md).
+Operators: read repo-root [`OPERATIONAL.md`](../OPERATIONAL.md) before running `uxc_peer`.
+Humans: [`TERMINOLOGY.md`](../TERMINOLOGY.md) → [`HOW_IT_WORKS.md`](../HOW_IT_WORKS.md) → [`REFERENCE.md`](../REFERENCE.md) / [`FAQ.md`](../FAQ.md).
 
 ## What works
 
@@ -22,15 +22,15 @@ Humans: [`TERMINOLOGY.md`](../../TERMINOLOGY.md) → [`HOW_IT_WORKS.md`](../../H
 ## Build & check
 
 ```bash
-cd peers/ux_channel_rs
+cd rust
 cargo test --lib
 cargo build --bins
 
-cargo run --bin uxc_check -- ../../conformance
+cargo run --bin uxc_check -- ../conformance
 
 # Live HTTP peer (demo secret only)
 UXC_ALLOW_ORACLE_SECRET=1 UXC_PORT=8787 cargo run --bin uxc_peer &
-cargo run --bin uxc_check -- ../../conformance --http http://127.0.0.1:8787
+cargo run --bin uxc_check -- ../conformance --http http://127.0.0.1:8787
 ```
 
 **Production:**
@@ -120,7 +120,7 @@ Oracle vector: `conformance/vectors/cap/02-oracle-token.json`.
 
 ## Python forward
 
-See `../python_forward/` — host mints (or asks peer to mint), POSTs `Cart.add`, returns `Result.ops` unchanged.  
+See [`../demos/python_forward/`](../demos/python_forward/) — host mints (or asks peer to mint), POSTs `Cart.add`, returns `Result.ops` unchanged.  
 Parses Result bodies from HTTP 4xx (peer keeps Result shape on 401/400).
 
 ## Layout

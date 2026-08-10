@@ -20,13 +20,13 @@ ops[] returned as-is to the client
 
 ```bash
 # terminal A — Rust peer (demo secret — see OPERATIONAL.md)
-cd peers/ux_channel_rs
+cd rust
 UXC_ALLOW_ORACLE_SECRET=1 UXC_PORT=8787 cargo run --bin uxc_peer
 
 # terminal B — forward one action
-python3 peers/python_forward/forward_to_rust.py --base http://127.0.0.1:8787
+python3 demos/python_forward/forward_to_rust.py --base http://127.0.0.1:8787
 # or mint via Rust if itsdangerous is unavailable:
-python3 peers/python_forward/forward_to_rust.py --mint-via-peer --sku abc-123 --qty 2
+python3 demos/python_forward/forward_to_rust.py --mint-via-peer --sku abc-123 --qty 2
 ```
 
 | Flag | Default | Meaning |

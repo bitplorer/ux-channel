@@ -21,6 +21,7 @@ One IR. JSON floor. Caps authorize. Transports only deliver. Peers > FFI.
 4. Keep the public Python surface frozen (`PUBLIC_API_FREEZE.md`) when integrating the full package.
 5. Prefer durable contract work over feature sprawl.
 6. Read `STRUCTURE.md` before changing code (permanent vs moving).
+6b. Read `ARCHITECTURE.md` for monorepo package boundaries (`python/`, `rust/`, law).
 7. Read `OPERATIONAL.md` before suggesting `cargo run --bin uxc_peer`.
 
 ## Verify before claiming green
@@ -28,12 +29,12 @@ One IR. JSON floor. Caps authorize. Transports only deliver. Peers > FFI.
 ```bash
 python3 conformance/harness/validate_json_vectors.py
 python3 conformance/harness/validate_cxb_expected.py
-cd peers/ux_channel_rs && cargo test --lib
+cd rust && cargo test --lib
 cargo run --bin uxc_check -- ../../conformance
 # optional live (demo only):
 # UXC_ALLOW_ORACLE_SECRET=1 UXC_PORT=8787 cargo run --bin uxc_peer &
 # cargo run --bin uxc_check -- ../../conformance --http http://127.0.0.1:8787
-python3 peers/python_forward/forward_to_rust.py --mint-via-peer
+python3 demos/python_forward/forward_to_rust.py --mint-via-peer
 ```
 
 ## Intentional policies (not bugs)
@@ -54,11 +55,11 @@ python3 peers/python_forward/forward_to_rust.py --mint-via-peer
 
 | Need | Path |
 |------|------|
-| IR types | `peers/ux_channel_rs/src/types.rs` |
-| Cap crypto | `peers/ux_channel_rs/src/cap.rs` |
-| CXB | `peers/ux_channel_rs/src/cxb.rs` |
-| Dispatch | `peers/ux_channel_rs/src/actions.rs` + `peer.rs` |
-| HTTP surface | `peers/ux_channel_rs/src/bin/uxc_peer.rs` |
+| IR types | `rust/src/types.rs` |
+| Cap crypto | `rust/src/cap.rs` |
+| CXB | `rust/src/cxb.rs` |
+| Dispatch | `rust/src/actions.rs` + `peer.rs` |
+| HTTP surface | `rust/src/bin/uxc_peer.rs` |
 | Conformance | `conformance/` |
 | Invariants / structure | `SPEC/INVARIANTS.md`, `STRUCTURE.md` |
 | Glossary (is / does / not) | `TERMINOLOGY.md` |
@@ -68,4 +69,4 @@ python3 peers/python_forward/forward_to_rust.py --mint-via-peer
 | Operators | `OPERATIONAL.md` |
 | Roadmap next steps | `ux-channel-roadmap.md` |
 | Full Python host library | `python/ux_channel/` (see `python/README.md`) |
-| Thin Python→Rust forward | `peers/python_forward/` |
+| Thin Python→Rust forward | `demos/python_forward/` |

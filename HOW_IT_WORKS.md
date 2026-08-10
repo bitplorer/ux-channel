@@ -180,39 +180,24 @@ It is **not** “trust whoever is on the TCP connection.”
 ## 4. Where things live (map of the tree)
 
 ```text
-ux-channel/                          ← this package root
-├── HOW_IT_WORKS.md                  ← you are here (human story)
-├── README.md                        ← status + quick commands
-├── OPERATIONAL.md                   ← secrets / env / honesty rules
-├── STRUCTURE.md                     ← permanent law vs moving demos
-├── AGENTS.md                        ← short agent checklist
-├── SPEC/                            ← normative drafts (law)
-│   ├── intent-result-ops.md         ← IR fields
-│   ├── capability.md                ← cap rules
-│   ├── INVARIANTS.md                ← testable must-hold laws
-│   └── BREAKING_CHANGE_POLICY.md
-├── conformance/                     ← golden vectors (executable law)
-│   ├── vectors/                     ← JSON Intent/Result/cap samples
-│   ├── expected/cxb/                ← frozen binary blobs
-│   └── harness/                     ← Python validators
-├── python/
-│   ├── ux_channel/                 ← FULL Python host library (wire, caps, ASGI, …)
-│   ├── ux_dom/                     ← DOM helpers
-│   └── docs/core/                  ← WIRE.md, CXB.md
-└── peers/
-    ├── ux_channel_rs/               ← Rust second implementation
-    │   └── src/
-    │       ├── types.rs             ← Intent / Result / Op structs
-    │       ├── wire_json.rs         ← JSON encode/decode (floor)
-    │       ├── cap.rs               ← mint + verify tokens
-    │       ├── cxb.rs               ← CXB binary codec (library)
-    │       ├── op_tags.rs           ← dense op field tags for CXB
-    │       ├── peer.rs              ← gate: validate → cap → dispatch
-    │       ├── actions.rs           ← demo handlers (Cart / Counter)
-    │       └── bin/
-    │           ├── uxc_peer.rs      ← HTTP server (moving transport)
-    │           └── uxc_check.rs     ← loads conformance + optional live HTTP
-    └── python_forward/              ← tiny Python client → Rust peer
+repo root
+├── ARCHITECTURE.md                  ← monorepo production layout decision
+├── HOW_IT_WORKS.md / TERMINOLOGY.md / REFERENCE.md / FAQ.md
+├── OPERATIONAL.md / STRUCTURE.md
+├── SPEC/                            ← LAW (IR, cap, invariants)
+├── conformance/                     ← LAW (golden vectors + harnesses)
+├── python/                          ← PRODUCT: full host library
+│   ├── ux_channel/                  ← wire, caps, ASGI, CXB oracle, …
+│   ├── ux_dom/
+│   └── docs/core/                   ← WIRE.md, CXB.md
+├── rust/                            ← PRODUCT: peer crate
+│   └── src/
+│       ├── types.rs / wire_json.rs / cap.rs / cxb.rs / op_tags.rs
+│       ├── peer.rs                  ← gate: validate → cap → dispatch
+│       ├── actions.rs               ← demo handlers (moving)
+│       └── bin/uxc_peer.rs + uxc_check.rs
+└── demos/
+    └── python_forward/              ← thin Python client → Rust (not the library)
 ```
 
 ### Permanent vs moving (why the split)
@@ -539,7 +524,7 @@ Same steps expanded:
 2. python3 conformance/harness/validate_cxb_expected.py
       → frozen CXB blobs still decode / CRC ok
 
-3. cd peers/ux_channel_rs && cargo test --lib
+3. cd rust && cargo test --lib
       → unit tests: cap, cxb, peer gate, actions escape/coercion
 
 4. cargo run --bin uxc_check -- ../../conformance
@@ -579,7 +564,7 @@ These are tracked in README status + INVARIANTS + health `once_jti_enforced: fal
 7. [SPEC/intent-result-ops.md](SPEC/intent-result-ops.md) — field tables.  
 8. [SPEC/capability.md](SPEC/capability.md) — cap rules.  
 9. [SPEC/INVARIANTS.md](SPEC/INVARIANTS.md) — kill criteria.  
-10. Code starting at `peers/ux_channel_rs/src/peer.rs` (gate), then `actions.rs`, then `bin/uxc_peer.rs`.
+10. Code starting at `rust/src/peer.rs` (gate), then `actions.rs`, then `bin/uxc_peer.rs`.
 
 ---
 

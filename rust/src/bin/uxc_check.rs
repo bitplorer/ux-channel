@@ -1,9 +1,9 @@
 //! Load conformance vectors, verify JSON round-trip, cap oracle, CXB expected,
 //! peer edge cases, and optional HTTP peer.
 //!
-//! Usage (from peers/ux_channel_rs):
-//!   cargo run --bin uxc_check -- ../../conformance
-//!   cargo run --bin uxc_check -- ../../conformance --http http://127.0.0.1:8787
+//! Usage (from rust):
+//!   cargo run --bin uxc_check -- ../conformance
+//!   cargo run --bin uxc_check -- ../conformance --http http://127.0.0.1:8787
 
 use std::env;
 use std::fs;
@@ -21,7 +21,7 @@ use ux_channel_rs::{
 
 fn main() {
     let args: Vec<String> = env::args().collect();
-    let mut conf_root = PathBuf::from("../../conformance");
+    let mut conf_root = PathBuf::from("../conformance");
     let mut http_base: Option<String> = None;
 
     let mut i = 1;

@@ -15,10 +15,10 @@ python/
 | Location | What it is | Size |
 |----------|------------|------|
 | **`python/ux_channel/`** | Full **host library** extracted from the 0.1.0 release | ~180 `.py` files |
-| **`peers/python_forward/`** | Tiny **adapter** that POSTs Intent to the Rust peer | 1 script |
+| **`demos/python_forward/`** | Tiny **adapter** that POSTs Intent to the Rust peer | 1 script |
 | **`conformance/harness/*.py`** | Stdlib validators for golden vectors | 3 scripts |
 
-If you were looking for `CapabilityService`, `encode`/`decode`, ASGI mount, CXB oracle, etc. — that is under **`python/ux_channel/`**, not under `peers/`.
+If you were looking for `CapabilityService`, `encode`/`decode`, ASGI mount, CXB oracle, etc. — that is under **`python/ux_channel/`**, not under `demos/` (that is only a thin forwarder).
 
 ## Quick map of `ux_channel/`
 
@@ -54,12 +54,12 @@ cd python && pip install -e .
 ## Relation to Rust peer
 
 ```text
-python/ux_channel   ── same IR + cap + CXB contract ──  peers/ux_channel_rs
+python/ux_channel   ── same IR + cap + CXB contract ──  rust
         │                                                      │
         │  full ASGI product host                              │  second implementation
         │  (this package)                                      │  + uxc_peer HTTP demo
         ▼                                                      ▼
-peers/python_forward  ── thin POST Intent ──────────────────► uxc_peer
+demos/python_forward  ── thin POST Intent ──────────────────► uxc_peer
 ```
 
 Law vectors: `../conformance/`. Human guides: `../TERMINOLOGY.md`, `../HOW_IT_WORKS.md`, `../REFERENCE.md`.

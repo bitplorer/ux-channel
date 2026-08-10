@@ -3,6 +3,7 @@
 **Purpose:** Stop mixing *law* with *example*.  
 Long-term stability comes from a small permanent core; confusion comes from treating demos and transports as the product.
 
+Layout decision: [`ARCHITECTURE.md`](ARCHITECTURE.md).  
 Glossary: [`TERMINOLOGY.md`](TERMINOLOGY.md). Reference: [`REFERENCE.md`](REFERENCE.md).  
 Full narrative (flows, algorithms, CXB negotiation status): [`HOW_IT_WORKS.md`](HOW_IT_WORKS.md).
 
@@ -51,7 +52,7 @@ Full narrative (flows, algorithms, CXB negotiation status): [`HOW_IT_WORKS.md`](
 | Escape of morph/toast in demos | Safety pattern for DOM surfaces; keep when domain HTML is produced |
 | `bin/uxc_peer` | One HTTP transport; others may replace it |
 | `demo.html` inside the peer binary | Smoke UI |
-| `peers/python_forward` | Adapter example |
+| `demos/python_forward` | Adapter example |
 | `cxb` encode freeform key order | Codec technique until byte-identical freeze |
 | Roadmap / design notes at repo root | Planning, not law |
 

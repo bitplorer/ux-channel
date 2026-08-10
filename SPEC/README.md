@@ -35,7 +35,7 @@ They are the executable source of truth for interop.
 
 - JSON structural: `conformance/harness/validate_json_vectors.py`
 - CXB expected: `conformance/expected/cxb/` + `validate_cxb_expected.py`
-- Second implementation: `../peers/ux_channel_rs` (`uxc_check` loads `manifest.json`, verifies JSON + cap oracle + CXB)
+- Second implementation: `../rust` (`uxc_check` loads `manifest.json`, verifies JSON + cap oracle + CXB)
 
 ## Cap wire (Cap 0.1)
 
