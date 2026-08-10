@@ -3,6 +3,7 @@
 **Purpose:** Stop mixing *law* with *example*.  
 Long-term stability comes from a small permanent core; confusion comes from treating demos and transports as the product.
 
+Glossary: [`TERMINOLOGY.md`](TERMINOLOGY.md).  
 Full narrative (flows, algorithms, CXB negotiation status): [`HOW_IT_WORKS.md`](HOW_IT_WORKS.md).
 
 ```text

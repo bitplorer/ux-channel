@@ -5,7 +5,10 @@
 
 This folder is the living design + conformance + second-implementation surface for turning **ux-channel** from a strong Python library into a **wire-native peer platform**.
 
-**New here?** Start with **[HOW_IT_WORKS.md](HOW_IT_WORKS.md)** — full walkthrough with flow diagrams, algorithms, file map, failure catalog, and “what you get at the end.” Do not assume prior knowledge of IR / caps / CXB.
+**New here?**
+1. **[TERMINOLOGY.md](TERMINOLOGY.md)** — what every word means, does, and is **not**
+2. **[HOW_IT_WORKS.md](HOW_IT_WORKS.md)** — flows, algorithms, order of steps, failure catalog
+Do not assume prior knowledge of IR / caps / CXB.
 
 ---
 
@@ -29,6 +32,7 @@ Read top → bottom if you are new. Layers do not mix “law” with “demo.”
 
 | Path | Role |
 |------|------|
+| **[TERMINOLOGY.md](TERMINOLOGY.md)** | **Glossary** — every term: is / does / is-not / where |
 | **[HOW_IT_WORKS.md](HOW_IT_WORKS.md)** | Full walkthrough: diagrams, algorithms, order of steps, failures, CXB status |
 | [STRUCTURE.md](STRUCTURE.md) | Permanent (law) vs moving (demos) |
 | [OPERATIONAL.md](OPERATIONAL.md) | Secrets, env vars, HTTP honesty — **before** `uxc_peer` |

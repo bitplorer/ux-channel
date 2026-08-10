@@ -2,7 +2,7 @@
 
 Orientation for agents continuing this package.
 
-**Humans reading the tree:** point them at [`HOW_IT_WORKS.md`](HOW_IT_WORKS.md) first (diagrams + algorithms). Do not assume IR/cap/CXB vocabulary is known.
+**Humans reading the tree:** [`TERMINOLOGY.md`](TERMINOLOGY.md) (words) then [`HOW_IT_WORKS.md`](HOW_IT_WORKS.md) (diagrams). Do not assume IR/cap/CXB vocabulary is known.
 
 ## North star
 
@@ -61,6 +61,7 @@ python3 peers/python_forward/forward_to_rust.py --mint-via-peer
 | HTTP surface | `peers/ux_channel_rs/src/bin/uxc_peer.rs` |
 | Conformance | `conformance/` |
 | Invariants / structure | `SPEC/INVARIANTS.md`, `STRUCTURE.md` |
+| Glossary (is / does / not) | `TERMINOLOGY.md` |
 | Human story / diagrams | `HOW_IT_WORKS.md` |
 | Operators | `OPERATIONAL.md` |
 | Roadmap next steps | `ux-channel-roadmap.md` |

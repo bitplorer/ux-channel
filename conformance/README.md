@@ -61,6 +61,7 @@ cd peers/ux_channel_rs && cargo run --bin uxc_check -- ../../conformance
 
 ## Related
 
+- [`../TERMINOLOGY.md`](../TERMINOLOGY.md) — glossary
 - [`../HOW_IT_WORKS.md`](../HOW_IT_WORKS.md) — human walkthrough
 - [`../SPEC/intent-result-ops.md`](../SPEC/intent-result-ops.md)
 - [`../SPEC/capability.md`](../SPEC/capability.md)

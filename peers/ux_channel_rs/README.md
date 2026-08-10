@@ -3,7 +3,7 @@
 **Status:** types + JSON wire + **cap verify** + **CXB** + **HTTP action endpoint** + `uxc_check`.
 
 Operators: read repo-root [`OPERATIONAL.md`](../../OPERATIONAL.md) before running `uxc_peer`.
-Humans: start at [`HOW_IT_WORKS.md`](../../HOW_IT_WORKS.md) for diagrams and the full call path.
+Humans: [`TERMINOLOGY.md`](../../TERMINOLOGY.md) (words) then [`HOW_IT_WORKS.md`](../../HOW_IT_WORKS.md) (diagrams / full call path).
 
 ## What works
 

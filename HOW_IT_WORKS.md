@@ -7,6 +7,7 @@ Related shorter docs:
 
 | Doc | When you need it |
 |-----|------------------|
+| [TERMINOLOGY.md](TERMINOLOGY.md) | **Glossary** — what each word is / does / is not |
 | [README.md](README.md) | Status table + how to run checks |
 | [OPERATIONAL.md](OPERATIONAL.md) | Secrets, env vars, production checklist |
 | [STRUCTURE.md](STRUCTURE.md) | What is “law” vs what is “demo” |
@@ -46,6 +47,8 @@ There is **one IR** (Intermediate Representation): **Intent → Result + ops**.
 | **JSON floor** | Everyone always works over JSON text first; binary is optional upgrade |
 | **CXB** | Optional dense binary encoding of the same Intent/Result documents |
 | **Oracle secret** | Public test secret in the repo — **never** production |
+
+**Full glossary** (every term above and dozens more — media types, health fields, confusable pairs): [TERMINOLOGY.md](TERMINOLOGY.md).
 
 ---
 
@@ -561,13 +564,14 @@ These are tracked in README status + INVARIANTS + health `once_jti_enforced: fal
 
 ## 13. Reading order if you are new
 
-1. **This file** (big picture + diagrams).  
-2. [STRUCTURE.md](STRUCTURE.md) — what you may freely change.  
-3. [OPERATIONAL.md](OPERATIONAL.md) — before running `uxc_peer`.  
-4. [SPEC/intent-result-ops.md](SPEC/intent-result-ops.md) — field tables.  
-5. [SPEC/capability.md](SPEC/capability.md) — cap rules.  
-6. [SPEC/INVARIANTS.md](SPEC/INVARIANTS.md) — kill criteria.  
-7. Code starting at `peers/ux_channel_rs/src/peer.rs` (gate), then `actions.rs`, then `bin/uxc_peer.rs`.
+1. [TERMINOLOGY.md](TERMINOLOGY.md) — words first.  
+2. **This file** (big picture + diagrams).  
+3. [STRUCTURE.md](STRUCTURE.md) — what you may freely change.  
+4. [OPERATIONAL.md](OPERATIONAL.md) — before running `uxc_peer`.  
+5. [SPEC/intent-result-ops.md](SPEC/intent-result-ops.md) — field tables.  
+6. [SPEC/capability.md](SPEC/capability.md) — cap rules.  
+7. [SPEC/INVARIANTS.md](SPEC/INVARIANTS.md) — kill criteria.  
+8. Code starting at `peers/ux_channel_rs/src/peer.rs` (gate), then `actions.rs`, then `bin/uxc_peer.rs`.
 
 ---
 
