@@ -26,8 +26,6 @@ See: docs/SECURITY_AUDIT.md, docs/DESIGN.md.
 """
 from __future__ import annotations
 
-from ux_channel import serde as _serde
-
 import hashlib
 import json
 import time
