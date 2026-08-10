@@ -1,3 +1,12 @@
+## 2026-08-10 — deeper+wider: PACKAGE_MAP v3 (package.stem keys)
+
+- Module map keys are package.stem — allows policy/errors/plugins in multiple packages
+- Layout check: unmapped on-disk modules fail; multi-package import smoke
+- Auto-init generation only for cohesive packages; MANUAL_PUBLIC_API on product pkgs
+- Catalog lists full ux_channel.pkg.mod paths for every package
+
+---
+
 ## 2026-08-10 — deep cleanup: action_catalog, tool_audit, mint_cap naming
 
 - host/catalog.py → host/action_catalog.py (≠ catalog/ navigator)

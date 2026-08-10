@@ -1,3 +1,4 @@
+# MANUAL_PUBLIC_API — layout sync must not overwrite
 """
 Optional Channel Components kit — not the default product UI path.
 

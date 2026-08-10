@@ -1,3 +1,4 @@
+# MANUAL_PUBLIC_API — layout sync must not overwrite
 """MCP adapter package — tools, effects, verticals, sessions, resources, subscribe."""
 
 from ux_channel.mcp.adapter import McpToolAdapter

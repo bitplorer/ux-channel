@@ -166,3 +166,22 @@ def test_agent_runtime_kernel_surface():
     assert all((AgentRunner, AgentPolicy, AgentSession, AgentPeer, dispatch_peer))
     assert callable(agents) and isinstance(ar, types.ModuleType)
     assert not callable(ar)
+
+
+def test_package_map_v3_unique_keys():
+    import json
+    from pathlib import Path
+    root = Path(__file__).resolve().parents[3]
+    meta = json.loads((root / "python/src/ux_channel/PACKAGE_MAP.json").read_text())
+    assert int(meta.get("version", 0)) >= 3
+    mods = meta["modules"]
+    assert "security.policy" in mods and "agent_runtime.policy" in mods
+    assert mods["security.policy"] == "security"
+    assert mods["agent_runtime.policy"] == "agent_runtime"
+    assert "protocol.errors" in mods and "devtools.errors" in mods
+
+
+def test_security_and_agent_policy_are_distinct_modules():
+    import ux_channel.security.policy as sp
+    import ux_channel.agent_runtime.policy as ap
+    assert sp.__file__ != ap.__file__

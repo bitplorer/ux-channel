@@ -144,3 +144,17 @@ Never name a package `agents` — it shadows the function on `ux_channel`.
 | `ux_channel.host.action_catalog` | Action registry metadata for docs/codegen |
 | `agent_runtime.tool_audit` | Agent tool-call audit sinks |
 | `devtools.audit` | Channel Intent audit / forensics façade |
+
+
+## PACKAGE_MAP v3
+
+Module keys are ``package.stem`` (unique), so short names may repeat:
+
+| Key | Module |
+|-----|--------|
+| `security.policy` | CSRF/security policy |
+| `agent_runtime.policy` | Agent allow/deny policy |
+| `protocol.errors` | Channel/action errors |
+| `devtools.errors` | Teachable DX errors |
+
+Catalog lists full import paths. Layout check fails if any on-disk module is unmapped.

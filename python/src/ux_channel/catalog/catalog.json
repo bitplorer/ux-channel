@@ -1,5 +1,6 @@
 {
   "policy": "no_shims",
+  "map_version": 3,
   "public_entry": {
     "preferred": "ux_channel.api",
     "root": "ux_channel",
@@ -34,12 +35,19 @@
   },
   "packages": {
     "agent_runtime": {
-      "audit": "ux_channel.agent_runtime.tool_audit",
       "peer": "ux_channel.agent_runtime.peer",
       "policy": "ux_channel.agent_runtime.policy",
       "runner": "ux_channel.agent_runtime.runner",
       "session": "ux_channel.agent_runtime.session",
+      "tool_audit": "ux_channel.agent_runtime.tool_audit",
       "tools": "ux_channel.agent_runtime.tools"
+    },
+    "api": {},
+    "asgi": {
+      "core": "ux_channel.asgi.core",
+      "fastapi": "ux_channel.asgi.fastapi",
+      "pipeline": "ux_channel.asgi.pipeline",
+      "starlette": "ux_channel.asgi.starlette"
     },
     "bridge": {
       "bridge_api": "ux_channel.bridge.bridge_api",
@@ -52,9 +60,45 @@
       "guest_runtime": "ux_channel.bridge.guest_runtime",
       "plugins": "ux_channel.bridge.plugins"
     },
+    "bridges": {
+      "_factory": "ux_channel.bridges._factory",
+      "aurora": "ux_channel.bridges.aurora",
+      "chartjs": "ux_channel.bridges.chartjs",
+      "codemirror": "ux_channel.bridges.codemirror",
+      "confetti": "ux_channel.bridges.confetti",
+      "countup": "ux_channel.bridges.countup",
+      "datepicker": "ux_channel.bridges.datepicker",
+      "generic": "ux_channel.bridges.generic",
+      "leaflet": "ux_channel.bridges.leaflet",
+      "lottie": "ux_channel.bridges.lottie",
+      "mermaid": "ux_channel.bridges.mermaid",
+      "particles": "ux_channel.bridges.particles",
+      "quill": "ux_channel.bridges.quill",
+      "select": "ux_channel.bridges.select",
+      "sortable": "ux_channel.bridges.sortable",
+      "spotlight": "ux_channel.bridges.spotlight",
+      "swiper": "ux_channel.bridges.swiper"
+    },
+    "catalog": {},
+    "components": {
+      "badge": "ux_channel.components.badge",
+      "base": "ux_channel.components.base",
+      "compose": "ux_channel.components.compose",
+      "composites": "ux_channel.components.composites",
+      "confirm": "ux_channel.components.confirm",
+      "counter": "ux_channel.components.counter",
+      "flash": "ux_channel.components.flash",
+      "form": "ux_channel.components.form",
+      "list_view": "ux_channel.components.list_view",
+      "modal": "ux_channel.components.modal",
+      "primitive": "ux_channel.components.primitive",
+      "slots": "ux_channel.components.slots",
+      "tabs": "ux_channel.components.tabs",
+      "wizard": "ux_channel.components.wizard"
+    },
     "devtools": {
-      "peer": "ux_channel.agent_runtime.peer",
       "agents_api": "ux_channel.devtools.agents_api",
+      "audit": "ux_channel.devtools.audit",
       "cli": "ux_channel.devtools.cli",
       "codegen": "ux_channel.devtools.codegen",
       "dashboard": "ux_channel.devtools.dashboard",
@@ -82,8 +126,8 @@
       "quantity": "ux_channel.foundations.quantity"
     },
     "host": {
+      "action_catalog": "ux_channel.host.action_catalog",
       "actions_file": "ux_channel.host.actions_file",
-      "catalog": "ux_channel.host.action_catalog",
       "channel": "ux_channel.host.channel",
       "config": "ux_channel.host.config",
       "context": "ux_channel.host.context",
@@ -105,10 +149,27 @@
       "stores": "ux_channel.host.stores",
       "testing": "ux_channel.host.testing"
     },
+    "io_adapters": {
+      "lab_dut": "ux_channel.io_adapters.lab_dut",
+      "lights": "ux_channel.io_adapters.lights",
+      "scanner": "ux_channel.io_adapters.scanner"
+    },
+    "mcp": {
+      "adapter": "ux_channel.mcp.adapter",
+      "annotations": "ux_channel.mcp.annotations",
+      "asgi_routes": "ux_channel.mcp.asgi_routes",
+      "confirm": "ux_channel.mcp.confirm",
+      "effects": "ux_channel.mcp.effects",
+      "resources": "ux_channel.mcp.resources",
+      "sessions": "ux_channel.mcp.sessions",
+      "subscribe": "ux_channel.mcp.subscribe",
+      "verticals": "ux_channel.mcp.verticals"
+    },
     "protocol": {
       "capability": "ux_channel.protocol.capability",
       "encode": "ux_channel.protocol.encode",
       "error_map": "ux_channel.protocol.error_map",
+      "errors": "ux_channel.protocol.errors",
       "json_codec": "ux_channel.protocol.json_codec",
       "ops": "ux_channel.protocol.ops",
       "serde": "ux_channel.protocol.serde",
@@ -124,6 +185,9 @@
       "webrtc_ui": "ux_channel.realtime.webrtc_ui",
       "whip": "ux_channel.realtime.whip"
     },
+    "redis_extra": {
+      "resilience": "ux_channel.redis_extra.resilience"
+    },
     "render": {
       "html": "ux_channel.render.html",
       "html_document": "ux_channel.render.html_document",
@@ -136,11 +200,16 @@
       "response": "ux_channel.render.response",
       "slot_compile": "ux_channel.render.slot_compile"
     },
+    "scaffold": {
+      "create": "ux_channel.scaffold.create",
+      "templates_src": "ux_channel.scaffold.templates_src"
+    },
     "security": {
       "attenuate": "ux_channel.security.attenuate",
       "bulkhead": "ux_channel.security.bulkhead",
       "host_csrf": "ux_channel.security.host_csrf",
       "limits": "ux_channel.security.limits",
+      "policy": "ux_channel.security.policy",
       "push_security": "ux_channel.security.push_security",
       "ratelimit": "ux_channel.security.ratelimit",
       "security": "ux_channel.security.security",
@@ -148,6 +217,7 @@
       "tree_cap": "ux_channel.security.tree_cap",
       "ws_security": "ux_channel.security.ws_security"
     },
+    "static": {},
     "transport": {
       "backoff": "ux_channel.transport.backoff",
       "batch": "ux_channel.transport.batch",
@@ -160,6 +230,17 @@
       "stream": "ux_channel.transport.stream",
       "ws_limits": "ux_channel.transport.ws_limits",
       "ws_protocol": "ux_channel.transport.ws_protocol"
+    },
+    "wire": {
+      "core": "ux_channel.wire.core",
+      "cxb": "ux_channel.wire.cxb",
+      "negotiate": "ux_channel.wire.negotiate",
+      "plugins": "ux_channel.wire.plugins"
+    },
+    "workplace": {
+      "mesh": "ux_channel.workplace.mesh",
+      "room": "ux_channel.workplace.room",
+      "ticket": "ux_channel.workplace.ticket"
     }
   }
 }

@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """Validate cohesive package layout (no shims / no aliases).
 
-Source of truth: python/src/ux_channel/PACKAGE_MAP.json
+Source of truth: python/src/ux_channel/PACKAGE_MAP.json (v3+)
 
-  python3 scripts/sync_python_layout.py          # regenerate package __init__ + catalog
+  python3 scripts/sync_python_layout.py          # regenerate catalog (+ non-manual inits)
   python3 scripts/sync_python_layout.py --check  # CI
 
-Policy: implementations live only under cohesive packages. Public API is
-``ux_channel`` root + ``ux_channel.api``. There are no top-level module shims.
+Module keys are ``package.stem`` so the same short name may exist in more
+than one package (e.g. ``security.policy`` vs ``agent_runtime.policy``).
 """
 from __future__ import annotations
 
@@ -80,27 +80,40 @@ def load_map() -> dict:
     return json.loads(MAP_PATH.read_text(encoding="utf-8"))
 
 
+def packages_from_meta(meta: dict) -> dict[str, list[str]]:
+    """Return package -> [stems]. Prefer meta['packages']; else derive from modules."""
+    if isinstance(meta.get("packages"), dict) and meta["packages"]:
+        return {k: list(v) for k, v in meta["packages"].items()}
+    by_pkg: dict[str, list[str]] = {}
+    for key, pkg in meta.get("modules", {}).items():
+        stem = key.split(".", 1)[1] if "." in key else key
+        by_pkg.setdefault(pkg, []).append(stem)
+    return by_pkg
+
+
 def regenerate(meta: dict) -> list[str]:
     actions: list[str] = []
-    modules: dict[str, str] = meta["modules"]
     package_docs = meta.get("package_docs", {})
-    by_pkg: dict[str, list[str]] = {}
-    for stem, pkg in modules.items():
-        by_pkg.setdefault(pkg, []).append(stem)
+    by_pkg = packages_from_meta(meta)
 
+    # Only auto-generate inits for cohesive packages without MANUAL_PUBLIC_API.
+    # Product packages (api, wire, mcp, …) are always hand-maintained.
+    auto_pkgs = set(meta.get("cohesive_packages") or [])
     for pkg, stems in sorted(by_pkg.items()):
-        stems = sorted(stems)
+        if pkg not in auto_pkgs:
+            continue
+        stems = sorted(set(stems))
         init = PKG / pkg / "__init__.py"
-        doc = package_docs.get(pkg, "Cohesive implementation package.")
+        if not init.parent.is_dir():
+            continue
+        doc = package_docs.get(pkg, "Implementation package.")
         text = PKG_INIT.format(pkg=pkg, doc=doc, modules=", ".join(stems), members=stems)
-        init.parent.mkdir(parents=True, exist_ok=True)
         if init.exists() and "MANUAL_PUBLIC_API" in init.read_text(encoding="utf-8"):
-            continue  # hand-maintained public package API
+            continue
         if not init.exists() or init.read_text(encoding="utf-8") != text:
             init.write_text(text, encoding="utf-8")
             actions.append(f"write {init.relative_to(ROOT)}")
 
-    # Refuse shims: any top-level .py other than roots is an error source
     allowed = {"__init__", "__main__", "_version"}
     for path in PKG.glob("*.py"):
         if path.stem in allowed:
@@ -110,13 +123,13 @@ def regenerate(meta: dict) -> list[str]:
             path.unlink()
             actions.append(f"removed shim {path.name}")
 
-    # navigation catalog
     catalog_data = {
         "policy": "no_shims",
+        "map_version": meta.get("version"),
         "public_entry": meta.get("public_entry", {}),
         "rust_parity": meta.get("rust_parity", {}),
         "packages": {
-            pkg: {s: f"ux_channel.{pkg}.{s}" for s in sorted(stems)}
+            pkg: {s: f"ux_channel.{pkg}.{s}" for s in sorted(set(stems))}
             for pkg, stems in sorted(by_pkg.items())
         },
     }
@@ -129,7 +142,6 @@ def regenerate(meta: dict) -> list[str]:
         actions.append("write catalog/catalog.json")
 
     zinit = catalog_dir / "__init__.py"
-    # preserve hand-written catalog init if marked; else write standard
     if zinit.exists() and "MANUAL_PUBLIC_API" in zinit.read_text(encoding="utf-8"):
         pass
     elif not zinit.exists() or zinit.read_text(encoding="utf-8") != CATALOG_INIT:
@@ -140,14 +152,33 @@ def regenerate(meta: dict) -> list[str]:
 
 def check(meta: dict) -> list[str]:
     problems: list[str] = []
-    modules = meta["modules"]
-    for stem, pkg in modules.items():
-        if not (PKG / pkg / f"{stem}.py").exists():
-            problems.append(f"missing {pkg}/{stem}.py")
+    by_pkg = packages_from_meta(meta)
+
+    # every mapped module exists
+    for pkg, stems in by_pkg.items():
+        for stem in stems:
+            path = PKG / pkg / f"{stem}.py"
+            if not path.exists():
+                problems.append(f"missing {pkg}/{stem}.py")
+
+    # every .py on disk under tracked packages is in the map
+    for pkg, stems in by_pkg.items():
+        d = PKG / pkg
+        if not d.is_dir():
+            problems.append(f"missing package dir {pkg}/")
+            continue
+        on_disk = {p.stem for p in d.glob("*.py") if p.name != "__init__.py"}
+        mapped = set(stems)
+        for extra in sorted(on_disk - mapped):
+            problems.append(f"unmapped module {pkg}/{extra}.py")
+        for missing in sorted(mapped - on_disk):
+            problems.append(f"mapped but missing {pkg}/{missing}.py")
+
     allowed = {"__init__", "__main__", "_version"}
     for path in PKG.glob("*.py"):
         if path.stem not in allowed:
             problems.append(f"forbidden top-level module (no shims): {path.name}")
+
     if not (PKG / "api" / "__init__.py").exists():
         problems.append("missing public package api/")
     if not (PKG / "render" / "__init__.py").exists():
@@ -155,37 +186,56 @@ def check(meta: dict) -> list[str]:
     for legacy in ("paint", "ops_dx", "bridge_meta", "day1", "zones", "security_plane", "agents"):
         if (PKG / legacy).exists():
             problems.append(f"legacy package {legacy}/ must not exist")
+
+    # v3 keys must be package.stem when version >= 3
+    if int(meta.get("version") or 0) >= 3:
+        for key, pkg in meta.get("modules", {}).items():
+            if "." not in key:
+                problems.append(f"v3 module key must be package.stem, got {key!r}")
+            elif not key.startswith(pkg + "."):
+                problems.append(f"v3 module key {key!r} does not match package {pkg!r}")
+
     sys.path.insert(0, str(ROOT / "python" / "src"))
     try:
         from ux_channel import CapService, Channel, Region, RegionBook
         from ux_channel.api import Channel as C2
+        from ux_channel.api import CapService as ACS
+        from ux_channel.api import state as api_state
+        from ux_channel.asgi import mount_channel
         from ux_channel.host.channel import Channel as C3
         from ux_channel.host.regions import RegionBook as RB
+        from ux_channel.host.regions import _id_str  # noqa: F401
+        from ux_channel.host.state_api import state as state_fn
+        from ux_channel.host.stores import MemoryStateStore  # noqa: F401
+        from ux_channel.protocol import CapService as PCS
+        from ux_channel.protocol import morph as pmorph
         from ux_channel.protocol.capability import CapService as CS
         from ux_channel.render import morph_ir
         from ux_channel.render.renderers import HtmlRenderer
+        from ux_channel.wire import encode, encode_cxb
+        from ux_channel import CapService as RCS
+        from ux_channel import morph as rmorph
+        from ux_channel import state as rstate
+        from ux_channel.agent_runtime import AgentRunner
+        from ux_channel.agent_runtime.policy import AgentPolicy
+        from ux_channel.security import policy as security_policy  # package module
+        from ux_channel.protocol import errors as protocol_errors
+        from ux_channel.devtools import errors as devtools_errors
 
         assert Channel is C2 is C3
         assert RegionBook is RB
-        assert CapService is CS
+        assert CapService is CS is ACS is PCS is RCS
         assert hasattr(Channel, "describe") and not hasattr(Channel, "mental_model")
         svc = CapService("dev-secret-key-32chars-minimum!!!!")
         assert hasattr(svc, "mint") and not hasattr(svc, "sign")
-        from ux_channel.host.regions import _id_str  # noqa: F401
-        from ux_channel.host.stores import MemoryStateStore  # noqa: F401
-        from ux_channel.host.state_api import state as state_fn  # noqa: F401
-        assert callable(state_fn)
-        _ = morph_ir, HtmlRenderer
-        # identity matrix
-        from ux_channel.api import CapService as ACS, state as api_state
-        from ux_channel.protocol import CapService as PCS, morph as pmorph
-        from ux_channel import CapService as RCS, morph as rmorph, state as rstate
-        assert ACS is PCS is RCS
-        assert api_state is rstate is state_fn
+        assert callable(state_fn) and api_state is rstate is state_fn
         assert pmorph is rmorph
-        from ux_channel.wire import encode, encode_cxb
-        from ux_channel.asgi import mount_channel
         assert encode and encode_cxb and callable(mount_channel)
+        assert AgentRunner and AgentPolicy
+        assert security_policy is not None
+        assert protocol_errors is not None and devtools_errors is not None
+        assert protocol_errors is not devtools_errors
+        _ = morph_ir, HtmlRenderer
     except Exception as exc:
         problems.append(f"import smoke: {exc}")
     return problems
@@ -207,7 +257,8 @@ def main() -> int:
         for p in problems:
             print(" -", p, file=sys.stderr)
         return 1
-    print(f"sync_python_layout: OK ({len(meta['modules'])} modules, no shims)")
+    n = sum(len(v) for v in packages_from_meta(meta).values())
+    print(f"sync_python_layout: OK ({n} modules in {len(packages_from_meta(meta))} packages, no shims)")
     return 0
 
 
