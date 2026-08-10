@@ -5,7 +5,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from ux_channel import ActionRegistry, Result, toast
-from ux_channel.agents import (
+from ux_channel.agent_runtime import (
     AgentPolicy,
     AgentRunner,
     AgentSession,
@@ -159,7 +159,7 @@ def test_http_mcp_mount():
         agent_token="agent-secret",
     )
     app = FastAPI()
-    from ux_channel.agents.policy import AgentPolicy
+    from ux_channel.agent_runtime.policy import AgentPolicy
 
     app.state.uid_agent_policy = AgentPolicy.production(allow=["Search.query"])
     # re-create registry with same secret and actions - mount uses reg

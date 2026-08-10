@@ -44,7 +44,7 @@ from ux_channel.mcp.verticals import clear_verticals, get_vertical
 from ux_channel.transport.outbox import MemoryIntentOutbox, attach_outbox, get_outbox
 from ux_channel.protocol.types import Result
 from ux_channel.protocol.ops import toast
-from ux_channel.agents import AgentPolicy, AgentRunner, AgentSession, agent_tool
+from ux_channel.agent_runtime import AgentPolicy, AgentRunner, AgentSession, agent_tool
 from ux_channel import ActionRegistry
 
 

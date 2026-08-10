@@ -12,10 +12,10 @@ from __future__ import annotations
 
 from typing import Any, Optional, Sequence
 
-from ux_channel.agents.audit import LoggingAuditSink, MemoryAuditSink, MultiAuditSink
-from ux_channel.agents.policy import AgentPolicy
-from ux_channel.agents.runner import AgentRunner
-from ux_channel.agents.session import AgentSession
+from ux_channel.agent_runtime.audit import LoggingAuditSink, MemoryAuditSink, MultiAuditSink
+from ux_channel.agent_runtime.policy import AgentPolicy
+from ux_channel.agent_runtime.runner import AgentRunner
+from ux_channel.agent_runtime.session import AgentSession
 from ux_channel.mcp.adapter import McpToolAdapter
 from ux_channel.mcp.sessions import McpSession, get_session_store
 from ux_channel.mcp.verticals import register_builtin_verticals

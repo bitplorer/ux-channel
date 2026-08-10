@@ -850,7 +850,7 @@ def mount_channel(
         mcp_verticals = tuple(getattr(config, "mcp_verticals", ()) or ()) if config else ()
         mcp_regions = tuple(getattr(config, "mcp_resource_regions", ()) or ()) if config else ()
         mcp_ttl = int(getattr(config, "mcp_session_ttl_s", 900) or 900) if config else 900
-        from ux_channel.agents.policy import AgentPolicy
+        from ux_channel.agent_runtime.policy import AgentPolicy
         from ux_channel.mcp.asgi_routes import create_mcp_adapter, resolve_mcp_auth
         from ux_channel.mcp.sessions import get_session_store
         from ux_channel.mcp.verticals import register_builtin_verticals

@@ -4,7 +4,7 @@ Agents module — production-safe AI agent integration for ux-channel.
 Modular boundary: UI Intent path stays untouched; agents enter via AgentRunner.
 
 Also: this package is **callable** so ``from ux_channel import agents`` keeps
-working after ``from ux_channel.agents import AgentRunner`` (submodule import
+working after ``from ux_channel.agent_runtime import AgentRunner`` (submodule import
 would otherwise shadow the ``agents(ch)`` façade function with a bare module).
 
 Peer Intent path lives in ``ux_channel.agent_peer`` (not this package) to avoid
@@ -17,16 +17,16 @@ import sys
 from types import ModuleType
 from typing import Any
 
-from ux_channel.agents.audit import (
+from ux_channel.agent_runtime.audit import (
     AuditEvent,
     LoggingAuditSink,
     MemoryAuditSink,
     MultiAuditSink,
 )
-from ux_channel.agents.policy import AgentPolicy
-from ux_channel.agents.runner import AgentRunner, ToolCall
-from ux_channel.agents.session import AgentSession
-from ux_channel.agents.tools import agent_tool, tools_from_registry, ToolMeta
+from ux_channel.agent_runtime.policy import AgentPolicy
+from ux_channel.agent_runtime.runner import AgentRunner, ToolCall
+from ux_channel.agent_runtime.session import AgentSession
+from ux_channel.agent_runtime.tools import agent_tool, tools_from_registry, ToolMeta
 
 
 class _AgentsPackage(ModuleType):

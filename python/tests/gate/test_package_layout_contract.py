@@ -128,3 +128,24 @@ def test_public_api_constants_named_consistently():
     from ux_channel.host.channel import CHANNEL_PUBLIC_API, WEBRTC_PUBLIC_API
     assert "boot" in CHANNEL_PUBLIC_API and "mint" in CHANNEL_PUBLIC_API
     assert "plugin" in WEBRTC_PUBLIC_API
+
+
+def test_public_api_freeze_doc_names():
+    """Root freeze doc must describe mint (not sign) and current packages."""
+    from pathlib import Path
+    root = Path(__file__).resolve().parents[3]
+    text = (root / "PUBLIC_API_FREEZE.md").read_text(encoding="utf-8")
+    assert "CapService.mint" in text or "mint" in text
+    assert "CapService.sign" not in text
+    assert "host.stores" in text or "MemoryStateStore" in text
+    assert "day1" not in text.lower() or "forbidden" in text.lower()
+
+
+def test_product_package_imports():
+    import ux_channel.agent_runtime  # noqa: F401
+    import ux_channel.mcp  # noqa: F401
+    import ux_channel.workplace  # noqa: F401
+    import ux_channel.components  # noqa: F401
+    import ux_channel.scaffold  # noqa: F401
+    from ux_channel.redis_extra import RedisStateStore  # may exist
+    assert RedisStateStore

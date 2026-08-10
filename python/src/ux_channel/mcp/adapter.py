@@ -14,7 +14,7 @@ from __future__ import annotations
 
 from typing import Any, Mapping, Optional, Sequence
 
-from ux_channel.agents.runner import AgentRunner, ToolCall
+from ux_channel.agent_runtime.runner import AgentRunner, ToolCall
 from ux_channel.mcp.effects import effects_from_result
 from ux_channel.mcp.verticals import filter_tools_by_verticals
 from ux_channel.mcp.annotations import enrich_tools

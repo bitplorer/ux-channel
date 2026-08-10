@@ -1,5 +1,7 @@
 # ux-channel — Wire-Native Peers (Intent → Action → Result / ops)
 
+**Start:** [MENTAL_MODEL.md](MENTAL_MODEL.md) · [DOCS.md](DOCS.md) · [python/STABILITY.md](python/STABILITY.md)
+
 **IR version:** `"v": "1"`  
 **Date:** 2026-08-10 (clarity + consistency audit)
 

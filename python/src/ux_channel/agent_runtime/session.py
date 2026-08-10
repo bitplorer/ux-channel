@@ -9,7 +9,7 @@ import uuid
 from dataclasses import dataclass, field
 from typing import Any, Optional
 
-from ux_channel.agents.policy import AgentPolicy
+from ux_channel.agent_runtime.policy import AgentPolicy
 from ux_channel.host.context import Principal
 
 

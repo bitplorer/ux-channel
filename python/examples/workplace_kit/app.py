@@ -22,7 +22,7 @@ from fastapi import FastAPI, Header, HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 
 from ux_channel import Channel, ChannelConfig, attach_audit, state
-from ux_channel.agents import AgentPolicy, agent_tool
+from ux_channel.agent_runtime import AgentPolicy, agent_tool
 from ux_channel.render.kit import script_tags
 from ux_channel.io_adapters import ScannerAdapter
 from ux_channel.transport.outbox import (

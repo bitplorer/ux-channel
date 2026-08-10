@@ -1,3 +1,13 @@
+## 2026-08-10 — deeper×2 + wider: freeze truth, agent_runtime, identity matrix
+
+- PUBLIC_API_FREEZE rewritten (mint, stores, current packages)
+- python/STRUCTURE.md de-staled; README + rust parity table
+- Rename package `agents/` → `agent_runtime/` (stops shadowing `agents()` façade)
+- Layout check: full identity matrix + wire/asgi smoke
+- Gate: freeze doc + product package imports
+
+---
+
 ## 2026-08-10 — cleanup deeper+wider: mental model + stability truth
 
 - Rewrite python/STABILITY.md (correct rename table, identity, stores)

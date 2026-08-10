@@ -152,7 +152,7 @@ def check(meta: dict) -> list[str]:
         problems.append("missing public package api/")
     if not (PKG / "render" / "__init__.py").exists():
         problems.append("missing package render/")
-    for legacy in ("paint", "ops_dx", "bridge_meta", "day1", "zones", "security_plane"):
+    for legacy in ("paint", "ops_dx", "bridge_meta", "day1", "zones", "security_plane", "agents"):
         if (PKG / legacy).exists():
             problems.append(f"legacy package {legacy}/ must not exist")
     sys.path.insert(0, str(ROOT / "python" / "src"))
@@ -176,6 +176,16 @@ def check(meta: dict) -> list[str]:
         from ux_channel.host.state_api import state as state_fn  # noqa: F401
         assert callable(state_fn)
         _ = morph_ir, HtmlRenderer
+        # identity matrix
+        from ux_channel.api import CapService as ACS, state as api_state
+        from ux_channel.protocol import CapService as PCS, morph as pmorph
+        from ux_channel import CapService as RCS, morph as rmorph, state as rstate
+        assert ACS is PCS is RCS
+        assert api_state is rstate is state_fn
+        assert pmorph is rmorph
+        from ux_channel.wire import encode, encode_cxb
+        from ux_channel.asgi import mount_channel
+        assert encode and encode_cxb and callable(mount_channel)
     except Exception as exc:
         problems.append(f"import smoke: {exc}")
     return problems

@@ -1,3 +1,7 @@
+# Agent notes
+
+Read [MENTAL_MODEL.md](MENTAL_MODEL.md) then [python/STABILITY.md](python/STABILITY.md).
+
 # AGENTS.md — ux-channel wire-native
 
 Orientation for agents continuing this package.

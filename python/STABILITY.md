@@ -111,3 +111,13 @@ Deep modules: `ux_channel.<package>.<module>`.
 2. `python3 scripts/sync_python_layout.py` then `--check`.
 3. Public symbols only via root / `api` / package `__init__`.
 4. `make verify` (health + layout + gate + rust + uxc_check).
+
+
+## agents() vs agent_runtime
+
+| Name | Kind |
+|------|------|
+| `agents(ch)` | Function façade (root / api) |
+| `ux_channel.agent_runtime` | Implementation package |
+
+Never name a package `agents` — it shadows the function on `ux_channel`.

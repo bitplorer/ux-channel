@@ -23,14 +23,14 @@ import time
 from dataclasses import dataclass
 from typing import Any, Mapping, Optional
 
-from ux_channel.agents.audit import (
+from ux_channel.agent_runtime.audit import (
     AuditEvent,
     AuditSink,
     LoggingAuditSink,
     redact_args,
 )
-from ux_channel.agents.session import AgentSession
-from ux_channel.agents.tools import ToolMeta
+from ux_channel.agent_runtime.session import AgentSession
+from ux_channel.agent_runtime.tools import ToolMeta
 from ux_channel.host.registry import ActionRegistry
 from ux_channel.protocol.types import Intent, Result
 
@@ -78,7 +78,7 @@ class AgentRunner:
         self.sign_caps = sign_caps
 
     def list_tools(self, *, only_marked: bool = False) -> list[dict[str, Any]]:
-        from ux_channel.agents.tools import tools_from_registry
+        from ux_channel.agent_runtime.tools import tools_from_registry
 
         tools = tools_from_registry(self.registry, only_marked=only_marked)
         # Filter by policy

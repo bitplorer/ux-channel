@@ -19,7 +19,7 @@ from fastapi import FastAPI
 from fastapi.responses import HTMLResponse, JSONResponse
 
 from ux_channel import Channel, ChannelConfig, attach_audit
-from ux_channel.agents import AgentPolicy, agent_tool
+from ux_channel.agent_runtime import AgentPolicy, agent_tool
 from ux_channel.io_adapters import LabDutAdapter, ScannerAdapter
 from ux_channel.transport.outbox import MemoryIntentOutbox, attach_outbox, drain_outbox
 from ux_channel.foundations.quantity import Quantity

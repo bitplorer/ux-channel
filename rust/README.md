@@ -145,3 +145,16 @@ src/
 - [ ] HTTP Accept `+cxb` response path
 - [ ] Byte-identical encode vs Python oracle freeform
 - [ ] WASM island / mesh (later phases)
+
+
+## Python parity (same law)
+
+| Concern | Rust | Python |
+|---------|------|--------|
+| Cap mint/verify | `CapService::mint` / `verify` | `CapService.mint` / `verify` |
+| args_hash | sorted compact JSON | same (`sort_keys=True`) |
+| CXB decode | `decode_cxb` | `wire.cxb.decode_cxb` |
+| Conformance | `uxc_check` | `conformance/harness/*` + gate tests |
+| Full host (regions/ASGI) | — | `ux_channel` host |
+
+See [MENTAL_MODEL.md](../MENTAL_MODEL.md) and [NAMING.md](../NAMING.md).

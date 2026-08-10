@@ -7,7 +7,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from ux_channel import ActionRegistry, Result, toast
-from ux_channel.agents import (
+from ux_channel.agent_runtime import (
     AgentPolicy,
     AgentRunner,
     AgentSession,

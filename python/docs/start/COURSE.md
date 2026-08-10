@@ -25,7 +25,7 @@ Browser --Intent+cap--> Host --> Registry --> Action
 | **Security** | `ux_channel.*_security`, `.policy` | tickets, origin, rate, events |
 | **Bridge** | `ux_channel.bridge_api` | npm host elements + mount/update ops |
 | **Components** | `ux_channel.components` | *optional* channel-side blocks (not ux-dom) |
-| **Agents** | `ux_channel.agents`, `.mcp` | optional agent/tool plane |
+| **Agents** | `ux_channel.agent_runtime`, `.mcp` | optional agent/tool plane |
 | **Redis** | `ux_channel.redis_extra` | multi-worker stores |
 | **Demo** | `ux_channel.render.kit` | raw HTML page/button (examples only) |
 

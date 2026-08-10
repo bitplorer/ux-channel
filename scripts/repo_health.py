@@ -70,7 +70,9 @@ def skip_path(p: Path) -> bool:
 def check_forbidden_layout(root: Path) -> list[str]:
     issues: list[str] = []
     pkg = root / "python" / "src" / "ux_channel"
-    for name in ("day1", "ops_dx", "bridge_meta", "paint", "zones", "security_plane"):
+    for name in ("day1", "ops_dx", "bridge_meta", "paint", "zones", "security_plane", "agents"):
+        # note: package must not be named agents/ (shadows agents() function)
+
         if (pkg / name).exists():
             issues.append(f"FORBIDDEN package dir: ux_channel/{name}")
     if (pkg / "host" / "dx.py").exists():
@@ -111,7 +113,7 @@ def main() -> int:
         text = p.read_text(encoding="utf-8", errors="replace")
         rel = p.relative_to(ROOT).as_posix()
         # historical changelog may mention old names
-        if p.name in {"CHANGELOG.md", "STABILITY.md", "NAMING.md", "MENTAL_MODEL.md"} or rel == "scripts/repo_health.py":
+        if p.name in {"CHANGELOG.md", "STABILITY.md", "NAMING.md", "MENTAL_MODEL.md", "STRUCTURE.md", "PUBLIC_API_FREEZE.md"} or rel == "scripts/repo_health.py":
             pass
         else:
             for pat in STALE:

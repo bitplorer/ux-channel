@@ -1,119 +1,96 @@
-# Public API Freeze List — ux-channel 0.1
+# Public API freeze — ux-channel 0.1
 
-**Goal:** The surface that application authors and peer implementers may rely on.  
-Aligned with package `docs/start/FREEZE_0.1.md` and `docs/start/API_SURFACE.md`.  
-Everything not listed here is internal or explicit submodule and may change without a major version bump.
+Application authors and peer implementers may rely on this surface.
+Everything else is internal or power and may change without a major bump.
 
----
-
-## 1. Application core (frozen — do not rename)
+## Application imports (frozen)
 
 ```python
 from ux_channel import (
-    Channel, ChannelConfig, Region,
-    agents, state, attach_audit,
-    Intent, Result, ErrorObject,     # protocol types
-    CapError, CapService,
+    Channel,
+    ChannelConfig,
+    Region,
+    CapService,
+    CapError,
+    Intent,
+    Result,
+    ErrorObject,
+    state,
+    agents,
+    attach_audit,
+    morph,
+    toast,
+    navigate,
+    signal_set,
 )
-from ux_channel.wire import encode, decode, dumps, loads, configure_wire
-from ux_channel.protocol.ops import (         # public op builders
-    morph, toast, navigate, push_url, swap, remove,
-    set_attr, set_text, signal_set, clear_errors,
-    focus, scroll, reload, noop,
-)
+# same objects:
+from ux_channel.api import Channel, Region, CapService, state
 ```
 
 | API | Role |
 |-----|------|
-| `Channel.boot` | One call → registry + HTTP mount + façade |
-| `@ch.region` / `@ch.on` | Morph region + action |
-| `ch.control(...)` | Signed attrs (cap mint) |
-| `ch.done` / `ch.fail` / `ch.refresh` | Result verbs |
-| `ch.scripts()` / `ch.body_attr_string(...)` | Client runtime tags |
-| `ch.draft` | Ephemeral UI state |
-| `ch.webrtc` | P2P plane |
-| `ch.diagnose()` | Health (no secrets) |
-| `agents(ch)` | AX tools / situation / dispatch |
+| `Channel.boot` | Attach channel to app |
+| `@ch.region` / `@ch.on` | Region paint + action |
+| `ch.control(...)` | Control attrs (+ cap mint) |
+| `ch.done` / `ch.fail` | Result verbs |
+| `ch.runtime` | Placement data (not HTML ownership) |
+| `ch.mint` | Cap mint (Rust-parity name) |
+| `ch.media` / `ch.bridge` | Optional planes |
+| `ch.diagnose()` / `ch.doctor()` | Health |
+| `Channel.describe()` / `Channel.help()` | Progressive docs |
 | `state(ch)` | Session / client / db guards |
-| `attach_audit(ch)` | Intent log + forensics |
+| `agents(ch)` | Agent façade |
+| `attach_audit(ch)` | Intent log / forensics |
 
-**Rule:** Root `__all__` stays tiny. Bridges, redis, MCP, demo helpers, inspector stay off the root.
+**You own HTML.** Channel owns control, trust, regions, ops, placement **data**.
 
----
+## Wire + caps (frozen, dual-language)
 
-## 2. Channel construction & config
+```python
+from ux_channel.protocol import CapService, CapError, Intent, Result, morph, toast
+from ux_channel.wire import encode, decode, dumps, loads, configure_wire, encode_cxb, decode_cxb
+```
+
+| API | Role |
+|-----|------|
+| `CapService.mint` / `verify` / `hash_args` | Capability (sorted JSON hash) |
+| Op builders | `morph`, `toast`, `navigate`, `signal_set`, … |
+| Wire codecs | JSON floor; CXB upgrade |
+
+Rust peer: same cap algorithm + CXB decode vs `conformance/`.
+
+## Host construction (frozen)
 
 - `Channel.boot(app, config=...)`
-- `ChannelConfig.development(...)` / `.production(...)` / `.from_env()`
-- Environment variables prefixed **`UX_CHANNEL_`** only
-- Production store requirements (nonce, idempotency, state) as documented
+- `ChannelConfig.development` / `.production` / `.from_env`
+- Env prefix **`UX_CHANNEL_`**
+- Stores: `from ux_channel.host.stores import MemoryStateStore` (power)
 
----
+## Power packages (stable entry, evolving interior)
 
-## 3. Wire & protocol
+| Package | Entry |
+|---------|--------|
+| `host` | `Channel`, `Region`, `RegionBook` |
+| `protocol` | caps + IR |
+| `render` | morph / HTML helpers |
+| `security` | `intent_headers`, `attenuate` |
+| `asgi` | `mount_channel` |
+| `realtime` | WebRTC / media |
+| `bridge` / `bridges` | widgets |
+| `devtools` | audit / CLI |
+| `foundations` | Quantity |
+| `workplace` / `agent_runtime` / `mcp` | product planes |
 
-- Intent / Result / ops vocabulary with `"v": "1"`
-- Media types: `application/ux-channel+json` (floor), `application/ux-channel+cxb`
-- `encode` / `decode` / `dumps` / `loads` / `configure_wire`
-- Caps, CSRF headers
+## Explicitly not frozen on root
 
-CXB frame details live in package `docs/core/CXB.md` (already treated as normative).
+- Demo HTML helpers (`render.kit`)
+- Redis backends (`redis_extra`)
+- Internal registry / factory details
+- Dashboard plugins, profiling internals
 
----
+## Change policy
 
-## 4. Capability surface
-
-- `ch.control` (primary mint path for apps)
-- `CapService` public mint / verify
-- `CapError`
-- Documented attenuation helpers (`ux_channel.attenuate`)
-
----
-
-## 5. Power speech (stable import-by-concern, not on root)
-
-| Concept | Canonical import |
-|---------|------------------|
-| Quantity | `from ux_channel.foundations.quantity import Quantity` |
-| I/O channel | `from ux_channel.foundations.io_channel import IoGate, IoRoomClaim` |
-| Workplace / mesh | `from ux_channel.workplace import workplace, issue_mesh_membership` |
-| Morph IR | `from ux_channel.render.morph_ir import ...` |
-| Nested caps | `from ux_channel.security.attenuate import attenuate` |
-
-These are frozen *names*; they are not required for application apps.
-
----
-
-## 6. Explicitly **not** public (may move or change)
-
-- `ux_channel.render.kit` (training wheels only)
-- Bridge scaffold / preset generators
-- Inspector / DX-only endpoints and dashboards
-- Redis / push-bus internals
-- Native CXB `.so` loading details
-- Test-only helpers and peer stubs used only in tests
-
----
-
-## 7. Freeze process
-
-1. This list is reviewed against the package (`__init__.py`, FREEZE_0.1.md, API_SURFACE.md).
-2. Names taught in tutorials become public or are removed from tutorials.
-3. After the 0.1 tag: additions are fine; removals or signature changes of listed items require a major version or documented deprecation window.
-
-**Allowed without unfreeze:** bugfixes, docs, tests, new adapters/examples, additive optional kwargs with safe defaults, new power modules under import-by-concern.
-
-**Requires major / explicit unfreeze:** renaming application verbs, second agent product API, drivers in core, breaking wire `v` / op names.
-
----
-
-## Linked documents
-
-- Package: `docs/start/FREEZE_0.1.md`, `docs/start/API_SURFACE.md`, `docs/start/PRINCIPLES.md`
-- `SPEC/intent-result-ops.md`, `SPEC/capability.md`
-- Package `docs/core/WIRE.md`, `docs/core/RESULT.md`, `docs/core/CXB.md`
-
-
-## Stores
-
-`MemoryStateStore` lives in `ux_channel.host.stores` (not `host.state`).
+1. Renames on this list → major or explicit deprecation.
+2. Layout: [python/STABILITY.md](python/STABILITY.md).
+3. Model: [MENTAL_MODEL.md](MENTAL_MODEL.md).
+4. Gate: `python/tests/gate/` + `make verify`.

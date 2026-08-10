@@ -12,7 +12,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from ux_channel import ActionRegistry, Result, toast
-from ux_channel.agents import AgentPolicy, AgentRunner, AgentSession, ToolCall, agent_tool
+from ux_channel.agent_runtime import AgentPolicy, AgentRunner, AgentSession, ToolCall, agent_tool
 from ux_channel.asgi.fastapi import mount_channel
 from ux_channel.host.config import ChannelConfig
 from ux_channel.mcp import (
