@@ -39,7 +39,7 @@ They are the executable source of truth for interop.
 
 ## Cap wire (Cap 0.1)
 
-Portable encoding used by Python `CapabilityService` and the Rust peer:
+Portable encoding used by Python `CapService` and the Rust peer:
 
 - `itsdangerous.URLSafeTimedSerializer` with salt `ux-channel-cap`
 - django-concat key derivation + HMAC-SHA1

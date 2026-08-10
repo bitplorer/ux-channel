@@ -46,7 +46,7 @@ def test_core_and_webrtc_capabilities_together():
     def ping(x: int = 0):
         return ch.done(notice=f"x={x}")
 
-    cap = ch.registry.sign("ping", {"x": 1})
+    cap = ch.registry.mint("ping", {"x": 1})
     r = ch.registry.dispatch(Intent(action="ping", args={"x": 1}, cap=cap))
     assert r.ok
 

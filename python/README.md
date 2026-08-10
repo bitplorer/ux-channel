@@ -20,7 +20,7 @@ from ux_channel.day1 import Channel, Region, state
 
 # Cohesive packages (preferred for libraries/extensions)
 from ux_channel.host.dx import Channel
-from ux_channel.protocol.capability import CapabilityService
+from ux_channel.protocol.capability import CapService
 
 # Explore
 from ux_channel.zones import host, protocol

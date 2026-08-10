@@ -36,8 +36,8 @@ def _ch():
 
 def test_mixed_is_207():
     ch, app = _ch()
-    cap_ok = ch.registry.sign("T.ok", {})
-    cap_bad = ch.registry.sign("T.bad", {})
+    cap_ok = ch.registry.mint("T.ok", {})
+    cap_bad = ch.registry.mint("T.bad", {})
     out = dispatch_batch(
         ch.registry,
         [
@@ -69,7 +69,7 @@ def test_mixed_is_207():
 
 def test_all_ok_200():
     ch, _ = _ch()
-    cap = ch.registry.sign("T.ok", {})
+    cap = ch.registry.mint("T.ok", {})
     out = dispatch_batch(
         ch.registry, [{"v": "1", "action": "T.ok", "args": {}, "cap": cap}]
     )
@@ -79,8 +79,8 @@ def test_all_ok_200():
 
 def test_all_error_worst_status():
     ch, _ = _ch()
-    cap_bad = ch.registry.sign("T.bad", {})
-    cap_auth = ch.registry.sign("T.auth", {})
+    cap_bad = ch.registry.mint("T.bad", {})
+    cap_auth = ch.registry.mint("T.auth", {})
     out = dispatch_batch(
         ch.registry,
         [
@@ -96,7 +96,7 @@ def test_all_error_worst_status():
 
 def test_oversize_envelope_413():
     ch, _ = _ch()
-    cap = ch.registry.sign("T.ok", {})
+    cap = ch.registry.mint("T.ok", {})
     items = [{"v": "1", "action": "T.ok", "args": {}, "cap": cap}] * 20
     out = dispatch_batch(ch.registry, items, max_items=2)
     assert out.get("error", {}).get("code") == "payload_too_large"

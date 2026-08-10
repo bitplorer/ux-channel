@@ -189,7 +189,7 @@ class TestRealworldLiveAsgi(unittest.TestCase):
             ("Shop.dash", "application/ux-channel+cxb"),
         ):
             args: dict = {}
-            cap = reg.sign(action, args)
+            cap = reg.mint(action, args)
             headers = {"X-Channel": "1"}
             if accept:
                 headers["Accept"] = accept

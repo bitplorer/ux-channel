@@ -54,7 +54,7 @@ def test_intent_log_attach():
     def ping():
         return ch.done(notice="ok")
 
-    ch.registry.dispatch(Intent(action="ping", args={}, cap=ch.sign("ping", {})))
+    ch.registry.dispatch(Intent(action="ping", args={}, cap=ch.mint("ping", {})))
     assert len(log) >= 1
 
 

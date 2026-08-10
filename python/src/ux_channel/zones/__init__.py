@@ -3,7 +3,7 @@
 Physical packages (preferred for new code)::
 
     from ux_channel.host.dx import Channel
-    from ux_channel.protocol.capability import CapabilityService
+    from ux_channel.protocol.capability import CapService
 
 Legacy shims (still supported)::
 

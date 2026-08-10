@@ -39,7 +39,7 @@ def test_trace_dispatch_pipeline(tracer):
             *mount_ops("c1", "sparkline", props={"values": [1, 2]}),
         )
 
-    cap = reg.sign("Demo.run", {"n": 2})
+    cap = reg.mint("Demo.run", {"n": 2})
     r = reg.dispatch(
         Intent(action="Demo.run", args={"n": 2}, cap=cap, request_id="req_test1")
     )
@@ -96,7 +96,7 @@ def test_trace_http_api():
 
     mount_channel(app, reg, config=cfg)
     client = TestClient(app)
-    cap = reg.sign("P", {})
+    cap = reg.mint("P", {})
     client.post(
         "/ux-channel/action",
         json={"v": "1", "action": "P", "args": {}, "cap": cap, "request_id": "req_http"},

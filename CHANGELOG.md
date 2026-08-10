@@ -1,3 +1,17 @@
+## 2026-08-10 — Rust-parity names for shared cap API
+
+### Breaking (0.1 alignment with Rust)
+- `CapabilityService` → **`CapService`**
+- `CapabilityError` → **`CapError`**
+- Cap create method **`mint` only** (removed dual `sign` on CapService)
+- `Channel.mint` / `ActionRegistry.mint` (was `.sign` for caps)
+- `CapService.hash_args` public (Rust `hash_args`)
+- Removed `RegionRegistry` alias (host-only `RegionBook` remains)
+
+Ticket helpers (`sign_push`, `sign_ws`, …) unchanged — not the cap API.
+
+---
+
 ## 2026-08-10 — cohesive packages (mature library structure)
 
 ### Structure
@@ -72,7 +86,7 @@ Format: newest first. “Law” vs “demo” follows [STRUCTURE.md](STRUCTURE.m
 ## 2026-08-10 — Python + Rust both required in verify gate
 
 ### Fixed
-- `CapabilityService._hash_args` now uses **sorted compact JSON** (SPEC/oracle/Rust) — was unsorted serde dumps (interop break)
+- `CapService._hash_args` now uses **sorted compact JSON** (SPEC/oracle/Rust) — was unsorted serde dumps (interop break)
 
 ### Added
 - `python/tests/test_interop_conformance.py` — cap oracle, JSON vectors, CXB expected

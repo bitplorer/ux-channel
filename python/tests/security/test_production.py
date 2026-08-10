@@ -35,7 +35,7 @@ def test_from_config_installs_hooks():
     def ping():
         return Result.success(toast("ok"))
 
-    cap = reg.sign("ping", {})
+    cap = reg.mint("ping", {})
     r = reg.dispatch(Intent(action="ping", args={}, cap=cap))
     assert r.ok
 
@@ -146,7 +146,7 @@ def test_fastapi_production_mount():
     assert "actions" not in h.json()
     rdy = client.get("/ux-channel/ready")
     assert rdy.status_code == 200
-    cap = reg.sign("ping", {})
+    cap = reg.mint("ping", {})
     res = client.post(
         "/ux-channel/action",
         json={"v": "1", "action": "ping", "args": {}, "cap": cap},

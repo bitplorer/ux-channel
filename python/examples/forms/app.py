@@ -19,7 +19,7 @@ reg = ActionRegistry(secret=SECRET, require_cap=True, expose_internal_errors=Tru
 
 def login_form_html(email: str = "", errors: dict | None = None) -> str:
     errors = errors or {}
-    cap = reg.sign("Login.save", {})
+    cap = reg.mint("Login.save", {})
     email_err = (errors.get("email") or [None])[0]
     pw_err = (errors.get("password") or [None])[0]
 

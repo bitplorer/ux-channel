@@ -5,9 +5,8 @@ Why this module exists
 ``ux_channel`` is large. Day-1 apps should not browse 180 modules.
 Importing from ``ux_channel.day1`` documents intent: *I only need the frozen core*.
 
-Includes ``Region`` (one slot). Registry type: ``RegionBook`` / alias ``RegionRegistry``
-(same object — speech: "region registry"). **Not** a rename of ``Region``.
-Cap create: prefer ``CapabilityService.mint`` (alias of ``sign``; Rust says mint).
+Includes ``Region`` (one slot) and ``RegionBook`` (registry / ``ch.regions``).
+Cap create/verify: ``CapService.mint`` / ``CapService.verify`` (Rust-parity names).
 
 Full package root (``from ux_channel import Channel``) remains supported and frozen.
 This is an additive clarity layer, not a rename.
@@ -21,8 +20,8 @@ from ux_channel import (
     ActionError,
     ActionNotFound,
     ActionRegistry,
-    CapabilityError,
-    CapabilityService,
+    CapError,
+    CapService,
     Channel,
     ChannelConfig,
     ChannelError,
@@ -30,7 +29,6 @@ from ux_channel import (
     Intent,
     Region,
     RegionBook,
-    RegionRegistry,
     RegionContext,
     Result,
     action_attrs,
@@ -48,13 +46,12 @@ __all__ = [
     "ChannelConfig",
     "Region",
     "RegionBook",
-    "RegionRegistry",
     "RegionContext",
     "Intent",
     "Result",
     "ActionRegistry",
-    "CapabilityService",
-    "CapabilityError",
+    "CapService",
+    "CapError",
     "ChannelError",
     "ActionError",
     "ActionNotFound",

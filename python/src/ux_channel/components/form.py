@@ -64,7 +64,7 @@ class Form(ChannelComponent):
         action = self.action_name("submit")
         cap = None
         try:
-            cap = self.ch.sign(action, {})
+            cap = self.ch.mint(action, {})
         except Exception:
             cap = None
         open_tag = form_open(

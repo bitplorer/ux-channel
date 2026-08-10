@@ -124,7 +124,7 @@ def test_login_card_validation():
         Intent(
             action="LoginCardForm.submit",
             form={"email": "x", "password": "password1"},
-            cap=ch.sign("LoginCardForm.submit", {}),
+            cap=ch.mint("LoginCardForm.submit", {}),
         )
     )
     assert not r.ok
@@ -145,7 +145,7 @@ def test_cart_panel_checkout():
         Intent(
             action="Cart.checkout",
             args={"n": 2},
-            cap=ch.sign("Cart.checkout", {"n": 2}),
+            cap=ch.mint("Cart.checkout", {"n": 2}),
         )
     )
     assert r.ok
@@ -176,7 +176,7 @@ def test_data_table_sort_page():
         Intent(
             action="DataTable.page",
             args={"q": "", "sort": "id", "desc": False, "page": 2},
-            cap=ch.sign(
+            cap=ch.mint(
                 "DataTable.page", {"q": "", "sort": "id", "desc": False, "page": 2}
             ),
         )

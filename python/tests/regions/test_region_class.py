@@ -36,7 +36,7 @@ def test_use_mount_render_action_button_page():
         Intent(
             action="cart.badge.add",
             args={"product_id": "x"},
-            cap=ch.sign("cart.badge.add", {"product_id": "x"}),
+            cap=ch.mint("cart.badge.add", {"product_id": "x"}),
         )
     )
     assert r.ok
@@ -62,7 +62,7 @@ def test_refresh_targets_class_and_self():
     body = ch.use(Body)
     assert set(body.inc.refresh_uids) == {"header", "body"}
 
-    r = ch.registry.dispatch(Intent(action="body.inc", args={}, cap=ch.sign("body.inc", {})))
+    r = ch.registry.dispatch(Intent(action="body.inc", args={}, cap=ch.mint("body.inc", {})))
     assert r.ok
     morphs = [o for o in r.ops if o.get("op") == "morph"]
     assert len(morphs) == 2

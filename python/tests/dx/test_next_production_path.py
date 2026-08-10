@@ -27,7 +27,7 @@ def test_http_origin_deny_emits_event():
         return ch.done()
 
     client = TestClient(app)
-    cap = ch.registry.sign("P.hi", {})
+    cap = ch.registry.mint("P.hi", {})
     res = client.post(
         "/ux-channel/action",
         json={"v": "1", "action": "P.hi", "args": {}, "cap": cap},
@@ -59,7 +59,7 @@ def test_http_csrf_header_deny_emits_event():
         return ch.done()
 
     client = TestClient(app)
-    cap = ch.registry.sign("P.hi2", {})
+    cap = ch.registry.mint("P.hi2", {})
     res = client.post(
         "/ux-channel/action",
         json={"v": "1", "action": "P.hi2", "args": {}, "cap": cap},

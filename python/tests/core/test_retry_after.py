@@ -65,7 +65,7 @@ def test_batch_uses_retry_after():
 
     out = dispatch_batch(
         ch.registry,
-        [{"v": "1", "action": "T.ra", "args": {}, "cap": ch.registry.sign("T.ra", {})}],
+        [{"v": "1", "action": "T.ra", "args": {}, "cap": ch.registry.mint("T.ra", {})}],
         retry_retryable=True,
         max_retries=1,
         retry_backoff_ms=1,
@@ -96,7 +96,7 @@ def test_http_retry_after_header():
             "v": "1",
             "action": "T.hdr",
             "args": {},
-            "cap": ch.registry.sign("T.hdr", {}),
+            "cap": ch.registry.mint("T.hdr", {}),
         },
         headers={"X-Channel": "1", "Content-Type": "application/json"},
     )

@@ -18,7 +18,7 @@ This is **not**:
 
 RegionBook (``ch.regions``)
 ---------------------------
-Also named **RegionRegistry** (alias) — same type. Prefer speech: "region registry".
+Also named **RegionBook** (alias) — same type. Prefer speech: "region registry".
 ``Region`` remains the type for **one** slot (not renamed).
 
 Registry of uid → render function / Region instance. ``revalidate`` /
@@ -630,5 +630,5 @@ def attach_regions(channel: Any) -> RegionBook:
     return book
 
 # Intent-aligned alias: "registry of regions" speech
-RegionRegistry = RegionBook
+RegionBook = RegionBook
 

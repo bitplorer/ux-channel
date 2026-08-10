@@ -15,7 +15,7 @@ from fastapi.testclient import TestClient
 
 from ux_channel import Channel, ChannelConfig, ChannelTest, Intent, Result
 from ux_channel.bulkhead import install_bulkhead
-from ux_channel.capability import CapabilityError
+from ux_channel.capability import CapError
 from ux_channel.nonce import MemoryNonceStore
 
 SECRET = "ent-secret-key-32chars-minimum!!!!!!"
@@ -175,7 +175,7 @@ def test_once_cap_replay_blocked():
     ch = build_enterprise()
     assert ch.registry.nonce_store is not None
     args = {"order_id": "o2", "user_id": "bob", "tenant_id": "t1", "roles": ["finance"]}
-    cap = ch.sign("Order.refund", args, once=True)
+    cap = ch.mint("Order.refund", args, once=True)
     r1 = ch.registry.dispatch(Intent(action="Order.refund", args=args, cap=cap))
     assert r1.ok, r1.error
     r2 = ch.registry.dispatch(Intent(action="Order.refund", args=args, cap=cap))
@@ -190,11 +190,11 @@ def test_once_cap_replay_blocked():
 def test_auto_once_on_sign_from_policy():
     ch = build_enterprise()
     # policy once=True should inject once into sign
-    cap = ch.sign("Order.refund", {"order_id": "x", "user_id": "bob"})
+    cap = ch.mint("Order.refund", {"order_id": "x", "user_id": "bob"})
     # decode via second use - if once, second fails
     args = {"order_id": "x", "user_id": "bob", "tenant_id": "t1", "roles": ["admin"]}
     # resign with same policy
-    cap = ch.sign("Order.refund", args)
+    cap = ch.mint("Order.refund", args)
     r1 = ch.registry.dispatch(Intent(action="Order.refund", args=args, cap=cap))
     r2 = ch.registry.dispatch(Intent(action="Order.refund", args=args, cap=cap))
     assert r1.ok and not r2.ok
@@ -282,7 +282,7 @@ def test_stress_concurrent_cart_adds():
 
     def one(i: int) -> bool:
         args = {"sku": "sku1", "user_id": "alice", "tenant_id": "t1"}
-        cap = ch.sign("Cart.add", args)
+        cap = ch.mint("Cart.add", args)
         r = ch.registry.dispatch(Intent(action="Cart.add", args=args, cap=cap))
         return r.ok
 
@@ -300,7 +300,7 @@ def test_stress_once_caps_no_double_refund():
     # each thread gets own once cap
     def one(i: int) -> str:
         a = {**args, "order_id": f"once-{i}"}
-        cap = ch.sign("Order.refund", a)  # policy once
+        cap = ch.mint("Order.refund", a)  # policy once
         r1 = ch.registry.dispatch(Intent(action="Order.refund", args=a, cap=cap))
         r2 = ch.registry.dispatch(Intent(action="Order.refund", args=a, cap=cap))
         return f"{r1.ok}:{r2.ok}"
@@ -321,7 +321,7 @@ def test_bulkhead_load():
         return Result.success()
 
     def hit(_):
-        cap = ch.sign("Work.x", {})
+        cap = ch.mint("Work.x", {})
         return ch.registry.dispatch(Intent(action="Work.x", args={}, cap=cap))
 
     with ThreadPoolExecutor(40) as ex:

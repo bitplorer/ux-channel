@@ -50,7 +50,7 @@ def test_function_region_auto_uid_and_action_refresh():
         Intent(
             action="add",
             args={"product_id": "sku"},
-            cap=ch.sign("add", {"product_id": "sku"}),
+            cap=ch.mint("add", {"product_id": "sku"}),
         )
     )
     assert r.ok
@@ -71,7 +71,7 @@ def test_explicit_action_name():
         return None
 
     r = ch.registry.dispatch(
-        Intent(action="X.bump", args={}, cap=ch.sign("X.bump", {}))
+        Intent(action="X.bump", args={}, cap=ch.mint("X.bump", {}))
     )
     assert r.ok
 
@@ -93,7 +93,7 @@ def test_unknown_refresh_uid_does_not_crash():
         return None
 
     r = ch.registry.dispatch(
-        Intent(action="touch", args={}, cap=ch.sign("touch", {}))
+        Intent(action="touch", args={}, cap=ch.mint("touch", {}))
     )
     assert r.ok
     # at least the known region can morph; missing is skipped

@@ -15,8 +15,8 @@ DAY1_REQUIRED = {
     "Region",
     "Intent",
     "Result",
-    "CapabilityService",
-    "CapabilityError",
+    "CapService",
+    "CapError",
     "state",
     "agents",
     "morph",
@@ -44,7 +44,7 @@ def test_stable_core_on_root():
         "ChannelConfig",
         "ControlAttrs",
         "http_status_for",
-        "CapabilityService",
+        "CapService",
     ):
         assert name in ux_channel.__all__, name
         assert getattr(ux_channel, name) is not None

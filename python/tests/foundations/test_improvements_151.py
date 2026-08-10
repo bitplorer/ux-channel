@@ -62,7 +62,7 @@ def test_client_version_gate():
 
     mount_channel(app, reg, config=cfg)
     c = TestClient(app)
-    cap = reg.sign("Ping", {})
+    cap = reg.mint("Ping", {})
     old = c.post(
         "/ux-channel/action",
         json={"v": "1", "action": "Ping", "args": {}, "cap": cap},

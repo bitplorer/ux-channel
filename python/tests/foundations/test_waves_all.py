@@ -53,7 +53,7 @@ def test_navigate_allowlist_in_dispatch():
     def go():
         return ch.done(navigate="https://evil.com/phish")
 
-    cap = ch.registry.sign("Go.away", {})
+    cap = ch.registry.mint("Go.away", {})
     r = ch.registry.dispatch({"v": "1", "action": "Go.away", "args": {}, "cap": cap})
     if r.ok:
         hrefs = [o.get("href") for o in (r.ops or []) if o.get("op") == "navigate"]
@@ -148,7 +148,7 @@ def test_region_broadcast_meta():
 
     c = C(ch, uid="c").mount()
     ch.live.bind("public.board", c)
-    cap = ch.registry.sign("c.bump", {})
+    cap = ch.registry.mint("c.bump", {})
     r = ch.registry.dispatch({"v": "1", "action": "c.bump", "args": {}, "cap": cap})
     assert r.ok
     assert c.state_get("n") == 1
@@ -185,12 +185,12 @@ def test_policy_engine_denies_action():
     def ok():
         return ch.done(notice="ok")
 
-    cap_n = ch.registry.sign("Nope.x", {})
+    cap_n = ch.registry.mint("Nope.x", {})
     r1 = ch.registry.dispatch({"v": "1", "action": "Nope.x", "args": {}, "cap": cap_n})
     assert not r1.ok
     assert r1.error is not None
 
-    cap_o = ch.registry.sign("Ok.y", {})
+    cap_o = ch.registry.mint("Ok.y", {})
     r2 = ch.registry.dispatch({"v": "1", "action": "Ok.y", "args": {}, "cap": cap_o})
     assert r2.ok
 
@@ -209,7 +209,7 @@ def test_wire_contract_result_shape():
     def hi():
         return ch.done(notice="hi")
 
-    cap = ch.registry.sign("Ping.hi", {})
+    cap = ch.registry.mint("Ping.hi", {})
     r = ch.registry.dispatch({"v": "1", "action": "Ping.hi", "args": {}, "cap": cap})
     if hasattr(r, "as_dict"):
         d = r.as_dict()

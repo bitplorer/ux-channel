@@ -108,7 +108,7 @@ def test_done_refresh_empty_overrides_stack():
     def a():
         return ch.done(refresh=[])
 
-    r = ch.registry.dispatch(Intent(action="a", args={}, cap=ch.sign("a", {})))
+    r = ch.registry.dispatch(Intent(action="a", args={}, cap=ch.mint("a", {})))
     assert r.ok
     assert r.ops == [] or not any(o.get("op") == "morph" for o in r.ops)
 
@@ -123,7 +123,7 @@ def test_concurrent_draft_change_no_lost_updates():
 
     def one(_i):
         return ch.registry.dispatch(
-            Intent(action="bump", args={}, cap=ch.sign("bump", {}))
+            Intent(action="bump", args={}, cap=ch.mint("bump", {}))
         ).ok
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=32) as ex:

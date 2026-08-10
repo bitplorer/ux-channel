@@ -66,7 +66,7 @@ def _dispatch(action: str, args: dict, cap: str, *, headers: dict | None = None,
 
 def _sign_dispatch(action: str, args: dict | None = None, **sign_kw):
     args = dict(args or {})
-    cap = ch.sign(action, args, **sign_kw)
+    cap = ch.mint(action, args, **sign_kw)
     return ch.registry.dispatch(Intent(action=action, args=args, cap=cap))
 
 
@@ -90,7 +90,7 @@ def test_add_item_via_registry_and_stock():
 
 
 def test_sealed_args_cannot_be_forged():
-    cap = ch.sign("add_item", {"sku": "sku-a"})
+    cap = ch.mint("add_item", {"sku": "sku-a"})
     # tamper args
     bad = ch.registry.dispatch(Intent(action="add_item", args={"sku": "sku-b"}, cap=cap))
     assert not bad.ok
@@ -133,7 +133,7 @@ def test_http_action_endpoint_with_header():
     # ensure we hit sku-a if multiple
     if args.get("sku") not in DB["stock"]:
         args = {"sku": "sku-a"}
-        cap = ch.sign("add_item", args)
+        cap = ch.mint("add_item", args)
     resp = _dispatch("add_item", args, cap)
     assert resp.status_code == 200, resp.text
     data = resp.json()
@@ -149,7 +149,7 @@ def test_missing_channel_header_in_production_mode():
     ch.config = prod
     ch.registry.config = prod
     try:
-        cap = ch.sign("add_item", {"sku": "sku-a"})
+        cap = ch.mint("add_item", {"sku": "sku-a"})
         resp = client.post(
             "/ux-channel/action",
             headers={"content-type": "application/json"},
@@ -171,7 +171,7 @@ def test_refund_requires_admin_role():
     r = _sign_dispatch("refund_last", {})
     assert not r.ok
     # with admin principal
-    cap = ch.sign("refund_last", {}, sub="admin1")
+    cap = ch.mint("refund_last", {}, sub="admin1")
     # dispatch with principal roles via keys - enterprise require_roles
     from ux_channel.context import Principal
 
@@ -237,7 +237,7 @@ def test_concurrent_once_refund_single_winner():
     results = []
 
     def attempt():
-        cap = ch.sign("refund_last", {}, once=True, sub="admin1")
+        cap = ch.mint("refund_last", {}, once=True, sub="admin1")
         principal = Principal.of(sub="admin1", roles=["admin"])
         r = ch.registry.dispatch(
             Intent(action="refund_last", args={}, cap=cap),
@@ -272,7 +272,7 @@ def test_xss_in_flash_escaped_or_safe():
 
 
 def test_json_bomb_args_rejected_or_handled():
-    cap = ch.sign("add_item", {"sku": "sku-a"})
+    cap = ch.mint("add_item", {"sku": "sku-a"})
     huge = {"sku": "sku-a", "x": ["y"] * 10000}
     # cap won't match
     r = ch.registry.dispatch(Intent(action="add_item", args=huge, cap=cap))
@@ -280,7 +280,7 @@ def test_json_bomb_args_rejected_or_handled():
 
 
 def test_action_name_injection():
-    cap = ch.sign("add_item", {"sku": "sku-a"})
+    cap = ch.mint("add_item", {"sku": "sku-a"})
     r = ch.registry.dispatch(
         Intent(action="add_item; DROP", args={"sku": "sku-a"}, cap=cap)
     )
@@ -288,7 +288,7 @@ def test_action_name_injection():
 
 
 def test_oversized_body_http():
-    cap = ch.sign("add_item", {"sku": "sku-a"})
+    cap = ch.mint("add_item", {"sku": "sku-a"})
     blob = json.dumps({"v": "1", "action": "add_item", "args": {"sku": "sku-a", "pad": "x" * 2_000_000}, "cap": cap})
     resp = client.post(
         "/ux-channel/action",
@@ -303,8 +303,8 @@ def test_oversized_body_http():
 
 def test_batch_if_available():
     # optional batch endpoint
-    cap1 = ch.sign("add_item", {"sku": "sku-a"})
-    cap2 = ch.sign("add_item", {"sku": "sku-b"})
+    cap1 = ch.mint("add_item", {"sku": "sku-a"})
+    cap2 = ch.mint("add_item", {"sku": "sku-b"})
     resp = client.post(
         "/ux-channel/batch",
         headers={"content-type": "application/json", "x-channel": "1"},
@@ -327,7 +327,7 @@ def test_batch_if_available():
 def test_users_carts_isolated():
     # inject user via keys in dispatch - RegionContext from principal
     def add_as(user, sku):
-        cap = ch.sign("add_item", {"sku": sku}, sub=user)
+        cap = ch.mint("add_item", {"sku": sku}, sub=user)
         # pass keys via principal
         p = Principal.of(sub=user)
         return ch.registry.dispatch(

@@ -4,14 +4,14 @@ Words: [TERMINOLOGY.md](TERMINOLOGY.md) · Flows: [HOW_IT_WORKS.md](HOW_IT_WORKS
 
 ---
 
-### Why do some things have two names (`mint`/`sign`, `RegionBook`/`RegionRegistry`)?
+### Why do some things have two names (`mint`/`sign`, `RegionBook`/`RegionBook`)?
 
 **One intent, one function — two spellings only when history or Rust parity requires it.**
 
 | Intent | Prefer | Same as |
 |--------|--------|--------|
 | Create cap | `mint` | `sign` |
-| Slot registry type | `RegionRegistry` | `RegionBook` |
+| Slot registry type | `RegionBook` | `RegionBook` |
 | One slot | `Region` only | — |
 
 Full table: [`NAMING.md`](NAMING.md).

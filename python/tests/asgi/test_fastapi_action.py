@@ -39,7 +39,7 @@ def build_app(*, list_actions: bool = True):
 def test_action_endpoint():
     app, reg = build_app()
     client = TestClient(app)
-    cap = reg.sign("Counter.inc", {"n": 2})
+    cap = reg.mint("Counter.inc", {"n": 2})
     res = client.post(
         "/ux-channel/action",
         json={
@@ -80,7 +80,7 @@ def test_static_js():
 def test_async_action_endpoint():
     app, reg = build_app()
     client = TestClient(app)
-    cap = reg.sign("Async.ok", {})
+    cap = reg.mint("Async.ok", {})
     res = client.post(
         "/ux-channel/action",
         json={"v": "1", "action": "Async.ok", "args": {}, "cap": cap},
@@ -92,7 +92,7 @@ def test_async_action_endpoint():
 def test_html_accept_fallback():
     app, reg = build_app()
     client = TestClient(app)
-    cap = reg.sign("Counter.inc", {"n": 0})
+    cap = reg.mint("Counter.inc", {"n": 0})
     res = client.post(
         "/ux-channel/action",
         json={"v": "1", "action": "Counter.inc", "args": {"n": 0}, "cap": cap},

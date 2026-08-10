@@ -188,7 +188,7 @@ def test_human_intent_and_agent_dispatch_identical_mutation():
     st, ag, orders, facts, _ = _payment_world(ch)
 
     r_h = ch.registry.dispatch(
-        Intent(action="select_order", args={"order_id": "ord_2"}, cap=ch.sign("select_order", {"order_id": "ord_2"}))
+        Intent(action="select_order", args={"order_id": "ord_2"}, cap=ch.mint("select_order", {"order_id": "ord_2"}))
     )
     assert r_h.ok
     assert st.session("selected_order", "").peek() == "ord_2"

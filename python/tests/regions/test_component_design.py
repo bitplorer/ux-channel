@@ -66,7 +66,7 @@ def test_install_idempotent_and_concurrent():
     assert c._installed is True
     # actions registered once — dispatch works
     r = ch.registry.dispatch(
-        Intent(action="Qty.inc", args={"n": 0}, cap=ch.sign("Qty.inc", {"n": 0}))
+        Intent(action="Qty.inc", args={"n": 0}, cap=ch.mint("Qty.inc", {"n": 0}))
     )
     assert r.ok
 
@@ -125,7 +125,7 @@ def test_registry_host_path_preferred_for_ux_dom_apps():
     c = Counter(host, name="R", uid="R:root").install()
     assert c.host is not None
     r = reg.dispatch(
-        Intent(action="R.inc", args={"n": 0}, cap=reg.sign("R.inc", {"n": 0}))
+        Intent(action="R.inc", args={"n": 0}, cap=reg.mint("R.inc", {"n": 0}))
     )
     assert r.ok
 
@@ -160,7 +160,7 @@ def test_custom_leaf_follows_contract():
         Intent(
             action="Rating.set",
             args={"stars": 4},
-            cap=ch.sign("Rating.set", {"stars": 4}),
+            cap=ch.mint("Rating.set", {"stars": 4}),
         )
     )
     assert out.ok and "4" in out.ops[0]["html"]
@@ -171,7 +171,7 @@ def test_action_burst_on_installed_counter():
     c = Counter(ch, name="B", uid="B:root", min_value=0, max_value=10_000).install()
 
     def one(i):
-        cap = ch.sign("B.inc", {"n": i})
+        cap = ch.mint("B.inc", {"n": i})
         return ch.registry.dispatch(
             Intent(action="B.inc", args={"n": i}, cap=cap)
         ).ok

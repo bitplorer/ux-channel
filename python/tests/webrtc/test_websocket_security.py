@@ -156,7 +156,7 @@ def test_ws_ping_pong():
 
 def test_ws_intent_with_cap():
     app, cfg, reg = _app()
-    cap = reg.sign("Ping.hi", {"n": 1})
+    cap = reg.mint("Ping.hi", {"n": 1})
     c = TestClient(app)
     with c.websocket_connect("/ux-channel/ws?topics=public.x") as ws:
         ws.receive_json()
@@ -183,7 +183,7 @@ def test_ws_intent_with_cap():
 
 def test_ws_intent_disabled():
     app, cfg, reg = _app(ws_allow_actions=False)
-    cap = reg.sign("Ping.hi", {})
+    cap = reg.mint("Ping.hi", {})
     c = TestClient(app)
     with c.websocket_connect("/ux-channel/ws?topics=public.x") as ws:
         ws.receive_json()

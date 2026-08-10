@@ -15,7 +15,7 @@ from fastapi import FastAPI
 from hypothesis import HealthCheck, assume, given, settings, strategies as st
 
 from ux_channel import Channel, ChannelConfig, agents, state
-from ux_channel.capability import CapabilityService, CapabilityError
+from ux_channel.capability import CapService, CapError
 from ux_channel.quantity import (
     Quantity,
     QuantityError,
@@ -155,7 +155,7 @@ def test_prop_client_refuses_risky_paths(path):
 
 @given(oid=order_id)
 def test_prop_cap_sign_verify_roundtrip(oid):
-    caps = CapabilityService(SECRET)
+    caps = CapService(SECRET)
     tok = attenuate(caps, "pay", {"order_id": oid}, caveats=["pay"])
     env = verify_attenuated(caps, tok, "pay", {"order_id": oid})
     assert env.action == "pay"
@@ -164,9 +164,9 @@ def test_prop_cap_sign_verify_roundtrip(oid):
 
 @given(oid=order_id)
 def test_prop_cap_args_mismatch_detected(oid):
-    caps = CapabilityService(SECRET)
+    caps = CapService(SECRET)
     tok = attenuate(caps, "pay", {"order_id": oid}, caveats=["pay"])
-    with pytest.raises(CapabilityError):
+    with pytest.raises(CapError):
         verify_attenuated(caps, tok, "pay", {"order_id": "x"})
 
 
@@ -178,7 +178,7 @@ def test_prop_cap_args_mismatch_detected(oid):
 )
 def test_prop_attenuation_rejects_widen(narrow, extra):
     assume(extra not in narrow)
-    caps = CapabilityService(SECRET)
+    caps = CapService(SECRET)
     parent = attenuate(
         caps, "pay", {"order_id": "ord_1"}, caveats=list(narrow)
     )

@@ -33,7 +33,7 @@ def test_day1_session_region_action():
     def inc():
         n.add(1)
 
-    r = ch.registry.dispatch(Intent(action="inc", args={}, cap=ch.sign("inc", {})))
+    r = ch.registry.dispatch(Intent(action="inc", args={}, cap=ch.mint("inc", {})))
     assert any("1" in (o.get("html") or "") for o in r.ops)
     assert ch.st is st
 

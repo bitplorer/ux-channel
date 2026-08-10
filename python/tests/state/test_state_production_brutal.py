@@ -199,7 +199,7 @@ def test_action_auto_refresh_after_paint():
     def inc():
         n.add(1)
 
-    r = ch.registry.dispatch(Intent(action="inc", args={}, cap=ch.sign("inc", {})))
+    r = ch.registry.dispatch(Intent(action="inc", args={}, cap=ch.mint("inc", {})))
     assert any(o.get("op") == "morph" for o in r.ops)
 
 

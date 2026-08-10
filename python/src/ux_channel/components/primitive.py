@@ -94,7 +94,7 @@ def region_button(
     sealed = dict(trust or {})
     cap = None
     if mint_cap and hasattr(registry, "sign"):
-        cap = registry.sign(action, sealed, once=once, sub=sub)
+        cap = registry.mint(action, sealed, once=once, sub=sub)
     return html_button(
         label,
         action,
@@ -184,7 +184,7 @@ class ChannelHost(Protocol):
     @property
     def registry(self) -> Any: ...
 
-    def sign(self, action: str, args: Optional[Mapping[str, Any]] = None, **kwargs: Any) -> str: ...
+    def mint(self, action: str, args: Optional[Mapping[str, Any]] = None, **kwargs: Any) -> str: ...
 
     def action(self, name: str, **kwargs: Any) -> Any: ...
 
@@ -226,8 +226,8 @@ class RegistryHost:
     def __init__(self, registry: Any):
         self.registry = registry
 
-    def sign(self, action: str, args: Optional[Mapping[str, Any]] = None, **kwargs: Any) -> str:
-        return self.registry.sign(action, dict(args or {}), **kwargs)
+    def mint(self, action: str, args: Optional[Mapping[str, Any]] = None, **kwargs: Any) -> str:
+        return self.registry.mint(action, dict(args or {}), **kwargs)
 
     def action(self, name: str, **kwargs: Any) -> Any:
         return self.registry.action(name, **kwargs)
@@ -272,7 +272,7 @@ class RegistryHost:
 
         sign = kwargs.pop("sign", True)
         sub = kwargs.pop("sub", None)
-        cap = self.sign(action, {}, sub=sub) if sign else kwargs.pop("cap", None)
+        cap = self.mint(action, {}, sub=sub) if sign else kwargs.pop("cap", None)
         kwargs.pop("trust", None)
         return form_open(action, cap=cap, **kwargs)
 
@@ -282,7 +282,7 @@ class RegistryHost:
         cap = kwargs.pop("cap", None)
         trust = kwargs.pop("trust", None) or args
         if cap is None and sign:
-            cap = self.sign(
+            cap = self.mint(
                 action,
                 args,
                 **{k: kwargs.pop(k) for k in ("sub", "once", "scopes") if k in kwargs},

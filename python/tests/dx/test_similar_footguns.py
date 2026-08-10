@@ -17,7 +17,7 @@ def test_revalidate_skips_unknown_region_partial_ok():
         return ch.done(refresh=["ok.r", "missing.r"], notice="partial")
 
     r = ch.registry.dispatch(
-        Intent(action="A.partial", args={}, cap=ch.sign("A.partial", {}))
+        Intent(action="A.partial", args={}, cap=ch.mint("A.partial", {}))
     )
     assert r.ok
     assert any(o.get("op") == "morph" and "hello" in str(o.get("html", "")) for o in r.ops)
@@ -33,7 +33,7 @@ def test_revalidate_unknown_only_fails_with_notice_but_keeps_warning_toast():
         return ch.done(refresh=["nope"], notice="only toast")
 
     r = ch.registry.dispatch(
-        Intent(action="A.ghost", args={}, cap=ch.sign("A.ghost", {}))
+        Intent(action="A.ghost", args={}, cap=ch.mint("A.ghost", {}))
     )
     assert not r.ok
     assert r.error and r.error.code == "render_error"
@@ -69,5 +69,5 @@ def test_encode_result_shaped_dict():
 def test_sign_unknown_action_still_mints_but_validates_name():
     ch = Channel.boot(secret=SECRET)
     # does not raise — boot order may mint before register
-    cap = ch.sign("Future.action", {"a": 1})
+    cap = ch.mint("Future.action", {"a": 1})
     assert isinstance(cap, str) and len(cap) > 10

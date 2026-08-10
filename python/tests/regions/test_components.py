@@ -85,7 +85,7 @@ def test_registry_host_without_channel_facade():
     counter = Counter(host, name="Qty", uid="Qty:root", min_value=0).install()
     assert "Qty:root" in counter.render(n=0)
     r = reg.dispatch(
-        Intent(action="Qty.inc", args={"n": 0}, cap=reg.sign("Qty.inc", {"n": 0}))
+        Intent(action="Qty.inc", args={"n": 0}, cap=reg.mint("Qty.inc", {"n": 0}))
     )
     assert r.ok
     assert "1" in r.ops[0]["html"]
@@ -101,7 +101,7 @@ def test_counter_via_channel():
     ch = _ch()
     c = Counter(ch, uid="Shop:qty", min_value=0, max_value=5).install()
     r = ch.registry.dispatch(
-        Intent(action="Counter.inc", args={"n": 1}, cap=ch.sign("Counter.inc", {"n": 1}))
+        Intent(action="Counter.inc", args={"n": 1}, cap=ch.mint("Counter.inc", {"n": 1}))
     )
     assert r.ok
 
@@ -117,7 +117,7 @@ def test_counter_http():
 
     client = TestClient(app)
     assert "Qty:root" in client.get("/").text
-    cap = ch.sign("Qty.inc", {"n": 0})
+    cap = ch.mint("Qty.inc", {"n": 0})
     r = client.post(
         "/ux-channel/action",
         json={"v": "1", "action": "Qty.inc", "args": {"n": 0}, "cap": cap},
@@ -143,7 +143,7 @@ def test_form_validation():
         Intent(
             action="Login.submit",
             form={"email": "x"},
-            cap=ch.sign("Login.submit", {}),
+            cap=ch.mint("Login.submit", {}),
         )
     )
     assert not bad.ok
@@ -151,7 +151,7 @@ def test_form_validation():
         Intent(
             action="Login.submit",
             form={"email": "a@b.co"},
-            cap=ch.sign("Login.submit", {}),
+            cap=ch.mint("Login.submit", {}),
         )
     )
     assert good.ok and any(o.get("op") == "navigate" for o in good.ops)
@@ -171,7 +171,7 @@ def test_modal_flash_badge_tabs():
         Intent(
             action="Tabs.select",
             args={"active": "b"},
-            cap=ch.sign("Tabs.select", {"active": "b"}),
+            cap=ch.mint("Tabs.select", {"active": "b"}),
         )
     )
     assert r.ok and "B" in r.ops[0]["html"]
@@ -191,7 +191,7 @@ def test_list_view():
         Intent(
             action="Cat.page",
             args={"q": "", "page": 2},
-            cap=ch.sign("Cat.page", {"q": "", "page": 2}),
+            cap=ch.mint("Cat.page", {"q": "", "page": 2}),
         )
     )
     assert r.ok and "item-10" in r.ops[0]["html"]
@@ -209,13 +209,13 @@ def test_wizard():
         on_finish=lambda data: ch.redirect("/done"),
     ).install()
     assert not ch.registry.dispatch(
-        Intent(action="On.next", args={"step": 0}, cap=ch.sign("On.next", {"step": 0}))
+        Intent(action="On.next", args={"step": 0}, cap=ch.mint("On.next", {"step": 0}))
     ).ok
     assert ch.registry.dispatch(
         Intent(
             action="On.next",
             args={"step": 0, "f": "x"},
-            cap=ch.sign("On.next", {"step": 0, "f": "x"}),
+            cap=ch.mint("On.next", {"step": 0, "f": "x"}),
         )
     ).ok
 
@@ -232,10 +232,10 @@ def test_confirm():
         ch, name="Del", uid="Del:btn", on_confirm=do_delete, once=False, use_modal=False
     ).install()
     assert ch.registry.dispatch(
-        Intent(action="Del.ask", args={}, cap=ch.sign("Del.ask", {}))
+        Intent(action="Del.ask", args={}, cap=ch.mint("Del.ask", {}))
     ).ok
     assert ch.registry.dispatch(
-        Intent(action="Del.run", args={}, cap=ch.sign("Del.run", {}))
+        Intent(action="Del.run", args={}, cap=ch.mint("Del.run", {}))
     ).ok
     assert done["n"] == 1
 
@@ -262,7 +262,7 @@ def test_custom_channel_component():
 
     r = Rating(ch, uid="Rate:root").install()
     out = ch.registry.dispatch(
-        Intent(action="Rating.set", args={"stars": 3}, cap=ch.sign("Rating.set", {"stars": 3}))
+        Intent(action="Rating.set", args={"stars": 3}, cap=ch.mint("Rating.set", {"stars": 3}))
     )
     assert out.ok and "★★★" in out.ops[0]["html"]
 

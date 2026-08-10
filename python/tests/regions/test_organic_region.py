@@ -28,7 +28,7 @@ def test_auto_uid_and_action_with_fn_button():
     assert "cart.badge" in page and "data-channel-action" in page
 
     r = ch.registry.dispatch(
-        Intent(action="add", args={"product_id": "sku"}, cap=ch.sign("add", {"product_id": "sku"}))
+        Intent(action="add", args={"product_id": "sku"}, cap=ch.mint("add", {"product_id": "sku"}))
     )
     assert r.ok
     assert any("1" in o.get("html", "") for o in r.ops if o.get("op") == "morph")
@@ -45,7 +45,7 @@ def test_explicit_still_works():
     def bump():
         return None
 
-    r = ch.registry.dispatch(Intent(action="X.bump", args={}, cap=ch.sign("X.bump", {})))
+    r = ch.registry.dispatch(Intent(action="X.bump", args={}, cap=ch.mint("X.bump", {})))
     assert r.ok
 
 

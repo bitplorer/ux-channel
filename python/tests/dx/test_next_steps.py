@@ -101,7 +101,7 @@ def test_starlette_action_parity():
     app = Starlette()
     mount_channel_starlette(app, reg, config=cfg)
     client = StarletteClient(app)
-    cap = reg.sign("Hi", {})
+    cap = reg.mint("Hi", {})
     res = client.post(
         "/ux-channel/action",
         json={"v": "1", "action": "Hi", "args": {}, "cap": cap},
@@ -151,7 +151,7 @@ def test_e2e_smoke_counter_flow():
     js = c.get("/ux-channel/static/ux-channel.js")
     assert js.status_code == 200 and "uxChannel" in js.text
     assert c.get("/ux-channel/static/ux-channel.min.js").status_code == 200
-    cap = reg.sign("Counter.inc", {"n": 0})
+    cap = reg.mint("Counter.inc", {"n": 0})
     r = c.post(
         "/ux-channel/action",
         json={"v": "1", "action": "Counter.inc", "args": {"n": 0}, "cap": cap},
@@ -161,7 +161,7 @@ def test_e2e_smoke_counter_flow():
     assert body["ok"] and "1" in body["ops"][0]["html"]
     assert body["meta"].get("runtime")
     # second click with new cap
-    cap2 = reg.sign("Counter.inc", {"n": 1})
+    cap2 = reg.mint("Counter.inc", {"n": 1})
     r2 = c.post(
         "/ux-channel/action",
         json={

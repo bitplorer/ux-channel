@@ -43,10 +43,10 @@ def _ch():
 def test_code_counts_and_code_http():
     ch = _ch()
     caps = {
-        "ok": ch.registry.sign("M.ok", {}),
-        "val": ch.registry.sign("M.val", {}),
-        "auth": ch.registry.sign("M.auth", {}),
-        "rate": ch.registry.sign("M.rate", {}),
+        "ok": ch.registry.mint("M.ok", {}),
+        "val": ch.registry.mint("M.val", {}),
+        "auth": ch.registry.mint("M.auth", {}),
+        "rate": ch.registry.mint("M.rate", {}),
     }
     out = dispatch_batch(
         ch.registry,
@@ -84,13 +84,13 @@ def test_all_error_maps_worst_to_http():
                 "v": "1",
                 "action": "M.val",
                 "args": {},
-                "cap": ch.registry.sign("M.val", {}),
+                "cap": ch.registry.mint("M.val", {}),
             },
             {
                 "v": "1",
                 "action": "M.auth",
                 "args": {},
-                "cap": ch.registry.sign("M.auth", {}),
+                "cap": ch.registry.mint("M.auth", {}),
             },
         ],
     )
@@ -110,7 +110,7 @@ def test_map_batch_error_codes_helper():
                 "v": "1",
                 "action": "M.val",
                 "args": {},
-                "cap": ch.registry.sign("M.val", {}),
+                "cap": ch.registry.mint("M.val", {}),
             }
         ],
     )

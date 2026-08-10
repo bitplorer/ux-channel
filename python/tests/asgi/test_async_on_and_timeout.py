@@ -20,7 +20,7 @@ def test_async_on_handler_runs_and_returns_ops():
         return ch.done(notice="pong")
 
     assert inspect.iscoroutinefunction(ch.registry.get("A.ping"))
-    r = ch.registry.dispatch(Intent(action="A.ping", args={}, cap=ch.sign("A.ping", {})))
+    r = ch.registry.dispatch(Intent(action="A.ping", args={}, cap=ch.mint("A.ping", {})))
     assert r.ok
     assert any(o.get("message") == "pong" for o in r.ops)
 
@@ -34,7 +34,7 @@ def test_async_timeout():
         await asyncio.sleep(0.5)
         return ch.done(notice="late")
 
-    r = ch.registry.dispatch(Intent(action="A.slow", args={}, cap=ch.sign("A.slow", {})))
+    r = ch.registry.dispatch(Intent(action="A.slow", args={}, cap=ch.mint("A.slow", {})))
     assert not r.ok
     assert r.error and r.error.code == "timeout"
 
@@ -48,7 +48,7 @@ def test_sync_timeout():
         time.sleep(0.3)
         return ch.done(notice="late")
 
-    r = ch.registry.dispatch(Intent(action="A.sslow", args={}, cap=ch.sign("A.sslow", {})))
+    r = ch.registry.dispatch(Intent(action="A.sslow", args={}, cap=ch.mint("A.sslow", {})))
     assert not r.ok
     assert r.error and r.error.code == "timeout"
 
@@ -68,6 +68,6 @@ def test_paint_failure_skips_region_keeps_others():
     def ref():
         return ch.done(refresh=["good", "bad"], notice="n")
 
-    r = ch.registry.dispatch(Intent(action="A.ref", args={}, cap=ch.sign("A.ref", {})))
+    r = ch.registry.dispatch(Intent(action="A.ref", args={}, cap=ch.mint("A.ref", {})))
     assert r.ok
     assert any(o.get("op") == "morph" and "GOOD" in str(o.get("html")) for o in r.ops)

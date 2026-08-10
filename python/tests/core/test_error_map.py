@@ -78,7 +78,7 @@ def test_fastapi_action_status_uses_map():
     body = res.json()
     assert body.get("ok") is False
 
-    cap = ch.registry.sign("E.val", {})
+    cap = ch.registry.mint("E.val", {})
     res2 = client.post(
         "/ux-channel/action",
         json={"v": "1", "action": "E.val", "args": {}, "cap": cap},

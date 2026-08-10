@@ -16,5 +16,5 @@ canonical serialization + HMAC scheme bytes are frozen from the Python oracle.
 - verify with different qty fails with args_hash mismatch
 - verify after max_age fails with expired
 
-Once the Python `CapabilityService` canonical bytes are extracted, replace
+Once the Python `CapService` canonical bytes are extracted, replace
 this note with concrete token strings and expected error codes.

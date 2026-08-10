@@ -505,7 +505,7 @@ class TestAsgiConcurrentWire(unittest.TestCase):
 
         mount_channel(app, reg, config=cfg)
         client = TestClient(app)
-        cap = reg.sign("Wire.stress", {"n": 5})
+        cap = reg.mint("Wire.stress", {"n": 5})
 
         def hit_json():
             r = client.post(

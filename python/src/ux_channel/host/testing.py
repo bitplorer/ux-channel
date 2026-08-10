@@ -162,7 +162,7 @@ class ChannelTest:
             cap_sub = principal.id or cap_sub
 
         if cap is None and self.sign and getattr(self.registry, "require_cap", True):
-            cap = self.registry.sign(
+            cap = self.registry.mint(
                 action,
                 call_args,
                 once=once,

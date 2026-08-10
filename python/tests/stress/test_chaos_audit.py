@@ -29,11 +29,11 @@ def test_multi_instance_region_actions_use_uid_method():
     assert a.tap.action == "card.a.tap"
     assert b.tap.action == "card.b.tap"
     r = ch.registry.dispatch(
-        Intent(action="card.a.tap", args={}, cap=ch.sign("card.a.tap", {}))
+        Intent(action="card.a.tap", args={}, cap=ch.mint("card.a.tap", {}))
     )
     assert r.ok
     r = ch.registry.dispatch(
-        Intent(action="card.b.tap", args={}, cap=ch.sign("card.b.tap", {}))
+        Intent(action="card.b.tap", args={}, cap=ch.mint("card.b.tap", {}))
     )
     assert r.ok
 
@@ -52,7 +52,7 @@ def test_numeric_uid_segments_valid_action_names():
 
     Card(ch, uid="card.0").mount()
     r = ch.registry.dispatch(
-        Intent(action="card.0.tap", args={}, cap=ch.sign("card.0.tap", {}))
+        Intent(action="card.0.tap", args={}, cap=ch.mint("card.0.tap", {}))
     )
     assert r.ok
 
@@ -64,7 +64,7 @@ def test_form_cannot_override_sealed_trust_args():
     def save(title: str = "", body: str = ""):
         return ch.done(notice=f"{title}|{body}")
 
-    cap = ch.sign("F.save", {"title": "T"})
+    cap = ch.mint("F.save", {"title": "T"})
     r = ch.registry.dispatch(
         Intent(
             action="F.save",
@@ -91,7 +91,7 @@ def test_once_cap_concurrent_single_success():
         hits.append(1)
         return ch.done()
 
-    cap = ch.sign("Pay.go", {}, once=True)
+    cap = ch.mint("Pay.go", {}, once=True)
 
     def go(_: int):
         return ch.registry.dispatch(Intent(action="Pay.go", args={}, cap=cap))
@@ -112,7 +112,7 @@ def test_production_internal_error_does_not_leak_exception():
         raise RuntimeError("password=hunter2")
 
     r = ch.registry.dispatch(
-        Intent(action="X.boom", args={}, cap=ch.sign("X.boom", {}))
+        Intent(action="X.boom", args={}, cap=ch.mint("X.boom", {}))
     )
     assert not r.ok
     assert r.error and "hunter2" not in (r.error.message or "")
@@ -129,7 +129,7 @@ def test_fastapi_action_and_batch_smoke():
         return ch.done(notice=msg)
 
     client = TestClient(app)
-    cap = ch.sign("Echo.hi", {"msg": "yo"})
+    cap = ch.mint("Echo.hi", {"msg": "yo"})
     r = client.post(
         "/ux-channel/action",
         json={"action": "Echo.hi", "args": {"msg": "yo"}, "cap": cap},
@@ -141,8 +141,8 @@ def test_fastapi_action_and_batch_smoke():
         "/ux-channel/batch",
         json={
             "intents": [
-                {"action": "Echo.hi", "args": {"msg": "a"}, "cap": ch.sign("Echo.hi", {"msg": "a"})},
-                {"action": "Echo.hi", "args": {"msg": "b"}, "cap": ch.sign("Echo.hi", {"msg": "b"})},
+                {"action": "Echo.hi", "args": {"msg": "a"}, "cap": ch.mint("Echo.hi", {"msg": "a"})},
+                {"action": "Echo.hi", "args": {"msg": "b"}, "cap": ch.mint("Echo.hi", {"msg": "b"})},
             ]
         },
         headers={"X-UID-Channel": "1"},

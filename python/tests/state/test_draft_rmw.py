@@ -130,8 +130,8 @@ def test_draft_async_with_edit_in_action():
             slot.value += 1
         return ch.done(notice=str(ch.draft.get("n")))
 
-    r = ch.registry.dispatch(Intent(action="A.bump", args={}, cap=ch.sign("A.bump", {})))
+    r = ch.registry.dispatch(Intent(action="A.bump", args={}, cap=ch.mint("A.bump", {})))
     assert r.ok
     assert ch.draft.get("n") == 1
-    r = ch.registry.dispatch(Intent(action="A.bump", args={}, cap=ch.sign("A.bump", {})))
+    r = ch.registry.dispatch(Intent(action="A.bump", args={}, cap=ch.mint("A.bump", {})))
     assert ch.draft.get("n") == 2

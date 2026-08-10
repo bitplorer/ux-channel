@@ -167,7 +167,7 @@ class Agents:
                     sub = None
                     if principal is not None:
                         sub = getattr(principal, "id", None) or str(principal)
-                    tool["cap"] = reg.sign(name, {}, sub=sub)
+                    tool["cap"] = reg.mint(name, {}, sub=sub)
                 except Exception:
                     _log.debug(
                         "tools_for cap sign failed action=%s", name, exc_info=True

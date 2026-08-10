@@ -401,7 +401,7 @@ class TestLiveAsgi(unittest.TestCase):
 
     def _post(self, client, reg, *, n=1, note="x", accept=None):
         args = {"n": n, "note": note}
-        cap = reg.sign("Live.ping", args)
+        cap = reg.mint("Live.ping", args)
         headers = {"X-Channel": "1"}
         if accept:
             headers["Accept"] = accept

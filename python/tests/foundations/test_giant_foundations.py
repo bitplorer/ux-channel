@@ -107,7 +107,7 @@ def test_forensic_replay_captures_morph_html():
         return ch.done(refresh=["b"], notice="ok")
 
     r = ch.registry.dispatch(
-        Intent(action="bump", args={}, cap=ch.sign("bump", {}))
+        Intent(action="bump", args={}, cap=ch.mint("bump", {}))
     )
     assert r.ok
     assert len(store.since(0)) >= 1

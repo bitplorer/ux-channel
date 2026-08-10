@@ -118,7 +118,7 @@ class TestCxbRoundtrip(unittest.TestCase):
 
         mount_channel(app, reg, config=cfg)
         c = TestClient(app)
-        cap = reg.sign("Cxb.ping", {})
+        cap = reg.mint("Cxb.ping", {})
         r = c.post(
             "/ux-channel/action",
             json={"v": "1", "action": "Cxb.ping", "args": {}, "cap": cap},

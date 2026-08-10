@@ -28,7 +28,7 @@ def test_dispatch_async_accepts_principal():
     async def me():
         return ch.done(notice="ok")
 
-    cap = ch.registry.sign("Auth.async", {})
+    cap = ch.registry.mint("Auth.async", {})
 
     async def run():
         denied = await ch.registry.dispatch_async(

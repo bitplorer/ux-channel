@@ -137,7 +137,7 @@ def diagram_sequence_intent():
         (3.7, 5.5, 3.7, "2 size / Origin / rate / client-ver"),
         (3.7, 4.9, 6.2, "3 dispatch_async"),
         (6.2, 4.3, 6.2, "4 name+JSON limits, idempotency"),
-        (6.2, 3.7, 6.2, "5 CapabilityService.verify"),
+        (6.2, 3.7, 6.2, "5 CapService.verify"),
         (6.2, 3.1, 6.2, "6 before hooks → bind ctx/args"),
         (6.2, 2.5, 8.9, "7 invoke handler"),
         (8.9, 1.9, 6.2, "8 raw → encode_result"),
@@ -220,7 +220,7 @@ def diagram_class_core():
           "+ auth_resolver\n---\n"
           "+ @action / register\n+ sign(...) → cap\n"
           "+ dispatch / dispatch_async\n+ bind_request")
-    klass(4.0, 0.35, 3.3, 3.7, "CapabilityService",
+    klass(4.0, 0.35, 3.3, 3.7, "CapService",
           "+ sign(action, args,\n    sub?, scopes?, once?)\n"
           "+ verify(token, action, args)\n"
           "+ previous_secrets (rotation)\n---\n"

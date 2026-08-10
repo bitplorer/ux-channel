@@ -182,7 +182,7 @@ def test_action_return_variants():
         return Result.success(notice="ok")
 
     for name in ("a_none", "a_str", "a_result"):
-        r = ch.registry.dispatch(Intent(action=name, args={}, cap=ch.sign(name, {})))
+        r = ch.registry.dispatch(Intent(action=name, args={}, cap=ch.mint(name, {})))
         assert r.ok
 
 
@@ -199,7 +199,7 @@ def test_async_action():
     async def ainc():
         n.add(1)
 
-    r = ch.registry.dispatch(Intent(action="ainc", args={}, cap=ch.sign("ainc", {})))
+    r = ch.registry.dispatch(Intent(action="ainc", args={}, cap=ch.mint("ainc", {})))
     assert r.ok
     assert n.peek() == 1
 
@@ -414,6 +414,6 @@ def test_action_with_client_set_via_done_merge():
         # @st.action uses bag.done not ChannelState.done — client may not merge
         return st.done()  # explicit ChannelState.done
 
-    r = ch.registry.dispatch(Intent(action="theme", args={}, cap=ch.sign("theme", {})))
+    r = ch.registry.dispatch(Intent(action="theme", args={}, cap=ch.mint("theme", {})))
     assert r.ok
     assert any(o.get("op") == "signal.set" for o in r.ops)

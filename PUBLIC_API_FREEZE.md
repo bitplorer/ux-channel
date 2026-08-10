@@ -13,7 +13,7 @@ from ux_channel import (
     Channel, ChannelConfig, Region,
     agents, state, attach_audit,
     Intent, Result, ErrorObject,     # protocol types
-    CapabilityError, CapabilityService,
+    CapError, CapService,
 )
 from ux_channel.wire import encode, decode, dumps, loads, configure_wire
 from ux_channel.ops import (         # public op builders
@@ -64,8 +64,8 @@ CXB frame details live in package `docs/core/CXB.md` (already treated as normati
 ## 4. Capability surface
 
 - `ch.control` (primary mint path for apps)
-- `CapabilityService` public mint / verify
-- `CapabilityError`
+- `CapService` public mint / verify
+- `CapError`
 - Documented attenuation helpers (`ux_channel.attenuate`)
 
 ---

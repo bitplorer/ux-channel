@@ -86,7 +86,7 @@ def test_scanner_button_agent_same_action():
         Intent(
             action="add_line",
             args={"sku": args.get("sku") or payload["sku"]},
-            cap=ch.sign("add_line", {"sku": payload["sku"]}),
+            cap=ch.mint("add_line", {"sku": payload["sku"]}),
         )
     )
     assert r2.ok and cart["B"] == 1

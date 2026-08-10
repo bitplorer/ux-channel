@@ -17,7 +17,7 @@ from ux_channel import (
     morph,
     toast,
 )
-from ux_channel.capability import CapabilityService
+from ux_channel.capability import CapService
 from ux_channel.config import ChannelConfig
 from ux_channel.context import Principal as P
 from ux_channel.types import Intent
@@ -25,8 +25,8 @@ from ux_channel.types import Intent
 
 def test_principal_bound_cap():
     secret = "test-secret-key-32chars-minimum!!"
-    caps = CapabilityService(secret)
-    tok = caps.sign("A", {}, sub="user-1", scopes=["read"])
+    caps = CapService(secret)
+    tok = caps.mint("A", {}, sub="user-1", scopes=["read"])
     data = caps.verify(tok, "A", {}, expected_sub="user-1", required_scopes=["read"])
     assert data["sub"] == "user-1"
     with pytest.raises(Exception):
@@ -42,7 +42,7 @@ def test_nonce_once_cap():
     def once():
         return Result.success(toast("ok"))
 
-    cap = reg.sign("Once", {}, once=True)
+    cap = reg.mint("Once", {}, once=True)
     # extract jti via verify
     data = reg._caps.verify(cap, "Once", {})
     assert data.get("jti")
@@ -136,7 +136,7 @@ def test_sse_action_endpoint():
 
     mount_channel(app, reg, config=cfg)
     client = TestClient(app)
-    cap = reg.sign("S", {})
+    cap = reg.mint("S", {})
     res = client.post(
         "/ux-channel/action",
         json={"v": "1", "action": "S", "args": {}, "cap": cap, "accept_stream": True},

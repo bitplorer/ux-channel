@@ -14,9 +14,9 @@ Ask: **what job does this do?** Then match the table. If two spellings exist, th
 | Intent (what you want) | Preferred name | Also valid (same thing) | Never means |
 |------------------------|----------------|-------------------------|-------------|
 | One morphable DOM slot | **`Region`** | `@ch.region` function | RegionBook, Bridge |
-| Registry of all slots on a Channel | **region registry** / **`RegionRegistry`** | `RegionBook`, `ch.regions` | a single Region |
+| Registry of all slots on a Channel | **region registry** / **`RegionBook`** | `RegionBook`, `ch.regions` | a single Region |
 | Discover region classes on disk | **`RegionDirectory`** | — | RegionBook itself |
-| Create a capability token | **`mint`** | Python `sign` (alias; identical) | verify |
+| Create a capability token | **`mint`** | — (use mint only; Rust-parity) | verify |
 | Check a capability token | **`verify`** | — | mint |
 | App-facing channel object | **`Channel`** | — | RegionBook |
 | Client instruction in a Result | **`op`** / builders `morph`, `toast` | — | action |
@@ -32,46 +32,31 @@ Ask: **what job does this do?** Then match the table. If two spellings exist, th
 
 ---
 
-## 2. Dual names that are **intentionally** the same function
+## 2. Shared with Rust — **one name only** (Rust is source of truth)
 
-### mint ≡ sign (capability create)
+Where both languages implement the same law, **Python uses Rust names**.
+No second guess, no dual product speech.
 
-| | |
-|--|--|
-| **Intent** | Issue a capability token for an action + sealed args |
-| **Preferred speech** | **mint** (matches Rust `CapService::mint`, product docs) |
-| **Python historical** | `CapabilityService.sign` (itsdangerous heritage) |
-| **Rule** | `mint(...)` and `sign(...)` are **one implementation**. Prefer **mint** in new code. |
+| Rust | Python | Role |
+|------|--------|------|
+| `CapService` | `CapService` | Cap crypto service |
+| `CapService::mint` | `CapService.mint` / `ch.mint` / `registry.mint` | Create cap |
+| `CapService::verify` | `CapService.verify` | Verify cap |
+| `CapService::hash_args` | `CapService.hash_args` | args_hash algorithm |
+| `CapError` | `CapError` | Cap failure |
+| `Intent` | `Intent` | Request IR |
+| `ResultDoc` | `Result` | Response IR (same wire shape) |
+| `encode_cxb` / `decode_cxb` | `wire` / `cxb` codecs | CXB |
 
-```python
-cap = svc.mint("Cart.add", {"sku": "a", "qty": 1})  # preferred
-cap = svc.sign("Cart.add", {"sku": "a", "qty": 1})  # identical
-```
-
-### RegionRegistry ≡ RegionBook (slot registry)
-
-| | |
-|--|--|
-| **Intent** | Hold every region uid → render on a Channel |
-| **Preferred speech** | **region registry** |
-| **Type names** | `RegionRegistry` (clear) = `RegionBook` (historical) |
-| **Attribute** | `ch.regions` |
-| **Rule** | Same class object. **Not** a rename of `Region`. |
+Host-only types (no Rust twin) keep Python names: `Region`, `RegionBook`, `Channel`, …
 
 ```python
-assert RegionRegistry is RegionBook
-# everyday apps: use Region; the book is ch.regions
+from ux_channel import CapService, CapError, Intent, Result, Region, RegionBook
+
+svc = CapService(secret)
+token = svc.mint("Cart.add", {"sku": "a", "qty": 1})
+svc.verify(token, action="Cart.add", args={"sku": "a", "qty": 1})
 ```
-
-### day1 ≡ subset of root exports
-
-| | |
-|--|--|
-| **Intent** | Import only the frozen app surface |
-| **Preferred** | `from ux_channel.day1 import Channel, Region, …` |
-| **Also fine** | `from ux_channel import Channel, Region` (same objects) |
-
----
 
 ## 3. Package names vs module names (no shadowing)
 
@@ -93,7 +78,7 @@ Legacy shims keep `from ux_channel.security import safe_href` working.
 
 ```text
 Product speech     Region, mint cap, action, refresh
-Type / API names   Region, RegionRegistry, CapabilityService.mint
+Type / API names   Region, RegionBook, CapService.mint
 Wire keys          op, ok, error, data-channel-id   (immortal — never “rename for taste”)
 Package paths      host.regions, protocol.capability
 ```
@@ -119,7 +104,7 @@ Wire keys are **not** renamed to match prose. Prose maps *to* wire keys in TERMI
 | If you say… | You should write… |
 |-------------|-------------------|
 | “this badge region” | `class Badge(Region)` or `@ch.region` |
-| “refresh all registered slots” | `ch.regions` / RegionRegistry |
+| “refresh all registered slots” | `ch.regions` / RegionBook |
 | “issue a cap” | `svc.mint(...)` |
 | “check the cap” | `svc.verify(...)` |
 | “chart.js island” | Bridge, not Region |

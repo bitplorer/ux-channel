@@ -101,7 +101,7 @@ Wire/parse failures return a Result `{ ok:false, error, meta }` — never a bare
 
 ## Cap compatibility
 
-Matches Python `CapabilityService` / `itsdangerous.URLSafeTimedSerializer`:
+Matches Python `CapService` / `itsdangerous.URLSafeTimedSerializer`:
 
 - salt `ux-channel-cap`
 - django-concat key derivation + HMAC-SHA1

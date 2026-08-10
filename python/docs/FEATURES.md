@@ -124,7 +124,7 @@ coerced to Result/ops.
 |--|--|
 | **What** | Sign / verify capability tokens bound to actions and principals |
 | **Use when** | Always in production; any Intent without a valid cap fails closed |
-| **API** | `CapabilityService`, `CapabilityError`; attenuation helpers |
+| **API** | `CapService`, `CapError`; attenuation helpers |
 | **Implements** | `capability.py`, `attenuate.py`, `tree_cap.py`, `nonce.py` |
 | **Config** | Channel secret; cap TTL / scope options on config |
 | **Tests** | `tests/security/`, `tests/core/` |

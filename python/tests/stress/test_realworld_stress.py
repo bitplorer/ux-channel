@@ -204,7 +204,7 @@ def test_concurrent_adds_stress():
     ch.registry.hooks.before.clear()
 
     def one(i: int):
-        cap = ch.sign("Cart.add", {"product_id": "p1", "user_id": "u1"})
+        cap = ch.mint("Cart.add", {"product_id": "p1", "user_id": "u1"})
         r = ch.registry.dispatch(
             Intent(action="Cart.add", args={"product_id": "p1", "user_id": "u1"}, cap=cap)
         )
@@ -227,7 +227,7 @@ def test_bulkhead_under_burst():
         return Result.success()
 
     def hit(_):
-        cap = ch.sign("Slow.ok", {})
+        cap = ch.mint("Slow.ok", {})
         return ch.registry.dispatch(Intent(action="Slow.ok", args={}, cap=cap))
 
     with ThreadPoolExecutor(20) as ex:

@@ -40,7 +40,7 @@ def test_memory_intent_sync_pubsub_style():
     def go():
         return ch.done(notice="n")
 
-    ch.registry.dispatch(Intent(action="go", args={}, cap=ch.sign("go", {})))
+    ch.registry.dispatch(Intent(action="go", args={}, cap=ch.mint("go", {})))
     assert "go" in seen
 
 
@@ -63,7 +63,7 @@ def test_redis_intent_sync_with_fakeredis():
     def act():
         return ch.done(notice="z")
 
-    ch.registry.dispatch(Intent(action="act", args={}, cap=ch.sign("act", {})))
+    ch.registry.dispatch(Intent(action="act", args={}, cap=ch.mint("act", {})))
     deadline = time.time() + 2.0
     while time.time() < deadline and not remote_seen:
         time.sleep(0.05)

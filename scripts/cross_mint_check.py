@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Prove Python CapabilityService and Rust uxc_peer share cap crypto.
+"""Prove Python CapService and Rust uxc_peer share cap crypto.
 
 Requires live peer (demo oracle). Exit 0 on success.
   UXC peer must use the same oracle secret (startup-peer.sh).
@@ -15,7 +15,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "python"))
 
-from ux_channel.capability import CapabilityService  # noqa: E402
+from ux_channel.capability import CapService  # noqa: E402
 
 BASE = sys.argv[1] if len(sys.argv) > 1 else "http://127.0.0.1:8787"
 ORACLE = "conformance-oracle-secret-32chars!!"
@@ -41,7 +41,7 @@ def http_json(method: str, path: str, body=None):
 
 
 def main() -> int:
-    svc = CapabilityService(ORACLE, max_age=3600)
+    svc = CapService(ORACLE, max_age=3600)
     st, _ = http_json("GET", "/ux-channel/health")
     if st != 200:
         print("cross_mint: peer not healthy", st, file=sys.stderr)
@@ -49,7 +49,7 @@ def main() -> int:
 
     # Python → Rust
     args = {"sku": "cross-py", "qty": 2}
-    token = svc.sign("Cart.add", args, sub="user:cross", scopes=["cart:write"])
+    token = svc.mint("Cart.add", args, sub="user:cross", scopes=["cart:write"])
     st, result = http_json(
         "POST",
         "/ux-channel/action",

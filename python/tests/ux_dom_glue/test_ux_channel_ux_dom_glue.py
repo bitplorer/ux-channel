@@ -5,7 +5,7 @@ from __future__ import annotations
 from fastapi import FastAPI
 
 from ux_channel import Channel, ChannelConfig
-from ux_channel.capability import CapabilityService
+from ux_channel.capability import CapService
 from ux_channel.attenuate import attenuate
 from ux_channel_ux_dom import compile_ux_dom, control_ux_dom, paint_ux_dom_region, tree_to_dict
 from ux_channel_ux_dom.tree import attenuate_control

@@ -45,7 +45,7 @@ import logging
 import time
 from typing import Optional, Any, Callable, Mapping, Optional, Sequence, TYPE_CHECKING
 
-from ux_channel.capability import CapabilityError, CapabilityService
+from ux_channel.capability import CapError, CapService
 from ux_channel.context import ActionContext, AuthResolver, Principal
 from ux_channel.encode import Navigate, encode_result
 from ux_channel.errors import ActionError
@@ -133,7 +133,7 @@ class ActionRegistry:
     ):
         self._actions: dict[str, ActionHandler] = {}
         self._action_meta: dict[str, dict[str, Any]] = {}
-        self._caps = CapabilityService(secret, max_age=max_cap_age, previous_secrets=previous_secrets)
+        self._caps = CapService(secret, max_age=max_cap_age, previous_secrets=previous_secrets)
         self._renderer = renderer or ChainRenderer(StringRenderer())
         self.require_cap = require_cap
         self.max_html_bytes = max_html_bytes
@@ -330,13 +330,13 @@ class ActionRegistry:
     def after(self, fn: AfterHook) -> AfterHook:
         return self.hooks.add_after(fn)
 
-    def sign(
+    def mint(
         self,
         action: str,
         args: Optional[Mapping[str, Any]] = None,
         **extra: Any,
     ) -> str:
-        """Sign capability; pass sub=, scopes=, once= as kwargs into CapabilityService."""
+        """Sign capability; pass sub=, scopes=, once= as kwargs into CapService."""
         action = validate_action_name(action)
         if action not in self._actions:
             # Cap can be minted before handler registration in some boot orders;
@@ -349,7 +349,7 @@ class ActionRegistry:
         scopes = extra.pop("scopes", None)
         once = extra.pop("once", False)
         jti = extra.pop("jti", None)
-        return self._caps.sign(
+        return self._caps.mint(
             action,
             args,
             extra=extra or None,
@@ -359,8 +359,8 @@ class ActionRegistry:
             jti=jti,
         )
 
-    def sign_loose(self, action: str, **extra: Any) -> str:
-        return self.sign(action, {}, **extra)
+    def mint_loose(self, action: str, **extra: Any) -> str:
+        return self.mint(action, {}, **extra)
 
     def bind_request(self, request: Any) -> None:
         """Host calls this before dispatch so auth_resolver can read the request.
@@ -596,16 +596,16 @@ class ActionRegistry:
                 if cap_data.get("once"):
                     jti = cap_data.get("jti")
                     if not jti:
-                        raise CapabilityError("once capability missing jti")
+                        raise CapError("once capability missing jti")
                     if self.nonce_store is None:
-                        raise CapabilityError(
+                        raise CapError(
                             "once capability requires nonce_store "
                             "(configure MemoryNonceStore or RedisNonceStore)"
                         )
                     if not self.nonce_store.use_once(
                         f"cap:{jti}", ttl_s=float(self._caps._max_age)
                     ):
-                        raise CapabilityError("capability replay (nonce)")
+                        raise CapError("capability replay (nonce)")
                 tr.emit(
                     FrameKind.CAP_OK,
                     "capability verified",
@@ -616,7 +616,7 @@ class ActionRegistry:
                 # Cap subject can identify actor when no principal was resolved
                 if principal is None and cap_data.get("sub"):
                     principal = Principal(id=str(cap_data["sub"]))
-            except CapabilityError as exc:
+            except CapError as exc:
                 _sec("cap_fail", action=getattr(intent, "action", ""), reason=str(exc))
                 tr.emit(
                     FrameKind.CAP_FAIL,

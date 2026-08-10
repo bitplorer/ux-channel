@@ -263,7 +263,7 @@ def scenario_action_mix(client: Any, slo: SloConfig, **kw: Any) -> ScenarioResul
     )
     signer = None
     if ch is not None:
-        signer = lambda name: ch.sign(name)
+        signer = lambda name: ch.mint(name)
     elif secret:
         from ux_channel.config import ChannelConfig
         from ux_channel.registry import ActionRegistry
@@ -275,7 +275,7 @@ def scenario_action_mix(client: Any, slo: SloConfig, **kw: Any) -> ScenarioResul
                 require_cap=True,
             )
         )
-        signer = lambda name: reg.sign(name, {})
+        signer = lambda name: reg.mint(name, {})
 
     latencies: list[float] = []
     ok_n = err_n = 0

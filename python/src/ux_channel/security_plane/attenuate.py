@@ -6,7 +6,7 @@ PUBLIC / PRIVATE
 =================================================================
 * **Power public:** ``from ux_channel.attenuate import attenuate, verify_attenuated``
 * Law: scopes/caveats of a child ⊆ parent; never widen.
-* Pairs with ``tree_cap`` (document-shaped envelopes) and ``CapabilityService``.
+* Pairs with ``tree_cap`` (document-shaped envelopes) and ``CapService``.
 """
 
 
@@ -17,12 +17,12 @@ import json
 from dataclasses import dataclass, field
 from typing import Any, Mapping, Optional, Sequence
 
-from ux_channel.capability import CapabilityError, CapabilityService
+from ux_channel.capability import CapError, CapService
 
 __all__ = ["AttenuationError", "CapEnvelope", "attenuate", "verify_attenuated"]
 
 
-class AttenuationError(CapabilityError):
+class AttenuationError(CapError):
     """Child cap would widen parent authority."""
 
 
@@ -53,7 +53,7 @@ def _caveat_set(scopes: Optional[Sequence[str]]) -> set[str]:
 
 
 def attenuate(
-    caps: CapabilityService,
+    caps: CapService,
     action: str,
     args: Optional[Mapping[str, Any]] = None,
     *,
@@ -98,7 +98,7 @@ def attenuate(
     if cave:
         extra_out["caveats"] = list(cave)
 
-    return caps.sign(
+    return caps.mint(
         action,
         args,
         extra=extra_out or None,
@@ -109,7 +109,7 @@ def attenuate(
 
 
 def verify_attenuated(
-    caps: CapabilityService,
+    caps: CapService,
     token: str,
     action: str,
     args: Optional[Mapping[str, Any]] = None,

@@ -16,7 +16,7 @@ def test_after_none_keeps_result():
     def broken(intent, result):
         return None
 
-    r = ch.registry.dispatch(Intent(action="A.ok", args={}, cap=ch.sign("A.ok", {})))
+    r = ch.registry.dispatch(Intent(action="A.ok", args={}, cap=ch.mint("A.ok", {})))
     assert r.ok
     assert r.ops
 
@@ -32,7 +32,7 @@ def test_after_dict_ignored():
     def broken(intent, result):
         return {"ok": True}
 
-    r = ch.registry.dispatch(Intent(action="B.ok", args={}, cap=ch.sign("B.ok", {})))
+    r = ch.registry.dispatch(Intent(action="B.ok", args={}, cap=ch.mint("B.ok", {})))
     assert r.ok
     assert hasattr(r, "ops")
 

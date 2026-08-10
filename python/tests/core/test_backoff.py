@@ -78,7 +78,7 @@ def test_batch_records_exponential_delays():
 
     out = dispatch_batch(
         ch.registry,
-        [{"v": "1", "action": "B.exp", "args": {}, "cap": ch.registry.sign("B.exp", {})}],
+        [{"v": "1", "action": "B.exp", "args": {}, "cap": ch.registry.mint("B.exp", {})}],
         retry_retryable=True,
         max_retries=3,
         retry_backoff_ms=10,
@@ -110,7 +110,7 @@ def test_batch_fixed_still_works():
 
     out = dispatch_batch(
         ch.registry,
-        [{"v": "1", "action": "B.fix", "args": {}, "cap": ch.registry.sign("B.fix", {})}],
+        [{"v": "1", "action": "B.fix", "args": {}, "cap": ch.registry.mint("B.fix", {})}],
         retry_retryable=True,
         max_retries=1,
         retry_backoff_ms=0,  # no sleep in tests

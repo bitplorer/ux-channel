@@ -33,7 +33,7 @@ def test_channel_boot_and_action_cycle():
         return ch.patch("Counter:root", view(n + 1), notice=f"n={n+1}")
 
     c = TestClient(app)
-    cap = ch.sign("Counter.inc", {"n": 0})
+    cap = ch.mint("Counter.inc", {"n": 0})
     r = c.post(
         "/ux-channel/action",
         json={"v": "1", "action": "Counter.inc", "args": {"n": 0}, "cap": cap},

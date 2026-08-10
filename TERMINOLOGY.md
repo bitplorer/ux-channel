@@ -179,13 +179,13 @@ Terms are grouped: **big picture → messages → security → wire → HTTP →
 
 **You almost always mean this word when you say “a region.”**
 
-### RegionBook / RegionRegistry (Python host) — **the registry**
+### RegionBook / RegionBook (Python host) — **the registry**
 
 | | |
 |--|--|
 | **Is** | The **book of all regions** on a Channel: `uid → render` (`ch.regions`). |
-| **Type** | Class `RegionBook` **≡** `RegionRegistry` (alias) — different type from `Region`. |
-| **Preferred speech** | “region registry”; type name `RegionRegistry` or historical `RegionBook`. |
+| **Type** | Class `RegionBook` **≡** `RegionBook` (alias) — different type from `Region`. |
+| **Preferred speech** | “region registry”; type name `RegionBook` or historical `RegionBook`. |
 | **Does** | After an action, re-runs selected renders and builds **morph** ops. |
 | **Not** | Not a single slot; not a rename of `Region`. |
 | **Import** | Usually via `ch.regions` — you rarely construct it yourself. |
@@ -226,7 +226,7 @@ RegionBook = the whole book (registry on the channel)
 | | |
 |--|--|
 | **Is** | The mint/verify engine (itsdangerous-compatible in Cap 0.1). |
-| **Does** | Issue + check tokens. **Rust:** `mint`/`verify`. **Python host:** `sign`/`verify`. |
+| **Does** | Issue + check tokens. **Rust:** `mint`/`verify`. **Python host:** `mint`/`verify`. |
 | **Not** | Not HTTP itself; peer gate calls it before handlers. |
 
 ### Mint
@@ -234,24 +234,9 @@ RegionBook = the whole book (registry on the channel)
 | | |
 |--|--|
 | **Is** | **Create** a capability token (preferred product speech). |
-| **Python** | `CapabilityService.mint` — **identical** to `sign`. |
+| **Python** | `CapService.mint` / `ch.mint` / `registry.mint` |
 | **Rust** | `CapService::mint`. |
 | **Not** | Not verify. Prefer **mint** in new docs/code. |
-
-### Sign (Python cap create)
-
-| | |
-|--|--|
-| **Is** | Historical Python name for **mint** (same method body). |
-| **Prefer** | `mint` for parity with Rust and product speech. |
-
-
-| | |
-|--|--|
-| **Is** | Creating a new capability token for `(action, sealed args, …)`. |
-| **Does** | Hashes args, builds payload (`action`, `args_hash`, `iat`, …), signs it. |
-| **Not** | Not the action itself. Mint is permission issuance; action is execution. |
-| **Where** | Dev HTTP: `POST /ux-channel/mint`. Rust: `Peer::mint_cap` / `CapService::mint`. Python: `CapabilityService.sign` / `verify`. |
 
 ### Verify (cap gate)
 

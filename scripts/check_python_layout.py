@@ -57,7 +57,7 @@ def main() -> int:
     from ux_channel import Channel, Region, Intent, Result  # noqa: WPS433
     from ux_channel.protocol import PACKAGE as proto  # noqa: WPS433
     from ux_channel.host import PACKAGE as host  # noqa: WPS433
-    from ux_channel.capability import CapabilityService  # noqa: WPS433
+    from ux_channel.capability import CapService  # noqa: WPS433
     from ux_channel.host.dx import Channel as Ch2  # noqa: WPS433
     assert Channel is Ch2
     assert proto == "protocol" and host == "host"
@@ -65,7 +65,7 @@ def main() -> int:
     assert "protocol" in ZONES and "host" in ZONES
     _ = help_all()
     # cap algorithm lock
-    h = CapabilityService("conformance-oracle-secret-32chars!!")._hash_args(
+    h = CapService("conformance-oracle-secret-32chars!!")._hash_args(
         {"sku": "abc-123", "qty": 2}
     )
     assert h == "96e4f83e3793b646323a67f314b51044", h

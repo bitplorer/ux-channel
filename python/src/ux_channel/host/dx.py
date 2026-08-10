@@ -643,13 +643,13 @@ class Channel:
         self.registry.register(name, fn, **kwargs)
         return fn
 
-    def sign(
+    def mint(
         self,
         action: str,
         args: Optional[Mapping[str, Any]] = None,
         **kwargs: Any,
     ) -> str:
-        return self.registry.sign(action, dict(args or {}), **kwargs)
+        return self.registry.mint(action, dict(args or {}), **kwargs)
 
     def sign_push(
         self,
@@ -755,7 +755,7 @@ class Channel:
         action_name, target = self._resolve_action_target(action, target)
         tgt = sel(target) if target and not str(target).startswith(("[", "#", ".")) else target
         if cap is None and mint_cap:
-            cap = self.registry.sign(
+            cap = self.registry.mint(
                 action_name, sealed, sub=sub, once=once, scopes=list(scopes) if scopes else None
             )
         return ControlAttrs(action=action_name, trust=sealed, cap=cap, target=tgt, extra=extra)

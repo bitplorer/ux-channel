@@ -186,7 +186,7 @@ class TestAsgiWire(unittest.TestCase):
 
         mount_channel(app, reg, config=cfg)
         c = TestClient(app)
-        cap = reg.sign("W.ping", {})
+        cap = reg.mint("W.ping", {})
         r = c.post(
             "/ux-channel/action",
             json={"v": "1", "action": "W.ping", "args": {}, "cap": cap},
@@ -219,7 +219,7 @@ class TestAsgiWire(unittest.TestCase):
 
         mount_channel(app, reg, config=cfg)
         c = TestClient(app)
-        cap = reg.sign("W.bin", {})
+        cap = reg.mint("W.bin", {})
         body = msgpack.packb(
             {"v": "1", "action": "W.bin", "args": {}, "cap": cap}, use_bin_type=True
         )

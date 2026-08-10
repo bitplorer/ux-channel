@@ -39,7 +39,7 @@ def test_retry_recovers_flaky_action():
             return Result.failure("rate_limited", "wait", retryable=True)
         return ch.done(notice="ok")
 
-    cap = ch.registry.sign("R.flaky", {})
+    cap = ch.registry.mint("R.flaky", {})
     out = dispatch_batch(
         ch.registry,
         [{"v": "1", "action": "R.flaky", "args": {}, "cap": cap}],
@@ -67,7 +67,7 @@ def test_retry_disabled_by_default():
         hits["n"] += 1
         return Result.failure("rate_limited", "wait", retryable=True)
 
-    cap = ch.registry.sign("R.once", {})
+    cap = ch.registry.mint("R.once", {})
     out = dispatch_batch(
         ch.registry,
         [{"v": "1", "action": "R.once", "args": {}, "cap": cap}],
@@ -90,7 +90,7 @@ def test_non_retryable_not_retried():
         hits["n"] += 1
         return Result.failure("validation", "nope")
 
-    cap = ch.registry.sign("R.val", {})
+    cap = ch.registry.mint("R.val", {})
     out = dispatch_batch(
         ch.registry,
         [{"v": "1", "action": "R.val", "args": {}, "cap": cap}],
@@ -115,7 +115,7 @@ def test_retry_exhausted():
         hits["n"] += 1
         return Result.failure("timeout", "nope", retryable=True)
 
-    cap = ch.registry.sign("R.always", {})
+    cap = ch.registry.mint("R.always", {})
     out = dispatch_batch(
         ch.registry,
         [{"v": "1", "action": "R.always", "args": {}, "cap": cap}],
@@ -155,13 +155,13 @@ def test_mixed_batch_retry_only_retryable():
                 "v": "1",
                 "action": "R.flaky2",
                 "args": {},
-                "cap": ch.registry.sign("R.flaky2", {}),
+                "cap": ch.registry.mint("R.flaky2", {}),
             },
             {
                 "v": "1",
                 "action": "R.val2",
                 "args": {},
-                "cap": ch.registry.sign("R.val2", {}),
+                "cap": ch.registry.mint("R.val2", {}),
             },
         ],
         retry_retryable=True,
@@ -192,7 +192,7 @@ def test_fastapi_batch_retry_body_flags():
         return ch.done()
 
     client = TestClient(app)
-    cap = ch.registry.sign("R.http", {})
+    cap = ch.registry.mint("R.http", {})
     res = client.post(
         "/ux-channel/batch",
         json={

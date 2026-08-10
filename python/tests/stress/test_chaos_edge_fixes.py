@@ -29,7 +29,7 @@ def test_auth_principal_with_default_timeout():
     def me():
         return ch.done(notice="secret")
 
-    cap = ch.registry.sign("Auth.me", {})
+    cap = ch.registry.mint("Auth.me", {})
     denied = ch.registry.dispatch({"v": "1", "action": "Auth.me", "args": {}, "cap": cap})
     assert not denied.ok
 
@@ -47,7 +47,7 @@ def test_navigate_unsafe_is_noop_not_internal():
     def nav():
         return Result.success(navigate("javascript:alert(1)"))
 
-    cap = ch.registry.sign("Nav.bad", {})
+    cap = ch.registry.mint("Nav.bad", {})
     r = ch.registry.dispatch({"v": "1", "action": "Nav.bad", "args": {}, "cap": cap})
     assert r.ok, r.error
     assert not any(o.get("op") == "navigate" for o in r.ops)
@@ -113,7 +113,7 @@ def test_roles_with_principal():
     def admin():
         return ch.done(notice="admin")
 
-    cap = ch.registry.sign("Admin.x", {})
+    cap = ch.registry.mint("Admin.x", {})
     denied = ch.registry.dispatch(
         {"v": "1", "action": "Admin.x", "args": {}, "cap": cap},
         principal=Principal.of("u", roles=["user"]),

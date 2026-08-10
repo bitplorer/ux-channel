@@ -15,7 +15,7 @@ from starlette.testclient import TestClient as StarletteClient
 from ux_channel import ActionRegistry, Go, Result, toast
 from ux_channel.asgi.fastapi import mount_channel
 from ux_channel.asgi.starlette import mount_channel as mount_starlette
-from ux_channel.capability import CapabilityService
+from ux_channel.capability import CapService
 from ux_channel.config import ChannelConfig
 from ux_channel.encode import encode_result
 from ux_channel.nonce import MemoryNonceStore
@@ -35,7 +35,7 @@ def test_once_cap_concurrent_single_winner():
         hits.append(1)
         return Result.success(toast("ok"))
 
-    cap = reg.sign("Once.x", {}, once=True)
+    cap = reg.mint("Once.x", {}, once=True)
 
     def run(_: int) -> bool:
         return reg.dispatch(Intent(action="Once.x", args={}, cap=cap)).ok
@@ -128,7 +128,7 @@ def test_starlette_client_version_gate():
     reg = ActionRegistry.from_config(cfg)
     reg.register("Ping", lambda: Result.success(toast("p")))
     mount_starlette(app, reg, config=cfg)
-    cap = reg.sign("Ping", {})
+    cap = reg.mint("Ping", {})
     r = StarletteClient(app).post(
         "/ux-channel/action",
         json={"v": "1", "action": "Ping", "args": {}, "cap": cap},
@@ -184,7 +184,7 @@ def test_previous_secrets_rotation_roundtrip():
 def test_once_cap_requires_nonce_store():
     reg = ActionRegistry(secret=SECRET, require_cap=True)  # no nonce store
     reg.register("Pay", lambda: Result.success(toast("x")))
-    cap = reg.sign("Pay", {}, once=True)
+    cap = reg.mint("Pay", {}, once=True)
     r = reg.dispatch(Intent(action="Pay", args={}, cap=cap))
     assert not r.ok
     assert r.error and "nonce" in r.error.message.lower()

@@ -1,5 +1,5 @@
 """
-Capability tokens — HMAC authority for browser→server Intents.
+Cap tokens — HMAC authority (Rust-parity: CapService, mint, verify, CapError) for browser→server Intents.
 
 First principles
 ----------------
@@ -12,7 +12,7 @@ server-minted, HMAC-signed token that binds:
 - optional once-jti (single use with nonce store)
 - expiry
 
-``ch.control(action, trust_sku=...)`` signs a cap; the client sends it back
+``ch.control(action, trust_sku=...)`` mints a cap (Rust: CapService::mint); the client sends it back
 on Intent; the registry verifies before the handler runs.
 
 Trust vs form
@@ -37,13 +37,15 @@ from itsdangerous import BadSignature, SignatureExpired, URLSafeTimedSerializer
 from ux_channel.errors import ChannelError
 
 
-class CapabilityError(ChannelError):
+class CapError(ChannelError):
     """Invalid, expired, or mismatched capability."""
 
 
-class CapabilityService:
+class CapService:
     """
-    HMAC capability tokens bound to action + args hash (+ optional principal).
+    HMAC capability tokens — **Rust-parity name** (``CapService`` / ``mint`` / ``verify``).
+
+    HMAC tokens bound to action + args hash (+ optional principal).
 
     Parameters
     ----------
@@ -79,8 +81,7 @@ class CapabilityService:
                 continue
             self._previous.append(URLSafeTimedSerializer(secret_key=prev, salt=salt))
 
-    def sign(
-        # Prefer mint() in new speech — identical implementation.
+    def mint(
         self,
         action: str,
         args: Optional[Mapping[str, Any]] = None,
@@ -95,7 +96,7 @@ class CapabilityService:
             jti = uuid.uuid4().hex
         payload = {
             "action": action,
-            "args_hash": self._hash_args(args or {}),
+            "args_hash": self.hash_args(args or {}),
             "extra": dict(extra or {}),
             "iat": int(time.time()),
             "sub": sub,
@@ -107,29 +108,6 @@ class CapabilityService:
         return self._ser.dumps(payload)
 
 
-    def mint(
-        self,
-        action: str,
-        args: Optional[Mapping[str, Any]] = None,
-        *,
-        extra: Optional[Mapping[str, Any]] = None,
-        sub: Optional[str] = None,
-        scopes: Optional[Sequence[str]] = None,
-        jti: Optional[str] = None,
-        once: bool = False,
-    ) -> str:
-        """Create a capability token — **same function as** ``sign``.
-
-        Naming intent
-        -------------
-        * **mint** — product / Rust speech ("issue a cap")
-        * **sign** — historical Python/itsdangerous speech
-
-        Prefer **mint** in new code and docs so Python and Rust say the same verb.
-        """
-        return self.sign(
-            action, args, extra=extra, sub=sub, scopes=scopes, jti=jti, once=once
-        )
 
     def verify(
         self,
@@ -149,31 +127,34 @@ class CapabilityService:
                 data = ser.loads(token, max_age=age)
                 break
             except SignatureExpired as exc:
-                raise CapabilityError("capability expired — re-render control via ch.control") from exc
+                raise CapError("capability expired — re-render control via ch.control") from exc
             except BadSignature as exc:
                 last_exc = exc
                 continue
         if data is None:
-            raise CapabilityError("invalid capability — use ch.control, do not hand-build caps") from last_exc
+            raise CapError("invalid capability — use ch.control, do not hand-build caps") from last_exc
 
         if data.get("action") != action:
-            raise CapabilityError("capability action mismatch")
-        expected = self._hash_args(args or {})
+            raise CapError("capability action mismatch")
+        expected = self.hash_args(args or {})
         if data.get("args_hash") != expected:
-            raise CapabilityError("capability args mismatch")
+            raise CapError("capability args mismatch")
         if expected_sub is not None:
             if data.get("sub") != expected_sub:
-                raise CapabilityError("capability principal mismatch")
+                raise CapError("capability principal mismatch")
         if required_scopes:
             have = set(data.get("scopes") or [])
             if "*" not in have and not set(required_scopes).issubset(have):
-                raise CapabilityError("capability missing scopes")
+                raise CapError("capability missing scopes")
         return data
 
     @staticmethod
-    def _hash_args(args: Mapping[str, Any]) -> str:
-        # Canonical form is LAW (SPEC + conformance oracle + Rust CapService):
-        # sorted keys, compact separators, default=str. Do NOT use unordered
-        # JSON engines here — key order would break interop.
-        raw = json.dumps(args, sort_keys=True, separators=(",", ":"), default=str)
+    def hash_args(args: Mapping[str, Any] | None = None) -> str:
+        """Rust-parity: ``CapService::hash_args`` — sorted compact JSON, sha256 hex[:32]."""
+        payload = args or {}
+        raw = json.dumps(payload, sort_keys=True, separators=(",", ":"), default=str)
         return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:32]
+
+    # Back-compat for any internal callers still using the old name
+    def _hash_args(self, args: Mapping[str, Any]) -> str:
+        return self.hash_args(args)

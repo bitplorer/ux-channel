@@ -157,7 +157,7 @@ def demo_button(
     action_name, target = ch._resolve_action_target(action, target)
     cap = None
     if mint_cap:
-        cap = ch.registry.sign(action_name, sealed, sub=sub, once=once)
+        cap = ch.registry.mint(action_name, sealed, sub=sub, once=once)
     tgt = (
         sel(target)
         if target and not str(target).startswith(("[", "#", "."))
@@ -207,7 +207,7 @@ def demo_link(
     action_name, target = ch._resolve_action_target(action, target)
     cap = None
     if mint_cap:
-        cap = ch.registry.sign(action_name, sealed, sub=sub, once=once)
+        cap = ch.registry.mint(action_name, sealed, sub=sub, once=once)
     tgt = (
         sel(target)
         if target and not str(target).startswith(("[", "#", "."))
@@ -245,7 +245,7 @@ def demo_form(
     action_name, target = ch._resolve_action_target(action, target)
     cap = None
     if mint_cap:
-        cap = ch.registry.sign(action_name, sealed, sub=sub, once=once)
+        cap = ch.registry.mint(action_name, sealed, sub=sub, once=once)
     extra.pop("trust", None)
     return form_open(
         action_name,

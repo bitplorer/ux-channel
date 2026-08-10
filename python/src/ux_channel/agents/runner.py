@@ -307,7 +307,7 @@ class AgentRunner:
         if self.sign_caps and self.registry.require_cap:
             # agent path: sign with empty extra; principal bound via auth_resolver
             sub = self.session.principal.id if self.session.principal else None
-            cap = self.registry.sign(call.name, args, sub=sub, once=False)
+            cap = self.registry.mint(call.name, args, sub=sub, once=False)
         return Intent(
             action=call.name,
             args=args,

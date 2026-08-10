@@ -47,7 +47,7 @@ def test_classic_region_still_works():
     assert "badge" in b.uid or b.uid
     wire = f"{b.uid}.add"
     assert wire in ch.registry.names()
-    r = ch.registry.dispatch(Intent(action=wire, args={}, cap=ch.sign(wire, {})))
+    r = ch.registry.dispatch(Intent(action=wire, args={}, cap=ch.mint(wire, {})))
     assert r.ok
 
 

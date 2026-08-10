@@ -63,7 +63,7 @@
 | **HIGH** | Async before/after hooks crashed or leaked coroutines on sync dispatch | `asyncio.run` when no running loop |
 | **HIGH** | MCP / agent open without token in bad configs | Always require agent token; prod validate |
 | **MED** | CSRF: JSON POST without custom header | `require_channel_header` (prod default True) |
-| **MED** | Weak capability secrets | Min length on `CapabilityService` |
+| **MED** | Weak capability secrets | Min length on `CapService` |
 | **MED** | `Origin: null` accepted | Denied |
 | **MED** | Unknown region refresh → action `internal` KeyError | Soft-skip missing / failed paints |
 | **MED** | After-hook `return None` wiped `Result` | Ignore non-`Result`; keep prior result |

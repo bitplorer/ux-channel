@@ -43,7 +43,7 @@ from ux_channel.day1 import Channel, Region, state, agents
 # Or by cohesive package
 from ux_channel.host.dx import Channel
 from ux_channel.host.regions import RegionBook
-from ux_channel.protocol.capability import CapabilityService
+from ux_channel.protocol.capability import CapService
 from ux_channel.protocol.types import Intent, Result
 from ux_channel.paint.morph_ir import elem
 from ux_channel.security_plane.security import safe_href
@@ -54,7 +54,7 @@ from ux_channel.security_plane.security import safe_href
 ```python
 from ux_channel import Channel, Region, Intent, Result
 from ux_channel.regions import RegionBook
-from ux_channel.capability import CapabilityService
+from ux_channel.capability import CapService
 ```
 
 These resolve through **compatibility shims** to the cohesive packages.

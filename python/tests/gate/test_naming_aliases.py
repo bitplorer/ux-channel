@@ -1,24 +1,25 @@
-"""Intent-aligned aliases stay identical (naming constitution)."""
-from ux_channel import Region, RegionBook, RegionRegistry
-from ux_channel.capability import CapabilityService
-from ux_channel.day1 import Region as Day1Region, RegionRegistry as Day1Reg
+"""Rust-parity names for shared surface; host types stay distinct."""
+from ux_channel import CapError, CapService, Region, RegionBook
+from ux_channel.day1 import CapService as Day1Cap, Region as Day1Region
 
 
-def test_region_is_not_the_registry():
-    assert Region is not RegionBook
-    assert Region is Day1Region
-
-
-def test_region_registry_is_region_book():
-    assert RegionRegistry is RegionBook
-    assert Day1Reg is RegionBook
-
-
-def test_mint_is_sign():
-    svc = CapabilityService("dev-secret-key-32chars-minimum!!!!")
-    assert svc.mint.__func__ is not None or callable(svc.mint)
+def test_cap_service_rust_parity_names():
+    assert CapService is Day1Cap
+    svc = CapService("dev-secret-key-32chars-minimum!!!!")
+    assert hasattr(svc, "mint") and hasattr(svc, "verify")
+    assert hasattr(CapService, "hash_args")
+    assert not hasattr(svc, "sign")  # no dual — mint only
     token = svc.mint("Counter.inc", {})
-    out = svc.verify(token, action="Counter.inc", args={})
-    assert out["action"] == "Counter.inc"
-    token2 = svc.sign("Counter.inc", {})
-    assert svc.verify(token2, action="Counter.inc", args={})["action"] == "Counter.inc"
+    assert svc.verify(token, action="Counter.inc", args={})["action"] == "Counter.inc"
+    h = CapService.hash_args({"sku": "abc-123", "qty": 2})
+    assert h == "96e4f83e3793b646323a67f314b51044"
+
+
+def test_cap_error_name():
+    assert issubclass(CapError, Exception)
+
+
+def test_region_host_only_names():
+    """Region / RegionBook are host-only; not renamed for Rust (Rust has no twin)."""
+    assert Region is Day1Region
+    assert Region is not RegionBook

@@ -35,7 +35,7 @@ def test_human_and_agent_same_handler():
         return ch.done(refresh=["badge"], notice="+1")
 
     # human-style Intent (as button would send)
-    r1 = ch.registry.dispatch(Intent(action="inc", args={}, cap=ch.sign("inc", {})))
+    r1 = ch.registry.dispatch(Intent(action="inc", args={}, cap=ch.mint("inc", {})))
     assert r1.ok
     assert n.peek() == 1
 
@@ -96,7 +96,7 @@ def test_audit_export_on_attach():
     def poke():
         return ch.done(notice="x")
 
-    ch.registry.dispatch(Intent(action="poke", args={}, cap=ch.sign("poke", {})))
+    ch.registry.dispatch(Intent(action="poke", args={}, cap=ch.mint("poke", {})))
     pack = audit.export()
     assert pack["intents"]
     assert pack["frames"]

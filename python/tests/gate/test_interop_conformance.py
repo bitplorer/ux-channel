@@ -15,7 +15,7 @@ import pytest
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "python" / "src"))
 
-from ux_channel.capability import CapabilityError, CapabilityService  # noqa: E402
+from ux_channel.capability import CapError, CapService  # noqa: E402
 from ux_channel.wire import decode, encode  # noqa: E402
 from ux_channel.wire.cxb import decode_cxb, encode_cxb, is_cxb  # noqa: E402
 
@@ -60,13 +60,13 @@ def test_args_hash_matches_rust_and_oracle_algorithm():
     raw = json.dumps(args, sort_keys=True, separators=(",", ":"), default=str)
     expected = hashlib.sha256(raw.encode("utf-8")).hexdigest()[:32]
     assert expected == "96e4f83e3793b646323a67f314b51044"
-    svc = CapabilityService(ORACLE_SECRET)
+    svc = CapService(ORACLE_SECRET)
     assert svc._hash_args(args) == expected
 
 
 def test_cap_oracle_token_verifies():
     vec = _load_json(CONF / "vectors/cap/02-oracle-token.json")
-    svc = CapabilityService(vec["oracle"]["secret"], max_age=86400 * 365 * 20)
+    svc = CapService(vec["oracle"]["secret"], max_age=86400 * 365 * 20)
     out = svc.verify(
         vec["token"],
         action=vec["payload"]["action"],
@@ -78,12 +78,12 @@ def test_cap_oracle_token_verifies():
 
 
 def test_cap_sign_verify_roundtrip():
-    svc = CapabilityService(ORACLE_SECRET, max_age=3600)
+    svc = CapService(ORACLE_SECRET, max_age=3600)
     args = {"sku": "abc-123", "qty": 2}
-    token = svc.sign("Cart.add", args, sub="user:42", scopes=["cart:write"])
+    token = svc.mint("Cart.add", args, sub="user:42", scopes=["cart:write"])
     payload = svc.verify(token, action="Cart.add", args=args)
     assert payload["action"] == "Cart.add"
-    with pytest.raises(CapabilityError):
+    with pytest.raises(CapError):
         svc.verify(token, action="Cart.add", args={"sku": "abc-123", "qty": 999})
 
 

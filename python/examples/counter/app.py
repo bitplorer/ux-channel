@@ -19,8 +19,8 @@ reg = ActionRegistry.from_config(cfg)
 
 def counter_html(n: int) -> str:
     target = '[data-channel-id="Counter:root"]'
-    cap_inc = reg.sign("Counter.inc", {"n": n})
-    cap_dec = reg.sign("Counter.dec", {"n": n})
+    cap_inc = reg.mint("Counter.inc", {"n": n})
+    cap_dec = reg.mint("Counter.dec", {"n": n})
     return f"""<div data-channel-id="Counter:root" class="counter" style="display:flex;gap:.75rem;align-items:center;font:20px system-ui">
   <button type="button" {action_attrs("Counter.dec", args={"n": n}, cap=cap_dec, target=target)}>−</button>
   <span style="min-width:2rem;text-align:center">{n}</span>
@@ -63,7 +63,7 @@ mount_channel(app, reg, path="/ux-channel", config=cfg)
 
 @app.get("/", response_class=HTMLResponse)
 def index() -> str:
-    reset_cap = reg.sign("Counter.reset", {})
+    reset_cap = reg.mint("Counter.reset", {})
     return f"""<!doctype html>
 <html lang="en">
 <head>

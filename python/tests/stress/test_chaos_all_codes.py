@@ -61,7 +61,7 @@ def test_every_code_http_and_batch():
     ch, app = _boot()
     client = TestClient(app)
     for code, status in ERROR_HTTP_STATUS.items():
-        cap = ch.registry.sign(f"Z.{code}", {})
+        cap = ch.registry.mint(f"Z.{code}", {})
         res = client.post(
             "/ux-channel/action",
             json={"v": "1", "action": f"Z.{code}", "args": {}, "cap": cap},
@@ -91,7 +91,7 @@ def test_mixed_batch_207():
             "v": "1",
             "action": "Z.ok",
             "args": {},
-            "cap": ch.registry.sign("Z.ok", {}),
+            "cap": ch.registry.mint("Z.ok", {}),
         }
     ]
     for code in list(ERROR_HTTP_STATUS)[:5]:
@@ -100,7 +100,7 @@ def test_mixed_batch_207():
                 "v": "1",
                 "action": f"Z.{code}",
                 "args": {},
-                "cap": ch.registry.sign(f"Z.{code}", {}),
+                "cap": ch.registry.mint(f"Z.{code}", {}),
             }
         )
     out = dispatch_batch(ch.registry, items, max_items=32)
@@ -127,7 +127,7 @@ def test_result_shaped_dict_not_swallowed():
             "v": "1",
             "action": "Z.wire",
             "args": {},
-            "cap": ch.registry.sign("Z.wire", {}),
+            "cap": ch.registry.mint("Z.wire", {}),
         },
         headers={"X-Channel": "1", "Content-Type": "application/json"},
     )
@@ -157,7 +157,7 @@ def test_toast_config_mapping_still_works():
             "v": "1",
             "action": "Z.toastcfg",
             "args": {},
-            "cap": ch.registry.sign("Z.toastcfg", {}),
+            "cap": ch.registry.mint("Z.toastcfg", {}),
         },
         headers={"X-Channel": "1", "Content-Type": "application/json"},
     )

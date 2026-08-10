@@ -100,7 +100,7 @@ def page_html(series: list[float], table: TinyTable) -> str:
     # Render table via our plugin renderer through encode path would need action;
     # for SSR first paint, call renderer directly:
     tbl = TinyTableRenderer().render(table)
-    cap = reg.sign("Dashboard.refresh", {})
+    cap = reg.mint("Dashboard.refresh", {})
     return f"""
 <div id="dash" data-channel-id="Dashboard:root">
   <h2>Sales</h2>

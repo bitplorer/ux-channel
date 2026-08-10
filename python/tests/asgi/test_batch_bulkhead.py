@@ -24,8 +24,8 @@ def test_batch_sync_merge():
     reg.register("A.x", lambda: Result.success(toast("a")))
     reg.register("B.y", lambda: Result.success(toast("b")))
     items = [
-        {"v": "1", "action": "A.x", "args": {}, "cap": reg.sign("A.x", {})},
-        {"v": "1", "action": "B.y", "args": {}, "cap": reg.sign("B.y", {})},
+        {"v": "1", "action": "A.x", "args": {}, "cap": reg.mint("A.x", {})},
+        {"v": "1", "action": "B.y", "args": {}, "cap": reg.mint("B.y", {})},
     ]
     out = dispatch_batch(reg, items)
     assert out["ok"] is True
@@ -55,8 +55,8 @@ def test_batch_http_endpoint():
     body = {
         "v": "1",
         "batch": [
-            {"v": "1", "action": "Ping.a", "args": {}, "cap": reg.sign("Ping.a", {})},
-            {"v": "1", "action": "Ping.b", "args": {}, "cap": reg.sign("Ping.b", {})},
+            {"v": "1", "action": "Ping.a", "args": {}, "cap": reg.mint("Ping.a", {})},
+            {"v": "1", "action": "Ping.b", "args": {}, "cap": reg.mint("Ping.b", {})},
         ],
     }
     r = c.post(
@@ -120,7 +120,7 @@ def test_load_burst_actions():
         return Result.success(toast(str(n)))
 
     def one(_: int) -> bool:
-        cap = reg.sign("Load.tick", {})
+        cap = reg.mint("Load.tick", {})
         r = reg.dispatch(Intent(action="Load.tick", args={}, cap=cap))
         return r.ok
 
@@ -154,7 +154,7 @@ def test_load_http_channel_scaling():
     c = TestClient(app)
 
     def post(_: int) -> int:
-        cap = reg.sign("Http.load", {})
+        cap = reg.mint("Http.load", {})
         r = c.post(
             "/ux-channel/action",
             json={"v": "1", "action": "Http.load", "args": {}, "cap": cap},

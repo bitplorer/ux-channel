@@ -113,7 +113,7 @@ def test_channel_once_cap_with_redis_nonce(r):
     def pay():
         return ch.done(notice="paid")
 
-    cap = ch.registry.sign("Pay.once", {}, once=True)
+    cap = ch.registry.mint("Pay.once", {}, once=True)
     r1 = ch.registry.dispatch({"v": "1", "action": "Pay.once", "args": {}, "cap": cap})
     r2 = ch.registry.dispatch({"v": "1", "action": "Pay.once", "args": {}, "cap": cap})
     assert r1.ok

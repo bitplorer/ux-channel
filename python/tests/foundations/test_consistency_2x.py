@@ -53,7 +53,7 @@ def test_surface():
 def test_form_validation():
     ch = Channel.boot(secret=SECRET)
     Form(ch, uid="F:root", fields=[Field("email", "Email", required=True)]).install()
-    cap = ch.sign("Form.submit", {})
+    cap = ch.mint("Form.submit", {})
     r = ch.registry.dispatch(Intent(action="Form.submit", args={}, cap=cap))
     assert not r.ok
     assert r.error is not None
@@ -81,7 +81,7 @@ def test_region_refresh_on():
         hits.append(1)
         return None
 
-    r = ch.registry.dispatch(Intent(action="X.do", args={}, cap=ch.sign("X.do", {})))
+    r = ch.registry.dispatch(Intent(action="X.do", args={}, cap=ch.mint("X.do", {})))
     assert r.ok and hits == [1]
 
 

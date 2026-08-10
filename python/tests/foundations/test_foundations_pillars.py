@@ -7,7 +7,7 @@ from fastapi import FastAPI
 
 from ux_channel import Channel, ChannelConfig, Intent
 from ux_channel.bridge_contract import MethodSpec
-from ux_channel.capability import CapabilityService
+from ux_channel.capability import CapService
 from ux_channel.attenuate import AttenuationError, attenuate, verify_attenuated
 from ux_channel.bridge_protocol import BridgeFirewallError, SealedBridgeProtocol
 from ux_channel.intent_log import MemoryIntentLog, attach_intent_log
@@ -20,7 +20,7 @@ SECRET = "foundation-test-secret-key-32bytes-min!!"
 
 
 def test_1_cap_attenuation_narrows_only():
-    caps = CapabilityService(SECRET)
+    caps = CapService(SECRET)
     parent = attenuate(caps, "pay", {"order_id": "1"}, caveats=["pay", "refund"])
     child = attenuate(
         caps, "pay", {"order_id": "1"}, parent_token=parent, caveats=["pay"]
@@ -76,7 +76,7 @@ def test_4_intent_log_and_replay():
     def ping():
         return ch.done(notice="ok")
 
-    r = ch.registry.dispatch(Intent(action="ping", args={}, cap=ch.sign("ping", {})))
+    r = ch.registry.dispatch(Intent(action="ping", args={}, cap=ch.mint("ping", {})))
     assert r.ok
     assert len(log) >= 1
     kinds = log.replay_ops(from_seq=0)

@@ -18,7 +18,7 @@ def test_soft_principal_auth_true_without_dispatch_principal():
         return ch.done(f"hi {ctx.user_id}")
 
     args = {"user_id": "alice"}
-    cap = ch.sign("Secure.ping", args)
+    cap = ch.mint("Secure.ping", args)
     r = ch.registry.dispatch(Intent(action="Secure.ping", args=args, cap=cap))
     assert r.ok, r.error
     assert any("alice" in str(o.get("message", "")) for o in r.ops)
@@ -38,7 +38,7 @@ def test_soft_principal_roles_and_once_cap_replay():
         return ch.done(f"Refunded by {ctx.user_id}")
 
     args = {"order_id": "o1", "user_id": "bob", "roles": ["finance"]}
-    cap = ch.sign("Order.refund", args, once=True)
+    cap = ch.mint("Order.refund", args, once=True)
     r1 = ch.registry.dispatch(Intent(action="Order.refund", args=args, cap=cap))
     assert r1.ok, r1.error
     r2 = ch.registry.dispatch(Intent(action="Order.refund", args=args, cap=cap))
@@ -50,7 +50,7 @@ def test_soft_principal_roles_and_once_cap_replay():
 
     # role gate
     bad = {"order_id": "o2", "user_id": "carol", "roles": ["buyer"]}
-    cap_b = ch.sign("Order.refund", bad, once=True)
+    cap_b = ch.mint("Order.refund", bad, once=True)
     r3 = ch.registry.dispatch(Intent(action="Order.refund", args=bad, cap=cap_b))
     assert not r3.ok and r3.error and r3.error.code == "forbidden"
 
@@ -67,7 +67,7 @@ def test_region_command_preserves_principal_on_ctx():
         return ch.done("ok")
 
     args = {"sku": "sku1", "user_id": "dave", "tenant_id": "t9"}
-    cap = ch.sign("Cart.add", args)
+    cap = ch.mint("Cart.add", args)
     r = ch.registry.dispatch(Intent(action="Cart.add", args=args, cap=cap))
     assert r.ok, r.error
     assert seen["user"] == "dave"
@@ -103,7 +103,7 @@ def test_dispatch_principal_override_still_wins():
 
     # args claim alice, principal override is bob
     args = {"user_id": "alice"}
-    cap = ch.sign("Who.ami", args)
+    cap = ch.mint("Who.ami", args)
     r = ch.registry.dispatch(
         Intent(action="Who.ami", args=args, cap=cap),
         principal=Principal.of("bob"),

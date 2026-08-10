@@ -19,7 +19,7 @@ def reg():
 
 def test_dispatch_with_cap(reg):
     args = {"n": 3}
-    cap = reg.sign("Counter.inc", args)
+    cap = reg.mint("Counter.inc", args)
     result = reg.dispatch(
         Intent(action="Counter.inc", args=args, cap=cap, request_id="t1")
     )
@@ -37,14 +37,14 @@ def test_missing_cap(reg):
 
 
 def test_unknown_action(reg):
-    result = reg.dispatch(Intent(action="nope", cap=reg.sign("nope")))
+    result = reg.dispatch(Intent(action="nope", cap=reg.mint("nope")))
     # cap signs any action string; dispatch still fails not_found
     assert not result.ok
     assert result.error.code == "not_found"
 
 
 def test_bad_cap_args(reg):
-    cap = reg.sign("Counter.inc", {"n": 1})
+    cap = reg.mint("Counter.inc", {"n": 1})
     result = reg.dispatch(Intent(action="Counter.inc", args={"n": 99}, cap=cap))
     assert not result.ok
     assert result.error.code == "unauthorized"

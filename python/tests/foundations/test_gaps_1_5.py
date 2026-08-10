@@ -5,7 +5,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from ux_channel import ActionRegistry, Result, toast
-from ux_channel.capability import CapabilityService
+from ux_channel.capability import CapService
 from ux_channel.jsonutil import JsonLimitError, check_json_limits
 from ux_channel.types import Intent
 
@@ -13,10 +13,10 @@ from ux_channel.types import Intent
 def test_capability_secret_rotation():
     old = "old-secret-key-32chars-minimum!!xx"
     new = "new-secret-key-32chars-minimum!!xx"
-    old_svc = CapabilityService(old)
-    token = old_svc.sign("Pay", {"n": 1})
+    old_svc = CapService(old)
+    token = old_svc.mint("Pay", {"n": 1})
     # new service with previous_secrets can verify old token
-    rotated = CapabilityService(new, previous_secrets=[old])
+    rotated = CapService(new, previous_secrets=[old])
     data = rotated.verify(token, "Pay", {"n": 1})
     assert data["action"] == "Pay"
     # signing uses new secret

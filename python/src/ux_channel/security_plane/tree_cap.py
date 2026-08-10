@@ -15,7 +15,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Iterable, Mapping, Optional, Sequence
 
-from ux_channel.capability import CapabilityService
+from ux_channel.capability import CapService
 from ux_channel.attenuate import AttenuationError, attenuate, fingerprint_token
 
 __all__ = [
@@ -132,7 +132,7 @@ def compile_tree_caps(
     tree: Mapping[str, Any],
     root: TreeEnvelope,
     *,
-    caps: Optional[CapabilityService] = None,
+    caps: Optional[CapService] = None,
     action_attr: str = "data-channel-action",
 ) -> tuple[dict[str, Any], list[str]]:
     """
@@ -153,7 +153,7 @@ def _walk(
     env: TreeEnvelope,
     *,
     errors: list[str],
-    caps: Optional[CapabilityService],
+    caps: Optional[CapService],
     action_attr: str,
     path: str,
 ) -> Any:

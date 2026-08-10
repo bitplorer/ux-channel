@@ -203,18 +203,18 @@ def attach_enterprise(channel: Any) -> None:
     # bind as function
     channel.paginate = paginate
 
-    # Patch sign/attrs/button to honor policy.once automatically
-    _orig_sign = channel.sign
+    # Patch mint/attrs/button to honor policy.once automatically
+    _orig_mint = channel.mint
 
-    def sign(action: str, args: Optional[Mapping[str, Any]] = None, **kwargs: Any) -> str:
+    def mint(action: str, args: Optional[Mapping[str, Any]] = None, **kwargs: Any) -> str:
         pol = channel.policies.get(action)
         if pol.once and "once" not in kwargs:
             kwargs["once"] = True
         if pol.scopes and "scopes" not in kwargs:
             kwargs["scopes"] = list(pol.scopes)
-        return _orig_sign(action, args, **kwargs)
+        return _orig_mint(action, args, **kwargs)
 
-    channel.sign = sign
+    channel.mint = mint
 
     _orig_attrs = channel._protocol_attrs
 

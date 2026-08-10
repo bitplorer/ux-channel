@@ -62,7 +62,7 @@ def main() -> int:
     codes: list[int] = []
 
     def one(i: int) -> tuple[int, float]:
-        cap = reg.sign("Load.ping", {"x": i % 10})
+        cap = reg.mint("Load.ping", {"x": i % 10})
         t0 = time.perf_counter()
         r = client.post(
             "/ux-channel/action",

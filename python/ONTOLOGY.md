@@ -39,7 +39,7 @@ flowchart LR
     CH[Channel]
     REG[Regions]
     ACT[Actions]
-    CAP[CapabilityService]
+    CAP[CapService]
   end
   UI -->|Intent + cap| CH
   CH --> CAP
@@ -82,7 +82,7 @@ Think in **five strata**. Never mix them.
 | File/package auto-discovery of Region classes | **RegionDirectory** | `region_directory` / config `regions=` | Assuming core Intent plane needs it (it does **not**) |
 | Scaffold region files from CLI | **region CLI** | `uxchannel region add …` | Confusing CLI with runtime |
 | Encode Intent/Result bytes (JSON/CXB) | **wire** | `ux_channel.wire` | Cap crypto (that’s `capability`) |
-| Sign/verify permission tokens | **CapabilityService** | `ux_channel.capability` (`sign`/`verify`) | Rust name `mint` — same idea, different method names |
+| Sign/verify permission tokens | **CapService** | `ux_channel.capability` (`mint`/`verify`) | Rust name `mint` — same idea, different method names |
 | Live in-process topic → refresh regions | **live** | `ux_channel.live` | Redis/SSE itself (that’s push bus / separate docs) |
 
 If you are still unsure: **default to Region + Action + `ch.done(refresh=…)`**. Add bridges only when the browser must own a JS widget lifecycle.
@@ -241,7 +241,7 @@ DAY-1 (prefer: from ux_channel.day1 import …)
   RegionBook, RegionContext  via regions / Channel
   state, agents, attach_audit
   Intent, Result, ops helpers (morph, toast, …)
-  CapabilityError            when verifying fails
+  CapError            when verifying fails
 
 POWER (import by home package)
   ux_channel.wire            codecs + negotiate
@@ -296,7 +296,7 @@ Alphabetized `ls ux_channel/` is **not** the product map. This section is.
 
 | Python host | Shared law | Rust peer |
 |-------------|------------|-----------|
-| `CapabilityService.sign/verify` | Cap 0.1 + args_hash | `CapService.mint/verify` |
+| `CapService.mint/verify` | Cap 0.1 + args_hash | `CapService.mint/verify` |
 | Regions + morph ops | Result `ops[]` | Demo actions emit morph/toast/signal_set |
 | `wire` / CXB | conformance vectors | `cxb` + `wire_json` |
 | Full ASGI product | IR `v: "1"` | Thin HTTP `uxc_peer` |
