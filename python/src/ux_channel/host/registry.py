@@ -45,36 +45,36 @@ import logging
 import time
 from typing import Optional, Any, Callable, Mapping, Optional, Sequence, TYPE_CHECKING
 
-from ux_channel.capability import CapError, CapService
-from ux_channel.context import ActionContext, AuthResolver, Principal
-from ux_channel.encode import Navigate, encode_result
-from ux_channel.errors import ActionError
-from ux_channel.hooks import AfterHook, BeforeHook, HookList
-from ux_channel.idempotency import IdempotencyStore
-from ux_channel.limits import (
+from ux_channel.protocol.capability import CapError, CapService
+from ux_channel.host.context import ActionContext, AuthResolver, Principal
+from ux_channel.protocol.encode import Navigate, encode_result
+from ux_channel.protocol.errors import ActionError
+from ux_channel.host.hooks import AfterHook, BeforeHook, HookList
+from ux_channel.host.idempotency import IdempotencyStore
+from ux_channel.security.limits import (
     DEFAULT_MAX_HTML_BYTES,
     DEFAULT_MAX_OPS,
     DEFAULT_MAX_RESULT_BYTES,
     LimitExceeded,
     enforce_result_limits,
 )
-from ux_channel.nonce import NonceStore
-from ux_channel.render import ChainRenderer, HtmlRenderer, StringRenderer
-from ux_channel.trace import FrameKind, get_tracer, new_trace_id
-from ux_channel.security import sanitize_op_hrefs, validate_action_name
+from ux_channel.host.nonce import NonceStore
+from ux_channel.paint.render import ChainRenderer, HtmlRenderer, StringRenderer
+from ux_channel.ops_dx.trace import FrameKind, get_tracer, new_trace_id
+from ux_channel.security.security import sanitize_op_hrefs, validate_action_name
 
 def _sec(kind: str, **kw) -> None:
     try:
-        from ux_channel.security_events import emit_security
+        from ux_channel.security.security_events import emit_security
         emit_security(kind, **kw)
     except Exception:
         logger.debug("security_events emit failed kind=%s", kind, exc_info=True)
 
-from ux_channel.jsonutil import JsonLimitError, check_json_limits
-from ux_channel.types import Intent, Result
+from ux_channel.protocol.jsonutil import JsonLimitError, check_json_limits
+from ux_channel.protocol.types import Intent, Result
 
 if TYPE_CHECKING:
-    from ux_channel.config import ChannelConfig
+    from ux_channel.host.config import ChannelConfig
 
 ActionHandler = Callable[..., Any]
 _principal_override: contextvars.ContextVar = contextvars.ContextVar("uid_principal", default=None)
@@ -180,20 +180,20 @@ class ActionRegistry:
             previous_secrets=tuple(getattr(config, "previous_secrets", ()) or ()),
         )
         if install_defaults:
-            from ux_channel.observability import observability_after_hook
-            from ux_channel.ratelimit import MemoryRateLimiter, rate_limit_hook
-            from ux_channel.trace import TraceConfig, get_tracer
+            from ux_channel.ops_dx.observability import observability_after_hook
+            from ux_channel.security.ratelimit import MemoryRateLimiter, rate_limit_hook
+            from ux_channel.ops_dx.trace import TraceConfig, get_tracer
 
             # Wave 5: policy engine (no-op until rules registered)
             def _policy_before(intent, args=None, principal=None, **kw):
-                from ux_channel.policy import get_policy
+                from ux_channel.security.policy import get_policy
                 eng = get_policy()
                 if eng is None:
                     return None
                 ok, reason = eng.check_action(intent, principal)
                 if not ok:
-                    from ux_channel.types import Result
-                    from ux_channel.security_events import emit_security
+                    from ux_channel.protocol.types import Result
+                    from ux_channel.security.security_events import emit_security
                     emit_security(
                         "policy_deny",
                         action=getattr(intent, "action", ""),
@@ -695,7 +695,7 @@ class ActionRegistry:
                 action=intent.action,
                 ok=False,
             )
-            from ux_channel.error_map import ensure_error_meta
+            from ux_channel.protocol.error_map import ensure_error_meta
 
             return ensure_error_meta(
                 Result.failure(
@@ -743,7 +743,7 @@ class ActionRegistry:
                 },
                 trace_id=tid if isinstance(tid, str) else None,
             )
-        from ux_channel.error_map import ensure_error_meta
+        from ux_channel.protocol.error_map import ensure_error_meta
 
         return ensure_error_meta(result)
 

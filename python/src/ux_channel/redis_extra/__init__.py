@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from ux_channel import serde as _serde
+from ux_channel.protocol import serde as _serde
 import threading
 
 from typing import Any, Optional
@@ -189,7 +189,7 @@ class RedisPushBackend:
 
 
 def RedisPushBus(redis_url: str | Any, **kwargs):
-    from ux_channel.push import PushBus
+    from ux_channel.transport.push import PushBus
     return PushBus(RedisPushBackend(redis_url, **kwargs))
 
 
@@ -268,7 +268,7 @@ class RedisStateStore:
         import copy
         import json
 
-        from ux_channel.state import EditSlot, StateConflict
+        from ux_channel.host.state import EditSlot, StateConflict
 
         k = self._k(key)
         raw = self.r.get(k)
@@ -611,7 +611,7 @@ class RedisRtcStore:
             raise ValueError("kind must be offer|answer|ice|ice-done")
         if not from_peer or not to_peer:
             raise ValueError("from/to required")
-        from ux_channel.webrtc import validate_signal_payload
+        from ux_channel.realtime.webrtc import validate_signal_payload
 
         payload = validate_signal_payload(kind, payload)
         sid = int(self.r.incr(f"{self.prefix}seq"))
@@ -739,8 +739,8 @@ class RedisIntentLog:
         import json
         import time
 
-        from ux_channel.intent_log import IntentLogEntry
-        from ux_channel.types import Intent
+        from ux_channel.ops_dx.intent_log import IntentLogEntry
+        from ux_channel.protocol.types import Intent
 
         if isinstance(intent, Intent):
             action = intent.action
@@ -802,7 +802,7 @@ class RedisIntentLog:
     def since(self, seq: int = 0) -> list:
         import json
 
-        from ux_channel.intent_log import IntentLogEntry
+        from ux_channel.ops_dx.intent_log import IntentLogEntry
 
         def _read(r: Any) -> list:
             raw = r.lrange(self._list_key, 0, -1) or []

@@ -20,14 +20,14 @@ from ux_dom import Document
 from ux_dom.dom import button, div, h1, h2, p, raw
 
 from ux_channel import Channel, ChannelConfig, Region
-from ux_channel.demo import (
+from ux_channel.paint.demo import (
     attr_string,
     demo_button,
     demo_page,
     demo_scripts,
     script_tags,
 )
-from ux_channel.catalog import action_catalog
+from ux_channel.host.catalog import action_catalog
 
 app = FastAPI(title="uxchannel live actions demo")
 SECRET = "live-actions-demo-secret-key-32b!!"

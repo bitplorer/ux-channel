@@ -2,7 +2,7 @@
 
 ```python
 from ux_channel import state
-from ux_channel.quantity import Quantity
+from ux_channel.foundations.quantity import Quantity
 
 st = state(ch, allow=["ui.theme"])   # allow = client persist allowlist
 

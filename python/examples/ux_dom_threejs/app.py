@@ -1,5 +1,5 @@
-from ux_channel.bridge_api import mount_html, mount_ops, update_ops, register_simple_manifest
-from ux_channel.demo import (
+from ux_channel.bridge_meta.bridge_api import mount_html, mount_ops, update_ops, register_simple_manifest
+from ux_channel.paint.demo import (
     attr_string,
     demo_button,
     demo_page,
@@ -33,7 +33,7 @@ from ux_channel import (
     register_simple_manifest,
     update_ops,
 )
-from ux_channel.ops import bridge_call
+from ux_channel.protocol.ops import bridge_call
 
 STATIC = Path(__file__).resolve().parent / "static"
 

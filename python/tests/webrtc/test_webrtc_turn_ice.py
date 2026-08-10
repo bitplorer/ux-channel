@@ -12,9 +12,9 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from ux_channel import Channel, ChannelConfig
-from ux_channel.webrtc import reset_rtc_store, sign_rtc_ticket
-from ux_channel.webrtc_http import handle_rtc_ice
-from ux_channel.webrtc_turn import ice_servers_with_turn, mint_turn_credential, turn_configured
+from ux_channel.realtime.webrtc import reset_rtc_store, sign_rtc_ticket
+from ux_channel.realtime.webrtc_http import handle_rtc_ice
+from ux_channel.realtime.webrtc_turn import ice_servers_with_turn, mint_turn_credential, turn_configured
 
 
 def test_mint_turn_credential_shape():

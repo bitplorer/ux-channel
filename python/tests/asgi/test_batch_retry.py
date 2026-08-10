@@ -7,8 +7,8 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from ux_channel import Channel, ChannelConfig
-from ux_channel.batch import dispatch_batch, item_is_retryable
-from ux_channel.types import Result
+from ux_channel.transport.batch import dispatch_batch, item_is_retryable
+from ux_channel.protocol.types import Result
 
 
 def test_item_is_retryable_matrix():

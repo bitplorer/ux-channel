@@ -22,20 +22,20 @@ import sys
 from pathlib import Path
 from typing import Optional
 
-from ux_channel.dx_errors import DxError, DxUsageError
-from ux_channel.demo import (
+from ux_channel.ops_dx.dx_errors import DxError, DxUsageError
+from ux_channel.paint.demo import (
     attr_string,
     demo_button,
     demo_page,
     demo_scripts,
     script_tags,
 )
-from ux_channel.dx_log import configure_log, get_log, log_exception
+from ux_channel.ops_dx.dx_log import configure_log, get_log, log_exception
 
 
 def cmd_info(_: argparse.Namespace) -> int:
     from ux_channel import __version__
-    from ux_channel.info import package_info
+    from ux_channel.ops_dx.info import package_info
 
     log = get_log()
     log.section("info")
@@ -52,7 +52,7 @@ def cmd_info(_: argparse.Namespace) -> int:
 
 def cmd_check(args: argparse.Namespace) -> int:
     from ux_channel._version import __version__
-    from ux_channel.config import ChannelConfig
+    from ux_channel.host.config import ChannelConfig
 
     errors: list[str] = []
     env = (args.env or "production").lower()
@@ -222,7 +222,7 @@ def cmd_doctor(args: argparse.Namespace) -> int:
 def cmd_dx(_: argparse.Namespace) -> int:
     """Print mental model + decision tree (ux-dom-style teaching surface)."""
     from ux_channel import Channel
-    from ux_channel.recipes import RECIPE_NAMES
+    from ux_channel.host.recipes import RECIPE_NAMES
 
     print(Channel.mental_model())
     print()
@@ -251,7 +251,7 @@ def cmd_templates(_: argparse.Namespace) -> int:
 
 
 def cmd_recipe(args: argparse.Namespace) -> int:
-    from ux_channel.recipes import RECIPE_NAMES, decision_tree, recipe_text
+    from ux_channel.host.recipes import RECIPE_NAMES, decision_tree, recipe_text
 
     if args.list or not args.name:
         if args.tree:
@@ -278,7 +278,7 @@ def cmd_help_topic(args: argparse.Namespace) -> int:
 
 
 def cmd_region(args: argparse.Namespace) -> int:
-    from ux_channel.region_cli import cmd_region as _cmd
+    from ux_channel.host.region_cli import cmd_region as _cmd
 
     return _cmd(args, get_log=get_log)
 
@@ -286,7 +286,7 @@ def cmd_region(args: argparse.Namespace) -> int:
 def cmd_bridge(args: argparse.Namespace) -> int:
     """DX: scaffold / explain / edit contract methods for npm bridges."""
     log = get_log()
-    from ux_channel.bridge_scaffold import (
+    from ux_channel.bridge_meta.bridge_scaffold import (
         add_contract_method,
         create_bridge_package,
         explain_bridge,
@@ -308,7 +308,7 @@ def cmd_bridge(args: argparse.Namespace) -> int:
 
     if action == "recipe":
         log.section("bridge recipe")
-        from ux_channel.recipes import recipe_text
+        from ux_channel.host.recipes import recipe_text
 
         try:
             body = recipe_text("bridge-npm")
@@ -324,7 +324,7 @@ def cmd_bridge(args: argparse.Namespace) -> int:
 
     if action in ("catalog", "list-presets"):
         log.section("bridge catalog")
-        from ux_channel.bridge_preset_gen import list_known_presets
+        from ux_channel.bridge_meta.bridge_preset_gen import list_known_presets
 
         print("Pick a name, then:")
         print("  uxchannel bridge preset <name> --out bridges")
@@ -354,7 +354,7 @@ def cmd_bridge(args: argparse.Namespace) -> int:
             methods = [m.strip() for m in args.methods.split(",") if m.strip()]
         dest = Path(args.out or "bridges")
         log.section("bridge preset")
-        from ux_channel.bridge_preset_gen import create_bridge_preset
+        from ux_channel.bridge_meta.bridge_preset_gen import create_bridge_preset
 
         root = create_bridge_preset(
             dest,
@@ -489,7 +489,7 @@ def cmd_bridge(args: argparse.Namespace) -> int:
 
 
 def cmd_upgrade_check(args: argparse.Namespace) -> int:
-    from ux_channel.upgrade_check import format_report, scan_path
+    from ux_channel.ops_dx.upgrade_check import format_report, scan_path
 
     log = get_log()
     path = args.path or "."
@@ -512,12 +512,12 @@ def cmd_profile(args: argparse.Namespace) -> int:
     """First-class DX: p95 latency + flamegraph for dispatch / batch."""
     from pathlib import Path
 
-    from ux_channel.batch import dispatch_batch
-    from ux_channel.concurrency import dispatch_parallel
-    from ux_channel.dx_log import get_log
-    from ux_channel.profiling import run_suite
-    from ux_channel.registry import ActionRegistry
-    from ux_channel.types import Intent, Result
+    from ux_channel.transport.batch import dispatch_batch
+    from ux_channel.transport.concurrency import dispatch_parallel
+    from ux_channel.ops_dx.dx_log import get_log
+    from ux_channel.ops_dx.profiling import run_suite
+    from ux_channel.host.registry import ActionRegistry
+    from ux_channel.protocol.types import Intent, Result
 
     log = get_log()
     out = Path(args.out) if getattr(args, "out", None) else Path.cwd() / "reports" / "p95"
@@ -601,8 +601,8 @@ def cmd_dashboard(args: argparse.Namespace) -> int:
     """Observe-only DX dashboard (status · guidance · performance · inventory)."""
     from pathlib import Path
 
-    from ux_channel.dx_dashboard import run_dashboard_suite
-    from ux_channel.dx_log import get_log
+    from ux_channel.ops_dx.dx_dashboard import run_dashboard_suite
+    from ux_channel.ops_dx.dx_log import get_log
 
     log = get_log()
     out = Path(args.out) if getattr(args, "out", None) else Path.cwd() / "reports" / "dx"
@@ -616,7 +616,7 @@ def cmd_dashboard(args: argparse.Namespace) -> int:
     arts = model.get("artifacts") or {}
     log.ok("dashboard ready", html=arts.get("html"), out=str(out.resolve()))
     if getattr(args, "json_report", False):
-        from ux_channel import serde as _serde
+        from ux_channel.protocol import serde as _serde
 
         print(_serde.dumps(model, pretty=True))
     else:

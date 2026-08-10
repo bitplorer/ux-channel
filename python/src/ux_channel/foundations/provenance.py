@@ -4,7 +4,7 @@ Provenance — durable source stamps for sensitive values.
 =================================================================
 PUBLIC / PRIVATE
 =================================================================
-* **Power public:** ``from ux_channel.provenance import Provenance, stamp``
+* **Power public:** ``from ux_channel.foundations.provenance import Provenance, stamp``
 * Used by ``Quantity.from_store`` (preferred) to build stamps from
   ``source`` / ``revision`` / ``principal``.
 * Client/session bags must not mint provenance.

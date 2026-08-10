@@ -33,7 +33,7 @@ USAGE
 -----
 ::
 
-    from ux_channel.backoff import compute_backoff_ms, BackoffPolicy
+    from ux_channel.transport.backoff import compute_backoff_ms, BackoffPolicy
 
     policy = BackoffPolicy(strategy="exponential_full_jitter", base_ms=50, max_ms=2000)
     delay = policy.delay_ms(attempt=1)  # after first failure, before 2nd try

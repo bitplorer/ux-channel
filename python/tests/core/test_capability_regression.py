@@ -14,10 +14,10 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from ux_channel import Channel, ChannelConfig
-from ux_channel.demo import attr_string, demo_button, demo_page, demo_scripts, script_tags
-from ux_channel.dx import DAY1_CHANNEL_API
-from ux_channel.placement import Placement, ScriptRef
-from ux_channel.types import Intent, Result
+from ux_channel.paint.demo import attr_string, demo_button, demo_page, demo_scripts, script_tags
+from ux_channel.host.dx import DAY1_CHANNEL_API
+from ux_channel.paint.placement import Placement, ScriptRef
+from ux_channel.protocol.types import Intent, Result
 
 
 def _ch(**kw):
@@ -149,7 +149,7 @@ def test_aliases_no_false_bridge_media_alias():
 
 
 def test_otel_status_no_crash():
-    from ux_channel.otel import status
+    from ux_channel.ops_dx.otel import status
 
     st = status()
     assert "available" in st
@@ -157,7 +157,7 @@ def test_otel_status_no_crash():
 
 def test_json_dx_log_still_works():
     from io import StringIO
-    from ux_channel.dx_log import get_log
+    from ux_channel.ops_dx.dx_log import get_log
 
     buf = StringIO()
     log = get_log()
@@ -171,7 +171,7 @@ def test_json_dx_log_still_works():
 
 def test_region_button_no_deprecation_noise():
     """Internal Region.button is demo path — should not warn end users."""
-    from ux_channel.region_component import Region
+    from ux_channel.host.region_component import Region
 
     app, ch = _ch(require_cap=False)
 

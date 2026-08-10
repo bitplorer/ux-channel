@@ -103,7 +103,7 @@ Self-contained adapters in ``/ux-channel/static/adapters/ux-fx.js`` (after ``ux-
 
 ```python
 from ux_channel.bridges import ConfettiBridge, CountUpBridge, ParticlesBridge, AuroraBridge
-from ux_channel.demo import fx_script_tags
+from ux_channel.paint.demo import fx_script_tags
 
 confetti = ConfettiBridge(ch)
 return confetti("win", theme="neon").burst()
@@ -132,7 +132,7 @@ Imperative islands only — **not** a ShadCN/design-system replacement. Host chr
 
 ```python
 from ux_channel.bridges import LeafletBridge, SelectBridge, GenericBridge
-from ux_channel.demo import bridge_script_tags
+from ux_channel.paint.demo import bridge_script_tags
 
 maps = LeafletBridge(ch)
 hq = maps("hq", center=[28.6, 77.2], zoom=11)

@@ -29,7 +29,7 @@ from __future__ import annotations
 
 from typing import Any, Callable, Mapping, Optional, Sequence
 
-from ux_channel.types import Result
+from ux_channel.protocol.types import Result
 
 Handler = Callable[..., Any]
 
@@ -281,7 +281,7 @@ class Flow:
             )
 
         if go:
-            from ux_channel.ops import navigate as nav_op
+            from ux_channel.protocol.ops import navigate as nav_op
 
             ops = list(r.ops or [])
             nav = nav_op(go)
@@ -376,7 +376,7 @@ def _principal_from_call(*args: Any, **kwargs: Any) -> Any:
         principal = getattr(ctx, "principal", None)
     if principal is None:
         try:
-            from ux_channel.registry import _principal_override
+            from ux_channel.host.registry import _principal_override
             principal = _principal_override.get()
         except Exception:
             principal = None
@@ -394,7 +394,7 @@ def _auth_wrap(ch: Any, fn: Handler) -> Handler:
         # (handler signatures often omit principal/ctx).
         if principal is None:
             try:
-                from ux_channel.registry import _principal_override
+                from ux_channel.host.registry import _principal_override
 
                 principal = _principal_override.get()
             except Exception:
@@ -523,7 +523,7 @@ def attach_flow(channel: Any) -> Flow:
 
         def decorator(fn: Handler):
             import inspect
-            from ux_channel.enterprise import ActionPolicy, require_roles
+            from ux_channel.ops_dx.enterprise import ActionPolicy, require_roles
 
             action_name = explicit_name or fn.__name__
 

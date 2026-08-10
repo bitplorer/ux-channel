@@ -1,6 +1,6 @@
 from ux_channel import Result, morph, toast
-from ux_channel.encode import Navigate, encode_result
-from ux_channel.types import Intent
+from ux_channel.protocol.encode import Navigate, encode_result
+from ux_channel.protocol.types import Intent
 
 
 def test_result_ops_builder():
@@ -41,7 +41,7 @@ def test_intent_roundtrip():
 
 def test_dispatch_op_event_name_field():
     """Regression: _op first param must not be named name (clashes with event name)."""
-    from ux_channel.ops import dispatch
+    from ux_channel.protocol.ops import dispatch
     op = dispatch("modal:opened", detail={"a": 1})
     assert op["op"] == "dispatch"
     assert op["name"] == "modal:opened"

@@ -9,7 +9,7 @@ Region SSR is separate: ``ch.html(uid)`` from RegionBook (see flow.attach_flow).
 
 from __future__ import annotations
 
-from ux_channel import serde as _serde
+from ux_channel.protocol import serde as _serde
 
 from typing import Any, Mapping, Optional
 
@@ -35,7 +35,7 @@ def attach_document(channel: Any) -> None:
         webrtc: bool | None = None,
     ):
         """Channel runtime Placement (script URLs) — no HTML."""
-        from ux_channel.placement import Placement, ScriptRef
+        from ux_channel.paint.placement import Placement, ScriptRef
 
         dev_b, insp = _env_flags(dev, inspector)
         base = channel.path.rstrip("/")

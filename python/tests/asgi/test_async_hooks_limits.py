@@ -1,9 +1,9 @@
 import pytest
 
 from ux_channel import ActionRegistry, Result, morph, toast
-from ux_channel.errors import ActionError
-from ux_channel.limits import LimitExceeded, enforce_result_limits
-from ux_channel.types import Intent
+from ux_channel.protocol.errors import ActionError
+from ux_channel.security.limits import LimitExceeded, enforce_result_limits
+from ux_channel.protocol.types import Intent
 
 
 @pytest.fixture

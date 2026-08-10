@@ -7,7 +7,7 @@ hard-code LiveKit/mediasoup URLs in business logic.
 
 Example stub::
 
-    from ux_channel.sfu import SfuConfig, NullSfu, LiveKitSfu
+    from ux_channel.realtime.sfu import SfuConfig, NullSfu, LiveKitSfu
 
     sfu = LiveKitSfu(SfuConfig(url=os.environ["LIVEKIT_URL"], api_key=..., api_secret=...))
     token = sfu.create_token(room="lobby", identity=user_id)
@@ -20,7 +20,7 @@ Day-1 DX (preferred)::
 
 from __future__ import annotations
 
-from ux_channel import serde as _serde
+from ux_channel.protocol import serde as _serde
 
 from dataclasses import dataclass
 from typing import Any, Optional, Protocol
@@ -239,7 +239,7 @@ def handle_sfu_token(
         identity = identity or "anon"
 
     # Reuse RTC origin/ticket gate (media join is as sensitive as mesh)
-    from ux_channel.webrtc import authorize_rtc, allow_rtc_traffic, _sanitize_id
+    from ux_channel.realtime.webrtc import authorize_rtc, allow_rtc_traffic, _sanitize_id
 
     require_ticket = bool(
         getattr(config, "sfu_require_ticket", None)
@@ -253,7 +253,7 @@ def handle_sfu_token(
     if not ok:
         return 403, {"ok": False, "error": reason or "unauthorized"}
     if tok:
-        from ux_channel.webrtc import verify_rtc_ticket
+        from ux_channel.realtime.webrtc import verify_rtc_ticket
 
         ok_t, sub_or_reason = verify_rtc_ticket(config, tok, room)
         if not ok_t:
@@ -265,7 +265,7 @@ def handle_sfu_token(
     if require_ticket and not getattr(config, "webrtc_require_ticket", False):
         if not tok:
             return 403, {"ok": False, "error": "ticket required"}
-        from ux_channel.webrtc import verify_rtc_ticket
+        from ux_channel.realtime.webrtc import verify_rtc_ticket
 
         ok_t, reason_t = verify_rtc_ticket(config, tok, room)
         if not ok_t:

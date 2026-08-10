@@ -20,13 +20,13 @@ import pytest
 from fastapi import FastAPI
 
 from ux_channel import Channel, ChannelConfig
-from ux_channel.bridge_preset_gen import (
+from ux_channel.bridge_meta.bridge_preset_gen import (
     create_bridge_preset,
     list_known_presets,
     module_name_for,
     resolve_preset_spec,
 )
-from ux_channel.bridge_scaffold import (
+from ux_channel.bridge_meta.bridge_scaffold import (
     add_contract_method,
     create_bridge_package,
     default_methods,
@@ -35,7 +35,7 @@ from ux_channel.bridge_scaffold import (
     sync_register_py_methods,
 )
 from ux_channel.bridges import ChartBridge
-from ux_channel.plugins import BridgeManifest, get_hub
+from ux_channel.bridge_meta.plugins import BridgeManifest, get_hub
 
 
 def _ch(**kwargs):

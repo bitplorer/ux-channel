@@ -64,13 +64,13 @@ Some packages avoid colliding with a module file name:
 
 | Package folder | Why that name | Module you import for the core idea |
 |----------------|---------------|-------------------------------------|
-| `security_plane/` | cannot be named `security/` (would shadow `security.py`) | `security_plane.security` or shim `ux_channel.security` |
+| `security/` | lives at `security/` (no top-level security.py) | `security.security` or shim `ux_channel.security` |
 | `paint/` | cannot be named `render/` (would shadow `render.py`) | morph/html live under `paint/` |
 | `realtime/` | cannot be named `media/` (would shadow `media.py`) | webrtc/sfu modules |
 
 **Speech:** say “security package”, “paint package”; imports may use plane suffix for physics of Python packaging.
 
-Legacy shims keep `from ux_channel.security import safe_href` working.
+Package paths keep `from ux_channel.security.security import safe_href` working.
 
 ---
 

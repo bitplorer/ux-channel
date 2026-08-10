@@ -25,8 +25,8 @@ from ux_channel import (
     attach_audit,
     state,
 )
-from ux_channel.context import Principal
-from ux_channel.quantity import Quantity, QuantityError
+from ux_channel.host.context import Principal
+from ux_channel.foundations.quantity import Quantity, QuantityError
 
 
 SECRET = "brutal-pay-agents-secret-key-32b!!!"

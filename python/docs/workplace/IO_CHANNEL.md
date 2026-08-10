@@ -32,11 +32,11 @@ Import `IO_LAWS` / `IO_CONSTITUTION` from `ux_channel.io_channel`.
 ## Quick recipe — join room → claim → act
 
 ```python
-from ux_channel.io_channel import (
+from ux_channel.foundations.io_channel import (
     IoGate, claim_from_ticket_claims, run_checked, attach_io_audit,
 )
 from ux_channel.io_adapters import LightsAdapter
-from ux_channel.quantity import Quantity
+from ux_channel.foundations.quantity import Quantity
 
 gate = IoGate()
 lights = LightsAdapter()

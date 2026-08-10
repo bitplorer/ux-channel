@@ -513,7 +513,7 @@ Shares Quantity/resource vocabulary with foundations where applicable.
 | **Docs** | [FOUNDATIONS](foundations/FOUNDATIONS.md) |
 
 ```python
-from ux_channel.quantity import Quantity
+from ux_channel.foundations.quantity import Quantity
 q = Quantity.from_store(3, "seats", source="db.booking.1.seats", revision=1)
 ```
 
@@ -760,14 +760,14 @@ from ux_channel import toast, morph  # via ops re-export patterns in docs
 from ux_channel.wire import encode, decode, configure_wire
 
 # Power
-from ux_channel.quantity import Quantity
-from ux_channel.io_channel import IoGate, IoRoomClaim
+from ux_channel.foundations.quantity import Quantity
+from ux_channel.foundations.io_channel import IoGate, IoRoomClaim
 from ux_channel.workplace import workplace
-from ux_channel.outbox import attach_outbox, drain_outbox
-from ux_channel.morph_ir import elem, region
-from ux_channel.host_csrf import intent_headers
-from ux_channel.bridge_protocol import SealedBridgeProtocol
-from ux_channel.guest_runtime import GuestRuntime
+from ux_channel.transport.outbox import attach_outbox, drain_outbox
+from ux_channel.paint.morph_ir import elem, region
+from ux_channel.security.host_csrf import intent_headers
+from ux_channel.bridge_meta.bridge_protocol import SealedBridgeProtocol
+from ux_channel.bridge_meta.guest_runtime import GuestRuntime
 ```
 
 CLI: **`uxchannel`**.

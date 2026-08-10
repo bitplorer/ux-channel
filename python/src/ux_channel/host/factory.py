@@ -10,15 +10,15 @@ from __future__ import annotations
 import os
 from typing import Any, Optional, Tuple
 
-from ux_channel.plugins import (
+from ux_channel.bridge_meta.plugins import (
     PluginHub,
     get_hub,
     load_builtin_hosts,
     load_builtin_renderers,
     set_hub,
 )
-from ux_channel.registry import ActionRegistry
-from ux_channel.render import HtmlRenderer
+from ux_channel.host.registry import ActionRegistry
+from ux_channel.paint.render import HtmlRenderer
 
 
 def _maybe_redis_stores(redis_url: str | None):
@@ -31,7 +31,7 @@ def _maybe_redis_stores(redis_url: str | None):
             RedisPushBus,
             RedisRateLimiter,
         )
-        from ux_channel.push import set_push_bus
+        from ux_channel.transport.push import set_push_bus
 
         set_push_bus(RedisPushBus(redis_url))
         return (
@@ -113,7 +113,7 @@ def create_channel(
         if not secret:
             raise ValueError("secret or config is required")
         if environment == "production":
-            from ux_channel.config import ChannelConfig
+            from ux_channel.host.config import ChannelConfig
 
             cfg = ChannelConfig.production(
                 secret,
@@ -153,14 +153,14 @@ def create_channel(
             mount_config = None
 
     if redis_limiter is not None:
-        from ux_channel.ratelimit import rate_limit_hook
+        from ux_channel.security.ratelimit import rate_limit_hook
 
         reg.before(rate_limit_hook(redis_limiter))  # type: ignore[arg-type]
 
     # Wave 1: WS rate limits + Redis ticket revocation
     if mount_config is not None:
         try:
-            from ux_channel.ws_limits import configure_ws_limiter_from_config
+            from ux_channel.transport.ws_limits import configure_ws_limiter_from_config
 
             configure_ws_limiter_from_config(mount_config, redis_url=redis_url)
         except Exception:
@@ -171,7 +171,7 @@ def create_channel(
             )
     if redis_url:
         try:
-            from ux_channel.ticket_revoke import (
+            from ux_channel.ops_dx.ticket_revoke import (
                 RedisRevocationStore,
                 TicketRevocationList,
                 set_revocation_list,
@@ -194,7 +194,7 @@ def create_channel(
 
     # Process concurrency policy from config / kwargs (opt-in/out, defaults on)
     try:
-        from ux_channel.concurrency import configure_concurrency, get_concurrency_settings
+        from ux_channel.transport.concurrency import configure_concurrency, get_concurrency_settings
         from ux_channel.wire import configure_wire as _configure_wire
 
         cfg_parallel = getattr(config, "parallel_enabled", None) if config is not None else None
@@ -224,15 +224,15 @@ def create_channel(
         pass
 
     if max_in_flight is not None and max_in_flight > 0:
-        from ux_channel.bulkhead import install_bulkhead
+        from ux_channel.security.bulkhead import install_bulkhead
         install_bulkhead(reg, max_in_flight=max_in_flight)
 
     # observe=otel → soft-attach OpenTelemetry if installed
     cfg_obs = mount_config or config
     if cfg_obs is not None and str(getattr(cfg_obs, "observe", "") or "").lower() == "otel":
         try:
-            from ux_channel.otel import attach_otel, setup_otel
-            from ux_channel.trace import get_tracer
+            from ux_channel.ops_dx.otel import attach_otel, setup_otel
+            from ux_channel.ops_dx.trace import get_tracer
 
             setup_otel(service_name="ux_channel")
             ok = attach_otel(get_tracer())

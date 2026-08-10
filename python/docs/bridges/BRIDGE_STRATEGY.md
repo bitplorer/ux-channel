@@ -103,7 +103,7 @@ If you expose `ch.bridge.media` for discoverability, it must be a **thin alias**
 
 | Today | Long-term |
 |-------|-----------|
-| `from ux_channel.bridge_api import …` | `ch.bridge.*` day-1 optional layer |
+| `from ux_channel.bridge_meta.bridge_api import …` | `ch.bridge.*` day-1 optional layer |
 | `ch.media.plugin` | unchanged canonical media API |
 | CDN livekit in plugin scripts | app `npm i` or optional `@ux-channel/media-livekit` |
 | Ad-hoc `static/*.js` adapters | `packages/@ux-channel/adapter-*` |

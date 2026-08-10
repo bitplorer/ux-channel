@@ -8,8 +8,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Mapping, Optional, Sequence
 
-from ux_channel.agents_api import Agents, agents as agents_facade
-from ux_channel.io_channel import (
+from ux_channel.ops_dx.agents_api import Agents, agents as agents_facade
+from ux_channel.foundations.io_channel import (
     IoAdapter,
     IoAuditLog,
     IoChannelError,
@@ -23,8 +23,8 @@ from ux_channel.io_channel import (
     get_io_gate,
     run_checked,
 )
-from ux_channel.quantity import Quantity
-from ux_channel.types import Result
+from ux_channel.foundations.quantity import Quantity
+from ux_channel.protocol.types import Result
 from ux_channel.workplace.ticket import (
     claim_from_workplace_ticket,
     revoke_workplace_ticket,

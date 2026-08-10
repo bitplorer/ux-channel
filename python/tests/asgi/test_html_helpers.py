@@ -1,4 +1,4 @@
-from ux_channel.html import action_attrs, attr_escape, button, json_attr
+from ux_channel.paint.html import action_attrs, attr_escape, button, json_attr
 
 
 def test_json_attr_escapes_quotes():

@@ -13,13 +13,13 @@ import json
 import re
 from pathlib import Path
 
-from ux_channel.dx_errors import (
+from ux_channel.ops_dx.dx_errors import (
     DxConflictError,
     DxNotFoundError,
     DxUsageError,
     DxValidationError,
 )
-from ux_channel.dx_log import get_log
+from ux_channel.ops_dx.dx_log import get_log
 from typing import Any, Iterable, Sequence
 
 CONTRACT_SCHEMA_VERSION = 1
@@ -229,7 +229,7 @@ def render_package_json(package: str, *, npm_dep: str = "") -> str:
 
 def render_python_snippet(package: str, methods: Sequence[str]) -> str:
     """register.py — factory façade + local METHODS (synced by add/remove-method)."""
-    from ux_channel.bridge_preset_gen import class_name_for
+    from ux_channel.bridge_meta.bridge_preset_gen import class_name_for
 
     cls = class_name_for(package)
     methods_t = ", ".join(f'"{m}"' for m in sorted(methods))
@@ -310,7 +310,7 @@ def render_contract_json(
 
 
 def render_readme(package: str, methods: Sequence[str], npm_dep: str = "") -> str:
-    from ux_channel.bridge_preset_gen import class_name_for
+    from ux_channel.bridge_meta.bridge_preset_gen import class_name_for
 
     cls = class_name_for(package)
     methods_list = "\n".join(f"- `{m}`" for m in methods)

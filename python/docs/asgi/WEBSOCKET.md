@@ -83,7 +83,7 @@ Same doors as SSE where applicable:
 ## Server usage
 
 ```python
-from ux_channel.push import get_push_bus
+from ux_channel.transport.push import get_push_bus
 
 # Feeder (same as SSE)
 get_push_bus().publish("public.rates", ch.refresh(ticker))

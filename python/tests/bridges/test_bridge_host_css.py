@@ -3,7 +3,7 @@
 from fastapi import FastAPI
 
 from ux_channel import Channel, ChannelConfig
-from ux_channel.bridge_style import merge_host_style
+from ux_channel.bridge_meta.bridge_style import merge_host_style
 
 
 def _ch():

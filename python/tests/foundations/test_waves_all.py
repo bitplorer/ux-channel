@@ -7,20 +7,20 @@ import uuid
 from fastapi import FastAPI
 
 from ux_channel import Channel, ChannelConfig, Region
-from ux_channel.policy import PolicyEngine, set_policy
-from ux_channel.push_security import authorize_push_subscribe, sign_push_ticket
-from ux_channel.security import safe_href
-from ux_channel.security_events import (
+from ux_channel.security.policy import PolicyEngine, set_policy
+from ux_channel.security.push_security import authorize_push_subscribe, sign_push_ticket
+from ux_channel.security.security import safe_href
+from ux_channel.security.security_events import (
     SecurityEventBus,
     get_security_bus,
     set_security_bus,
 )
-from ux_channel.ticket_revoke import (
+from ux_channel.ops_dx.ticket_revoke import (
     TicketRevocationList,
     get_revocation_list,
     set_revocation_list,
 )
-from ux_channel.ws_limits import WsRateLimiter, set_ws_limiter
+from ux_channel.transport.ws_limits import WsRateLimiter, set_ws_limiter
 
 
 def _ch(**kw):

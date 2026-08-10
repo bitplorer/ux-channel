@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 from ux_channel import Channel, SafeHtml, mark_safe
-from ux_channel.demo import attr_string, demo_button, demo_page, demo_scripts, script_tags
+from ux_channel.paint.demo import attr_string, demo_button, demo_page, demo_scripts, script_tags
 from ux_channel.asgi.pipeline import preflight_action
 from ux_channel.asgi.core import status_for
-from ux_channel.types import Result
-from ux_channel.config import ChannelConfig
+from ux_channel.protocol.types import Result
+from ux_channel.host.config import ChannelConfig
 
 
 SECRET = "dev-secret-key-32chars-minimum!!!!"
@@ -45,7 +45,7 @@ def test_safe_html_and_mark_safe():
 
 
 def test_link_and_submit():
-    from ux_channel.demo import demo_link, demo_submit
+    from ux_channel.paint.demo import demo_link, demo_submit
 
     ch = Channel.boot(secret=SECRET)
     ch.register("X.do", lambda: Result.success())

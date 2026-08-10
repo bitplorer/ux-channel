@@ -6,9 +6,9 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from ux_channel import Channel, ChannelConfig
-from ux_channel.demo import attr_string, demo_button, demo_page, demo_scripts, script_tags
-from ux_channel.dx import DAY1_WEBRTC_API
-from ux_channel.webrtc import reset_rtc_store
+from ux_channel.paint.demo import attr_string, demo_button, demo_page, demo_scripts, script_tags
+from ux_channel.host.dx import DAY1_WEBRTC_API
+from ux_channel.realtime.webrtc import reset_rtc_store
 
 
 def _boot(**kw):

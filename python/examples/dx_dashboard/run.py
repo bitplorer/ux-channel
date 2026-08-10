@@ -18,7 +18,7 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from team_plugin import TeamOverview  # noqa: E402
 
-from ux_channel.dx_dashboard import (  # noqa: E402
+from ux_channel.ops_dx.dx_dashboard import (  # noqa: E402
     configure_dashboard,
     register_plugin,
     reset_dashboard_settings,

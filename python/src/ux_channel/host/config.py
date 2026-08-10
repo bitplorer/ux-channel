@@ -32,7 +32,7 @@ import warnings
 from dataclasses import dataclass, field, replace
 from typing import Optional, Sequence
 
-from ux_channel.limits import (
+from ux_channel.security.limits import (
     DEFAULT_MAX_HTML_BYTES,
     DEFAULT_MAX_OPS,
     DEFAULT_MAX_RESULT_BYTES,

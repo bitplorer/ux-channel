@@ -1,7 +1,7 @@
 """Capability + wire smoke for day-1 host (complements interop suite)."""
 from __future__ import annotations
 
-from ux_channel.capability import CapError, CapService
+from ux_channel.protocol.capability import CapError, CapService
 from ux_channel.day1 import CapService as Day1Cap
 from ux_channel.wire import decode, encode
 

@@ -76,8 +76,8 @@ Think in **five strata**. Never mix them.
 | Drop-in **server-driven UI kit** (Badge, Modal…) without ux-dom | **ChannelComponent** | `from ux_channel.components import …` | Calling it “Component” (clashes with ux-dom); not day-1 required |
 | Mutate session / guard client paths | **state** | `from ux_channel import state` → `state(ch)` | `planes()` as day-1 (power helper only) |
 | Agent tools / situation / effects | **agents** | `from ux_channel import agents` → `agents(ch)` | Dual agent APIs / raw MCP unless you need MCP plane |
-| Low-level “patch this selector” without a region registry | **ops** | `from ux_channel.ops import morph, toast, …` | Hand-building ops when `ch.done(refresh=[…])` already does it |
-| Multi-surface structure (HTML is one projection) | **morph_ir** | `from ux_channel.morph_ir import elem, region` | Treating morph_ir `region()` as an HTML tag |
+| Low-level “patch this selector” without a region registry | **ops** | `from ux_channel.protocol.ops import morph, toast, …` | Hand-building ops when `ch.done(refresh=[…])` already does it |
+| Multi-surface structure (HTML is one projection) | **morph_ir** | `from ux_channel.paint.morph_ir import elem, region` | Treating morph_ir `region()` as an HTML tag |
 | Framework-agnostic attrs/scripts for the page shell | **Placement** | `ux_channel.placement` | Putting markup ownership inside Channel |
 | File/package auto-discovery of Region classes | **RegionDirectory** | `region_directory` / config `regions=` | Assuming core Intent plane needs it (it does **not**) |
 | Scaffold region files from CLI | **region CLI** | `uxchannel region add …` | Confusing CLI with runtime |
@@ -147,13 +147,13 @@ All three register into the same **RegionBook** (`ch.regions`): uid → loader/r
 
 | File | Ontological role | Day-1? |
 |------|------------------|--------|
-| [`regions.py`](src/ux_channel/regions.py) | **RegionBook**, `@region` decorator, context, revalidate | Yes (via Channel) |
-| [`region_component.py`](src/ux_channel/region_component.py) | Class-style **Region**, `@Region.action`, `ch.use` | Yes if you prefer classes |
-| [`region_directory.py`](src/ux_channel/region_directory.py) | Opt-in FS/package discovery | No — shell feature |
-| [`region_cli.py`](src/ux_channel/region_cli.py) | Scaffold files for discovery | No — DX only |
-| [`morph_ir.py`](src/ux_channel/morph_ir.py) | IR node named `region` = morph **target**, same law | Power |
-| [`ops.py`](src/ux_channel/ops.py) | `morph`/`swap` builders the refresh path emits | Power / implicit |
-| [`live.py`](src/ux_channel/live.py) | Bind topics → region uids (in-process) | Power |
+| [`regions.py`](src/ux_channel/host/regions.py) | **RegionBook**, `@region` decorator, context, revalidate | Yes (via Channel) |
+| [`region_component.py`](src/ux_channel/host/region_component.py) | Class-style **Region**, `@Region.action`, `ch.use` | Yes if you prefer classes |
+| [`region_directory.py`](src/ux_channel/host/region_directory.py) | Opt-in FS/package discovery | No — shell feature |
+| [`region_cli.py`](src/ux_channel/host/region_cli.py) | Scaffold files for discovery | No — DX only |
+| [`morph_ir.py`](src/ux_channel/paint/morph_ir.py) | IR node named `region` = morph **target**, same law | Power |
+| [`ops.py`](src/ux_channel/protocol/ops.py) | `morph`/`swap` builders the refresh path emits | Power / implicit |
+| [`live.py`](src/ux_channel/host/live.py) | Bind topics → region uids (in-process) | Power |
 | [`components/*`](src/ux_channel/components/) | Optional kit built **on** regions | Optional |
 | [`bridges/*`](src/ux_channel/bridges/) | **Not regions** — JS islands | Optional |
 
@@ -188,7 +188,7 @@ All three register into the same **RegionBook** (`ch.regions`): uid → loader/r
 **Preferred** (narrow surface — fewer footguns):
 
 ```python
-from ux_channel.day1 import Channel, ChannelConfig, Region, state, agents, attach_audit
+from ux_channel.host.day1 import Channel, ChannelConfig, Region, state, agents, attach_audit
 ```
 
 **Also frozen** (same objects):
@@ -235,7 +235,7 @@ Structure permanence: [STRUCTURE.md](STRUCTURE.md).
 ## 7. Import map by intent (not by alphabet)
 
 ```text
-DAY-1 (prefer: from ux_channel.day1 import …)
+DAY-1 (prefer: from ux_channel.host.day1 import …)
   Channel, ChannelConfig     boot façade
   Region                     class-style slot
   RegionBook, RegionContext  via regions / Channel

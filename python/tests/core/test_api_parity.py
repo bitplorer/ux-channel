@@ -69,7 +69,7 @@ class TestLayerImports(unittest.TestCase):
     """Layers remain first-class — import from submodules."""
 
     def test_webrtc_layer(self):
-        from ux_channel.webrtc import (
+        from ux_channel.realtime.webrtc import (
             WebRTCPlane,
             authorize_rtc,
             get_rtc_store,
@@ -81,12 +81,12 @@ class TestLayerImports(unittest.TestCase):
         self.assertTrue(callable(get_rtc_store))
 
     def test_sfu_layer(self):
-        from ux_channel.sfu import LiveKitSfu, NullSfu, SfuConfig, get_sfu
+        from ux_channel.realtime.sfu import LiveKitSfu, NullSfu, SfuConfig, get_sfu
 
         self.assertIsInstance(get_sfu(None), NullSfu)
 
     def test_whip_layer(self):
-        from ux_channel.whip import is_sdp_offer, parse_sdp_body, whip_enabled
+        from ux_channel.realtime.whip import is_sdp_offer, parse_sdp_body, whip_enabled
 
         self.assertTrue(is_sdp_offer("v=0\nm=audio 0 RTP/AVP 0\n"))
 
@@ -96,7 +96,7 @@ class TestLayerImports(unittest.TestCase):
         self.assertIn("minimal", available_templates())
 
     def test_metrics_layer(self):
-        from ux_channel.webrtc_metrics import rtc_metrics
+        from ux_channel.realtime.webrtc_metrics import rtc_metrics
 
         self.assertIn("counters", rtc_metrics.snapshot())
 
@@ -105,7 +105,7 @@ class TestLayerImports(unittest.TestCase):
         from fastapi import FastAPI
 
         from ux_channel import Channel, ChannelConfig
-        from ux_channel.webrtc import reset_rtc_store
+        from ux_channel.realtime.webrtc import reset_rtc_store
 
         reset_rtc_store()
         app = FastAPI()
@@ -123,7 +123,7 @@ class TestLayerImports(unittest.TestCase):
 
 class TestErrorLayer(unittest.TestCase):
     def test_webrtc_error_from_errors_module(self):
-        from ux_channel.errors import WebRTCError
+        from ux_channel.protocol.errors import WebRTCError
 
         self.assertTrue(issubclass(WebRTCError, uc.ChannelError))
 

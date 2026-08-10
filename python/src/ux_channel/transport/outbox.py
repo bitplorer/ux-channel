@@ -14,14 +14,14 @@ and drain through the same registry / ``Workplace.dispatch`` / agents path.
 =================================================================
 PUBLIC / PRIVATE
 =================================================================
-* **Power public:** ``from ux_channel.outbox import IntentOutbox, MemoryIntentOutbox``
+* **Power public:** ``from ux_channel.transport.outbox import IntentOutbox, MemoryIntentOutbox``
 * Optional Redis: ``RedisIntentOutbox`` when redis available
 * Not day-1; does not alter Channel.boot
 """
 
 from __future__ import annotations
 
-from ux_channel import serde as _serde
+from ux_channel.protocol import serde as _serde
 
 import json
 import threading

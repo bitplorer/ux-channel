@@ -7,8 +7,8 @@ import threading
 from fastapi import FastAPI
 
 from ux_channel import Channel, ChannelConfig, Principal, Region
-from ux_channel.types import Result
-from ux_channel.ops import navigate, push_url
+from ux_channel.protocol.types import Result
+from ux_channel.protocol.ops import navigate, push_url
 
 
 def _ch(**kw):

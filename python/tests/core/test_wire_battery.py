@@ -489,7 +489,7 @@ class TestAsgiConcurrentWire(unittest.TestCase):
         from fastapi.testclient import TestClient
         from ux_channel import ChannelConfig, Result, toast
         from ux_channel.asgi.fastapi import mount_channel
-        from ux_channel.registry import ActionRegistry
+        from ux_channel.host.registry import ActionRegistry
         from ux_channel.wire.cxb import decode_cxb
 
         cfg = ChannelConfig.development(

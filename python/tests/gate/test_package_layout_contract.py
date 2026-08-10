@@ -1,4 +1,4 @@
-"""Layout contract: PACKAGE_MAP ↔ generated aliases (long-term guard)."""
+"""Layout contract: cohesive packages only — no top-level shims."""
 from __future__ import annotations
 
 import subprocess
@@ -6,12 +6,12 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
+PKG = ROOT / "python" / "src" / "ux_channel"
 
 
 def test_sync_python_layout_check():
-    script = ROOT / "scripts" / "sync_python_layout.py"
     r = subprocess.run(
-        [sys.executable, str(script), "--check"],
+        [sys.executable, str(ROOT / "scripts" / "sync_python_layout.py"), "--check"],
         cwd=str(ROOT),
         capture_output=True,
         text=True,
@@ -19,13 +19,20 @@ def test_sync_python_layout_check():
     assert r.returncode == 0, r.stdout + r.stderr
 
 
-def test_day1_and_cap_rust_parity_surface():
-    from ux_channel.day1 import CapService, Channel, Region, RegionBook
-    from ux_channel import CapService as Cap2
+def test_no_top_level_implementation_modules():
+    allowed = {"__init__.py", "__main__.py", "_version.py"}
+    extras = [p.name for p in PKG.glob("*.py") if p.name not in allowed]
+    assert extras == [], f"top-level modules forbidden (no shims): {extras}"
 
-    assert CapService is Cap2
+
+def test_public_paths():
+    from ux_channel.day1 import CapService, Channel, Region, RegionBook
+    from ux_channel.host.regions import RegionBook as RB
+    from ux_channel.protocol.capability import CapService as CS
+
+    assert RegionBook is RB
+    assert CapService is CS
     svc = CapService("dev-secret-key-32chars-minimum!!!!")
-    assert hasattr(svc, "mint") and hasattr(svc, "verify")
-    assert not hasattr(svc, "sign")
-    assert Region is not RegionBook
+    assert hasattr(svc, "mint") and not hasattr(svc, "sign")
     assert "mint" in Channel.day1_names()
+    assert Region is not RegionBook

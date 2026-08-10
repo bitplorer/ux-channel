@@ -21,7 +21,7 @@ from examples.payment_agents.app import (  # noqa: E402
     select_order,
     st,
 )
-from ux_channel.context import Principal
+from ux_channel.host.context import Principal
 
 
 def facts() -> dict:

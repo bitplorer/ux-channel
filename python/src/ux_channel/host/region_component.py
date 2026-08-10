@@ -258,7 +258,7 @@ class Region:
                 if live is not None:
                     live.publish(topic, *refresh_uids)
                 else:
-                    from ux_channel.push import get_push_bus
+                    from ux_channel.transport.push import get_push_bus
 
                     get_push_bus().publish(topic, self.ch.refresh(*refresh_uids))
             except Exception:
@@ -353,7 +353,7 @@ class Region:
                         if live is not None:
                             live.publish(topic, *rev)
                         else:
-                            from ux_channel.push import get_push_bus
+                            from ux_channel.transport.push import get_push_bus
 
                             get_push_bus().publish(topic, owner.ch.refresh(*rev))
                     except Exception:
@@ -471,7 +471,7 @@ class Region:
             fn = getattr(self, method)
         else:
             fn = method
-        from ux_channel.demo import demo_button
+        from ux_channel.paint.demo import demo_button
         return demo_button(self.ch, label, fn, **kwargs)
 
     def controls(self, *specs: tuple[str, str] | tuple[str, str, dict], **btn_kwargs: Any) -> str:

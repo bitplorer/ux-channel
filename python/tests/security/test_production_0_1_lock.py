@@ -18,9 +18,9 @@ from pathlib import Path
 from unittest import mock
 
 from ux_channel import serde as _serde
-from ux_channel.config import ChannelConfig
-from ux_channel.dx_dashboard import DASHBOARD_MODEL_SCHEMA, build_dashboard_model
-from ux_channel.host_csrf import CHANNEL_CSRF_HEADER, CHANNEL_CSRF_VALUE
+from ux_channel.host.config import ChannelConfig
+from ux_channel.ops_dx.dx_dashboard import DASHBOARD_MODEL_SCHEMA, build_dashboard_model
+from ux_channel.security.host_csrf import CHANNEL_CSRF_HEADER, CHANNEL_CSRF_VALUE
 from ux_channel_ux_dom.csrf import (
     UX_DOM_CSRF_META_NAME,
     assert_csrf_names_do_not_collide,

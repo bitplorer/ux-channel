@@ -12,7 +12,7 @@ from pathlib import Path
 
 import pytest
 
-from ux_channel.host_csrf import (
+from ux_channel.security.host_csrf import (
     CHANNEL_CSRF_HEADER,
     intent_headers,
     is_channel_csrf_header,
@@ -41,9 +41,9 @@ from ux_channel.mcp.sessions import (
     set_session_store,
 )
 from ux_channel.mcp.verticals import clear_verticals, get_vertical
-from ux_channel.outbox import MemoryIntentOutbox, attach_outbox, get_outbox
-from ux_channel.types import Result
-from ux_channel.ops import toast
+from ux_channel.transport.outbox import MemoryIntentOutbox, attach_outbox, get_outbox
+from ux_channel.protocol.types import Result
+from ux_channel.protocol.ops import toast
 from ux_channel.agents import AgentPolicy, AgentRunner, AgentSession, agent_tool
 from ux_channel import ActionRegistry
 

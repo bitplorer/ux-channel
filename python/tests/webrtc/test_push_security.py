@@ -9,17 +9,17 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from ux_channel import Channel, ChannelConfig, Result, morph
-from ux_channel.demo import attr_string, demo_button, demo_page, demo_scripts, script_tags
+from ux_channel.paint.demo import attr_string, demo_button, demo_page, demo_scripts, script_tags
 from ux_channel.asgi.fastapi import mount_channel
-from ux_channel.push import PushBus, get_push_bus
-from ux_channel.push_security import (
+from ux_channel.transport.push import PushBus, get_push_bus
+from ux_channel.security.push_security import (
     PushAuthError,
     authorize_push_subscribe,
     sign_push_ticket,
     validate_topic,
     verify_push_ticket,
 )
-from ux_channel.registry import ActionRegistry
+from ux_channel.host.registry import ActionRegistry
 
 PROD_SECRET = "prod-secret-key-32chars-minimum!!!!"
 DEV_SECRET = "dev-secret-key-32chars-minimum!!!!"

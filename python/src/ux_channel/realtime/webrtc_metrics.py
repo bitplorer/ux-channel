@@ -6,7 +6,7 @@ Lightweight counters — no Prometheus required. Optional export via
 
 Usage::
 
-    from ux_channel.webrtc_metrics import rtc_metrics
+    from ux_channel.realtime.webrtc_metrics import rtc_metrics
     rtc_metrics.inc("signal_offer")
     rtc_metrics.snapshot()
 """

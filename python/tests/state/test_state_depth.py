@@ -21,7 +21,7 @@ from ux_channel import (
     Result,
     state,
 )
-from ux_channel.ssr_state import ssr_state
+from ux_channel.host.ssr_state import ssr_state
 
 
 def _boot(**kw):

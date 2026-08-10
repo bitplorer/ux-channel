@@ -19,7 +19,7 @@ from ux_channel.mcp.effects import effects_from_result
 from ux_channel.mcp.verticals import filter_tools_by_verticals
 from ux_channel.mcp.annotations import enrich_tools
 from ux_channel.mcp.subscribe import publish_effects_invalidation, subscribe_info
-from ux_channel.types import Result
+from ux_channel.protocol.types import Result
 
 
 class McpToolAdapter:

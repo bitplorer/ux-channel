@@ -15,13 +15,13 @@ from starlette.testclient import TestClient as StarletteClient
 from ux_channel import ActionRegistry, Go, Result, toast
 from ux_channel.asgi.fastapi import mount_channel
 from ux_channel.asgi.starlette import mount_channel as mount_starlette
-from ux_channel.capability import CapService
-from ux_channel.config import ChannelConfig
-from ux_channel.encode import encode_result
-from ux_channel.nonce import MemoryNonceStore
-from ux_channel.ops import navigate, push_url
-from ux_channel.security import safe_href, sanitize_op_hrefs
-from ux_channel.types import Intent
+from ux_channel.protocol.capability import CapService
+from ux_channel.host.config import ChannelConfig
+from ux_channel.protocol.encode import encode_result
+from ux_channel.host.nonce import MemoryNonceStore
+from ux_channel.protocol.ops import navigate, push_url
+from ux_channel.security.security import safe_href, sanitize_op_hrefs
+from ux_channel.protocol.types import Intent
 
 SECRET = "test-secret-key-32chars-minimum!!"
 

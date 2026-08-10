@@ -4,12 +4,12 @@ import json
 import tempfile
 from pathlib import Path
 
-from ux_channel.bridge_preset_gen import (
+from ux_channel.bridge_meta.bridge_preset_gen import (
     create_bridge_preset,
     list_known_presets,
     write_bridges_index,
 )
-from ux_channel.cli import main
+from ux_channel.ops_dx.cli import main
 from ux_channel.scaffold import ScaffoldOptions, create_app
 
 

@@ -27,7 +27,7 @@ from dataclasses import dataclass
 import threading
 from typing import Any, Callable, Iterator, Optional, Sequence, Union
 
-from ux_channel.types import Result
+from ux_channel.protocol.types import Result
 
 __all__ = [
     "ssr_state",
@@ -97,7 +97,7 @@ def join_key(*parts: Any) -> str:
 def _resolve_refresh(refresh: Any) -> list[str]:
     if refresh is None or refresh is False:
         return []
-    from ux_channel.flow import resolve_uids
+    from ux_channel.host.flow import resolve_uids
 
     if isinstance(refresh, (list, tuple)):
         return list(resolve_uids(list(refresh)))
@@ -141,10 +141,10 @@ class SessionVar:
         full = self._full_key()
         if not (callable(value) and not isinstance(value, type)):
             try:
-                from ux_channel.quantity import refuse_session_quantity
+                from ux_channel.foundations.quantity import refuse_session_quantity
                 refuse_session_quantity(self.key, value)
             except Exception as exc:
-                from ux_channel.quantity import QuantityError
+                from ux_channel.foundations.quantity import QuantityError
                 if isinstance(exc, QuantityError):
                     raise
                 pass
@@ -458,7 +458,7 @@ class SsrState:
         ui = self
 
         def html(uid: Any, *args: Any, **kwargs: Any) -> Any:
-            from ux_channel.regions import _id_str
+            from ux_channel.host.regions import _id_str
 
             with ui.rendering(_id_str(uid)):
                 return orig(book, uid, *args, **kwargs)

@@ -16,8 +16,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Mapping, Optional
 
-from ux_channel.context import Principal
-from ux_channel.types import Intent, Result
+from ux_channel.host.context import Principal
+from ux_channel.protocol.types import Intent, Result
 
 
 @dataclass

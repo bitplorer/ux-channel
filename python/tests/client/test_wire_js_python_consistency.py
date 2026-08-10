@@ -9,7 +9,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from ux_channel import Channel, ChannelConfig
-from ux_channel.webrtc import SIGNAL_KINDS, validate_signal_payload, reset_rtc_store
+from ux_channel.realtime.webrtc import SIGNAL_KINDS, validate_signal_payload, reset_rtc_store
 
 JS = Path(__file__).resolve().parents[2] / "src/ux_channel/static/ux-webrtc.js"
 

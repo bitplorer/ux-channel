@@ -17,8 +17,8 @@ from ux_channel.bridges import (
     SortableBridge,
     SwiperBridge,
 )
-from ux_channel.bridge_preset_gen import list_known_presets
-from ux_channel.demo import bridge_script_tags, ui_script_tags
+from ux_channel.bridge_meta.bridge_preset_gen import list_known_presets
+from ux_channel.paint.demo import bridge_script_tags, ui_script_tags
 
 
 def _ch():

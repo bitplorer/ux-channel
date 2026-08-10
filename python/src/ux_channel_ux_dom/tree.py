@@ -8,8 +8,8 @@ from __future__ import annotations
 
 from typing import Any, Mapping, Optional, Sequence
 
-from ux_channel.attenuate import attenuate
-from ux_channel.slot_compile import SlotMap, compile_tree
+from ux_channel.security.attenuate import attenuate
+from ux_channel.paint.slot_compile import SlotMap, compile_tree
 
 
 def tree_to_dict(node: Any) -> dict[str, Any]:

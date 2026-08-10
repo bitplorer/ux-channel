@@ -3,9 +3,9 @@
 import tempfile
 from pathlib import Path
 
-from ux_channel.bridge_scaffold import create_bridge_package, explain_bridge, render_adapter_js
-from ux_channel.cli import main
-from ux_channel.recipes import RECIPE_NAMES, recipe_text
+from ux_channel.bridge_meta.bridge_scaffold import create_bridge_package, explain_bridge, render_adapter_js
+from ux_channel.ops_dx.cli import main
+from ux_channel.host.recipes import RECIPE_NAMES, recipe_text
 
 
 def test_explain():

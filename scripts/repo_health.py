@@ -55,7 +55,7 @@ REQUIRED = [
     "python/ONTOLOGY.md",
     "python/tests/gate/test_public_api_freeze.py",
     "python/tests/gate/test_day1_regions.py",
-    "python/src/ux_channel/day1.py",
+    "python/src/ux_channel/day1/__init__.py",
     "python/STRUCTURE.md",
     "python/LAYOUT.md",
     "scripts/sync_python_layout.py",

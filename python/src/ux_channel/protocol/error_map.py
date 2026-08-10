@@ -19,7 +19,7 @@ from __future__ import annotations
 
 from typing import Any, Mapping, Optional
 
-from ux_channel.types import Result
+from ux_channel.protocol.types import Result
 
 # ---------------------------------------------------------------------------
 # Canonical codes → HTTP status

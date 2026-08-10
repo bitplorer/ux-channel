@@ -12,9 +12,9 @@ from ux_channel.redis_extra import (
     RedisRateLimiter,
     RedisStateStore,
 )
-from ux_channel.push import PushBus, set_push_bus, get_push_bus
-from ux_channel.types import Result
-from ux_channel.ops import toast
+from ux_channel.transport.push import PushBus, set_push_bus, get_push_bus
+from ux_channel.protocol.types import Result
+from ux_channel.protocol.ops import toast
 from ux_channel import Channel, ChannelConfig
 from fastapi import FastAPI
 
@@ -82,7 +82,7 @@ def test_with_redis_config_url_roundtrip():
 def test_boot_accepts_config_redis_url_memory_fallback():
     """Without real redis URL reachable, FakeRedis via redis_url object path."""
     # create_channel with FakeRedis as redis_url for nonce store path
-    from ux_channel.factory import create_channel
+    from ux_channel.host.factory import create_channel
     from ux_channel.redis_extra import RedisNonceStore, RedisIdempotencyStore
 
     fake = fakeredis.FakeRedis(decode_responses=True)

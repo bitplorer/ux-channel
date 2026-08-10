@@ -16,7 +16,7 @@ from ux_channel.components import (
     Block,
     RegistryHost,
 )
-from ux_channel.types import Intent
+from ux_channel.protocol.types import Intent
 
 SECRET = "dev-secret-key-32chars-minimum!!!!"
 

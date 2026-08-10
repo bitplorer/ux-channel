@@ -15,7 +15,7 @@ from ux_channel.agents import (
     agent_tool,
 )
 from ux_channel.asgi.fastapi import mount_channel
-from ux_channel.config import ChannelConfig
+from ux_channel.host.config import ChannelConfig
 from ux_channel.mcp import (
     McpToolAdapter,
     effects_from_result,
@@ -26,7 +26,7 @@ from ux_channel.mcp import (
 from ux_channel.mcp.confirm import mint_confirm_token, verify_confirm_token, args_hash
 from ux_channel.mcp.sessions import McpSessionStore, set_session_store, get_session_store
 from ux_channel.mcp.verticals import clear_verticals, filter_tools_by_verticals
-from ux_channel.ops import morph
+from ux_channel.protocol.ops import morph
 
 
 SECRET = "test-secret-key-32chars-minimum!!"

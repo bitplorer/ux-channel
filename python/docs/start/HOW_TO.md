@@ -241,7 +241,7 @@ ch.diagnose()
 Server publishes Results; browser EventSource applies them automatically.
 
 ```python
-from ux_channel.push import get_push_bus
+from ux_channel.transport.push import get_push_bus
 
 # body: ch.body_attr_string(push_topic="live.board")
 result = ch.refresh(ticker_region)
@@ -255,7 +255,7 @@ Full guide: [SSE.md](../asgi/SSE.md) · demo: `examples/sse_live_ticker/`.
 Full constitution: [IO_CHANNEL.md](../workplace/IO_CHANNEL.md).
 
 ```python
-from ux_channel.io_channel import IoGate, claim_from_ticket_claims, run_checked
+from ux_channel.foundations.io_channel import IoGate, claim_from_ticket_claims, run_checked
 from ux_channel.io_adapters import ScannerAdapter, LightsAdapter, LabDutAdapter
 ```
 

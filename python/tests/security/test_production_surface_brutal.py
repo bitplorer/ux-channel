@@ -12,10 +12,10 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from ux_channel import Channel, ChannelConfig, Intent, Result
-from ux_channel.demo import attr_string, demo_button, script_tags
-from ux_channel.dx import DAY1_CHANNEL_API
-from ux_channel.error_map import ERROR_HTTP_STATUS, http_status_for
-from ux_channel.placement import Placement
+from ux_channel.paint.demo import attr_string, demo_button, script_tags
+from ux_channel.host.dx import DAY1_CHANNEL_API
+from ux_channel.protocol.error_map import ERROR_HTTP_STATUS, http_status_for
+from ux_channel.paint.placement import Placement
 
 SECRET = "brutal-prod-surface-secret-key-32chars!!"
 

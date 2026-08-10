@@ -7,9 +7,9 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from ux_channel import Channel, ChannelConfig
-from ux_channel.batch import dispatch_batch
-from ux_channel.error_map import batch_http_status, enrich_batch_envelope
-from ux_channel.types import Result
+from ux_channel.transport.batch import dispatch_batch
+from ux_channel.protocol.error_map import batch_http_status, enrich_batch_envelope
+from ux_channel.protocol.types import Result
 
 
 def _ch():

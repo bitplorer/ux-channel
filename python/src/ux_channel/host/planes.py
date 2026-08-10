@@ -12,9 +12,9 @@ import re
 from dataclasses import dataclass, field
 from typing import Any, Mapping, Optional, Sequence
 
-from ux_channel.ops import signal_set, toast
-from ux_channel.ssr_state import SsrState, ssr_state
-from ux_channel.types import Result
+from ux_channel.protocol.ops import signal_set, toast
+from ux_channel.host.ssr_state import SsrState, ssr_state
+from ux_channel.protocol.types import Result
 
 __all__ = [
     "planes",
@@ -180,7 +180,7 @@ class ClientPlane:
     ) -> dict[str, Any]:
         p = self.check(path, persist=persist)
         try:
-            from ux_channel.quantity import Quantity
+            from ux_channel.foundations.quantity import Quantity
 
             if isinstance(value, Quantity):
                 raise ClientSafetyError(

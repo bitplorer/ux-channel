@@ -75,18 +75,18 @@ from ux_channel import Channel, ChannelConfig, Region, agents, state, attach_aud
 
 | Need | Import |
 |------|--------|
-| Quantity | `from ux_channel.quantity import Quantity` |
-| I/O channel | `from ux_channel.io_channel import IoGate, IoProtocol, IoRoomClaim` |
+| Quantity | `from ux_channel.foundations.quantity import Quantity` |
+| I/O channel | `from ux_channel.foundations.io_channel import IoGate, IoProtocol, IoRoomClaim` |
 | Workplace | `from ux_channel.workplace import workplace` |
-| Nested caps | `from ux_channel.attenuate import attenuate` |
-| Morph IR | `from ux_channel.morph_ir import elem, region` |
-| Sealed guests | `from ux_channel.bridge_protocol import SealedBridgeProtocol` |
-| Peer (tests) | `from ux_channel.agent_peer import dispatch_peer` |
+| Nested caps | `from ux_channel.security.attenuate import attenuate` |
+| Morph IR | `from ux_channel.paint.morph_ir import elem, region` |
+| Sealed guests | `from ux_channel.bridge_meta.bridge_protocol import SealedBridgeProtocol` |
+| Peer (tests) | `from ux_channel.ops_dx.agent_peer import dispatch_peer` |
 
 ### Quantity (canonical)
 
 ```python
-from ux_channel.quantity import Quantity, QuantityBudget
+from ux_channel.foundations.quantity import Quantity, QuantityBudget
 
 q = Quantity.from_store(
     10.5, "USD",

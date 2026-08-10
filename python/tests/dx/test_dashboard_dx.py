@@ -6,8 +6,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from ux_channel.cli import main
-from ux_channel.dx_dashboard import (
+from ux_channel.ops_dx.cli import main
+from ux_channel.ops_dx.dx_dashboard import (
     build_dashboard_model,
     render_dashboard_html,
     run_dashboard_suite,

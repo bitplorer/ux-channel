@@ -7,7 +7,7 @@ from fastapi.responses import HTMLResponse
 
 from ux_channel import Channel, ChannelConfig
 from ux_channel.bridges import ConfettiBridge, CountUpBridge
-from ux_channel.demo import attr_string, demo_scripts
+from ux_channel.paint.demo import attr_string, demo_scripts
 
 app = FastAPI(title="js-enterprise-live")
 ch = Channel.boot(
@@ -109,7 +109,7 @@ def state():
 
 
 def _host(island) -> str:
-    from ux_channel.html import attr_escape
+    from ux_channel.paint.html import attr_escape
 
     attrs = island.mount_spec().attrs
     parts = [f'{k}="{attr_escape(str(v))}"' for k, v in attrs.items()]

@@ -5,8 +5,8 @@ from __future__ import annotations
 import inspect
 from typing import Any, Callable, Optional, Type
 
-from ux_channel.errors import ActionError
-from ux_channel.registry import ActionRegistry
+from ux_channel.protocol.errors import ActionError
+from ux_channel.host.registry import ActionRegistry
 
 
 def pydantic_action(

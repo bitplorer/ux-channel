@@ -5,7 +5,7 @@ from __future__ import annotations
 from fastapi import FastAPI
 
 from ux_channel import Channel, ChannelConfig, Intent, agents, attach_audit, state
-from ux_channel.agents_api import EffectReport
+from ux_channel.ops_dx.agents_api import EffectReport
 
 
 SECRET = "agents-reality-secret-key-32bytes!!"

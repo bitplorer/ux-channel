@@ -14,9 +14,9 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from ux_channel import Channel, ChannelConfig, ChannelTest, Intent, Result
-from ux_channel.bulkhead import install_bulkhead
-from ux_channel.capability import CapError
-from ux_channel.nonce import MemoryNonceStore
+from ux_channel.security.bulkhead import install_bulkhead
+from ux_channel.protocol.capability import CapError
+from ux_channel.host.nonce import MemoryNonceStore
 
 SECRET = "ent-secret-key-32chars-minimum!!!!!!"
 
@@ -221,7 +221,7 @@ def test_http_pen_missing_channel_header():
     cfg = ChannelConfig.production(SECRET, allow_memory_stores=True, rate_limit_per_minute=0)
     ch = Channel.boot(app, config=cfg)
     # re-bind enterprise after boot with production config
-    from ux_channel.enterprise import attach_enterprise
+    from ux_channel.ops_dx.enterprise import attach_enterprise
     attach_enterprise(ch)
 
     @ch.on("Ping.x")
@@ -262,7 +262,7 @@ def test_http_forged_cap_rejected():
 
 
 def test_xss_user_content_escaped():
-    from ux_channel.html_safe import esc, user_content
+    from ux_channel.paint.html_safe import esc, user_content
 
     evil = '<script>alert(1)</script>'
     assert "<script>" not in esc(evil)

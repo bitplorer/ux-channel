@@ -10,7 +10,7 @@ INTENDED USAGE
 --------------
 ::
 
-    from ux_channel.cors import apply_cors
+    from ux_channel.transport.cors import apply_cors
     apply_cors(app, origins=[\"https://app.example.com\"], path_prefix=\"/ux-channel\")
 """
 

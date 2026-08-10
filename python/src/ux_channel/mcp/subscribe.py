@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from typing import Any, Mapping, Optional, Sequence
 
-from ux_channel.push import get_push_bus
+from ux_channel.transport.push import get_push_bus
 
 __all__ = [
     "resource_topic_for_room",

@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from ux_channel import Channel, ChannelConfig
-from ux_channel.outbox import (
+from ux_channel.transport.outbox import (
     MemoryIntentOutbox,
     OutboxStatus,
     attach_outbox,

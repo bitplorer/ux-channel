@@ -21,11 +21,11 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from ux_channel import Channel, ChannelConfig, attach_audit
 from ux_channel.agents import AgentPolicy, agent_tool
 from ux_channel.io_adapters import LabDutAdapter, ScannerAdapter
-from ux_channel.outbox import MemoryIntentOutbox, attach_outbox, drain_outbox
-from ux_channel.quantity import Quantity
+from ux_channel.transport.outbox import MemoryIntentOutbox, attach_outbox, drain_outbox
+from ux_channel.foundations.quantity import Quantity
 from ux_channel.workplace import issue_mesh_membership, workplace_from_membership
 from ux_channel.mcp import register_builtin_verticals
-from ux_channel.outbox import get_outbox
+from ux_channel.transport.outbox import get_outbox
 
 SECRET = os.environ.get("UX_CHANNEL_SECRET", "mcp-verticals-secret-key-32bytes!!")
 AGENT_TOKEN = os.environ.get("UX_CHANNEL_AGENT_TOKEN", "dev-token")

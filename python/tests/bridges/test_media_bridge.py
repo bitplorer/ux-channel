@@ -6,8 +6,8 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from ux_channel import Channel, ChannelConfig
-from ux_channel.dx import DAY1_CHANNEL_API
-from ux_channel.media import DAY1_MEDIA_API
+from ux_channel.host.dx import DAY1_CHANNEL_API
+from ux_channel.realtime.media import DAY1_MEDIA_API
 
 
 def _boot(**kw):

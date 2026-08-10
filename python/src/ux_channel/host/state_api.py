@@ -11,7 +11,7 @@ PUBLIC / PRIVATE
 ::
 
     from ux_channel import state
-    from ux_channel.quantity import Quantity
+    from ux_channel.foundations.quantity import Quantity
 
     st = state(ch, allow=["ui.theme"])
     n = st.session("n", 0)
@@ -30,15 +30,15 @@ from __future__ import annotations
 
 from typing import Any, Mapping, Optional, Sequence
 
-from ux_channel.planes import (
+from ux_channel.host.planes import (
     ClientPlane,
     ClientSafetyError,
     Db,
     RISKY_SEGMENTS,
     path_is_risky,
 )
-from ux_channel.ssr_state import Namespace, SessionVar, SsrState, ssr_state
-from ux_channel.types import Result
+from ux_channel.host.ssr_state import Namespace, SessionVar, SsrState, ssr_state
+from ux_channel.protocol.types import Result
 
 __all__ = [
     "state",
@@ -204,7 +204,7 @@ def attach_state(
     strict: bool = True,
     client_strict: Optional[bool] = None,
 ) -> ChannelState:
-    from ux_channel.planes import attach_planes
+    from ux_channel.host.planes import attach_planes
 
     allow_list = tuple(allow) or tuple(persist_allowlist)
     strict_flag = strict if client_strict is None else client_strict

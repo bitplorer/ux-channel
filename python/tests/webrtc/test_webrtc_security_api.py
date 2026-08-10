@@ -1,8 +1,8 @@
 """DTLS/simulcast docs posture + API pattern + diagnose security fields."""
 
 from ux_channel import Channel, ChannelConfig
-from ux_channel.dx import DAY1_WEBRTC_API
-from ux_channel.webrtc import WebRTCPlane, reset_rtc_store
+from ux_channel.host.dx import DAY1_WEBRTC_API
+from ux_channel.realtime.webrtc import WebRTCPlane, reset_rtc_store
 
 
 def test_day1_webrtc_api_minimal():

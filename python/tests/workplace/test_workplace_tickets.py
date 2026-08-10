@@ -9,7 +9,7 @@ from fastapi import FastAPI
 
 from ux_channel import Channel, ChannelConfig
 from ux_channel.io_adapters import ScannerAdapter
-from ux_channel.webrtc import sign_rtc_ticket
+from ux_channel.realtime.webrtc import sign_rtc_ticket
 from ux_channel.workplace import (
     WorkplaceError,
     WorkplaceTicketError,

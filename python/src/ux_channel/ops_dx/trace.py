@@ -24,7 +24,7 @@ INTENDED USAGE
 --------------
 ::
 
-    from ux_channel.trace import get_tracer, TraceConfig
+    from ux_channel.ops_dx.trace import get_tracer, TraceConfig
     tracer = get_tracer()
     tracer.configure(TraceConfig(enabled=True, retain=500))
 
@@ -36,7 +36,7 @@ INTENDED USAGE
 
 from __future__ import annotations
 
-from ux_channel import serde as _serde
+from ux_channel.protocol import serde as _serde
 
 import json
 import threading

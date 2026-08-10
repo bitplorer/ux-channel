@@ -17,9 +17,9 @@ from fastapi import FastAPI
 from fastapi.responses import HTMLResponse, JSONResponse
 
 from ux_channel import Channel, ChannelConfig, attach_audit, state
-from ux_channel.demo import demo_button, script_tags
+from ux_channel.paint.demo import demo_button, script_tags
 from ux_channel.io_adapters import LabDutAdapter, LightsAdapter, ScannerAdapter
-from ux_channel.quantity import Quantity
+from ux_channel.foundations.quantity import Quantity
 from ux_channel.workplace import workplace
 
 SECRET = "io-mesh-workplace-demo-secret-key-32b!"

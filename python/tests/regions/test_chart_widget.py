@@ -4,7 +4,7 @@ from fastapi import FastAPI
 
 from ux_channel import Channel, ChannelConfig
 from ux_channel.bridges import ChartBridge, ChartSeries
-from ux_channel.placement import Placement
+from ux_channel.paint.placement import Placement
 
 
 def _ch():
@@ -77,7 +77,7 @@ def test_multi_series():
 
 
 def test_recipe():
-    from ux_channel.recipes import recipe_text
+    from ux_channel.host.recipes import recipe_text
 
     text = recipe_text("chart-widget")
     assert "ChartBridge(ch)" in text
@@ -89,7 +89,7 @@ def test_generated_preset_factory():
     import tempfile
     from pathlib import Path
 
-    from ux_channel.bridge_preset_gen import create_bridge_preset
+    from ux_channel.bridge_meta.bridge_preset_gen import create_bridge_preset
 
     with tempfile.TemporaryDirectory() as td:
         root = create_bridge_preset(td, "leaflet", force=True)

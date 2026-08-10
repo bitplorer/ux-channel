@@ -23,7 +23,7 @@ Adapters    your drivers (never in core)
 from ux_channel import Channel, ChannelConfig
 from ux_channel.workplace import workplace
 from ux_channel.io_adapters import ScannerAdapter, LightsAdapter
-from ux_channel.quantity import Quantity
+from ux_channel.foundations.quantity import Quantity
 
 ch = Channel.boot(app, config=ChannelConfig.development(secret="…", allow_memory_stores=True))
 

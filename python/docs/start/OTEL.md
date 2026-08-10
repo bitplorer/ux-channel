@@ -82,7 +82,7 @@ uxchannel dashboard
 ## Manual API
 
 ```python
-from ux_channel.otel import setup_otel, attach_otel, status, dashboard_snapshot
+from ux_channel.ops_dx.otel import setup_otel, attach_otel, status, dashboard_snapshot
 
 setup_otel(service_name="my-app")
 attach_otel()

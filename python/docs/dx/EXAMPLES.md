@@ -121,7 +121,7 @@ ch.draft.set("n", n + 1)
 
 
 ```python
-from ux_channel.push import get_push_bus
+from ux_channel.transport.push import get_push_bus
 
 @ch.region
 def ticker(ctx):

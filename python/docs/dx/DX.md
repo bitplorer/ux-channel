@@ -108,7 +108,7 @@ attrs.action         # action name
 ## Demo HTML path (P2)
 
 ```python
-from ux_channel.demo import demo_button, demo_page  # preferred
+from ux_channel.paint.demo import demo_button, demo_page  # preferred
 # ch.button / ch.page → DeprecationWarning (still work)
 ```
 

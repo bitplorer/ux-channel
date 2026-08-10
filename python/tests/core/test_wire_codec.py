@@ -172,7 +172,7 @@ class TestAsgiWire(unittest.TestCase):
         from fastapi.testclient import TestClient
         from ux_channel import Channel, ChannelConfig, Result, toast
         from ux_channel.asgi.fastapi import mount_channel
-        from ux_channel.registry import ActionRegistry
+        from ux_channel.host.registry import ActionRegistry
 
         cfg = ChannelConfig.development(
             secret="dev-secret-key-32chars-minimum!!!!", rate_limit_per_minute=0
@@ -205,7 +205,7 @@ class TestAsgiWire(unittest.TestCase):
         from fastapi.testclient import TestClient
         from ux_channel import ChannelConfig, Result, toast
         from ux_channel.asgi.fastapi import mount_channel
-        from ux_channel.registry import ActionRegistry
+        from ux_channel.host.registry import ActionRegistry
 
         cfg = ChannelConfig.development(
             secret="dev-secret-key-32chars-minimum!!!!", rate_limit_per_minute=0

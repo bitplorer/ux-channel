@@ -23,8 +23,8 @@ import logging
 from dataclasses import dataclass
 from typing import Any, Mapping, Optional, Sequence
 
-from ux_channel.agent_peer import AgentPeer, dispatch_peer
-from ux_channel.types import Result
+from ux_channel.ops_dx.agent_peer import AgentPeer, dispatch_peer
+from ux_channel.protocol.types import Result
 
 __all__ = ["Agents", "agents", "attach_agents", "EffectReport"]
 

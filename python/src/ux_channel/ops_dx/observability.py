@@ -23,13 +23,13 @@ INTENDED USAGE
 
 from __future__ import annotations
 
-from ux_channel import serde as _serde
+from ux_channel.protocol import serde as _serde
 
 import logging
 import time
 from typing import Any, Callable, Optional, Protocol
 
-from ux_channel.types import Intent, Result
+from ux_channel.protocol.types import Intent, Result
 
 logger = logging.getLogger("ux_channel.actions")
 

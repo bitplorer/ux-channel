@@ -27,7 +27,7 @@ INTENDED USAGE
 
 from __future__ import annotations
 
-from ux_channel import serde as _serde
+from ux_channel.protocol import serde as _serde
 from ux_channel.wire.negotiate import decode_http_body, encode_http_body
 from ux_channel.wire.core import MEDIA_TYPES
 
@@ -36,15 +36,15 @@ import json
 from pathlib import Path
 from typing import Any, Optional, Union
 
-from ux_channel.registry import ActionRegistry
-from ux_channel.security import (
+from ux_channel.host.registry import ActionRegistry
+from ux_channel.security.security import (
     channel_header_ok,
     content_length_ok,
     origin_allowed,
     warn_trusted_proxy,
 )
-from ux_channel.types import Intent, Result
-from ux_channel.trace import FrameKind, get_tracer
+from ux_channel.protocol.types import Intent, Result
+from ux_channel.ops_dx.trace import FrameKind, get_tracer
 
 try:
     from fastapi import APIRouter, FastAPI, Request, Response, WebSocket
@@ -136,7 +136,7 @@ def mount_channel(
 
     ip_limiter = None
     if ip_rpm > 0:
-        from ux_channel.ratelimit import MemoryRateLimiter
+        from ux_channel.security.ratelimit import MemoryRateLimiter
 
         ip_limiter = MemoryRateLimiter(rate_per_minute=ip_rpm, burst=ip_burst)
 
@@ -148,7 +148,7 @@ def mount_channel(
 
         ip = request.client.host if request.client else "unknown"
         if trusted_proxy:
-            from ux_channel.ratelimit import client_ip_from_scope
+            from ux_channel.security.ratelimit import client_ip_from_scope
 
             ip = client_ip_from_scope(request.headers, trusted_proxy=True) or ip
 
@@ -236,7 +236,7 @@ def mount_channel(
 
         # SSE progressive / single-chunk stream
         if "text/event-stream" in accept or getattr(intent, "accept_stream", False):
-            from ux_channel.stream import ResultStream, format_sse
+            from ux_channel.transport.stream import ResultStream, format_sse
             from fastapi.responses import StreamingResponse
 
             async def gen():
@@ -273,7 +273,7 @@ def mount_channel(
     @router.post("/batch")
     async def batch_action(request: Request):
         """Dispatch multiple Intents in one round-trip (max 16 by default)."""
-        from ux_channel.batch import dispatch_batch_async, DEFAULT_MAX_BATCH
+        from ux_channel.transport.batch import dispatch_batch_async, DEFAULT_MAX_BATCH
 
         headers = request.headers
         cl = headers.get("content-length")
@@ -292,7 +292,7 @@ def mount_channel(
             request_host=host,
         ):
             try:
-                from ux_channel.security_events import emit_security
+                from ux_channel.security.security_events import emit_security
                 emit_security("http_origin_deny", reason="origin not allowed", client=str(origin or ""))
             except Exception:
                 pass
@@ -304,7 +304,7 @@ def mount_channel(
         ctype = headers.get("content-type") or ""
         if not channel_header_ok(headers, required=require_ch, content_type=ctype):
             try:
-                from ux_channel.security_events import emit_security
+                from ux_channel.security.security_events import emit_security
                 emit_security("http_csrf_deny", reason="missing X-Channel header")
             except Exception:
                 pass
@@ -352,7 +352,7 @@ def mount_channel(
             retry_after_mode=str(body.get("retry_after_mode", "max") or "max"),
             retry_require_idempotent=bool(body.get("retry_require_idempotent", True)),
         )
-        from ux_channel.error_map import batch_http_status
+        from ux_channel.protocol.error_map import batch_http_status
 
         status = batch_http_status(out)
         # Prefer meta.http_status when enrich already set it
@@ -363,7 +363,7 @@ def mount_channel(
         # Prefer worst item / envelope meta.retry_after; else 429 default
         ra_h = None
         try:
-            from ux_channel.backoff import extract_retry_after_s, parse_retry_after
+            from ux_channel.transport.backoff import extract_retry_after_s, parse_retry_after
 
             meta = out.get("meta") if isinstance(out, dict) else None
             if isinstance(meta, dict) and meta.get("retry_after") is not None:
@@ -397,7 +397,7 @@ def mount_channel(
         """List registered actions (disabled in production unless health_list_actions)."""
         if not health_list and getattr(config, "environment", "") == "production":
             return JSONResponse({"ok": False, "error": "catalog disabled"}, status_code=404)
-        from ux_channel.catalog import action_catalog
+        from ux_channel.host.catalog import action_catalog
         return {"ok": True, "actions": action_catalog(registry)}
 
     @router.get("/docs/howto")
@@ -420,7 +420,7 @@ def mount_channel(
     @router.get("/version")
     async def version_endpoint():
         """Package + protocol version (safe for probes and client skew checks)."""
-        from ux_channel.info import package_info
+        from ux_channel.ops_dx.info import package_info
         return package_info(registry)
 
     @router.get("/health")
@@ -450,8 +450,8 @@ def mount_channel(
         Production defaults fail closed unless public / ticket / token.
         """
         import asyncio
-        from ux_channel.push import get_push_bus
-        from ux_channel.push_security import (
+        from ux_channel.transport.push import get_push_bus
+        from ux_channel.security.push_security import (
             authorize_push_subscribe,
             extract_push_credentials,
         )
@@ -505,15 +505,15 @@ def mount_channel(
         Actions over WS still require normal capability verification on the registry.
         """
         import asyncio
-        from ux_channel.push import get_push_bus
-        from ux_channel.push_security import extract_push_credentials
-        from ux_channel.ws_security import (
+        from ux_channel.transport.push import get_push_bus
+        from ux_channel.security.push_security import extract_push_credentials
+        from ux_channel.security.ws_security import (
             authorize_ws_connect,
             authorize_ws_subscribe,
             check_ws_origin,
             parse_topics_param,
         )
-        from ux_channel.ws_protocol import (
+        from ux_channel.transport.ws_protocol import (
             error_message,
             hello_message,
             parse_client_message,
@@ -530,7 +530,7 @@ def mount_channel(
         ok_o, why_o = check_ws_origin(origin, config=live_config, request_host=host)
         if not ok_o:
             try:
-                from ux_channel.security_events import emit_security
+                from ux_channel.security.security_events import emit_security
                 emit_security("ws_origin_deny", reason=why_o or "origin")
             except Exception:
                 pass
@@ -540,12 +540,12 @@ def mount_channel(
         # Wave 1: connect rate limit (client host / IP key)
         client_key = (websocket.client.host if websocket.client else None) or "unknown"
         try:
-            from ux_channel.ws_limits import get_ws_limiter
+            from ux_channel.transport.ws_limits import get_ws_limiter
             lim = get_ws_limiter()
             if lim is not None:
                 ok_c, why_c = lim.allow_connect(client_key)
                 if not ok_c:
-                    from ux_channel.security_events import emit_security
+                    from ux_channel.security.security_events import emit_security
                     emit_security("ws_rate_connect", reason=why_c, client=client_key)
                     await websocket.close(code=1008, reason=(why_c or "rate")[:120])
                     return
@@ -572,7 +572,7 @@ def mount_channel(
         )
         if not ok:
             try:
-                from ux_channel.security_events import emit_security
+                from ux_channel.security.security_events import emit_security
                 emit_security("ws_connect_deny", reason=reason or "unauthorized", client=client_key)
             except Exception:
                 pass
@@ -609,7 +609,7 @@ def mount_channel(
             )
             if not ok_s:
                 try:
-                    from ux_channel.security_events import emit_security
+                    from ux_channel.security.security_events import emit_security
                     emit_security("ws_subscribe_deny", topic=topic, reason=why_s or "subscribe denied", client=client_key)
                 except Exception:
                     pass
@@ -629,7 +629,7 @@ def mount_channel(
             drain_tasks[topic] = asyncio.create_task(_drain(topic, tq))
             # Wave integrity: presence is process-wide (see live.touch_presence)
             try:
-                from ux_channel.live import touch_presence
+                from ux_channel.host.live import touch_presence
                 cid = f"{client_key}:{id(websocket)}"
                 touch_presence(topic, cid)
             except Exception:
@@ -671,7 +671,7 @@ def mount_channel(
                 try:
                     raw = await websocket.receive_text()
                     try:
-                        from ux_channel.ws_limits import get_ws_limiter
+                        from ux_channel.transport.ws_limits import get_ws_limiter
                         lim = get_ws_limiter()
                         if lim is not None:
                             ok_m, why_m = lim.allow_message(client_key)
@@ -745,7 +745,7 @@ def mount_channel(
     async def ready() -> Response:
         """Readiness — registry importable; light package diagnostics."""
         ok = registry is not None and hasattr(registry, "dispatch_async")
-        from ux_channel.info import package_info
+        from ux_channel.ops_dx.info import package_info
         payload = package_info(registry if ok else None)
         payload["ok"] = ok
         payload["status"] = "ready" if ok else "not_ready"
@@ -758,7 +758,7 @@ def mount_channel(
             """Development DX dashboard HTML (disabled feel in production via config)."""
             from fastapi.responses import HTMLResponse
 
-            from ux_channel.dx_dashboard import build_dashboard_model, render_dashboard_html
+            from ux_channel.ops_dx.dx_dashboard import build_dashboard_model, render_dashboard_html
 
             cfg_env = str(getattr(config, "environment", "production") or "production")
             if cfg_env == "production" and not bool(getattr(config, "inspect_enabled", False)):
@@ -1057,7 +1057,7 @@ def mount_channel(
             import asyncio
             import json
             from fastapi.responses import StreamingResponse
-            from ux_channel.push import get_push_bus
+            from ux_channel.transport.push import get_push_bus
             from ux_channel.mcp.subscribe import (
                 resource_topic_for_room,
                 resource_topic_for_session,
@@ -1110,7 +1110,7 @@ def mount_channel(
     if config is None or getattr(config, "webrtc_enabled", True):
 
         def _rtc_auth(request: Request, room: str, ticket: str | None = None):
-            from ux_channel.webrtc import authorize_rtc
+            from ux_channel.realtime.webrtc import authorize_rtc
 
             live_config = getattr(registry, "config", None) or config
             return authorize_rtc(
@@ -1126,7 +1126,7 @@ def mount_channel(
         @router.get("/rtc/ice")
         async def uid_rtc_ice(request: Request):
             """Authenticated ICE (STUN + short-lived TURN). Query: room, ticket, sub."""
-            from ux_channel.webrtc_http import extract_rtc_ticket, handle_rtc_ice
+            from ux_channel.realtime.webrtc_http import extract_rtc_ticket, handle_rtc_ice
 
             live_config = getattr(registry, "config", None) or config
             room = request.query_params.get("room") or "default"
@@ -1160,7 +1160,7 @@ def mount_channel(
         @router.get("/rtc")
         async def uid_rtc_poll(request: Request):
             """Poll WebRTC signaling: join/heartbeat + roster + inbox."""
-            from ux_channel.webrtc_http import extract_rtc_ticket, handle_rtc_poll
+            from ux_channel.realtime.webrtc_http import extract_rtc_ticket, handle_rtc_poll
 
             live_config = getattr(registry, "config", None) or config
             room = request.query_params.get("room") or "default"
@@ -1169,7 +1169,7 @@ def mount_channel(
             except ValueError:
                 since = 0
             try:
-                from ux_channel.ratelimit import client_ip_from_scope
+                from ux_channel.security.ratelimit import client_ip_from_scope
                 _ck = client_ip_from_scope(request.scope) or ""
             except Exception:
                 _ck = ""
@@ -1199,7 +1199,7 @@ def mount_channel(
         @router.post("/rtc")
         async def uid_rtc_post(request: Request):
             """Post WebRTC signal, ice-done, or leave."""
-            from ux_channel.webrtc_http import extract_rtc_ticket, handle_rtc_post
+            from ux_channel.realtime.webrtc_http import extract_rtc_ticket, handle_rtc_post
 
             live_config = getattr(registry, "config", None) or config
             try:
@@ -1209,7 +1209,7 @@ def mount_channel(
             if not isinstance(body, dict):
                 return JSONResponse({"ok": False, "error": "object required"}, status_code=400)
             try:
-                from ux_channel.ratelimit import client_ip_from_scope
+                from ux_channel.security.ratelimit import client_ip_from_scope
                 _ck = client_ip_from_scope(request.scope) or ""
             except Exception:
                 _ck = ""
@@ -1246,7 +1246,7 @@ def mount_channel(
             import asyncio
             import queue as queue_mod
 
-            from ux_channel.webrtc import (
+            from ux_channel.realtime.webrtc import (
                 _peer_id_ok,
                 _sanitize_id,
                 allow_rtc_traffic,
@@ -1275,7 +1275,7 @@ def mount_channel(
                 ok, reason = False, "invalid peer id"
             if ok:
                 try:
-                    from ux_channel.ratelimit import client_ip_from_scope
+                    from ux_channel.security.ratelimit import client_ip_from_scope
                     _ck = client_ip_from_scope(websocket.scope) or ""
                 except Exception:
                     _ck = ""
@@ -1284,7 +1284,7 @@ def mount_channel(
                 )
             if not ok:
                 try:
-                    from ux_channel.webrtc_metrics import note_auth_fail, note_ws
+                    from ux_channel.realtime.webrtc_metrics import note_auth_fail, note_ws
                     note_auth_fail()
                     note_ws("deny")
                 except Exception:
@@ -1297,7 +1297,7 @@ def mount_channel(
 
             await websocket.accept()
             try:
-                from ux_channel.webrtc_metrics import note_ws
+                from ux_channel.realtime.webrtc_metrics import note_ws
                 note_ws("accept")
             except Exception:
                 pass
@@ -1456,7 +1456,7 @@ def mount_channel(
     @router.get("/rtc/metrics")
     async def uid_rtc_metrics():
         """JSON snapshot of WebRTC signaling counters (P1)."""
-        from ux_channel.webrtc_metrics import rtc_metrics
+        from ux_channel.realtime.webrtc_metrics import rtc_metrics
 
         return JSONResponse(rtc_metrics.snapshot())
 
@@ -1470,8 +1470,8 @@ def mount_channel(
             Body: raw SDP or JSON {sdp, type}. Returns 201 with answer placeholder
             when a subscriber has posted via /whep; otherwise 202 + Location.
             """
-            from ux_channel.webrtc import get_rtc_store
-            from ux_channel.whip import is_sdp_offer, parse_sdp_body
+            from ux_channel.realtime.webrtc import get_rtc_store
+            from ux_channel.realtime.whip import is_sdp_offer, parse_sdp_body
 
             live_config = getattr(registry, "config", None) or config
             raw = await request.body()
@@ -1522,8 +1522,8 @@ def mount_channel(
         @router.post("/whep/{room}")
         async def uid_whep_play(room: str, request: Request):
             """WHEP-like play: consumer posts offer; receives publisher offer as answer path."""
-            from ux_channel.webrtc import get_rtc_store
-            from ux_channel.whip import is_sdp_offer, parse_sdp_body
+            from ux_channel.realtime.webrtc import get_rtc_store
+            from ux_channel.realtime.whip import is_sdp_offer, parse_sdp_body
 
             live_config = getattr(registry, "config", None) or config
             raw = await request.body()
@@ -1560,7 +1560,7 @@ def mount_channel(
     @router.post("/sfu/token")
     async def uid_sfu_token(request: Request):
         """Mint external SFU join token when sfu_provider configured."""
-        from ux_channel.sfu import handle_sfu_token
+        from ux_channel.realtime.sfu import handle_sfu_token
 
         live_config = getattr(registry, "config", None) or config
         try:
@@ -1594,15 +1594,15 @@ def mount_channel(
 
 
 def _status_for(result: Result) -> int:
-    from ux_channel.error_map import ensure_error_meta, http_status_for
+    from ux_channel.protocol.error_map import ensure_error_meta, http_status_for
 
     return http_status_for(ensure_error_meta(result))
 
 
 def _retry_after_header(result: Result, status: int) -> str | None:
     """RFC 7231 Retry-After seconds from Result meta, else default for 429."""
-    from ux_channel.backoff import extract_retry_after_s
-    from ux_channel.error_map import ensure_error_meta
+    from ux_channel.transport.backoff import extract_retry_after_s
+    from ux_channel.protocol.error_map import ensure_error_meta
 
     ensure_error_meta(result)
     ra = extract_retry_after_s(result)

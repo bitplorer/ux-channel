@@ -4,7 +4,7 @@ import pytest
 from fastapi import FastAPI
 
 from ux_channel import Channel, ChannelConfig
-from ux_channel.ops import bridge_call
+from ux_channel.protocol.ops import bridge_call
 
 
 def test_call_requires_package_and_allowlists():

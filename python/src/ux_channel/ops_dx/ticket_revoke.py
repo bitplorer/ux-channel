@@ -10,7 +10,7 @@ USAGE
 -----
 ::
 
-    from ux_channel.ticket_revoke import get_revocation_list
+    from ux_channel.ops_dx.ticket_revoke import get_revocation_list
     get_revocation_list().revoke(ticket)
     assert get_revocation_list().is_revoked(ticket)
 """

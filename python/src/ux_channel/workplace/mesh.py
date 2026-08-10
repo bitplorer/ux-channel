@@ -21,7 +21,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Mapping, Optional, Sequence
 
-from ux_channel.io_channel import IoRoomClaim
+from ux_channel.foundations.io_channel import IoRoomClaim
 from ux_channel.workplace.ticket import (
     WorkplaceTicketError,
     claim_from_rtc_ticket,
@@ -105,7 +105,7 @@ def issue_mesh_membership(
     if webrtc is not None and hasattr(webrtc, "sign_ticket"):
         rtc = webrtc.sign_ticket(room_s, sub=sub_s)
     else:
-        from ux_channel.webrtc import sign_rtc_ticket
+        from ux_channel.realtime.webrtc import sign_rtc_ticket
 
         rtc = sign_rtc_ticket(cfg, room_s, sub=sub_s)
 
@@ -227,7 +227,7 @@ def revoke_mesh_membership(
 
     RTC revoke uses the shared revocation list; workplace verify checks it too.
     """
-    from ux_channel.ticket_revoke import get_revocation_list
+    from ux_channel.ops_dx.ticket_revoke import get_revocation_list
     from ux_channel.workplace.ticket import revoke_workplace_ticket
 
     age = float(ttl_s) if ttl_s is not None else float(membership.max_age or 3600)

@@ -17,7 +17,7 @@ import json
 import threading
 from typing import Any, Iterable, Optional
 
-from ux_channel.slot_compile import SlotMap, compile_tree
+from ux_channel.paint.slot_compile import SlotMap, compile_tree
 from ux_channel_ux_dom.tree import inject_uids, tree_to_dict
 
 __all__ = [

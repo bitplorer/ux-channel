@@ -5,7 +5,7 @@ from pathlib import Path
 
 from ux_channel import Channel, Intent, Region
 from ux_channel.day1 import Channel as Day1Channel
-from ux_channel.region_component import class_to_uid
+from ux_channel.host.region_component import class_to_uid
 
 SECRET = "dev-secret-key-32chars-minimum!!!!"
 
@@ -101,7 +101,7 @@ def test_unknown_refresh_uid_does_not_crash():
 
 
 def test_client_js_preserves_uid_contract():
-    js_path = Path(__file__).resolve().parents[2] / "src/ux_channel/static/ux-channel.js"
+    js_path = Path(__import__("ux_channel").__file__).resolve().parent / "static" / "ux-channel.js"
     js = js_path.read_text(encoding="utf-8")
     assert "data-channel-id" in js
     assert "replaceWith" in js

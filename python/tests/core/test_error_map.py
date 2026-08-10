@@ -7,14 +7,14 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from ux_channel import Channel, ChannelConfig, Result
-from ux_channel.error_map import (
+from ux_channel.protocol.error_map import (
     ERROR_HTTP_STATUS,
     catalog,
     ensure_error_meta,
     http_status_for,
     kind_for_code,
 )
-from ux_channel.types import Result as R
+from ux_channel.protocol.types import Result as R
 
 
 def test_catalog_covers_known_codes():

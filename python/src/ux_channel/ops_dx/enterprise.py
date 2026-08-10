@@ -44,7 +44,7 @@ import time
 from dataclasses import dataclass, field
 from typing import Any, Callable, Mapping, Optional, Sequence
 
-from ux_channel.types import Result
+from ux_channel.protocol.types import Result
 
 
 @dataclass
@@ -183,8 +183,8 @@ class PolicyRegistry:
 
 def attach_enterprise(channel: Any) -> None:
     """Attach audit, policy, paginate; ensure nonce store for once-caps."""
-    from ux_channel.idempotency import MemoryIdempotencyStore
-    from ux_channel.nonce import MemoryNonceStore
+    from ux_channel.host.idempotency import MemoryIdempotencyStore
+    from ux_channel.host.nonce import MemoryNonceStore
 
     reg = channel.registry
     if getattr(reg, "nonce_store", None) is None:

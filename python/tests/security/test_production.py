@@ -8,10 +8,10 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from ux_channel import ActionRegistry, Result, toast
-from ux_channel.config import ChannelConfig
-from ux_channel.ratelimit import MemoryRateLimiter, rate_limit_hook
-from ux_channel.security import content_length_ok, origin_allowed
-from ux_channel.types import Intent
+from ux_channel.host.config import ChannelConfig
+from ux_channel.security.ratelimit import MemoryRateLimiter, rate_limit_hook
+from ux_channel.security.security import content_length_ok, origin_allowed
+from ux_channel.protocol.types import Intent
 
 
 def test_production_rejects_weak_secret():

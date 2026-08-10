@@ -23,7 +23,7 @@ from __future__ import annotations
 import time
 from typing import Any, Mapping, Optional, Sequence
 
-from ux_channel.io_channel import IoChannelError, IoRoomClaim, claim_from_mapping  # noqa: I001
+from ux_channel.foundations.io_channel import IoChannelError, IoRoomClaim, claim_from_mapping  # noqa: I001
 
 __all__ = [
     "WorkplaceTicketError",
@@ -103,7 +103,7 @@ def verify_workplace_ticket_payload(
 
     # Logout / ban denylist (same store as push tickets)
     try:
-        from ux_channel.ticket_revoke import get_revocation_list
+        from ux_channel.ops_dx.ticket_revoke import get_revocation_list
 
         if get_revocation_list().is_revoked(ticket):
             raise WorkplaceTicketError("workplace ticket revoked")
@@ -180,7 +180,7 @@ def claim_from_rtc_ticket(
     RTC tickets carry room/sub only (media door). Scopes always come from
     **your** policy argument — never trust the browser to invent them.
     """
-    from ux_channel.webrtc import verify_rtc_ticket
+    from ux_channel.realtime.webrtc import verify_rtc_ticket
 
     ok, detail = verify_rtc_ticket(config, ticket, room, max_age=max_age)
     if not ok:
@@ -199,7 +199,7 @@ def claim_from_rtc_ticket(
 
 def revoke_workplace_ticket(ticket: str, *, ttl_s: float | None = None) -> None:
     """Revoke a workplace membership ticket (logout / ban)."""
-    from ux_channel.ticket_revoke import get_revocation_list
+    from ux_channel.ops_dx.ticket_revoke import get_revocation_list
 
     age = 3600.0 if ttl_s is None else float(ttl_s)
     get_revocation_list().revoke(ticket, ttl_s=age)

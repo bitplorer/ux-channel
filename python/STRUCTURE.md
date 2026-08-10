@@ -10,7 +10,7 @@
 ```text
 python/
   src/ux_channel/   ← package (src layout + cohesive subpackages)
-    protocol/ host/ paint/ security_plane/ …
+    protocol/ host/ paint/ security/ …
   ONTOLOGY.md           ← what things *are* (Region vs Bridge vs …)
   LAYOUT.md             ← every module mapped to a zone (anti-flat)
   STRUCTURE.md          ← this file (what may change)
@@ -76,7 +76,7 @@ python/
 
 | Preference | Pattern |
 |------------|---------|
-| **New app code** | `from ux_channel.day1 import Channel, Region, …` |
+| **New app code** | `from ux_channel.host.day1 import Channel, Region, …` |
 | **Still OK** | `from ux_channel import Channel, Region` (same objects) |
 | **Power features** | `from ux_channel.bridges import …` (by concern) |
 | **Avoid** | Deep imports of private helpers; grab-bag `import *` from root in libraries |

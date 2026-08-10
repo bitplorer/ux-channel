@@ -20,14 +20,14 @@ from ux_dom import Component, Document
 from ux_dom.dom import button, div, form, h1, header, input_, main, nav, p, raw, span
 
 from ux_channel import Channel, ChannelConfig
-from ux_channel.demo import (
+from ux_channel.paint.demo import (
     attr_string,
     demo_button,
     demo_page,
     demo_scripts,
     script_tags,
 )
-from ux_channel.response import HTMLResponse
+from ux_channel.paint.response import HTMLResponse
 
 app = FastAPI(title="Pulse × ux-dom", version="0.1.0")
 ch = Channel.boot(

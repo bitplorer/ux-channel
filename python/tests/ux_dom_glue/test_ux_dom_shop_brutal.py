@@ -19,7 +19,7 @@ from starlette.testclient import TestClient
 from examples.ux_dom_shop import app as shop_app
 from examples.ux_dom_shop.app import DB, SECRET, ch, reset_db
 from ux_channel import Intent
-from ux_channel.context import Principal
+from ux_channel.host.context import Principal
 
 
 client = TestClient(shop_app)
@@ -173,7 +173,7 @@ def test_refund_requires_admin_role():
     # with admin principal
     cap = ch.mint("refund_last", {}, sub="admin1")
     # dispatch with principal roles via keys - enterprise require_roles
-    from ux_channel.context import Principal
+    from ux_channel.host.context import Principal
 
     principal = Principal.of(sub="admin1", roles=["admin"])
     # registry may need principal in intent meta - check how require_roles works

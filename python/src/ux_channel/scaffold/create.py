@@ -127,7 +127,7 @@ def create_app(opts: ScaffoldOptions) -> Path:
 
     # Auto bridge presets (importable bridges/<name>/)
     if opts.bridges:
-        from ux_channel.bridge_preset_gen import create_bridge_preset, write_bridges_index
+        from ux_channel.bridge_meta.bridge_preset_gen import create_bridge_preset, write_bridges_index
 
         bridges_root = root / "bridges"
         bridges_root.mkdir(parents=True, exist_ok=True)
@@ -522,7 +522,7 @@ from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 
 from ux_channel import Channel
-from ux_channel.demo import demo_button, demo_page, demo_scripts, attr_string
+from ux_channel.paint.demo import demo_button, demo_page, demo_scripts, attr_string
 
 from app.config import get_channel_config
 
@@ -610,7 +610,7 @@ from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 
 from ux_channel import Channel
-from ux_channel.demo import demo_button, demo_page
+from ux_channel.paint.demo import demo_button, demo_page
 
 from app.config import get_channel_config
 

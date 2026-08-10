@@ -28,7 +28,7 @@ ch = Channel.boot(
 
 ```python
 from ux_channel import ActionRegistry
-from ux_channel.config import ChannelConfig
+from ux_channel.host.config import ChannelConfig
 from ux_channel.asgi.fastapi import mount_channel
 
 cfg = ChannelConfig.from_env()
@@ -39,7 +39,7 @@ mount_channel(app, reg, config=cfg)
 ### Factory
 
 ```python
-from ux_channel.factory import create_channel
+from ux_channel.host.factory import create_channel
 reg, hub = create_channel(config=cfg, app=app, host="fastapi")
 ```
 

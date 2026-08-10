@@ -64,7 +64,7 @@ r = client.post(
 ## Live board (SSE)
 
 ```python
-from ux_channel.push import get_push_bus
+from ux_channel.transport.push import get_push_bus
 
 result = ch.refresh("board.ticker", "board.rates")
 get_push_bus().publish("sarrafa.board", result)

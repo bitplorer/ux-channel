@@ -4,7 +4,7 @@ Starlette host adapter — security parity with FastAPI (next steps).
 
 from __future__ import annotations
 
-from ux_channel import serde as _serde
+from ux_channel.protocol import serde as _serde
 from ux_channel.wire.negotiate import decode_http_body, encode_http_body
 from ux_channel.wire.core import MEDIA_TYPES
 
@@ -12,11 +12,11 @@ import json
 from pathlib import Path
 from typing import Any, Optional
 
-from ux_channel.registry import ActionRegistry
-from ux_channel.security import channel_header_ok, content_length_ok, origin_allowed
-from ux_channel.stream import ResultStream, format_sse
-from ux_channel.trace import FrameKind, get_tracer
-from ux_channel.types import Intent, Result
+from ux_channel.host.registry import ActionRegistry
+from ux_channel.security.security import channel_header_ok, content_length_ok, origin_allowed
+from ux_channel.transport.stream import ResultStream, format_sse
+from ux_channel.ops_dx.trace import FrameKind, get_tracer
+from ux_channel.protocol.types import Intent, Result
 
 try:
     from starlette.applications import Starlette
@@ -69,7 +69,7 @@ def channel_routes(
     ip_burst = float(getattr(config, "rate_limit_burst", 30) or 30)
     ip_limiter = None
     if ip_rpm > 0:
-        from ux_channel.ratelimit import MemoryRateLimiter
+        from ux_channel.security.ratelimit import MemoryRateLimiter
 
         ip_limiter = MemoryRateLimiter(rate_per_minute=ip_rpm, burst=ip_burst)
 
@@ -126,8 +126,8 @@ def channel_routes(
                     html = str(op["html"])
                     break
             return HTMLResponse(html, status_code=200 if result.ok else 422)
-        from ux_channel.error_map import ensure_error_meta, http_status_for
-        from ux_channel.backoff import extract_retry_after_s
+        from ux_channel.protocol.error_map import ensure_error_meta, http_status_for
+        from ux_channel.transport.backoff import extract_retry_after_s
 
         result = ensure_error_meta(result)
         status = http_status_for(result)
@@ -159,11 +159,11 @@ def channel_routes(
         return JSONResponse(body)
 
     async def version_ep(_: Request) -> Response:
-        from ux_channel.info import package_info
+        from ux_channel.ops_dx.info import package_info
         return JSONResponse(package_info(registry))
 
     async def ready(_: Request) -> Response:
-        from ux_channel.info import package_info
+        from ux_channel.ops_dx.info import package_info
         body = package_info(registry)
         body["ok"] = True
         body["status"] = "ready"

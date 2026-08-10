@@ -19,7 +19,7 @@ from ux_channel.agents.session import AgentSession
 from ux_channel.mcp.adapter import McpToolAdapter
 from ux_channel.mcp.sessions import McpSession, get_session_store
 from ux_channel.mcp.verticals import register_builtin_verticals
-from ux_channel.registry import ActionRegistry
+from ux_channel.host.registry import ActionRegistry
 
 
 def build_agent_session(
@@ -63,7 +63,7 @@ def create_mcp_adapter(
     # attach principal scopes when claim-bound
     if scopes:
         try:
-            from ux_channel.context import Principal
+            from ux_channel.host.context import Principal
 
             session.principal = Principal(
                 id=sub or agent_id, scopes=tuple(scopes)

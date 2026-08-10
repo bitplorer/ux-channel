@@ -37,7 +37,7 @@ Monorepo intent table (mint/sign, Region/registry): **[NAMING.md](../../../NAMIN
 ## Preferred construction
 
 ```python
-from ux_channel.quantity import Quantity
+from ux_channel.foundations.quantity import Quantity
 
 q = Quantity.from_store(10.5, "USD", source="db.order.9.amount", revision=3)
 # builds Provenance internally — preferred over hand-built provenance

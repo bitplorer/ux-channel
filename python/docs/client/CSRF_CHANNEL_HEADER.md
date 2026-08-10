@@ -33,7 +33,7 @@ window.__UX_CHANNEL_CSRF__ = {
 Or paint any meta/input whose name looks like csrf/xsrf; the client discovers it heuristically. Then it always sets `X-Channel: 1` **last**.
 
 ```python
-from ux_channel.host_csrf import intent_headers, host_csrf_meta
+from ux_channel.security.host_csrf import intent_headers, host_csrf_meta
 
 intent_headers(host_token=tok, forward_as=("X-My-Middleware-CSRF",))
 host_csrf_meta(tok, name="whatever-document-expects")

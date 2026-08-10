@@ -8,7 +8,7 @@ from fastapi.testclient import TestClient
 
 from ux_channel import Channel, ChannelConfig
 from ux_channel.io_adapters import LabDutAdapter, ScannerAdapter
-from ux_channel.quantity import Quantity
+from ux_channel.foundations.quantity import Quantity
 from ux_channel.workplace import (
     WorkplaceTicketError,
     issue_mesh_membership,

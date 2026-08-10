@@ -4,7 +4,7 @@ import json
 import tempfile
 from pathlib import Path
 
-from ux_channel.bridge_preset_gen import create_bridge_preset, resolve_preset_spec
+from ux_channel.bridge_meta.bridge_preset_gen import create_bridge_preset, resolve_preset_spec
 
 
 def test_chartjs_contract_lists_real_fields_not_css():
@@ -41,7 +41,7 @@ def test_named_methods_from_contract_args():
 
     from fastapi import FastAPI
     from ux_channel import Channel, ChannelConfig
-    from ux_channel.bridge_preset_gen import create_bridge_preset
+    from ux_channel.bridge_meta.bridge_preset_gen import create_bridge_preset
 
     with tempfile.TemporaryDirectory() as td:
         root = create_bridge_preset(td, "leaflet", force=True)

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Mapping, Optional, Sequence
 
-from ux_channel.host_csrf import (
+from ux_channel.security.host_csrf import (
     CHANNEL_CSRF_HEADER,
     CHANNEL_CSRF_VALUE,
     host_csrf_meta,

@@ -6,8 +6,8 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from ux_channel import ActionRegistry, Result, toast
-from ux_channel.catalog import action_catalog
-from ux_channel.config import ChannelConfig
+from ux_channel.host.catalog import action_catalog
+from ux_channel.host.config import ChannelConfig
 
 ROOT = Path(__file__).resolve().parents[2]
 DOCS = ROOT / "docs"

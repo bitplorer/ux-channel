@@ -55,7 +55,7 @@ def test_region_uid_overwrite_last_wins():
 
 
 def test_encode_result_shaped_dict():
-    from ux_channel.encode import encode_result
+    from ux_channel.protocol.encode import encode_result
 
     r = encode_result(
         {"ok": True, "ops": [{"op": "toast", "message": "x", "level": "info"}], "meta": {}},

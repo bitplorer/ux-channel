@@ -24,7 +24,7 @@ Open `reports/dx-example/dashboard.html` (and `dashboard.json`).
 ## Extend
 
 ```python
-from ux_channel.dx_dashboard import register_plugin
+from ux_channel.ops_dx.dx_dashboard import register_plugin
 from team_plugin import TeamOverview
 
 register_plugin(TeamOverview())

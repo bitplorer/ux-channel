@@ -89,8 +89,8 @@ class LivePlane:
 
         If ``result`` is None, builds ``ch.refresh(*bound, *extra)``.
         """
-        from ux_channel.push import get_push_bus
-        from ux_channel.types import Result
+        from ux_channel.transport.push import get_push_bus
+        from ux_channel.protocol.types import Result
 
         uids: list[str] = list(self.regions_for(topic))
         for u in extra_uids:
@@ -108,7 +108,7 @@ class LivePlane:
                 if notice and hasattr(result, "ops"):
                     # append toast if builder available
                     try:
-                        from ux_channel.ops import toast
+                        from ux_channel.protocol.ops import toast
 
                         result = Result(
                             ok=getattr(result, "ok", True),

@@ -3,7 +3,7 @@
 from pathlib import Path
 
 from ux_channel import Channel, ChannelConfig
-from ux_channel.demo import attr_string, demo_button, demo_page, demo_scripts, script_tags
+from ux_channel.paint.demo import attr_string, demo_button, demo_page, demo_scripts, script_tags
 
 ROOT = Path(__file__).resolve().parents[2]
 

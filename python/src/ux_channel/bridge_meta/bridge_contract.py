@@ -24,7 +24,7 @@ against the contract when present. Without a contract, calls are open
 
 from __future__ import annotations
 
-from ux_channel import serde as _serde
+from ux_channel.protocol import serde as _serde
 
 import json
 from dataclasses import dataclass, field

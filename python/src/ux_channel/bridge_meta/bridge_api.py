@@ -20,20 +20,20 @@ Stability = BridgeManifest methods + adapter contract + wire version — not imp
 
 Import from this module (not the ux_channel root)::
 
-    from ux_channel.bridge_api import mount_html, mount_ops, update_ops
+    from ux_channel.bridge_meta.bridge_api import mount_html, mount_ops, update_ops
 
 See: docs/PLUGINS.md, docs/ISLANDS.md (see bridges docs).
 """
 from __future__ import annotations
 
-from ux_channel import serde as _serde
+from ux_channel.protocol import serde as _serde
 
 import html
 import json
 from typing import Any, Mapping, Optional, Sequence
 
-from ux_channel.ops import Op, bridge_call, bridge_destroy, bridge_mount, bridge_update
-from ux_channel.plugins import BridgeManifest, get_hub
+from ux_channel.protocol.ops import Op, bridge_call, bridge_destroy, bridge_mount, bridge_update
+from ux_channel.bridge_meta.plugins import BridgeManifest, get_hub
 
 
 def props_attr(props: Any) -> str:

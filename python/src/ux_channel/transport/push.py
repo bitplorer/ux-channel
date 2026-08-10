@@ -13,7 +13,7 @@ import threading
 from collections import defaultdict
 from typing import Any, DefaultDict, Optional, Protocol, Set
 
-from ux_channel.types import Result
+from ux_channel.protocol.types import Result
 
 
 class PushBackend(Protocol):

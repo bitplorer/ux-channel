@@ -4,20 +4,20 @@ from __future__ import annotations
 
 import unittest
 
-from ux_channel.dx_dashboard import (
+from ux_channel.ops_dx.dx_dashboard import (
     USE_CASES,
     build_dashboard_model,
     clear_plugins,
     reset_dashboard_settings,
 )
-from ux_channel.otel import (
+from ux_channel.ops_dx.otel import (
     attach_otel,
     dashboard_snapshot,
     detach_otel,
     otel_available,
     status,
 )
-from ux_channel.trace import FrameKind, TraceConfig, get_tracer
+from ux_channel.ops_dx.trace import FrameKind, TraceConfig, get_tracer
 
 
 class TestOtelDashboard(unittest.TestCase):

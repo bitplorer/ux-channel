@@ -17,8 +17,8 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from ux_channel import Channel, ChannelConfig
-from ux_channel.sfu import handle_sfu_token
-from ux_channel.webrtc import get_rtc_store, reset_rtc_store, sign_rtc_ticket
+from ux_channel.realtime.sfu import handle_sfu_token
+from ux_channel.realtime.webrtc import get_rtc_store, reset_rtc_store, sign_rtc_ticket
 
 
 SECRET = "prod-stability-secret-key-32ch!!"
@@ -290,7 +290,7 @@ def test_chaos_sfu_not_configured_501():
 
 
 def test_chaos_unknown_sfu_provider():
-    from ux_channel.sfu import get_sfu
+    from ux_channel.realtime.sfu import get_sfu
 
     cfg = _cfg(sfu_provider="jitsi-cloud-typo")
     with pytest.raises(ValueError):

@@ -48,6 +48,6 @@ Document(
 ## Example (demo only)
 
 ```python
-from ux_channel.demo import script_tags, attr_string, demo_page
+from ux_channel.paint.demo import script_tags, attr_string, demo_page
 html_head = script_tags(p)
 ```

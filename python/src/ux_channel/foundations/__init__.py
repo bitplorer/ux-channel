@@ -5,9 +5,9 @@ Quantity, provenance, io_channel.
 Modules: io_channel, provenance, quantity
 
 Import: ``from ux_channel.foundations.MODULE import Symbol``
-Legacy: ``from ux_channel.MODULE import Symbol`` (generated alias).
+Public apps: ``from ux_channel.day1 import …`` or ``from ux_channel import …``
 
-Source of truth: PACKAGE_MAP.json · sync: scripts/sync_python_layout.py
+Source of truth: PACKAGE_MAP.json
 """
 from __future__ import annotations
 

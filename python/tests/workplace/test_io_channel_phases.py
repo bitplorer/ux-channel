@@ -12,7 +12,7 @@ from hypothesis import given, settings, strategies as st
 
 from ux_channel import Channel, ChannelConfig, agents
 from ux_channel.io_adapters import LabDutAdapter, LightsAdapter, ScannerAdapter
-from ux_channel.io_channel import (
+from ux_channel.foundations.io_channel import (
     IoChannelError,
     IoGate,
     IoRoomClaim,
@@ -23,8 +23,8 @@ from ux_channel.io_channel import (
     protocol_from_mapping,
     run_checked,
 )
-from ux_channel.quantity import Quantity
-from ux_channel.types import Intent
+from ux_channel.foundations.quantity import Quantity
+from ux_channel.protocol.types import Intent
 from ux_channel.workplace import workplace
 
 

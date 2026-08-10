@@ -5,9 +5,9 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from ux_channel import ActionRegistry, Result, toast
-from ux_channel.capability import CapService
-from ux_channel.jsonutil import JsonLimitError, check_json_limits
-from ux_channel.types import Intent
+from ux_channel.protocol.capability import CapService
+from ux_channel.protocol.jsonutil import JsonLimitError, check_json_limits
+from ux_channel.protocol.types import Intent
 
 
 def test_capability_secret_rotation():
@@ -70,7 +70,7 @@ def test_json_depth_limit():
 
 
 def test_cors_helper():
-    from ux_channel.cors import apply_cors
+    from ux_channel.transport.cors import apply_cors
 
     app = FastAPI()
     apply_cors(app, origins=["https://app.example.com"])
@@ -80,7 +80,7 @@ def test_cors_helper():
 
 def test_schema_models_optional():
     pytest.importorskip("pydantic")
-    from ux_channel.schema_models import IntentModel, ResultModel
+    from ux_channel.ops_dx.schema_models import IntentModel, ResultModel
 
     m = IntentModel(action="Orders.place", args={"id": "1"})
     assert m.action == "Orders.place"

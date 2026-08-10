@@ -6,10 +6,10 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from ux_channel import Channel, ChannelConfig
-from ux_channel.live import touch_presence, presence_count
-from ux_channel.policy import PolicyEngine, set_policy
-from ux_channel.push_security import authorize_push_subscribe, sign_push_ticket
-from ux_channel.security_events import SecurityEventBus, get_security_bus, set_security_bus
+from ux_channel.host.live import touch_presence, presence_count
+from ux_channel.security.policy import PolicyEngine, set_policy
+from ux_channel.security.push_security import authorize_push_subscribe, sign_push_ticket
+from ux_channel.security.security_events import SecurityEventBus, get_security_bus, set_security_bus
 
 
 def test_tenant_topic_prefix_enforced():

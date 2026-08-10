@@ -8,7 +8,7 @@ from concurrent.futures import ThreadPoolExecutor
 import pytest
 
 from ux_channel import Channel, StateConflict
-from ux_channel.state import MemoryStateStore
+from ux_channel.host.state import MemoryStateStore
 
 SECRET = "dev-secret-key-32chars-minimum!!!!"
 

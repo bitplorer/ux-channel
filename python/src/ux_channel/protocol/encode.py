@@ -19,10 +19,10 @@ from __future__ import annotations
 
 from typing import Any, Mapping, Optional, Sequence
 
-from ux_channel.errors import ActionError
-from ux_channel.ops import morph, navigate
-from ux_channel.render import ChainRenderer, HtmlRenderer, StringRenderer
-from ux_channel.types import Result
+from ux_channel.protocol.errors import ActionError
+from ux_channel.protocol.ops import morph, navigate
+from ux_channel.paint.render import ChainRenderer, HtmlRenderer, StringRenderer
+from ux_channel.protocol.types import Result
 
 
 class Navigate:

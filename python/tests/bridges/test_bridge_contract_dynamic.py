@@ -8,8 +8,8 @@ import pytest
 from fastapi import FastAPI
 
 from ux_channel import Channel, ChannelConfig
-from ux_channel.bridge_contract import BridgeContract, MethodSpec, ValidationError
-from ux_channel.bridge_scaffold import create_bridge_package
+from ux_channel.bridge_meta.bridge_contract import BridgeContract, MethodSpec, ValidationError
+from ux_channel.bridge_meta.bridge_scaffold import create_bridge_package
 
 
 def _ch():

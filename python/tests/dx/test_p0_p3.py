@@ -8,9 +8,9 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from ux_channel import Channel, ChannelConfig
-from ux_channel.webrtc import get_rtc_store, reset_rtc_store
-from ux_channel.webrtc_metrics import rtc_metrics
-from ux_channel.sfu import NullSfu, get_sfu, SfuConfig, LiveKitSfu
+from ux_channel.realtime.webrtc import get_rtc_store, reset_rtc_store
+from ux_channel.realtime.webrtc_metrics import rtc_metrics
+from ux_channel.realtime.sfu import NullSfu, get_sfu, SfuConfig, LiveKitSfu
 
 
 class TestP0ProductionTickets(unittest.TestCase):

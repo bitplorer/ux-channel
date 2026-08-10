@@ -13,8 +13,8 @@ from hypothesis import given, settings, strategies as st
 
 from ux_channel import Channel, ChannelConfig, attach_audit
 from ux_channel.io_adapters import LabDutAdapter, LightsAdapter, ScannerAdapter
-from ux_channel.io_channel import IoChannelError
-from ux_channel.quantity import Quantity
+from ux_channel.foundations.io_channel import IoChannelError
+from ux_channel.foundations.quantity import Quantity
 from ux_channel.workplace import (
     WorkplaceError,
     WorkplaceTicketError,
@@ -22,7 +22,7 @@ from ux_channel.workplace import (
     sign_workplace_ticket,
     workplace,
 )
-from ux_channel.webrtc import sign_rtc_ticket
+from ux_channel.realtime.webrtc import sign_rtc_ticket
 
 
 SECRET = "workplace-chaos-load-secret-key-32b!"

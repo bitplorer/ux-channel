@@ -9,8 +9,8 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from ux_channel import Channel, ChannelConfig, Region, Result
-from ux_channel.push import MemoryPushBackend, PushBus, set_push_bus, get_push_bus
-from ux_channel.types import Result as R
+from ux_channel.transport.push import MemoryPushBackend, PushBus, set_push_bus, get_push_bus
+from ux_channel.protocol.types import Result as R
 
 
 def _ch():

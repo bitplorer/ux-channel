@@ -6,7 +6,7 @@ Memory store (default) or Redis when ``redis_url`` is configured.
 
 from __future__ import annotations
 
-from ux_channel import serde as _serde
+from ux_channel.protocol import serde as _serde
 
 import json
 import secrets

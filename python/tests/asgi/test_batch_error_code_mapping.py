@@ -4,13 +4,13 @@
 from __future__ import annotations
 
 from ux_channel import Channel, ChannelConfig
-from ux_channel.batch import dispatch_batch
-from ux_channel.error_map import (
+from ux_channel.transport.batch import dispatch_batch
+from ux_channel.protocol.error_map import (
     ERROR_HTTP_STATUS,
     batch_http_status,
     map_batch_error_codes,
 )
-from ux_channel.types import Result
+from ux_channel.protocol.types import Result
 from fastapi import FastAPI
 
 
@@ -134,7 +134,7 @@ def test_every_catalog_code_has_stable_batch_http():
                 }
             ],
         }
-        from ux_channel.error_map import enrich_batch_envelope
+        from ux_channel.protocol.error_map import enrich_batch_envelope
 
         e = enrich_batch_envelope(env)
         assert e["meta"]["http_status"] == status, code

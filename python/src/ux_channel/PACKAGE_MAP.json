@@ -9,7 +9,7 @@
     "paint",
     "protocol",
     "realtime",
-    "security_plane",
+    "security",
     "transport"
   ],
   "product_packages": [
@@ -30,7 +30,7 @@
     "actions_file": "host",
     "agent_peer": "ops_dx",
     "agents_api": "ops_dx",
-    "attenuate": "security_plane",
+    "attenuate": "security",
     "audit": "ops_dx",
     "backoff": "transport",
     "batch": "transport",
@@ -41,7 +41,7 @@
     "bridge_protocol": "bridge_meta",
     "bridge_scaffold": "bridge_meta",
     "bridge_style": "bridge_meta",
-    "bulkhead": "security_plane",
+    "bulkhead": "security",
     "capability": "protocol",
     "catalog": "host",
     "cli": "ops_dx",
@@ -50,7 +50,6 @@
     "config": "host",
     "context": "host",
     "cors": "transport",
-    "day1": "host",
     "demo": "paint",
     "dx": "host",
     "dx_dashboard": "ops_dx",
@@ -66,7 +65,7 @@
     "forensics": "ops_dx",
     "guest_runtime": "bridge_meta",
     "hooks": "host",
-    "host_csrf": "security_plane",
+    "host_csrf": "security",
     "html": "paint",
     "html_document": "paint",
     "html_safe": "paint",
@@ -77,7 +76,7 @@
     "intent_sync": "transport",
     "io_channel": "foundations",
     "jsonutil": "protocol",
-    "limits": "security_plane",
+    "limits": "security",
     "live": "host",
     "media": "realtime",
     "metrics_prom": "ops_dx",
@@ -91,15 +90,15 @@
     "placement": "paint",
     "planes": "host",
     "plugins": "bridge_meta",
-    "policy": "security_plane",
+    "policy": "security",
     "profiling": "ops_dx",
     "projections": "paint",
     "provenance": "foundations",
     "push": "transport",
-    "push_security": "security_plane",
+    "push_security": "security",
     "pydantic_actions": "ops_dx",
     "quantity": "foundations",
-    "ratelimit": "security_plane",
+    "ratelimit": "security",
     "recipes": "host",
     "region_cli": "host",
     "region_component": "host",
@@ -109,8 +108,8 @@
     "render": "paint",
     "response": "paint",
     "schema_models": "ops_dx",
-    "security": "security_plane",
-    "security_events": "security_plane",
+    "security": "security",
+    "security_events": "security",
     "serde": "protocol",
     "sfu": "realtime",
     "slot_compile": "paint",
@@ -121,7 +120,7 @@
     "testing": "host",
     "ticket_revoke": "ops_dx",
     "trace": "ops_dx",
-    "tree_cap": "security_plane",
+    "tree_cap": "security",
     "types": "protocol",
     "upgrade_check": "ops_dx",
     "webrtc": "realtime",
@@ -132,7 +131,7 @@
     "whip": "realtime",
     "ws_limits": "transport",
     "ws_protocol": "transport",
-    "ws_security": "security_plane"
+    "ws_security": "security"
   },
   "public_entry": {
     "preferred": "ux_channel.day1",
@@ -163,11 +162,23 @@
     "protocol": "Wire IR + CapService (Rust-parity mint/verify). Shared law with rust/.",
     "host": "Channel, Region (one slot), RegionBook (registry), state, day1. App surface.",
     "paint": "HTML safety, morph IR, placement \u2014 paint only, no cap crypto.",
-    "security_plane": "CSRF, attenuate, rate limits. Named _plane to avoid shadowing security.py.",
     "transport": "batch, push, ws helpers. ASGI adapters live in asgi/.",
     "foundations": "Quantity, provenance, io_channel.",
     "realtime": "WebRTC/SFU/media optional plane.",
     "bridge_meta": "Bridge contracts/scaffold; presets in bridges/.",
-    "ops_dx": "Audit, CLI, observability, agents fa\u00e7ade."
-  }
+    "ops_dx": "Audit, CLI, observability, agents fa\u00e7ade.",
+    "security": "CSRF, attenuate, rate limits. Auth doors, limits, CSRF."
+  },
+  "layout_policy": {
+    "shims": false,
+    "top_level_modules_forbidden": true,
+    "public_entry": [
+      "ux_channel",
+      "ux_channel.day1"
+    ],
+    "implementations_only_under_packages": true
+  },
+  "public_packages": [
+    "day1"
+  ]
 }

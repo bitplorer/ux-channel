@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from ux_channel import Channel, Intent, agents
-from ux_channel.context import Principal
+from ux_channel.host.context import Principal
 
 
 SECRET = "polish-auth-agents-secret-key-32b!!"

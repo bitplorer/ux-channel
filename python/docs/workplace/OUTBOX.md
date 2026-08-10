@@ -1,6 +1,6 @@
 # Intent outbox
 
-**Power module:** `from ux_channel.outbox import MemoryIntentOutbox, drain_outbox, attach_outbox`
+**Power module:** `from ux_channel.transport.outbox import MemoryIntentOutbox, drain_outbox, attach_outbox`
 
 ## Law
 
@@ -15,7 +15,7 @@ online              → drain_outbox → dispatch → Result
 ## API
 
 ```python
-from ux_channel.outbox import attach_outbox, drain_outbox, MemoryIntentOutbox
+from ux_channel.transport.outbox import attach_outbox, drain_outbox, MemoryIntentOutbox
 
 box = attach_outbox(ch, MemoryIntentOutbox())
 # or RedisIntentOutbox(redis_url) multi-worker

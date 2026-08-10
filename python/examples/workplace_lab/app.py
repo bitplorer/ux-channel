@@ -13,9 +13,9 @@ from fastapi import FastAPI, Header, HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 
 from ux_channel import Channel, ChannelConfig, attach_audit
-from ux_channel.demo import script_tags
+from ux_channel.paint.demo import script_tags
 from ux_channel.io_adapters import LabDutAdapter
-from ux_channel.quantity import Quantity
+from ux_channel.foundations.quantity import Quantity
 from ux_channel.workplace import (
     issue_mesh_membership,
     revoke_mesh_membership,

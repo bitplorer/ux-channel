@@ -7,9 +7,9 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from ux_channel import ActionRegistry, Result, morph, toast
-from ux_channel.bridge_api import mount_ops
-from ux_channel.config import ChannelConfig
-from ux_channel.trace import (
+from ux_channel.bridge_meta.bridge_api import mount_ops
+from ux_channel.host.config import ChannelConfig
+from ux_channel.ops_dx.trace import (
     FrameKind,
     TraceConfig,
     enable_tracing,
@@ -17,7 +17,7 @@ from ux_channel.trace import (
     set_tracer,
     ChannelTracer,
 )
-from ux_channel.types import Intent
+from ux_channel.protocol.types import Intent
 
 
 @pytest.fixture
@@ -128,7 +128,7 @@ def test_trace_http_api():
 
 def test_static_inspector_js():
     from ux_channel.asgi.fastapi import mount_channel
-    from ux_channel.config import ChannelConfig
+    from ux_channel.host.config import ChannelConfig
 
     app = FastAPI()
     reg = ActionRegistry(secret="test-secret-key-32chars-minimum!!")

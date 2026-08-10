@@ -71,7 +71,7 @@ document.addEventListener("uid:push", (ev) => {
 
 ```python
 import asyncio
-from ux_channel.push import get_push_bus
+from ux_channel.transport.push import get_push_bus
 
 async def feeder():
     while True:
@@ -357,7 +357,7 @@ body = ch.body_attr_string(
 ### Example: publish safely
 
 ```python
-from ux_channel.push import get_push_bus
+from ux_channel.transport.push import get_push_bus
 
 # After updating non-sensitive board state:
 result = ch.refresh("board.ticker", "board.rates")  # renderers must escape

@@ -9,11 +9,11 @@ from __future__ import annotations
 from typing import Any
 
 from ux_channel import Channel, ChannelConfig
-from ux_channel.error_map import ensure_error_meta, http_status_for
-from ux_channel.errors import ActionError
-from ux_channel.ops import morph, toast
-from ux_channel.registry import ActionRegistry
-from ux_channel.types import Intent, Result
+from ux_channel.protocol.error_map import ensure_error_meta, http_status_for
+from ux_channel.protocol.errors import ActionError
+from ux_channel.protocol.ops import morph, toast
+from ux_channel.host.registry import ActionRegistry
+from ux_channel.protocol.types import Intent, Result
 
 
 # ── 1. Result.failure (no Channel) ───────────────────────────────────────
@@ -153,7 +153,7 @@ def pattern_map_status(result: Result) -> dict[str, Any]:
 
 
 def pattern_dx_usage() -> dict[str, Any]:
-    from ux_channel.dx_errors import DxUsageError
+    from ux_channel.ops_dx.dx_errors import DxUsageError
 
     err = DxUsageError("missing --out", hint="uxchannel dashboard --out reports/dx")
     return err.as_dict()

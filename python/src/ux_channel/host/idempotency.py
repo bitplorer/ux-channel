@@ -7,7 +7,7 @@ import threading
 import time
 from typing import Any, Optional, Protocol
 
-from ux_channel.types import Result
+from ux_channel.protocol.types import Result
 
 
 class IdempotencyStore(Protocol):

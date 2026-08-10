@@ -8,7 +8,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from ux_channel import Channel, ChannelConfig
-from ux_channel.host_csrf import (
+from ux_channel.security.host_csrf import (
     CHANNEL_CSRF_HEADER,
     CHANNEL_CSRF_VALUE,
     host_csrf_meta,
@@ -16,7 +16,7 @@ from ux_channel.host_csrf import (
     is_channel_csrf_header,
     looks_like_host_csrf_name,
 )
-from ux_channel.security import channel_header_ok
+from ux_channel.security.security import channel_header_ok
 
 SECRET = "host-csrf-agnostic-secret-key-32b!!"
 

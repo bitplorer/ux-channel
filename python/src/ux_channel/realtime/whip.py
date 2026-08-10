@@ -19,7 +19,7 @@ Intended usage
 --------------
 ::
 
-    from ux_channel.whip import parse_sdp_body, is_sdp_offer, whip_enabled
+    from ux_channel.realtime.whip import parse_sdp_body, is_sdp_offer, whip_enabled
 
     if whip_enabled(cfg):
         sdp = parse_sdp_body(await request.body())

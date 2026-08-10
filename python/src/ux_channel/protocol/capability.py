@@ -34,7 +34,7 @@ from typing import Any, Mapping, Optional, Sequence
 
 from itsdangerous import BadSignature, SignatureExpired, URLSafeTimedSerializer
 
-from ux_channel.errors import ChannelError
+from ux_channel.protocol.errors import ChannelError
 
 
 class CapError(ChannelError):

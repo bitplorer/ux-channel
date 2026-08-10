@@ -24,7 +24,7 @@ from ux_channel.components.slots import (
     nest,
     render_fragment,
 )
-from ux_channel.types import Result
+from ux_channel.protocol.types import Result
 
 Fragment = Any
 

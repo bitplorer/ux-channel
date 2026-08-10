@@ -39,7 +39,7 @@ Day-1::
 
 Extend (team metrics only — do not re-implement Status)::
 
-    from ux_channel.dx_dashboard import Widget, register_plugin
+    from ux_channel.ops_dx.dx_dashboard import Widget, register_plugin
 
     class Cost:
         id = "team.cost"
@@ -61,7 +61,7 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any, Iterable, Mapping, Protocol, Sequence, runtime_checkable
 
-from ux_channel import serde as _serde
+from ux_channel.protocol import serde as _serde
 
 __all__ = [
     "Context",
@@ -436,7 +436,7 @@ def build_sections(
 
     # Observability: OTel + channel tracer (prefer live snapshot over stale diagnose alone)
     try:
-        from ux_channel.otel import dashboard_snapshot as _otel_dash
+        from ux_channel.ops_dx.otel import dashboard_snapshot as _otel_dash
 
         observability = _otel_dash(frame_limit=12)
     except Exception as exc:
@@ -983,7 +983,7 @@ def _builtins() -> list[Extension]:
 
 
 def _runtime_snapshot() -> dict[str, Any]:
-    from ux_channel.concurrency import get_concurrency_settings
+    from ux_channel.transport.concurrency import get_concurrency_settings
     from ux_channel.wire import available_engines, get_codec
 
     conc = get_concurrency_settings()
@@ -1228,11 +1228,11 @@ def run_dashboard_suite(
 
     latencies: list[dict[str, Any]] = []
     if include_profile:
-        from ux_channel.batch import dispatch_batch
-        from ux_channel.concurrency import dispatch_parallel
-        from ux_channel.profiling import run_suite
-        from ux_channel.registry import ActionRegistry
-        from ux_channel.types import Intent, Result
+        from ux_channel.transport.batch import dispatch_batch
+        from ux_channel.transport.concurrency import dispatch_parallel
+        from ux_channel.ops_dx.profiling import run_suite
+        from ux_channel.host.registry import ActionRegistry
+        from ux_channel.protocol.types import Intent, Result
 
         reg = ActionRegistry(
             secret="test-secret-key-32chars-minimum!!!!",

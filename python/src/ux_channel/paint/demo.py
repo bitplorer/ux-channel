@@ -10,8 +10,8 @@ from __future__ import annotations
 from html import escape
 from typing import Any, Mapping, Optional, Sequence, Union
 
-from ux_channel.html import button as html_button, form_open
-from ux_channel.placement import Placement, ScriptRef
+from ux_channel.paint.html import button as html_button, form_open
+from ux_channel.paint.placement import Placement, ScriptRef
 
 __all__ = [
     "script_tags",
@@ -145,7 +145,7 @@ def demo_button(
     class_name: str = "",
     **trust_or_attrs: Any,
 ) -> str:
-    from ux_channel.dx import sel
+    from ux_channel.host.dx import sel
 
     sealed: dict[str, Any] = dict(trust or {})
     html_attrs: dict[str, str] = {}
@@ -188,8 +188,8 @@ def demo_link(
     href: str = "#",
     **trust_or_attrs: Any,
 ) -> str:
-    from ux_channel.dx import sel
-    from ux_channel.html import action_attrs
+    from ux_channel.host.dx import sel
+    from ux_channel.paint.html import action_attrs
 
     sealed: dict[str, Any] = dict(trust or {})
     html_attrs: dict[str, str] = {}
@@ -331,7 +331,7 @@ def fx_script_tags(*, bridge: bool = True) -> str:
 
     After Channel runtime scripts, include::
 
-        from ux_channel.demo import fx_script_tags
+        from ux_channel.paint.demo import fx_script_tags
         # … + fx_script_tags()
     """
     tags = []

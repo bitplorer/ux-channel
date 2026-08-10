@@ -8,8 +8,8 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from ux_channel import Channel, ChannelConfig
-from ux_channel.host_csrf import intent_headers
-from ux_channel.security import channel_header_ok
+from ux_channel.security.host_csrf import intent_headers
+from ux_channel.security.security import channel_header_ok
 from ux_channel_ux_dom.csrf import (
     CHANNEL_CSRF_HEADER,
     assert_csrf_names_do_not_collide,

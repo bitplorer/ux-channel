@@ -8,7 +8,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from ux_channel import Channel, ChannelConfig, Intent, Region
-from ux_channel.security import validate_action_name
+from ux_channel.security.security import validate_action_name
 
 SECRET = "chaos-audit-secret-key-32chars!!!!!"
 

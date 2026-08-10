@@ -10,7 +10,7 @@ from fastapi.responses import HTMLResponse
 
 from ux_channel import ActionRegistry, Go, Result, focus, form_open, morph, toast
 from ux_channel.asgi.fastapi import mount_channel
-from ux_channel.html import attr_escape
+from ux_channel.paint.html import attr_escape
 
 SECRET = "dev-only-change-me"
 # Form posts put fields in intent.form; cap is signed with empty args

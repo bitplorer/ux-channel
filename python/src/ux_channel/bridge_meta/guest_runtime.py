@@ -12,12 +12,12 @@ PUBLIC / PRIVATE
 
 from __future__ import annotations
 
-from ux_channel import serde as _serde
+from ux_channel.protocol import serde as _serde
 
 from dataclasses import dataclass, field
 from typing import Any, Mapping, Optional, Sequence
 
-from ux_channel.bridge_protocol import (
+from ux_channel.bridge_meta.bridge_protocol import (
     BridgeFirewallError,
     SealedBridgeProtocol,
     get_sealed_registry,
@@ -98,7 +98,7 @@ def event_to_intent_args(
     """
     Guest events → Intent args. Only allowlisted keys pass (never raw quantity authority).
     """
-    from ux_channel.quantity import QuantityError, refuse_client_quantity
+    from ux_channel.foundations.quantity import QuantityError, refuse_client_quantity
 
     out: dict[str, Any] = {"event": event}
     for k, v in dict(payload or {}).items():

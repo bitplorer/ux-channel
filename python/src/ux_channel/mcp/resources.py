@@ -6,7 +6,7 @@ Never a substitute for Quantity authority.
 
 from __future__ import annotations
 
-from ux_channel import serde as _serde
+from ux_channel.protocol import serde as _serde
 
 from typing import Any, Callable, Mapping, Optional, Sequence
 

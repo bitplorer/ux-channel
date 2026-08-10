@@ -23,14 +23,14 @@ from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 
 from ux_channel import Channel, ChannelConfig, Region
-from ux_channel.demo import (
+from ux_channel.paint.demo import (
     attr_string,
     demo_button,
     demo_page,
     demo_scripts,
     script_tags,
 )
-from ux_channel.push import get_push_bus
+from ux_channel.transport.push import get_push_bus
 
 TOPIC = "public.live.board"
 SECRET = "dev-secret-key-32chars-minimum!!!!"
@@ -138,7 +138,7 @@ def do_tick(*, notice: str | None = None) -> Any:
     if notice:
         # append toast without losing morphs
         from ux_channel import Result
-        from ux_channel.ops import toast
+        from ux_channel.protocol.ops import toast
 
         return Result(ok=True, ops=list(r.ops) + [toast(notice)], meta=r.meta)
     return r

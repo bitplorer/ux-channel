@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any, Mapping, Optional
 
-from ux_channel.placement import Placement
+from ux_channel.paint.placement import Placement
 
 
 class BridgeFactoryMixin:
@@ -126,7 +126,7 @@ class BridgeFactoryMixin:
         return self.ch.bridge.call(self.id, method, *args, package=self.package)
 
     def _result_with_ops(self, ops: list, *, notice: str | None = None) -> Any:
-        from ux_channel.types import Result
+        from ux_channel.protocol.types import Result
 
         base = self.ch.done(notice=notice) if notice else self.ch.done()
         return Result(

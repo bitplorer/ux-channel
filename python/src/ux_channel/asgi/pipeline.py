@@ -9,9 +9,9 @@ from __future__ import annotations
 
 from typing import Any, Mapping, Optional, Tuple
 
-from ux_channel.middleware import check_client_version
-from ux_channel.security import channel_header_ok, content_length_ok, origin_allowed
-from ux_channel.types import Result
+from ux_channel.transport.middleware import check_client_version
+from ux_channel.security.security import channel_header_ok, content_length_ok, origin_allowed
+from ux_channel.protocol.types import Result
 
 # (Result, http_status, optional_extra_headers)
 PreflightFail = Tuple[Result, int, list[tuple[bytes, bytes]]]
@@ -56,7 +56,7 @@ def preflight_action(
         request_host=host,
     ):
         try:
-            from ux_channel.security_events import emit_security
+            from ux_channel.security.security_events import emit_security
             emit_security("http_origin_deny", reason="origin not allowed", client=str(origin or ""))
         except Exception:
             pass
@@ -65,7 +65,7 @@ def preflight_action(
     ctype = (h.get("content-type") or "").lower()
     if not channel_header_ok(h, required=require_ch, content_type=ctype):
         try:
-            from ux_channel.security_events import emit_security
+            from ux_channel.security.security_events import emit_security
             emit_security("http_csrf_deny", reason="missing X-Channel header")
         except Exception:
             pass
@@ -92,7 +92,7 @@ def preflight_action(
             ip = h["x-forwarded-for"].split(",")[0].strip()
         if not ip_limiter.allow(f"ip:{ip}"):
             try:
-                from ux_channel.security_events import emit_security
+                from ux_channel.security.security_events import emit_security
                 emit_security("http_rate_limit", reason="Too many requests", client=str(ip))
             except Exception:
                 pass

@@ -8,7 +8,7 @@ from fastapi.testclient import TestClient
 
 from ux_channel import Channel, ChannelConfig
 from ux_channel.io_adapters import ScannerAdapter
-from ux_channel.webrtc import verify_rtc_ticket
+from ux_channel.realtime.webrtc import verify_rtc_ticket
 from ux_channel.workplace import (
     WorkplaceTicketError,
     issue_mesh_membership,

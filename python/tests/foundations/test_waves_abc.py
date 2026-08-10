@@ -6,7 +6,7 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from ux_channel.push import get_push_bus
+from ux_channel.transport.push import get_push_bus
 from ux_channel import (
     ActionContext,
     ActionRegistry,
@@ -17,10 +17,10 @@ from ux_channel import (
     morph,
     toast,
 )
-from ux_channel.capability import CapService
-from ux_channel.config import ChannelConfig
-from ux_channel.context import Principal as P
-from ux_channel.types import Intent
+from ux_channel.protocol.capability import CapService
+from ux_channel.host.config import ChannelConfig
+from ux_channel.host.context import Principal as P
+from ux_channel.protocol.types import Intent
 
 
 def test_principal_bound_cap():
@@ -89,7 +89,7 @@ def test_action_context_injection():
 
 
 def test_file_actions():
-    from ux_channel.actions_file import action, load_actions_from_package
+    from ux_channel.host.actions_file import action, load_actions_from_package
     import types, sys
 
     mod = types.ModuleType("ux_channel_test_actions")
@@ -161,7 +161,7 @@ def test_sparkline_adapter_shipped():
 
 
 def test_metrics_prom():
-    from ux_channel.metrics_prom import PrometheusMetrics
+    from ux_channel.ops_dx.metrics_prom import PrometheusMetrics
 
     m = PrometheusMetrics()
     m.incr("ux_channel.actions", tags={"ok": "true"})

@@ -3,7 +3,7 @@
 from fastapi import FastAPI
 
 from ux_channel import Channel, ChannelConfig
-from ux_channel.placement import Placement
+from ux_channel.paint.placement import Placement
 
 
 def test_bridge_mount_spec_is_placement():

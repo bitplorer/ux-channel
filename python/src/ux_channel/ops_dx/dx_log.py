@@ -14,7 +14,7 @@ Enable JSON: ``ux_channel --json …`` · ``UX_CHANNEL_DX_JSON=1`` · ``configur
 
 from __future__ import annotations
 
-from ux_channel import serde as _serde
+from ux_channel.protocol import serde as _serde
 
 import json
 import os
@@ -220,7 +220,7 @@ def configure_log(
 
 def log_exception(exc: BaseException, *, log: Optional[DxLog] = None) -> int:
     log = log or get_log()
-    from ux_channel.dx_errors import DxError
+    from ux_channel.ops_dx.dx_errors import DxError
 
     if isinstance(exc, DxError):
         fields: dict = {

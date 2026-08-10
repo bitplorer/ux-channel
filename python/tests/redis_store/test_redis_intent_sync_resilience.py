@@ -8,12 +8,12 @@ import pytest
 from fastapi import FastAPI
 
 from ux_channel import Channel, ChannelConfig, Intent
-from ux_channel.intent_sync import (
+from ux_channel.transport.intent_sync import (
     IntentSyncMessage,
     MemoryIntentSyncBus,
     attach_intent_sync,
 )
-from ux_channel.intent_log import attach_intent_log
+from ux_channel.ops_dx.intent_log import attach_intent_log
 from ux_channel.redis_extra.resilience import RedisUnavailable, ResilientRedis
 
 
@@ -46,7 +46,7 @@ def test_memory_intent_sync_pubsub_style():
 
 def test_redis_intent_sync_with_fakeredis():
     fakeredis = pytest.importorskip("fakeredis")
-    from ux_channel.intent_sync import RedisIntentSyncBus, attach_intent_sync
+    from ux_channel.transport.intent_sync import RedisIntentSyncBus, attach_intent_sync
 
     r = fakeredis.FakeRedis(decode_responses=True)
     ch = _ch()

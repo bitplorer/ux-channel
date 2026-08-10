@@ -13,7 +13,7 @@ from __future__ import annotations
 
 from typing import Any, Optional
 
-from ux_channel.errors import ChannelError
+from ux_channel.protocol.errors import ChannelError
 
 __all__ = [
     "DxError",

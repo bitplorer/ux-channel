@@ -21,12 +21,12 @@ import logging
 from dataclasses import dataclass, field
 from typing import Any, Callable, Mapping, Optional, Sequence, Union  # noqa: F401
 
-from ux_channel.config import ChannelConfig
-from ux_channel.encode import Go, Navigate
-from ux_channel.factory import create_channel
-from ux_channel.html import action_attrs
-from ux_channel.html_safe import esc, user_content
-from ux_channel.ops import (
+from ux_channel.host.config import ChannelConfig
+from ux_channel.protocol.encode import Go, Navigate
+from ux_channel.host.factory import create_channel
+from ux_channel.paint.html import action_attrs
+from ux_channel.paint.html_safe import esc, user_content
+from ux_channel.protocol.ops import (
     Op,
     clear_errors,
     dispatch as op_dispatch,
@@ -41,8 +41,8 @@ from ux_channel.ops import (
     set_text,
     toast,
 )
-from ux_channel.registry import ActionRegistry
-from ux_channel.types import Result
+from ux_channel.host.registry import ActionRegistry
+from ux_channel.protocol.types import Result
 
 Handler = Callable[..., Any]
 
@@ -212,7 +212,7 @@ DAY1_CHANNEL_API = (
 # Power (not day-1): refresh, diagnose, body_attrs, html, live, webrtc, patch, …
 # Power layers (not day-1): webrtc under ch.media
 
-from ux_channel.media import DAY1_MEDIA_API  # re-export for audits
+from ux_channel.realtime.media import DAY1_MEDIA_API  # re-export for audits
 
 DAY1_WEBRTC_API = (
     "enabled",
@@ -291,15 +291,15 @@ class Channel:
         if state is not None:
             self.state = state
         else:
-            from ux_channel.state import MemoryStateStore
+            from ux_channel.host.state import MemoryStateStore
 
             # Dev-friendly default; production should pass redis-backed store
             self.state = MemoryStateStore()
-        from ux_channel.regions import attach_regions
-        from ux_channel.flow import apply_surface, attach_flow
-        from ux_channel.region_component import attach_region_classes
-        from ux_channel.html_document import attach_document
-        from ux_channel.enterprise import attach_enterprise
+        from ux_channel.host.regions import attach_regions
+        from ux_channel.host.flow import apply_surface, attach_flow
+        from ux_channel.host.region_component import attach_region_classes
+        from ux_channel.paint.html_document import attach_document
+        from ux_channel.ops_dx.enterprise import attach_enterprise
 
         attach_regions(self)
         attach_enterprise(self)
@@ -307,10 +307,10 @@ class Channel:
         attach_region_classes(self)
         attach_document(self)
         apply_surface(self)
-        from ux_channel.live import attach_live
-        from ux_channel.webrtc import attach_webrtc
-        from ux_channel.media import attach_media
-        from ux_channel.bridge_plane import attach_bridge
+        from ux_channel.host.live import attach_live
+        from ux_channel.realtime.webrtc import attach_webrtc
+        from ux_channel.realtime.media import attach_media
+        from ux_channel.bridge_meta.bridge_plane import attach_bridge
 
         attach_live(self)
         attach_webrtc(self)
@@ -377,7 +377,7 @@ class Channel:
         import logging as _logging
         _blog = _logging.getLogger("ux_channel.boot")
         try:
-            from ux_channel.agents_api import agents as _agents
+            from ux_channel.ops_dx.agents_api import agents as _agents
 
             _agents(ch)
         except Exception:
@@ -386,7 +386,7 @@ class Channel:
         cfg = config
         if cfg is not None and getattr(cfg, "audit", False):
             try:
-                from ux_channel.audit import attach_audit
+                from ux_channel.ops_dx.audit import attach_audit
 
                 attach_audit(ch, redis_url=redis_url)
             except Exception:
@@ -394,7 +394,7 @@ class Channel:
         # opt-in file-based regions shell
         if cfg is not None and getattr(cfg, "regions", None):
             try:
-                from ux_channel.region_directory import boot_load_regions
+                from ux_channel.host.region_directory import boot_load_regions
 
                 boot_load_regions(ch, cfg)
             except Exception:
@@ -404,14 +404,14 @@ class Channel:
                 _blog.exception("regions load failed (regions_strict=False)")
         else:
             try:
-                from ux_channel.region_directory import attach_region_directory
+                from ux_channel.host.region_directory import attach_region_directory
 
                 attach_region_directory(ch)
             except Exception:
                 _blog.debug("region directory attach skipped", exc_info=True)
         # inspect helper (always bind; inspect_enabled gates use)
         try:
-            from ux_channel.inspect_api import inspect_channel
+            from ux_channel.ops_dx.inspect_api import inspect_channel
 
             ch.inspect = lambda region=None, **kw: inspect_channel(  # type: ignore
                 ch, region, **kw
@@ -498,7 +498,7 @@ class Channel:
         * ``Channel.help("aliases")`` — use-this-not-that
         * ``Channel.help("day1")`` — mental model
         """
-        from ux_channel.recipes import RECIPE_NAMES, decision_tree, recipe_text
+        from ux_channel.host.recipes import RECIPE_NAMES, decision_tree, recipe_text
 
         if not topic:
             return decision_tree() + "\nRecipes: " + ", ".join(RECIPE_NAMES)
@@ -523,7 +523,7 @@ class Channel:
         if key in ("doctor", "health"):
             return "Boot a Channel and call ch.doctor() — or: uxchannel doctor"
         if key in ("bridge", "bridges", "npm", "preset"):
-            from ux_channel.bridge_scaffold import explain_bridge
+            from ux_channel.bridge_meta.bridge_scaffold import explain_bridge
             return explain_bridge()
         if key in RECIPE_NAMES:
             return recipe_text(key)
@@ -536,7 +536,7 @@ class Channel:
 
     def explain(self, result_or_code: Any, message: str = "") -> dict[str, Any]:
         """Map a Result/error code to a teachable fix + recipe link."""
-        from ux_channel.explain import explain as _explain
+        from ux_channel.ops_dx.explain import explain as _explain
 
         return _explain(result_or_code, message)
 
@@ -577,7 +577,7 @@ class Channel:
         parallel: bool | None = None,
     ) -> list:
         """Parallel sync dispatch — see :func:`ux_channel.concurrency.dispatch_parallel`."""
-        from ux_channel.concurrency import dispatch_parallel
+        from ux_channel.transport.concurrency import dispatch_parallel
 
         return dispatch_parallel(
             self.registry,
@@ -596,7 +596,7 @@ class Channel:
         parallel: bool | None = None,
     ) -> list:
         """Concurrent async dispatch — see :func:`ux_channel.concurrency.dispatch_parallel_async`."""
-        from ux_channel.concurrency import dispatch_parallel_async
+        from ux_channel.transport.concurrency import dispatch_parallel_async
 
         return await dispatch_parallel_async(
             self.registry,
@@ -616,7 +616,7 @@ class Channel:
         parallel: bool | None = None,
     ) -> list:
         """Map one action over many arg dicts in parallel."""
-        from ux_channel.concurrency import map_dispatch
+        from ux_channel.transport.concurrency import map_dispatch
 
         return map_dispatch(
             self.registry,
@@ -660,7 +660,7 @@ class Channel:
         **kwargs: Any,
     ) -> str:
         """Mint short-lived SSE subscribe ticket for ``topic`` (production push auth)."""
-        from ux_channel.push_security import sign_push_ticket
+        from ux_channel.security.push_security import sign_push_ticket
 
         cfg = self.config
         if cfg is None:
@@ -680,7 +680,7 @@ class Channel:
 
     def revoke_ticket(self, ticket: str, *, ttl_s: float | None = None) -> None:
         """Revoke a push/WS ticket (logout / ban)."""
-        from ux_channel.ticket_revoke import get_revocation_list
+        from ux_channel.ops_dx.ticket_revoke import get_revocation_list
 
         age = ttl_s
         if age is None and self.config is not None:
@@ -689,7 +689,7 @@ class Channel:
 
     def security_events(self, n: int = 50, *, kind: str | None = None) -> list:
         """Recent security events (cap fail, origin, rate, ticket…)."""
-        from ux_channel.security_events import get_security_bus
+        from ux_channel.security.security_events import get_security_bus
 
         return get_security_bus().recent(n, kind=kind)
 
@@ -749,7 +749,7 @@ class Channel:
         **trust_fields: Any,
     ) -> Any:
         """Low-level protocol attrs. Prefer :meth:`control`."""
-        from ux_channel.html import ControlAttrs
+        from ux_channel.paint.html import ControlAttrs
 
         sealed = self._trusted_params(trust, **trust_fields)
         action_name, target = self._resolve_action_target(action, target)

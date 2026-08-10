@@ -46,7 +46,7 @@ Standards: docs/STANDARDS.md · docs/WEBRTC_SIGNALING.md
 """
 from __future__ import annotations
 
-from ux_channel import serde as _serde
+from ux_channel.protocol import serde as _serde
 
 import json
 import secrets
@@ -304,7 +304,7 @@ class MemoryRtcStore:
                         {"type": "roster", "peers": roster, "room": room},
                     )
             try:
-                from ux_channel.webrtc_metrics import note_poll, note_room_size
+                from ux_channel.realtime.webrtc_metrics import note_poll, note_room_size
 
                 note_poll()
                 note_room_size(room, len(roster))
@@ -366,7 +366,7 @@ class MemoryRtcStore:
             }
             self._fanout(room, to_peer, msg)
             try:
-                from ux_channel.webrtc_metrics import note_signal, note_room_size
+                from ux_channel.realtime.webrtc_metrics import note_signal, note_room_size
 
                 note_signal(kind)
                 note_room_size(room, len(self._peers.get(room) or {}))
@@ -462,7 +462,7 @@ def verify_rtc_ticket(
         age = int(getattr(config, "webrtc_ticket_max_age", 300) or 300)
     ser = URLSafeTimedSerializer(str(secret), salt="ux-channel-rtc-v1")
     try:
-        from ux_channel.ticket_revoke import get_revocation_list
+        from ux_channel.ops_dx.ticket_revoke import get_revocation_list
         if get_revocation_list().is_revoked(ticket):
             return False, "ticket revoked"
     except Exception:
@@ -508,7 +508,7 @@ def _rtc_limiter(config: Any = None):
             and getattr(cur, "_ux_burst", None) == burst
         ):
             return cur
-        from ux_channel.ratelimit import MemoryRateLimiter
+        from ux_channel.security.ratelimit import MemoryRateLimiter
 
         lim = MemoryRateLimiter(rate_per_minute=rpm, burst=burst, max_keys=20_000)
         lim._ux_rpm = rpm  # type: ignore[attr-defined]
@@ -536,7 +536,7 @@ def allow_rtc_traffic(
     if lim.allow(key, cost=cost):
         return True, ""
     try:
-        from ux_channel.webrtc_metrics import note_auth_fail
+        from ux_channel.realtime.webrtc_metrics import note_auth_fail
 
         note_auth_fail()
     except Exception:
@@ -561,7 +561,7 @@ def authorize_rtc(
     if config is None:
         return True, ""
     if getattr(config, "webrtc_require_origin", False):
-        from ux_channel.security import origin_allowed
+        from ux_channel.security.security import origin_allowed
 
         if not origin_allowed(
             origin,
@@ -573,7 +573,7 @@ def authorize_rtc(
     if getattr(config, "webrtc_require_ticket", False):
         if not ticket:
             try:
-                from ux_channel.webrtc_metrics import note_auth_fail
+                from ux_channel.realtime.webrtc_metrics import note_auth_fail
 
                 note_auth_fail()
             except Exception:
@@ -582,7 +582,7 @@ def authorize_rtc(
         ok, detail = verify_rtc_ticket(config, ticket, room)
         if not ok:
             try:
-                from ux_channel.webrtc_metrics import note_auth_fail
+                from ux_channel.realtime.webrtc_metrics import note_auth_fail
 
                 note_auth_fail()
             except Exception:
@@ -912,13 +912,13 @@ class WebRTCPlane:
         pub = self.public_ice_servers()
         if not include_turn:
             return pub
-        from ux_channel.webrtc_turn import ice_servers_with_turn
+        from ux_channel.realtime.webrtc_turn import ice_servers_with_turn
 
         return ice_servers_with_turn(stun=pub, username=sub or "uid", ttl_s=ttl_s)
 
     def turn_posture(self) -> dict[str, Any]:
         """TURN config summary (no secrets)."""
-        from ux_channel.webrtc_turn import turn_configured
+        from ux_channel.realtime.webrtc_turn import turn_configured
 
         return turn_configured()
 
@@ -978,7 +978,7 @@ class WebRTCPlane:
             p = ch.webrtc.session("lobby", sub=user_id).plugin()
             # host places p.scripts_html, p.attr_string; joins with p.client
         """
-        from ux_channel.webrtc_ui import RtcSession
+        from ux_channel.realtime.webrtc_ui import RtcSession
 
         return RtcSession(
             plane=self,

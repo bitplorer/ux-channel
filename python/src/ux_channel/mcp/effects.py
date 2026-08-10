@@ -9,7 +9,7 @@ from __future__ import annotations
 import re
 from typing import Any, Mapping, Optional
 
-from ux_channel.types import Result
+from ux_channel.protocol.types import Result
 
 __all__ = ["effects_from_result", "region_uid_from_target"]
 

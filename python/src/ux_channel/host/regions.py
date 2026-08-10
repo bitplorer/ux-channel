@@ -58,8 +58,8 @@ logger = logging.getLogger("ux_channel.regions")
 from dataclasses import dataclass, field
 from typing import Any, Callable, Mapping, Optional, Sequence, Union
 
-from ux_channel.html_safe import SafeHtml, esc
-from ux_channel.types import Result
+from ux_channel.paint.html_safe import SafeHtml, esc
+from ux_channel.protocol.types import Result
 
 
 def _id_str(uid: Any) -> str:
@@ -386,7 +386,7 @@ class RegionBook:
         if not regions and toast:
             # Total paint failure must not look like success ("Saved!" lie).
             # Fail closed; keep notice as a *warning* toast op so UX can still flash.
-            from ux_channel.ops import toast as toast_op
+            from ux_channel.protocol.ops import toast as toast_op
 
             err_msg = (
                 "region refresh failed or unknown: "
@@ -440,7 +440,7 @@ class RegionBook:
 
             ch = self.channel
             if login:
-                from ux_channel.flow import _auth_wrap
+                from ux_channel.host.flow import _auth_wrap
 
                 fn = _auth_wrap(ch, fn)
 
@@ -497,7 +497,7 @@ class RegionBook:
                 # Soft principal from ContextVar when still missing
                 if principal is None:
                     try:
-                        from ux_channel.registry import _principal_override
+                        from ux_channel.host.registry import _principal_override
 
                         principal = _principal_override.get()
                     except Exception:

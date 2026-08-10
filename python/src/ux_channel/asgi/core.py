@@ -4,11 +4,11 @@ from __future__ import annotations
 
 from typing import Any, Callable, Optional
 
-from ux_channel.registry import ActionRegistry
-from ux_channel.security import content_length_ok, origin_allowed
-from ux_channel.stream import ResultStream, format_sse
-from ux_channel.trace import FrameKind, get_tracer
-from ux_channel.types import Intent, Result
+from ux_channel.host.registry import ActionRegistry
+from ux_channel.security.security import content_length_ok, origin_allowed
+from ux_channel.transport.stream import ResultStream, format_sse
+from ux_channel.ops_dx.trace import FrameKind, get_tracer
+from ux_channel.protocol.types import Intent, Result
 from ux_channel.wire.core import MEDIA_TYPES
 from ux_channel.wire.negotiate import decode_http_body, encode_http_body, response_headers_for
 
@@ -30,7 +30,7 @@ async def read_body(receive: Callable, max_bytes: int) -> bytes:
 
 
 def status_for(result: Result) -> int:
-    from ux_channel.error_map import ensure_error_meta, http_status_for
+    from ux_channel.protocol.error_map import ensure_error_meta, http_status_for
 
     return http_status_for(ensure_error_meta(result))
 
@@ -67,7 +67,7 @@ async def handle_action_asgi(
         request_host=host,
     ):
         try:
-            from ux_channel.security_events import emit_security
+            from ux_channel.security.security_events import emit_security
 
             emit_security("http_origin_deny", reason="origin not allowed")
         except Exception:

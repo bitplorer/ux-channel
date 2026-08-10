@@ -7,8 +7,8 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from ux_channel import Channel, ChannelConfig
-from ux_channel.demo import attr_string, demo_button, demo_page, demo_scripts, script_tags
-from ux_channel.webrtc import MemoryRtcStore, get_rtc_store, reset_rtc_store
+from ux_channel.paint.demo import attr_string, demo_button, demo_page, demo_scripts, script_tags
+from ux_channel.realtime.webrtc import MemoryRtcStore, get_rtc_store, reset_rtc_store
 
 
 class TestMemoryRtcStore(unittest.TestCase):
@@ -216,7 +216,7 @@ class TestWebrtcGapsFilled(unittest.TestCase):
         self.assertIn("ice-done", kinds)
 
     def test_ticket_auth(self):
-        from ux_channel.webrtc import sign_rtc_ticket, reset_rtc_store
+        from ux_channel.realtime.webrtc import sign_rtc_ticket, reset_rtc_store
 
         reset_rtc_store()
         app = FastAPI()

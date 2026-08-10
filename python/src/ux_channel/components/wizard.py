@@ -6,9 +6,9 @@ from dataclasses import dataclass
 from typing import Any, Callable, Optional
 
 from ux_channel.components.base import ChannelComponent
-from ux_channel.html_safe import esc
-from ux_channel.ops import push_url
-from ux_channel.types import Result
+from ux_channel.paint.html_safe import esc
+from ux_channel.protocol.ops import push_url
+from ux_channel.protocol.types import Result
 
 StepValidator = Callable[[int, dict[str, Any]], dict[str, list[str]]]
 StepRenderer = Callable[[int, dict[str, Any], dict[str, list[str]]], str]

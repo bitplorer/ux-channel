@@ -6,7 +6,7 @@ Token binds: action + args_hash + session_id + agent_id + jti + exp.
 
 from __future__ import annotations
 
-from ux_channel import serde as _serde
+from ux_channel.protocol import serde as _serde
 
 import hashlib
 import json

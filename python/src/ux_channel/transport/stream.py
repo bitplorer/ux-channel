@@ -17,7 +17,7 @@ INTENDED USAGE
 --------------
 ::
 
-    from ux_channel.stream import ResultStream, format_sse
+    from ux_channel.transport.stream import ResultStream, format_sse
 
     async def generate():
         stream = ResultStream()
@@ -28,13 +28,13 @@ INTENDED USAGE
 
 from __future__ import annotations
 
-from ux_channel import serde as _serde
+from ux_channel.protocol import serde as _serde
 
 import json
 from dataclasses import dataclass, field
 from typing import Any, Iterator, Optional
 
-from ux_channel.types import PROTOCOL_VERSION, Result
+from ux_channel.protocol.types import PROTOCOL_VERSION, Result
 
 
 @dataclass

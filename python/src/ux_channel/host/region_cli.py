@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from ux_channel.dx_errors import DxUsageError
+from ux_channel.ops_dx.dx_errors import DxUsageError
 
 
 def cmd_region(args: Any, *, get_log) -> int:
@@ -106,7 +106,7 @@ def _template(class_name: str, uid: str, recipe: str) -> str:
         return f'''"""Payment workplace — select / pay / refund."""
 from __future__ import annotations
 from typing import Any
-from ux_channel.region_component import Region
+from ux_channel.host.region_component import Region
 
 
 class {class_name}(Region):
@@ -155,7 +155,7 @@ class {class_name}(Region):
         return f'''"""Counter — learn file-based regions."""
 from __future__ import annotations
 from typing import Any
-from ux_channel.region_component import Region
+from ux_channel.host.region_component import Region
 
 
 class {class_name}(Region):
@@ -176,7 +176,7 @@ class {class_name}(Region):
     return f'''"""Region workplace."""
 from __future__ import annotations
 from typing import Any
-from ux_channel.region_component import Region
+from ux_channel.host.region_component import Region
 
 
 class {class_name}(Region):

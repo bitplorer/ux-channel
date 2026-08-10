@@ -12,11 +12,11 @@ HTML for demos: ``ux_channel.demo.mount_html(spec)``.
 
 from __future__ import annotations
 
-from ux_channel import serde as _serde
+from ux_channel.protocol import serde as _serde
 
 from typing import Any, Optional
 
-from ux_channel.placement import Placement
+from ux_channel.paint.placement import Placement
 
 __all__ = ["BridgePlane", "attach_bridge", "DAY1_BRIDGE_API"]
 
@@ -72,7 +72,7 @@ class BridgePlane:
         """
         import json
 
-        from ux_channel.bridge_style import merge_host_style
+        from ux_channel.bridge_meta.bridge_style import merge_host_style
 
         attrs = {
             "data-channel-bridge-id": str(bridge_id),
@@ -121,7 +121,7 @@ class BridgePlane:
         props: Any = None,
         target: Optional[str] = None,
     ) -> list:
-        from ux_channel.bridge_api import mount_ops
+        from ux_channel.bridge_meta.bridge_api import mount_ops
 
         return mount_ops(bridge_id, package, props=props, target=target)
 
@@ -132,7 +132,7 @@ class BridgePlane:
         *,
         replace: bool = False,
     ) -> list:
-        from ux_channel.bridge_api import update_ops
+        from ux_channel.bridge_meta.bridge_api import update_ops
 
         return update_ops(bridge_id, props, replace=replace)
 
@@ -149,7 +149,7 @@ class BridgePlane:
         Pass ``package=`` whenever you registered a manifest so the server
         can allowlist methods (stability / safety).
         """
-        from ux_channel.bridge_api import call_ops
+        from ux_channel.bridge_meta.bridge_api import call_ops
 
         return call_ops(bridge_id, method, *args, package=package)
 
@@ -174,9 +174,9 @@ class BridgePlane:
         if kwargs and args:
             raise ValueError("pass either positional args or kwargs, not both")
 
-        from ux_channel.bridge_contract import get_contract_registry
-        from ux_channel.ops import bridge_call
-        from ux_channel.plugins import get_hub
+        from ux_channel.bridge_meta.bridge_contract import get_contract_registry
+        from ux_channel.protocol.ops import bridge_call
+        from ux_channel.bridge_meta.plugins import get_hub
 
         if kwargs:
             call_args: Any = dict(kwargs)
@@ -186,7 +186,7 @@ class BridgePlane:
             call_args = list(args)
 
         # 1) Sealed protocol — fail closed when registered
-        from ux_channel.bridge_protocol import get_sealed_registry
+        from ux_channel.bridge_meta.bridge_protocol import get_sealed_registry
 
         sealed = get_sealed_registry().get(package)
         if sealed is not None:
@@ -228,8 +228,8 @@ class BridgePlane:
         contract: Any = None,
     ) -> None:
         """Register sealed protocol for this package (fail-closed calls)."""
-        from ux_channel.bridge_contract import MethodSpec
-        from ux_channel.bridge_protocol import SealedBridgeProtocol, get_sealed_registry
+        from ux_channel.bridge_meta.bridge_contract import MethodSpec
+        from ux_channel.bridge_meta.bridge_protocol import SealedBridgeProtocol, get_sealed_registry
 
         meth: dict = {}
         if contract is not None and getattr(contract, "methods", None):
@@ -248,7 +248,7 @@ class BridgePlane:
 
     def destroy_ops(self, bridge_id: str) -> list:
 
-        from ux_channel.bridge_api import destroy_ops
+        from ux_channel.bridge_meta.bridge_api import destroy_ops
 
         return destroy_ops(bridge_id)
 
@@ -268,8 +268,8 @@ class BridgePlane:
         Client still loads the adapter via npm + ``uxBridge.register``.
         Server validates call method/args when a contract exists.
         """
-        from ux_channel.bridge_api import register_simple_manifest
-        from ux_channel.bridge_contract import (
+        from ux_channel.bridge_meta.bridge_api import register_simple_manifest
+        from ux_channel.bridge_meta.bridge_contract import (
             BridgeContract,
             MethodSpec,
             contract_from_mapping,
@@ -311,7 +311,7 @@ class BridgePlane:
 
     def load_contract(self, path: str | Any) -> Any:
         """Load ``contract.json`` next to an adapter (single source of method shapes)."""
-        from ux_channel.bridge_contract import get_contract_registry, load_contract
+        from ux_channel.bridge_meta.bridge_contract import get_contract_registry, load_contract
 
         c = load_contract(path)
         get_contract_registry().add(c)
@@ -328,7 +328,7 @@ class BridgePlane:
 
     def contract(self, package: str) -> Any:
         """Return BridgeContract or None."""
-        from ux_channel.bridge_contract import get_contract_registry
+        from ux_channel.bridge_meta.bridge_contract import get_contract_registry
 
         return get_contract_registry().get(package)
 
@@ -352,7 +352,7 @@ class BridgePlane:
     def packages(self) -> list[str]:
         """Names of registered bridge manifests (npm package keys)."""
         try:
-            from ux_channel.plugins import get_hub
+            from ux_channel.bridge_meta.plugins import get_hub
 
             return sorted(get_hub().bridge_manifests.keys())
         except Exception:

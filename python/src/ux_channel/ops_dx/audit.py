@@ -13,8 +13,8 @@ from __future__ import annotations
 
 from typing import Any, Optional
 
-from ux_channel.forensics import ForensicStore, MemoryForensicStore, attach_forensics
-from ux_channel.intent_log import MemoryIntentLog, attach_intent_log
+from ux_channel.ops_dx.forensics import ForensicStore, MemoryForensicStore, attach_forensics
+from ux_channel.ops_dx.intent_log import MemoryIntentLog, attach_intent_log
 
 __all__ = ["attach_audit", "AuditBundle"]
 

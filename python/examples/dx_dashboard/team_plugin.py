@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from ux_channel.dx_dashboard import Panel, Widget
+from ux_channel.ops_dx.dx_dashboard import Panel, Widget
 
 
 class TeamOverview:

@@ -1,7 +1,7 @@
 import pytest
 
 from ux_channel import ActionRegistry, Result, morph
-from ux_channel.types import Intent
+from ux_channel.protocol.types import Intent
 
 
 @pytest.fixture

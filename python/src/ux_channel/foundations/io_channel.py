@@ -33,7 +33,7 @@ I/O classes
 =================================================================
 PUBLIC / PRIVATE
 =================================================================
-* **Power public:** ``from ux_channel.io_channel import …``
+* **Power public:** ``from ux_channel.foundations.io_channel import …``
 * Day-1 apps keep using ``Channel`` / ``agents`` / ``state``; this module is the
   stable port for adapters and mesh-bound I/O policy.
 * Reuses ``SealedBridgeProtocol``, ``Quantity`` / ``QuantityBudget``, guest
@@ -42,7 +42,7 @@ PUBLIC / PRIVATE
 
 from __future__ import annotations
 
-from ux_channel import serde as _serde
+from ux_channel.protocol import serde as _serde
 
 from dataclasses import dataclass, field
 from decimal import Decimal
@@ -58,10 +58,10 @@ from typing import (
     runtime_checkable,
 )
 
-from ux_channel.bridge_contract import MethodSpec
-from ux_channel.bridge_protocol import BridgeFirewallError, SealedBridgeProtocol
-from ux_channel.guest_runtime import event_to_intent_args
-from ux_channel.quantity import Quantity, QuantityBudget, QuantityError
+from ux_channel.bridge_meta.bridge_contract import MethodSpec
+from ux_channel.bridge_meta.bridge_protocol import BridgeFirewallError, SealedBridgeProtocol
+from ux_channel.bridge_meta.guest_runtime import event_to_intent_args
+from ux_channel.foundations.quantity import Quantity, QuantityBudget, QuantityError
 
 __all__ = [
     "IO_LAWS",

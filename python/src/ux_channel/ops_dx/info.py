@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any, Optional, TYPE_CHECKING
 from ux_channel._version import __version__
 if TYPE_CHECKING:
-    from ux_channel.registry import ActionRegistry
+    from ux_channel.host.registry import ActionRegistry
 
 def package_info(registry: Optional["ActionRegistry"] = None) -> dict[str, Any]:
     body: dict[str, Any] = {

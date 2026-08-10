@@ -79,7 +79,7 @@ defineAdapter('chartjs', {
 Server:
 
 ```python
-from ux_channel.bridge_api import register_simple_manifest
+from ux_channel.bridge_meta.bridge_api import register_simple_manifest
 
 register_simple_manifest("chartjs", methods=("update", "destroy"))
 

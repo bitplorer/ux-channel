@@ -8,7 +8,7 @@ import pytest
 from fastapi import FastAPI
 
 from ux_channel import Channel, ChannelConfig
-from ux_channel.io_channel import (
+from ux_channel.foundations.io_channel import (
     IO_CONSTITUTION,
     IO_LAWS,
     IoChannelError,
@@ -23,7 +23,7 @@ from ux_channel.io_channel import (
     get_io_gate,
     reading_to_quantity,
 )
-from ux_channel.quantity import Quantity
+from ux_channel.foundations.quantity import Quantity
 
 
 SECRET = "io-channel-test-secret-key-32bytes!!"

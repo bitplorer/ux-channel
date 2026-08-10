@@ -9,10 +9,10 @@ from starlette.applications import Starlette
 from starlette.testclient import TestClient as StarletteClient
 
 from ux_channel import ActionRegistry, Result, toast
-from ux_channel.codegen import generate_ts_client
-from ux_channel.config import ChannelConfig
-from ux_channel.html_safe import esc, user_content
-from ux_channel.types import Intent
+from ux_channel.ops_dx.codegen import generate_ts_client
+from ux_channel.host.config import ChannelConfig
+from ux_channel.paint.html_safe import esc, user_content
+from ux_channel.protocol.types import Intent
 
 
 def test_html_safe():
@@ -115,7 +115,7 @@ def test_starlette_action_parity():
 def test_e2e_smoke_counter_flow():
     """HTTP-level e2e: health → action morph → static assets."""
     from ux_channel.asgi.fastapi import mount_channel
-    from ux_channel.html import action_attrs
+    from ux_channel.paint.html import action_attrs
 
     cfg = ChannelConfig.development(
         secret="test-secret-key-32chars-minimum!!",

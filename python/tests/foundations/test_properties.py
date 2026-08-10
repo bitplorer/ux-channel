@@ -15,17 +15,17 @@ from fastapi import FastAPI
 from hypothesis import HealthCheck, assume, given, settings, strategies as st
 
 from ux_channel import Channel, ChannelConfig, agents, state
-from ux_channel.capability import CapService, CapError
-from ux_channel.quantity import (
+from ux_channel.protocol.capability import CapService, CapError
+from ux_channel.foundations.quantity import (
     Quantity,
     QuantityError,
     refuse_client_quantity,
     refuse_session_quantity,
 )
-from ux_channel.tree_cap import TreeEnvelope, nest_envelope, validate_control, TreeCapError
-from ux_channel.slot_compile import stable_uid
-from ux_channel.attenuate import attenuate, verify_attenuated, AttenuationError
-from ux_channel.planes import path_is_risky as planes_risky
+from ux_channel.security.tree_cap import TreeEnvelope, nest_envelope, validate_control, TreeCapError
+from ux_channel.paint.slot_compile import stable_uid
+from ux_channel.security.attenuate import attenuate, verify_attenuated, AttenuationError
+from ux_channel.host.planes import path_is_risky as planes_risky
 
 
 SECRET = "hypothesis-ux-channel-secret-key!!"

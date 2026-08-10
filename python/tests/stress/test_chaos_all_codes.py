@@ -7,9 +7,9 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from ux_channel import Channel, ChannelConfig, Result
-from ux_channel.batch import dispatch_batch, item_is_retryable
-from ux_channel.encode import encode_result
-from ux_channel.error_map import (
+from ux_channel.transport.batch import dispatch_batch, item_is_retryable
+from ux_channel.protocol.encode import encode_result
+from ux_channel.protocol.error_map import (
     ERROR_HTTP_STATUS,
     catalog,
     ensure_error_meta,

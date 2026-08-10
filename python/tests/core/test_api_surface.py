@@ -35,7 +35,7 @@ def test_think_module_removed():
 def test_channel_and_component_describe():
     from ux_channel import Channel
     from ux_channel.components import Counter
-    from ux_channel.config import ChannelConfig
+    from ux_channel.host.config import ChannelConfig
 
     ch = Channel.boot(
         config=ChannelConfig.development(

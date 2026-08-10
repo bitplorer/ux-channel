@@ -14,7 +14,7 @@ os.chdir(ROOT)
 
 import ux_channel
 from ux_channel import Channel, ChannelConfig, Result
-from ux_channel.dx import DAY1_CHANNEL_API
+from ux_channel.host.dx import DAY1_CHANNEL_API
 from fastapi import FastAPI
 
 issues: list[tuple[str, str, str]] = []
@@ -60,8 +60,8 @@ def main() -> int:
     assert "toast" not in str(inspect.signature(ch.done))
 
     from ux_channel import agents
-    from ux_channel.quantity import Quantity
-    from ux_channel.io_channel import IO_CONSTITUTION, IO_LAWS, attach_io_gate
+    from ux_channel.foundations.quantity import Quantity
+    from ux_channel.foundations.io_channel import IO_CONSTITUTION, IO_LAWS, attach_io_gate
     from ux_channel.workplace import workplace, get_workplace, issue_mesh_membership, workplace_from_membership
 
     assert callable(agents)

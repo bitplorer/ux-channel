@@ -6,26 +6,26 @@ import pytest
 from fastapi import FastAPI
 
 from ux_channel import Channel, ChannelConfig, ClientSafetyError, Intent, state
-from ux_channel.bridge_contract import MethodSpec
-from ux_channel.agent_peer import AgentPeer, dispatch_peer
-from ux_channel.guest_runtime import (
+from ux_channel.bridge_meta.bridge_contract import MethodSpec
+from ux_channel.ops_dx.agent_peer import AgentPeer, dispatch_peer
+from ux_channel.bridge_meta.guest_runtime import (
     GuestBudget,
     GuestRuntime,
     GuestRuntimeError,
     event_to_intent_args,
 )
-from ux_channel.quantity import Quantity, QuantityError, QuantityBudget
-from ux_channel.tree_cap import (
+from ux_channel.foundations.quantity import Quantity, QuantityError, QuantityBudget
+from ux_channel.security.tree_cap import (
     TreeCapError,
     TreeEnvelope,
     compile_tree_caps,
     nest_envelope,
     validate_control,
 )
-from ux_channel.forensics import attach_forensics
-from ux_channel.morph_ir import elem, region
-from ux_channel.projections import project_all
-from ux_channel.bridge_protocol import (
+from ux_channel.ops_dx.forensics import attach_forensics
+from ux_channel.paint.morph_ir import elem, region
+from ux_channel.paint.projections import project_all
+from ux_channel.bridge_meta.bridge_protocol import (
     SealedBridgeProtocol,
     get_sealed_registry,
     reset_sealed_registry,

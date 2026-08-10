@@ -265,8 +265,8 @@ def scenario_action_mix(client: Any, slo: SloConfig, **kw: Any) -> ScenarioResul
     if ch is not None:
         signer = lambda name: ch.mint(name)
     elif secret:
-        from ux_channel.config import ChannelConfig
-        from ux_channel.registry import ActionRegistry
+        from ux_channel.host.config import ChannelConfig
+        from ux_channel.host.registry import ActionRegistry
 
         reg = ActionRegistry.from_config(
             ChannelConfig.development(
@@ -340,7 +340,7 @@ def scenario_metrics_slo(client: Any, slo: SloConfig, **kw: Any) -> ScenarioResu
 
 def scenario_room_full(client: Any, slo: SloConfig, **kw: Any) -> ScenarioResult:
     """Deterministic store overflow (does not depend on app max_peers)."""
-    from ux_channel.webrtc import MemoryRtcStore
+    from ux_channel.realtime.webrtc import MemoryRtcStore
 
     store = MemoryRtcStore(max_peers=3)
     for i in range(3):

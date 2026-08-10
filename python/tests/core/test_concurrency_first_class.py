@@ -6,16 +6,16 @@ import asyncio
 import threading
 import unittest
 
-from ux_channel.concurrency import (
+from ux_channel.transport.concurrency import (
     default_workers,
     dispatch_parallel,
     dispatch_parallel_async,
     install_bulkhead,
     map_dispatch,
 )
-from ux_channel.context import Principal
-from ux_channel.registry import ActionRegistry
-from ux_channel.types import Intent, Result
+from ux_channel.host.context import Principal
+from ux_channel.host.registry import ActionRegistry
+from ux_channel.protocol.types import Intent, Result
 
 
 def _reg(*, require_cap: bool = False) -> ActionRegistry:

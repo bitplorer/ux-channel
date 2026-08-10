@@ -25,7 +25,7 @@ import copy
 from dataclasses import dataclass, field
 from typing import Any, Mapping, Optional, Sequence
 
-from ux_channel.placement import Placement
+from ux_channel.paint.placement import Placement
 
 __all__ = [
     "ChartBridge",
@@ -356,7 +356,7 @@ class ChartBridge:
 
     def _result_with_ops(self, ops: list, *, notice: str | None = None) -> Any:
         """Merge bridge ops into a success Result (ch.done does not take *ops)."""
-        from ux_channel.types import Result
+        from ux_channel.protocol.types import Result
 
         base = self.ch.done(notice=notice) if notice else self.ch.done()
         base_ops = list(base.ops or [])

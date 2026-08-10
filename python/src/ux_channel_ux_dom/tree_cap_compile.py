@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import Any, Mapping, Optional, Sequence
 
-from ux_channel.tree_cap import TreeCapError, TreeEnvelope, compile_tree_caps, nest_envelope
+from ux_channel.security.tree_cap import TreeCapError, TreeEnvelope, compile_tree_caps, nest_envelope
 from ux_channel_ux_dom.tree import tree_to_dict
 
 

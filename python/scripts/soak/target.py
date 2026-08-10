@@ -101,8 +101,8 @@ class HttpTarget:
         return _Resp(self._client.post(path, **kwargs))
 
     def mint_ticket(self, room: str, sub: str = "") -> str:
-        from ux_channel.config import ChannelConfig
-        from ux_channel.webrtc import sign_rtc_ticket
+        from ux_channel.host.config import ChannelConfig
+        from ux_channel.realtime.webrtc import sign_rtc_ticket
 
         cfg = ChannelConfig.development(
             secret=self.secret, allow_memory_stores=True

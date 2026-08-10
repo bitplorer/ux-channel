@@ -16,14 +16,14 @@ from __future__ import annotations
 
 from typing import Any, Mapping
 
-from ux_channel.webrtc import (
+from ux_channel.realtime.webrtc import (
     _peer_id_ok,
     _sanitize_id,
     allow_rtc_traffic,
     authorize_rtc,
     get_rtc_store,
 )
-from ux_channel.webrtc_metrics import note_auth_fail
+from ux_channel.realtime.webrtc_metrics import note_auth_fail
 
 __all__ = [
     "handle_rtc_poll",
@@ -189,7 +189,7 @@ def handle_rtc_ice(
         note_auth_fail()
         return 403, {"ok": False, "error": reason or "unauthorized"}
     # Build via a lightweight plane-less helper
-    from ux_channel.webrtc_turn import ice_servers_with_turn
+    from ux_channel.realtime.webrtc_turn import ice_servers_with_turn
 
     stun = [{"urls": "stun:stun.l.google.com:19302"}]
     # honor config.webrtc_ice_servers stun-only entries

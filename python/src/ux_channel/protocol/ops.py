@@ -13,7 +13,7 @@ from __future__ import annotations
 
 from typing import Any, Mapping, MutableMapping, Optional, Sequence
 
-from ux_channel.security import safe_href
+from ux_channel.security.security import safe_href
 
 Op = dict[str, Any]
 

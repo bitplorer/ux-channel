@@ -24,15 +24,15 @@ from fastapi.responses import HTMLResponse
 from ux_dom.dom import button, div, h1, h2, p, raw, span
 
 from ux_channel import Channel, ChannelConfig, Region
-from ux_channel.demo import (
+from ux_channel.paint.demo import (
     attr_string,
     demo_button,
     demo_page,
     demo_scripts,
     script_tags,
 )
-from ux_channel.push import get_push_bus
-from ux_channel.types import Result
+from ux_channel.transport.push import get_push_bus
+from ux_channel.protocol.types import Result
 
 log = logging.getLogger("ws_live_board")
 

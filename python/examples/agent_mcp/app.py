@@ -15,7 +15,7 @@ from fastapi.responses import HTMLResponse
 from ux_channel import ActionRegistry, Result, toast
 from ux_channel.agents import AgentPolicy, agent_tool
 from ux_channel.asgi.fastapi import mount_channel
-from ux_channel.config import ChannelConfig
+from ux_channel.host.config import ChannelConfig
 
 app = FastAPI(title="uxchannel agent demo")
 cfg = ChannelConfig.development(

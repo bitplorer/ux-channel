@@ -22,9 +22,9 @@ from fastapi.testclient import TestClient
 
 from ux_channel import Result, toast
 from ux_channel.asgi.fastapi import mount_channel
-from ux_channel.bulkhead import install_bulkhead
-from ux_channel.config import ChannelConfig
-from ux_channel.registry import ActionRegistry
+from ux_channel.security.bulkhead import install_bulkhead
+from ux_channel.host.config import ChannelConfig
+from ux_channel.host.registry import ActionRegistry
 
 
 def build_app(max_in_flight: int, secret: str):

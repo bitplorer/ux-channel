@@ -9,7 +9,7 @@ from pathlib import Path
 from fastapi import FastAPI
 
 from ux_channel import Channel, ChannelConfig
-from ux_channel.cli import main as cli_main
+from ux_channel.ops_dx.cli import main as cli_main
 from ux_channel.scaffold import ScaffoldOptions, available_templates, create_app, validate_scaffold
 
 

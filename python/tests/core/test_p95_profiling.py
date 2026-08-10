@@ -6,10 +6,10 @@ import json
 import unittest
 from pathlib import Path
 
-from ux_channel.concurrency import dispatch_parallel
-from ux_channel.profiling import measure_latency, run_suite
-from ux_channel.registry import ActionRegistry
-from ux_channel.types import Intent, Result
+from ux_channel.transport.concurrency import dispatch_parallel
+from ux_channel.ops_dx.profiling import measure_latency, run_suite
+from ux_channel.host.registry import ActionRegistry
+from ux_channel.protocol.types import Intent, Result
 
 REPORTS = Path(__file__).resolve().parents[2] / "reports" / "p95_test"
 

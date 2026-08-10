@@ -1,7 +1,7 @@
 """Class-style Region components — mount, action targeting, controls."""
 
 from ux_channel import Channel, Intent, Region
-from ux_channel.demo import attr_string, demo_button, demo_page, demo_scripts, script_tags
+from ux_channel.paint.demo import attr_string, demo_button, demo_page, demo_scripts, script_tags
 
 SECRET = "dev-secret-key-32chars-minimum!!!!"
 

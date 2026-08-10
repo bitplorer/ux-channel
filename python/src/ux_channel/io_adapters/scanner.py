@@ -5,13 +5,13 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Optional, Sequence
 
-from ux_channel.io_channel import (
+from ux_channel.foundations.io_channel import (
     IoKind,
     IoMethodSpec,
     IoProtocol,
     IoRoomClaim,
 )
-from ux_channel.quantity import Quantity
+from ux_channel.foundations.quantity import Quantity
 
 
 @dataclass

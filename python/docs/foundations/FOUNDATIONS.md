@@ -8,24 +8,24 @@
 
 | Concern | Import |
 |---------|--------|
-| Store-grounded measure | `from ux_channel.quantity import Quantity` |
+| Store-grounded measure | `from ux_channel.foundations.quantity import Quantity` |
 | **Workplace (rooms)** | `from ux_channel.workplace import workplace` |
-| **I/O channel (not driver)** | `from ux_channel.io_channel import IoGate, IoProtocol, IoRoomClaim` |
+| **I/O channel (not driver)** | `from ux_channel.foundations.io_channel import IoGate, IoProtocol, IoRoomClaim` |
 | Reference adapters | `from ux_channel.io_adapters import ScannerAdapter, LightsAdapter, LabDutAdapter` |
-| Nested caps | `from ux_channel.attenuate import attenuate` |
-| Tree caps | `from ux_channel.tree_cap import TreeEnvelope` |
-| Morph IR | `from ux_channel.morph_ir import elem, region` |
-| Projections | `from ux_channel.projections import project_all` |
-| Stable uids | `from ux_channel.slot_compile import stable_uid` |
+| Nested caps | `from ux_channel.security.attenuate import attenuate` |
+| Tree caps | `from ux_channel.security.tree_cap import TreeEnvelope` |
+| Morph IR | `from ux_channel.paint.morph_ir import elem, region` |
+| Projections | `from ux_channel.paint.projections import project_all` |
+| Stable uids | `from ux_channel.paint.slot_compile import stable_uid` |
 | Intent log / forensics | `attach_audit` · `intent_log` · `forensics` |
-| Sealed bridge | `from ux_channel.bridge_protocol import SealedBridgeProtocol` |
-| Guest runtime | `from ux_channel.guest_runtime import GuestRuntime` |
+| Sealed bridge | `from ux_channel.bridge_meta.bridge_protocol import SealedBridgeProtocol` |
+| Guest runtime | `from ux_channel.bridge_meta.guest_runtime import GuestRuntime` |
 | Agent peer | `agents(ch).dispatch` · power: `ux_channel.agent_peer` |
 
 ```python
-from ux_channel.quantity import Quantity
-from ux_channel.io_channel import IoGate, IoProtocol, IoMethodSpec, IoKind, IoRoomClaim
-from ux_channel.morph_ir import elem, region
+from ux_channel.foundations.quantity import Quantity
+from ux_channel.foundations.io_channel import IoGate, IoProtocol, IoMethodSpec, IoKind, IoRoomClaim
+from ux_channel.paint.morph_ir import elem, region
 
 q = Quantity.from_store(3, "seats", source="db.booking.9.seats", revision=2)
 tree = region("cart", elem("span", "3"))
@@ -47,7 +47,7 @@ See [LAYERS.md](../start/LAYERS.md) · [GLOSSARY.md](../start/GLOSSARY.md).
 ## Quantity (store-grounded measure)
 
 ```python
-from ux_channel.quantity import Quantity, QuantityError, QuantityBudget
+from ux_channel.foundations.quantity import Quantity, QuantityError, QuantityBudget
 
 # preferred — builds Provenance internally
 amt = Quantity.from_store(10.5, "USD", source="db.order.9.amount", revision=3)
@@ -63,7 +63,7 @@ Session/client refuse bare numbers on quantity-ish paths. Use ids in chrome; loa
 ## Capability-shaped documents
 
 ```python
-from ux_channel.tree_cap import TreeEnvelope, compile_tree_caps
+from ux_channel.security.tree_cap import TreeEnvelope, compile_tree_caps
 ```
 
 ## Agent ≡ button
@@ -77,8 +77,8 @@ r = ag.dispatch("Cart.add", {"sku": "x"}, peer=ag.peer("bot-1"))
 ## Multi-surface Morph IR
 
 ```python
-from ux_channel.morph_ir import region, elem
-from ux_channel.projections import project_all
+from ux_channel.paint.morph_ir import region, elem
+from ux_channel.paint.projections import project_all
 
 views = project_all(region("cart", elem("span", "3")))
 ```

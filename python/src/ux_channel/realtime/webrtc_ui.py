@@ -30,7 +30,7 @@ custom ``iceServers`` in ``extra_client`` if you mint elsewhere.
 
 from __future__ import annotations
 
-from ux_channel import serde as _serde
+from ux_channel.protocol import serde as _serde
 
 from dataclasses import dataclass, field
 from html import escape
@@ -172,7 +172,7 @@ class RtcSession:
 
     def scripts_html(self, *, inspector: bool = False) -> str:
         """Demo HTML only — prefer Placement.scripts via ch.media / ch.runtime."""
-        from ux_channel.demo import script_tags
+        from ux_channel.paint.demo import script_tags
 
         ch = self.plane.channel
         if hasattr(ch, "runtime"):

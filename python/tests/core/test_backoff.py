@@ -8,9 +8,9 @@ import random
 from fastapi import FastAPI
 
 from ux_channel import Channel, ChannelConfig
-from ux_channel.backoff import BackoffPolicy, compute_backoff_ms, normalize_strategy
-from ux_channel.batch import dispatch_batch
-from ux_channel.types import Result
+from ux_channel.transport.backoff import BackoffPolicy, compute_backoff_ms, normalize_strategy
+from ux_channel.transport.batch import dispatch_batch
+from ux_channel.protocol.types import Result
 
 
 def test_normalize_aliases():

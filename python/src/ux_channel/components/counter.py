@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from ux_channel.components.base import ChannelComponent
-from ux_channel.types import Result
+from ux_channel.protocol.types import Result
 
 
 class Counter(ChannelComponent):

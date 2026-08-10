@@ -7,7 +7,7 @@ import inspect
 import pkgutil
 from typing import Any, Callable
 
-from ux_channel.registry import ActionRegistry
+from ux_channel.host.registry import ActionRegistry
 
 
 def action(name: str | None = None) -> Callable:

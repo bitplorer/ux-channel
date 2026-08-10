@@ -7,12 +7,12 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from ux_channel import Channel, ChannelConfig
-from ux_channel.webrtc import (
+from ux_channel.realtime.webrtc import (
     SIGNAL_KINDS,
     reset_rtc_store,
     validate_signal_payload,
 )
-from ux_channel.webrtc_http import handle_rtc_post
+from ux_channel.realtime.webrtc_http import handle_rtc_post
 
 
 def test_signal_kinds_match_jsep_ferry():

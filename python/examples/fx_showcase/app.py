@@ -17,7 +17,7 @@ from ux_channel.bridges import (
     ParticlesBridge,
     SpotlightBridge,
 )
-from ux_channel.demo import attr_string, demo_button, fx_script_tags, script_tags
+from ux_channel.paint.demo import attr_string, demo_button, fx_script_tags, script_tags
 
 app = FastAPI()
 ch = Channel.boot(

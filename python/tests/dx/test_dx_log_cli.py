@@ -2,9 +2,9 @@
 
 import tempfile
 
-from ux_channel.cli import main
-from ux_channel.dx_errors import DxConflictError, DxNotFoundError, DxUsageError
-from ux_channel.dx_log import DxLog, Level, configure_log, get_log, log_exception
+from ux_channel.ops_dx.cli import main
+from ux_channel.ops_dx.dx_errors import DxConflictError, DxNotFoundError, DxUsageError
+from ux_channel.ops_dx.dx_log import DxLog, Level, configure_log, get_log, log_exception
 
 
 def test_log_levels_and_capture():

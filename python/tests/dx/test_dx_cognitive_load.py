@@ -8,10 +8,10 @@ import warnings
 from fastapi import FastAPI
 
 from ux_channel import Channel, ChannelConfig
-from ux_channel.demo import attr_string, demo_button, demo_page, demo_scripts, script_tags
-from ux_channel.cli import main as cli_main
-from ux_channel.dx import DAY1_CHANNEL_API
-from ux_channel.recipes import RECIPE_NAMES, decision_tree, recipe_text
+from ux_channel.paint.demo import attr_string, demo_button, demo_page, demo_scripts, script_tags
+from ux_channel.ops_dx.cli import main as cli_main
+from ux_channel.host.dx import DAY1_CHANNEL_API
+from ux_channel.host.recipes import RECIPE_NAMES, decision_tree, recipe_text
 
 
 def test_day1_freeze_size():

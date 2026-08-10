@@ -10,8 +10,8 @@ from hypothesis import given, settings, strategies as st
 
 from ux_channel import Channel, ChannelConfig
 from ux_channel.io_adapters import LabDutAdapter, LightsAdapter, ScannerAdapter
-from ux_channel.io_channel import IoChannelError, claim_from_ticket_claims
-from ux_channel.quantity import Quantity
+from ux_channel.foundations.io_channel import IoChannelError, claim_from_ticket_claims
+from ux_channel.foundations.quantity import Quantity
 from ux_channel.workplace import (
     WorkplaceError,
     get_workplace,

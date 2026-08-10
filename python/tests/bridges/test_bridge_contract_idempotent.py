@@ -6,14 +6,14 @@ from pathlib import Path
 
 import pytest
 
-from ux_channel.bridge_scaffold import (
+from ux_channel.bridge_meta.bridge_scaffold import (
     CONTRACT_SCHEMA_VERSION,
     add_contract_method,
     create_bridge_package,
     normalize_contract,
     remove_contract_method,
 )
-from ux_channel.cli import main
+from ux_channel.ops_dx.cli import main
 
 
 def test_add_method_idempotent_same_signature():

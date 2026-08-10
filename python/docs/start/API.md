@@ -39,10 +39,10 @@ Optional:
 ```python
 from ux_channel.asgi.fastapi import mount_channel
 from ux_channel.asgi.starlette import mount_channel_starlette
-from ux_channel.factory import create_channel
-from ux_channel.ops import morph, toast, navigate
-from ux_channel.bridge_api import mount_html  # npm bridge host element only
-from ux_channel.quantity import Quantity
+from ux_channel.host.factory import create_channel
+from ux_channel.protocol.ops import morph, toast, navigate
+from ux_channel.bridge_meta.bridge_api import mount_html  # npm bridge host element only
+from ux_channel.foundations.quantity import Quantity
 ```
 
 ## Agents (AX)

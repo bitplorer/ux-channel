@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any, Callable, Optional, Protocol
 
-from ux_channel.types import Intent, Result
+from ux_channel.protocol.types import Intent, Result
 
 
 class BeforeHook(Protocol):

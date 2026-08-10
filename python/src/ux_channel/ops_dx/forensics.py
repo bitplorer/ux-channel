@@ -12,7 +12,7 @@ PUBLIC / PRIVATE
 
 from __future__ import annotations
 
-from ux_channel import serde as _serde
+from ux_channel.protocol import serde as _serde
 
 import json
 import threading
@@ -20,8 +20,8 @@ import time
 from dataclasses import dataclass, field
 from typing import Any, Mapping, Optional, Protocol, Sequence
 
-from ux_channel.morph_ir import MorphNode, lower_html, project_agent, project_json
-from ux_channel.types import Intent, Result
+from ux_channel.paint.morph_ir import MorphNode, lower_html, project_agent, project_json
+from ux_channel.protocol.types import Intent, Result
 
 __all__ = [
     "ForensicFrame",

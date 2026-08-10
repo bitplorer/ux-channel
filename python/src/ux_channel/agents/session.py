@@ -10,7 +10,7 @@ from dataclasses import dataclass, field
 from typing import Any, Optional
 
 from ux_channel.agents.policy import AgentPolicy
-from ux_channel.context import Principal
+from ux_channel.host.context import Principal
 
 
 @dataclass

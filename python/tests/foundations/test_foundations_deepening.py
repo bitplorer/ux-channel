@@ -6,12 +6,12 @@ import pytest
 from fastapi import FastAPI
 
 from ux_channel import Channel, ChannelConfig, Intent
-from ux_channel.bridge_protocol import (
+from ux_channel.bridge_meta.bridge_protocol import (
     BridgeFirewallError,
     get_sealed_registry,
     reset_sealed_registry,
 )
-from ux_channel.intent_log import attach_intent_log
+from ux_channel.ops_dx.intent_log import attach_intent_log
 from ux_channel_ux_dom import inject_uids
 
 

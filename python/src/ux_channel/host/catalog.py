@@ -7,7 +7,7 @@ from __future__ import annotations
 import inspect
 from typing import Any
 
-from ux_channel.registry import ActionRegistry
+from ux_channel.host.registry import ActionRegistry
 
 
 def action_catalog(registry: ActionRegistry) -> list[dict[str, Any]]:

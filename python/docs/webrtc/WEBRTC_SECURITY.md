@@ -114,8 +114,8 @@ ch.webrtc.store()                # tests / hosts
 **Layers (explicit import):**
 
 ```python
-from ux_channel.sfu import LiveKitSfu
-from ux_channel.whip import ...
+from ux_channel.realtime.sfu import LiveKitSfu
+from ux_channel.realtime.whip import ...
 ```
 
 Never put free `sign_rtc_ticket` on `uxchannel` root for product apps — use `ch.webrtc`.

@@ -6,8 +6,8 @@ import asyncio
 import os
 import unittest
 
-from ux_channel.batch import dispatch_batch, dispatch_batch_async
-from ux_channel.concurrency import (
+from ux_channel.transport.batch import dispatch_batch, dispatch_batch_async
+from ux_channel.transport.concurrency import (
     configure_concurrency,
     dispatch_parallel,
     dispatch_parallel_async,
@@ -16,8 +16,8 @@ from ux_channel.concurrency import (
     reset_concurrency_settings,
     should_parallelize,
 )
-from ux_channel.registry import ActionRegistry
-from ux_channel.types import Intent, Result
+from ux_channel.host.registry import ActionRegistry
+from ux_channel.protocol.types import Intent, Result
 
 
 def _reg() -> ActionRegistry:

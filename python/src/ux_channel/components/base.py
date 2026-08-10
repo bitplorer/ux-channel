@@ -28,7 +28,7 @@ from ux_channel.components.primitive import (
     to_html,
     uid_sel,
 )
-from ux_channel.types import Result
+from ux_channel.protocol.types import Result
 
 
 class ChannelComponent(ABC):

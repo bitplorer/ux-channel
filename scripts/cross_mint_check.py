@@ -15,7 +15,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "python"))
 
-from ux_channel.capability import CapService  # noqa: E402
+from ux_channel.protocol.capability import CapService  # noqa: E402
 
 BASE = sys.argv[1] if len(sys.argv) > 1 else "http://127.0.0.1:8787"
 ORACLE = "conformance-oracle-secret-32chars!!"

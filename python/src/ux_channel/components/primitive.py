@@ -22,10 +22,10 @@ from __future__ import annotations
 
 from typing import Any, Mapping, Optional, Protocol, runtime_checkable
 
-from ux_channel.html import action_attrs, button as html_button
-from ux_channel.html_safe import esc
-from ux_channel.ops import morph, toast
-from ux_channel.types import Result
+from ux_channel.paint.html import action_attrs, button as html_button
+from ux_channel.paint.html_safe import esc
+from ux_channel.protocol.ops import morph, toast
+from ux_channel.protocol.types import Result
 
 
 def uid_sel(uid_id: str) -> str:
@@ -117,7 +117,7 @@ def region_morph(
     morph_mode: str = "idiomorph",
 ) -> Result:
     """One-shot Result: morph region (+ optional toast)."""
-    from ux_channel.ops import toast as toast_op
+    from ux_channel.protocol.ops import toast as toast_op
 
     ops: list[Any] = [morph(target=uid_sel(uid_id), html=html, morph=morph_mode)]
     ops.extend(extra_ops)
@@ -140,7 +140,7 @@ def to_html(value: Any) -> str:
     """
     if value is None:
         return ""
-    from ux_channel.html_safe import SafeHtml, esc
+    from ux_channel.paint.html_safe import SafeHtml, esc
 
     if isinstance(value, SafeHtml):
         return str(value)
@@ -268,7 +268,7 @@ class RegistryHost:
         return region_root(uid_id, to_html(inner), tag=tag, **attrs)
 
     def form(self, action: str, **kwargs: Any) -> str:
-        from ux_channel.html import form_open
+        from ux_channel.paint.html import form_open
 
         sign = kwargs.pop("sign", True)
         sub = kwargs.pop("sub", None)
@@ -294,7 +294,7 @@ class RegistryHost:
         return _HostFail(self)
 
     def redirect(self, href: str) -> Result:
-        from ux_channel.encode import Go
+        from ux_channel.protocol.encode import Go
 
         return Go(href)  # type: ignore[return-value]
 
@@ -309,14 +309,14 @@ class RegistryHost:
         ]
         ops.extend(extra_ops)
         if notice:
-            from ux_channel import ops as _ops
+            from ux_channel.protocol import ops as _ops
 
             ops.append(_ops.toast(notice))
         return Result.success(*ops)
 
     @property
     def ui(self) -> Any:
-        from ux_channel.dx import UiBuilder
+        from ux_channel.host.dx import UiBuilder
 
         return UiBuilder()
 
@@ -337,7 +337,7 @@ class _HostFail:
         focus: Optional[str] = None,
         notice: bool = False,
     ) -> Result:
-        from ux_channel.ops import focus as focus_op
+        from ux_channel.protocol.ops import focus as focus_op
 
         ops: list[Any] = [morph(target=uid_sel(region), html=to_html(html))]
         if focus:

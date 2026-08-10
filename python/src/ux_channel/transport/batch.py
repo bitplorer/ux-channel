@@ -23,14 +23,14 @@ import asyncio
 import time
 from typing import Any, Mapping, Optional, Sequence
 
-from ux_channel.backoff import (
+from ux_channel.transport.backoff import (
     BackoffPolicy,
     DEFAULT_MAX_MS as DEFAULT_BACKOFF_MAX_MS,
     delay_with_retry_after,
 )
-from ux_channel.error_map import enrich_batch_envelope, should_retry
-from ux_channel.registry import ActionRegistry
-from ux_channel.types import Intent, Result
+from ux_channel.protocol.error_map import enrich_batch_envelope, should_retry
+from ux_channel.host.registry import ActionRegistry
+from ux_channel.protocol.types import Intent, Result
 
 DEFAULT_MAX_BATCH = 16
 DEFAULT_MAX_RETRIES = 1
@@ -48,7 +48,7 @@ def _batch_want_parallel(
     """Batch item concurrency: opt-in, never with stop_on_error or retries."""
     if stop_on_error or retry_retryable:
         return False
-    from ux_channel.concurrency import get_concurrency_settings, should_parallelize
+    from ux_channel.transport.concurrency import get_concurrency_settings, should_parallelize
 
     s = get_concurrency_settings()
     flag = s.batch_parallel if parallel is None else bool(parallel)
@@ -217,7 +217,7 @@ async def dispatch_batch_async(
         retry_retryable=retry_retryable,
     )
     if use_par:
-        from ux_channel.concurrency import get_concurrency_settings
+        from ux_channel.transport.concurrency import get_concurrency_settings
 
         lim = parallel_limit
         if lim is None:
@@ -371,7 +371,7 @@ def dispatch_batch(
     )
     if use_par:
         from concurrent.futures import ThreadPoolExecutor
-        from ux_channel.concurrency import get_concurrency_settings
+        from ux_channel.transport.concurrency import get_concurrency_settings
 
         lim = parallel_limit
         if lim is None:

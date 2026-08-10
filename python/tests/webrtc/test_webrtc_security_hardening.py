@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import pytest
 
-from ux_channel.config import ChannelConfig
-from ux_channel.webrtc import (
+from ux_channel.host.config import ChannelConfig
+from ux_channel.realtime.webrtc import (
     WebRTCPlane,
     _peer_id_ok,
     _sanitize_id,
@@ -14,7 +14,7 @@ from ux_channel.webrtc import (
     reset_rtc_store,
     sign_rtc_ticket,
 )
-from ux_channel.webrtc_http import handle_rtc_poll, handle_rtc_post
+from ux_channel.realtime.webrtc_http import handle_rtc_poll, handle_rtc_post
 
 
 @pytest.fixture(autouse=True)

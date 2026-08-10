@@ -11,14 +11,14 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from ux_channel.io_adapters import LabDutAdapter, LightsAdapter, ScannerAdapter
-from ux_channel.io_channel import (
+from ux_channel.foundations.io_channel import (
     IoChannelError,
     IoGate,
     attach_io_audit,
     claim_from_ticket_claims,
     run_checked,
 )
-from ux_channel.quantity import Quantity
+from ux_channel.foundations.quantity import Quantity
 
 
 def main() -> int:

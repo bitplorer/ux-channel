@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any, Mapping, Optional
 
-from ux_channel.html import ControlAttrs
+from ux_channel.paint.html import ControlAttrs
 
 
 def control_ux_dom(channel: Any, action: Any, **trust: Any) -> dict[str, str]:

@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from ux_channel import Channel, ChannelConfig
-from ux_channel.security_events import SecurityEventBus, get_security_bus, set_security_bus
+from ux_channel.security.security_events import SecurityEventBus, get_security_bus, set_security_bus
 
 
 def test_http_origin_deny_emits_event():

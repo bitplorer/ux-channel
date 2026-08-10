@@ -10,8 +10,8 @@ import inspect
 from dataclasses import dataclass, field
 from typing import Any, Callable, Optional
 
-from ux_channel.catalog import action_catalog
-from ux_channel.registry import ActionRegistry
+from ux_channel.host.catalog import action_catalog
+from ux_channel.host.registry import ActionRegistry
 
 
 @dataclass

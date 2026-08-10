@@ -1,3 +1,12 @@
+## 2026-08-10 — single-truth Python: packages only, zero shims
+
+- Removed all top-level compatibility aliases
+- Implementations only under cohesive packages; public via root + day1/
+- security_plane → security; day1 is a real package
+- sync_python_layout validates no top-level modules
+
+---
+
 ## 2026-08-10 — durable Python host layout (no patchy drift)
 
 - `PACKAGE_MAP.json` single source of truth for module→package
@@ -35,7 +44,7 @@ Ticket helpers (`sign_push`, `sign_ws`, …) unchanged — not the cap API.
 ## 2026-08-10 — cohesive packages (mature library structure)
 
 ### Structure
-- Physical packages: `protocol`, `host`, `paint`, `security_plane`, `transport`, `foundations`, `realtime`, `bridge_meta`, `ops_dx`
+- Physical packages: `protocol`, `host`, `paint`, `security`, `transport`, `foundations`, `realtime`, `bridge_meta`, `ops_dx`
 - Top-level modules are **thin compatibility shims** (0.x imports unchanged)
 - Coupling rules documented in `python/LAYOUT.md`
 - No features removed; gate 31 + Rust green

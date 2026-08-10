@@ -3,7 +3,7 @@ Quantity — store-grounded measure (magnitude + unit + provenance).
 
 Power public::
 
-    from ux_channel.quantity import Quantity
+    from ux_channel.foundations.quantity import Quantity
     Quantity.from_store(magnitude, unit, *, source, revision=0, principal=None)
 
 Builds ``Provenance`` internally. Prefer this over hand-building provenance.
@@ -16,7 +16,7 @@ from dataclasses import dataclass
 from decimal import Decimal
 from typing import Any, Optional, Union
 
-from ux_channel.provenance import Provenance
+from ux_channel.foundations.provenance import Provenance
 
 __all__ = [
     "Quantity",
@@ -120,7 +120,7 @@ def as_quantity(value: Any) -> Optional[Quantity]:
 
 def path_looks_like_quantity(path: str) -> bool:
     """True when a state/client path looks like durable measure authority."""
-    from ux_channel.planes import path_is_risky
+    from ux_channel.host.planes import path_is_risky
 
     return path_is_risky(path)
 

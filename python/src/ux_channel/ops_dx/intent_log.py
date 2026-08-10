@@ -17,7 +17,7 @@ import time
 from dataclasses import dataclass, field
 from typing import Any, Iterator, Mapping, Optional, Protocol, Sequence
 
-from ux_channel.types import Intent, Result
+from ux_channel.protocol.types import Intent, Result
 
 __all__ = ["IntentLogEntry", "IntentLog", "MemoryIntentLog", "attach_intent_log"]
 

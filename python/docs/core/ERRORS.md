@@ -159,7 +159,7 @@ Ties: first failed item with that status wins.
 ### Diagnostics
 
 ```python
-from ux_channel.error_map import map_batch_error_codes
+from ux_channel.protocol.error_map import map_batch_error_codes
 
 summary = map_batch_error_codes(envelope)
 # { status_mode, http_status, worst_code, code_counts, ... }
@@ -218,7 +218,7 @@ Uses `item_is_retryable(Result)`:
 ### Python
 
 ```python
-from ux_channel.batch import dispatch_batch, item_is_retryable
+from ux_channel.transport.batch import dispatch_batch, item_is_retryable
 
 out = dispatch_batch(
     registry,
@@ -276,7 +276,7 @@ Shared module: `ux_channel.backoff` (used by batch retry).
 | Client-side re-POST of failed items | Same policy; add jitter so tabs don’t align |
 
 ```python
-from ux_channel.backoff import BackoffPolicy, compute_backoff_ms
+from ux_channel.transport.backoff import BackoffPolicy, compute_backoff_ms
 
 policy = BackoffPolicy(strategy="exponential_full_jitter", base_ms=50, max_ms=2000)
 wait = policy.delay_ms(attempt=2)

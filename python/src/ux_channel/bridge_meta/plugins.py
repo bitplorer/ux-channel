@@ -25,7 +25,7 @@ INTENDED USAGE
 --------------
 Built-in::
 
-    from ux_channel.plugins import PluginHub, get_hub
+    from ux_channel.bridge_meta.plugins import PluginHub, get_hub
     hub = get_hub()
     hub.add_renderer(MyRenderer())
 
@@ -50,7 +50,7 @@ import sys
 from dataclasses import dataclass, field
 from typing import Any, Callable, Optional, Protocol, runtime_checkable
 
-from ux_channel.render import HtmlRenderer
+from ux_channel.paint.render import HtmlRenderer
 
 logger = logging.getLogger("ux_channel.plugins")
 
@@ -179,7 +179,7 @@ class PluginHub:
         Contributes: drop-in multi-library HTML encoding without ActionRegistry
         knowing about each library.
         """
-        from ux_channel.render import ChainRenderer, StringRenderer
+        from ux_channel.paint.render import ChainRenderer, StringRenderer
 
         # StringRenderer last — always available fallback for str fragments
         parts: list[HtmlRenderer] = list(self.renderers) + [StringRenderer()]
@@ -310,14 +310,14 @@ def load_builtin_renderers(hub: Optional[PluginHub] = None) -> PluginHub:
     hub = hub or get_hub()
 
     try:
-        from ux_channel.render import UxDomRenderer
+        from ux_channel.paint.render import UxDomRenderer
 
         hub.add_renderer(UxDomRenderer(), prepend=True)
     except Exception:
         pass
 
     try:
-        from ux_channel.render import JinjaRenderer
+        from ux_channel.paint.render import JinjaRenderer
 
         # JinjaRenderer needs an environment — apps should register configured instance.
         # We only document the class; no bare registration without env.

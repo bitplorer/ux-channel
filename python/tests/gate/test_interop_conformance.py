@@ -15,7 +15,7 @@ import pytest
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "python" / "src"))
 
-from ux_channel.capability import CapError, CapService  # noqa: E402
+from ux_channel.protocol.capability import CapError, CapService  # noqa: E402
 from ux_channel.wire import decode, encode  # noqa: E402
 from ux_channel.wire.cxb import decode_cxb, encode_cxb, is_cxb  # noqa: E402
 

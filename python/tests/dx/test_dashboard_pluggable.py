@@ -8,7 +8,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from ux_channel.dx_dashboard import (
+from ux_channel.ops_dx.dx_dashboard import (
     Panel,
     Widget,
     build_dashboard_model,

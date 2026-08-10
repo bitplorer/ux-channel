@@ -24,8 +24,8 @@ Runnable → `examples/error_handling/`
 ## 1. `Result.failure` (library core)
 
 ```python
-from ux_channel.types import Result
-from ux_channel.ops import morph, toast
+from ux_channel.protocol.types import Result
+from ux_channel.protocol.ops import morph, toast
 
 return Result.failure(
     "validation",
@@ -52,7 +52,7 @@ return Result.failure(
 ## 2. `raise ActionError` (handler)
 
 ```python
-from ux_channel.errors import ActionError
+from ux_channel.protocol.errors import ActionError
 
 @reg.action("signup")
 def signup(ctx, email: str = ""):
@@ -108,7 +108,7 @@ return ch.ui.fail_validation({"email": ["required"]}, region="Form:root", html=�
 ## 4. Map to HTTP / client kind
 
 ```python
-from ux_channel.error_map import ensure_error_meta, http_status_for
+from ux_channel.protocol.error_map import ensure_error_meta, http_status_for
 
 ensure_error_meta(result)
 status = http_status_for(result)          # int
@@ -129,7 +129,7 @@ kind = result.meta.get("error_kind")      # auth | validation | network | …
 ## 5. DX / CLI errors
 
 ```python
-from ux_channel.dx_errors import DxUsageError, DxNotFoundError
+from ux_channel.ops_dx.dx_errors import DxUsageError, DxNotFoundError
 
 raise DxUsageError("missing --out", hint="uxchannel dashboard --out reports/dx")
 # exit_code=2, code=dx.usage

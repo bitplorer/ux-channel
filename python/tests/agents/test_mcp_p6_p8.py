@@ -14,7 +14,7 @@ from fastapi.testclient import TestClient
 from ux_channel import ActionRegistry, Result, toast
 from ux_channel.agents import AgentPolicy, AgentRunner, AgentSession, ToolCall, agent_tool
 from ux_channel.asgi.fastapi import mount_channel
-from ux_channel.config import ChannelConfig
+from ux_channel.host.config import ChannelConfig
 from ux_channel.mcp import (
     McpToolAdapter,
     classify_tool,
@@ -30,8 +30,8 @@ from ux_channel.mcp.sessions import (
     build_session_store,
 )
 from ux_channel.mcp.verticals import clear_verticals
-from ux_channel.ops import morph
-from ux_channel.push import get_push_bus, set_push_bus, PushBus, MemoryPushBackend
+from ux_channel.protocol.ops import morph
+from ux_channel.transport.push import get_push_bus, set_push_bus, PushBus, MemoryPushBackend
 
 SECRET = "test-secret-key-32chars-minimum!!"
 

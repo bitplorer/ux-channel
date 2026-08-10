@@ -16,7 +16,7 @@ from ux_channel import (
     CapError, CapService,
 )
 from ux_channel.wire import encode, decode, dumps, loads, configure_wire
-from ux_channel.ops import (         # public op builders
+from ux_channel.protocol.ops import (         # public op builders
     morph, toast, navigate, push_url, swap, remove,
     set_attr, set_text, signal_set, clear_errors,
     focus, scroll, reload, noop,
@@ -74,11 +74,11 @@ CXB frame details live in package `docs/core/CXB.md` (already treated as normati
 
 | Concept | Canonical import |
 |---------|------------------|
-| Quantity | `from ux_channel.quantity import Quantity` |
-| I/O channel | `from ux_channel.io_channel import IoGate, IoRoomClaim` |
+| Quantity | `from ux_channel.foundations.quantity import Quantity` |
+| I/O channel | `from ux_channel.foundations.io_channel import IoGate, IoRoomClaim` |
 | Workplace / mesh | `from ux_channel.workplace import workplace, issue_mesh_membership` |
-| Morph IR | `from ux_channel.morph_ir import ...` |
-| Nested caps | `from ux_channel.attenuate import attenuate` |
+| Morph IR | `from ux_channel.paint.morph_ir import ...` |
+| Nested caps | `from ux_channel.security.attenuate import attenuate` |
 
 These are frozen *names*; they are not required for day-1 apps.
 

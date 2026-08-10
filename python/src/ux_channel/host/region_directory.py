@@ -20,7 +20,7 @@ import pkgutil
 from pathlib import Path
 from typing import Any, Callable, Iterator, Optional, Sequence, Type, Union
 
-from ux_channel.region_component import Region, class_to_uid
+from ux_channel.host.region_component import Region, class_to_uid
 
 __all__ = [
     "RegionDirectory",

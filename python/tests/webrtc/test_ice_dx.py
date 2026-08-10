@@ -8,8 +8,8 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from ux_channel import Channel, ChannelConfig
-from ux_channel.dx import DAY1_WEBRTC_API
-from ux_channel.webrtc import IceAccess
+from ux_channel.host.dx import DAY1_WEBRTC_API
+from ux_channel.realtime.webrtc import IceAccess
 
 
 def _ch(monkeypatch=None, **kw):

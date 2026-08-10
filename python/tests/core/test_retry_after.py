@@ -7,16 +7,16 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from ux_channel import Channel, ChannelConfig
-from ux_channel.backoff import (
+from ux_channel.transport.backoff import (
     apply_retry_after_override,
     delay_with_retry_after,
     extract_retry_after_s,
     parse_retry_after,
     BackoffPolicy,
 )
-from ux_channel.batch import dispatch_batch
-from ux_channel.error_map import ensure_error_meta
-from ux_channel.types import Result
+from ux_channel.transport.batch import dispatch_batch
+from ux_channel.protocol.error_map import ensure_error_meta
+from ux_channel.protocol.types import Result
 
 
 def test_parse_retry_after_seconds():

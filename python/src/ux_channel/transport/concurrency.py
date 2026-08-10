@@ -20,18 +20,18 @@ from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, replace
 from typing import Any, Mapping, Optional, Sequence, Union
 
-from ux_channel.batch import (  # noqa: F401
+from ux_channel.transport.batch import (  # noqa: F401
     DEFAULT_MAX_BATCH,
     dispatch_batch,
     dispatch_batch_async,
 )
-from ux_channel.bulkhead import (  # noqa: F401
+from ux_channel.security.bulkhead import (  # noqa: F401
     ConcurrencyLimiter,
     bulkhead_after_hook,
     bulkhead_hook,
     install_bulkhead,
 )
-from ux_channel.types import Intent, Result
+from ux_channel.protocol.types import Intent, Result
 
 __all__ = [
     "ConcurrencySettings",

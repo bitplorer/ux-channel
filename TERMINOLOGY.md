@@ -174,7 +174,7 @@ Terms are grouped: **big picture → messages → security → wire → HTTP →
 | **Type** | Class `Region` (class style) **or** a function registered with `@ch.region`. |
 | **Does** | `render(ctx) → HTML` for that single uid. |
 | **Not** | **Not** renamed to RegionBook. **Not** a bridge, action, or whole page. |
-| **Import** | `from ux_channel.day1 import Region` · `from ux_channel import Region` |
+| **Import** | `from ux_channel.host.day1 import Region` · `from ux_channel import Region` |
 | **Where** | `ux_channel.host.region_component` (shim: `ux_channel.region_component`). |
 
 **You almost always mean this word when you say “a region.”**

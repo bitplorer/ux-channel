@@ -4,7 +4,7 @@ Morph IR — host-agnostic UI structure for multi-surface projection.
 =================================================================
 PUBLIC / PRIVATE
 =================================================================
-* **Power public:** ``from ux_channel.morph_ir import elem, region, morph_ops``
+* **Power public:** ``from ux_channel.paint.morph_ir import elem, region, morph_ops``
 * **Not AX** — ``project_agent`` is an IR skin, not ``agents(ch).situation(...)``.
 * ``region(uid, …)`` is a **morph target** (same law as ``@ch.region``) — not an HTML tag.
 
@@ -18,7 +18,7 @@ import html as html_lib
 from dataclasses import dataclass, field
 from typing import Any, Optional, Sequence, Union
 
-from ux_channel.ops import morph as morph_op
+from ux_channel.protocol.ops import morph as morph_op
 
 __all__ = [
     "MorphNode",

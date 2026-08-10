@@ -19,13 +19,13 @@ import re
 from pathlib import Path
 from typing import Any, Sequence
 
-from ux_channel.bridge_scaffold import (
+from ux_channel.bridge_meta.bridge_scaffold import (
     create_bridge_package,
     default_methods,
     slugify,
 )
-from ux_channel.dx_errors import DxConflictError, DxUsageError
-from ux_channel.dx_log import get_log
+from ux_channel.ops_dx.dx_errors import DxConflictError, DxUsageError
+from ux_channel.ops_dx.dx_log import get_log
 
 __all__ = [
     "KNOWN_PRESETS",
@@ -492,7 +492,7 @@ def render_preset_py(spec: dict[str, Any]) -> str:
         "from pathlib import Path",
         "from typing import Any, Mapping, Optional",
         "",
-        "from ux_channel.placement import Placement",
+        "from ux_channel.paint.placement import Placement",
         "",
         f'PACKAGE = "{pkg}"',
         f"METHODS = ({methods_t},)",
@@ -598,7 +598,7 @@ def render_preset_py(spec: dict[str, Any]) -> str:
         "        )",
         "",
         "    def _result_with_ops(self, ops: list, *, notice: str | None = None) -> Any:",
-        "        from ux_channel.types import Result",
+        "        from ux_channel.protocol.types import Result",
         "        base = self.ch.done(notice=notice) if notice else self.ch.done()",
         "        return Result(ok=True, ops=list(base.ops or []) + list(ops), meta=dict(base.meta or {}), v=getattr(base, 'v', None) or '1')",
         "",

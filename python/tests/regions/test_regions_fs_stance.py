@@ -9,9 +9,9 @@ import pytest
 from fastapi import FastAPI
 
 from ux_channel import Channel, ChannelConfig, Intent, agents
-from ux_channel.inspect_api import inspect_channel, inspect_enabled
-from ux_channel.region_component import Region
-from ux_channel.region_directory import path_to_uid, attach_region_directory
+from ux_channel.ops_dx.inspect_api import inspect_channel, inspect_enabled
+from ux_channel.host.region_component import Region
+from ux_channel.host.region_directory import path_to_uid, attach_region_directory
 
 
 SECRET = "stance-regions-secret-key-32bytes!!!"
@@ -163,7 +163,7 @@ def test_discover_package(tmp_path, monkeypatch):
     (pkg / "regions").mkdir(parents=True)
     (pkg / "regions" / "__init__.py").write_text("")
     (pkg / "regions" / "notice.py").write_text(
-        "from ux_channel.region_component import Region\n"
+        "from ux_channel.host.region_component import Region\n"
         "class Notice(Region):\n"
         "    singleton = True\n"
         "    def render(self, ctx):\n"
@@ -198,9 +198,9 @@ def test_free_on_still_works():
 
 
 def test_cli_region_add(tmp_path):
-    from ux_channel.region_cli import cmd_region
+    from ux_channel.host.region_cli import cmd_region
     from types import SimpleNamespace
-    from ux_channel.dx_log import get_log
+    from ux_channel.ops_dx.dx_log import get_log
 
     out = tmp_path / "regions"
     args = SimpleNamespace(
