@@ -62,3 +62,19 @@ from ux_channel.bridge import bridge_plane
 2. `python3 scripts/sync_python_layout.py` then `--check`.
 3. Export public symbols only via root / `api` / package `__init__` (`MANUAL_PUBLIC_API`).
 4. `make verify` + `make test-python-host`.
+
+
+## Package public APIs
+
+Cohesive packages may expose a small set on the package root
+(`MANUAL_PUBLIC_API` marker — `sync_python_layout` will not overwrite):
+
+| Package | Example |
+|---------|---------|
+| `protocol` | `CapService`, `Intent`, `morph` |
+| `host` | `Channel`, `Region`, `RegionBook` |
+| `render` | `morph_ir`, `renderers` |
+| `security` | `intent_headers`, `attenuate` |
+| `foundations` | `Quantity` |
+
+Deep modules remain available as `ux_channel.<package>.<module>`.

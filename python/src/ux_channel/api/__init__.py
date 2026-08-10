@@ -8,12 +8,12 @@ Prefer either::
 
     from ux_channel import Channel, Region, CapService, state
 
-or, when you want an explicit “API surface only” import path::
+or, when you want an explicit application-surface import path::
 
     from ux_channel.api import Channel, Region, CapService, state
 
-Power features live under cohesive packages (``host``, ``protocol``,
-``paint``, ``asgi``, …) — import those by intent, not from here.
+Power features live under cohesive packages
+(``host``, ``protocol``, ``render``, ``security``, ``asgi``, …).
 """
 from __future__ import annotations
 

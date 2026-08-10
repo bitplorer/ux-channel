@@ -20,6 +20,8 @@ def main() -> int:
     if os.environ.get("UX_CHANNEL_SRC"):
         sys.path.insert(0, os.environ["UX_CHANNEL_SRC"])
     for p in [
+        PKG / "python" / "src",
+        PKG / "src",
         Path("/tmp/uxc-pkg/ux-channel-0.1.0/src"),
         PKG / "ref" / "src",
     ]:

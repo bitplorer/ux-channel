@@ -1,3 +1,13 @@
+## 2026-08-10 — deep clean: map v2, package surfaces, harness paths
+
+- Rebuild PACKAGE_MAP.json from disk (v2) with forbidden_names
+- MANUAL_PUBLIC_API on host/protocol/render/security/foundations/…
+- Root package docstring: professional import map only
+- CXB harness finds monorepo `python/src` without PYTHONPATH
+- Gate: cohesive package export smoke
+
+---
+
 ## 2026-08-10 — thorough cleanup wave (professional names)
 
 - `paint` → `render` (`renderers`, `kit`)

@@ -28,6 +28,8 @@ def _try_import_oracle():
         candidates.append(Path(os.environ["UX_CHANNEL_SRC"]))
     candidates.extend(
         [
+            PKG / "python" / "src",  # monorepo layout
+            PKG / "src",
             Path("/tmp/uxc-pkg/ux-channel-0.1.0/src"),
             PKG / "ref" / "src",
             PKG.parent / "ux-channel-0.1.0" / "src",

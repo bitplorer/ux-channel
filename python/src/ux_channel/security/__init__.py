@@ -1,16 +1,15 @@
-"""Cohesive package: **security**
+"""Security package — CSRF, limits, attenuation, rate limits.
 
-CSRF, attenuate, rate limits.
+Preferred::
 
-Modules: attenuate, bulkhead, host_csrf, limits, policy, push_security, ratelimit, security, security_events, tree_cap, ws_security
-
-Import: ``from ux_channel.security.MODULE import Symbol``
-Public apps: ``from ux_channel.api import …`` or ``from ux_channel import …``
-
-Source of truth: PACKAGE_MAP.json
+    from ux_channel.security import intent_headers, attenuate
 """
 from __future__ import annotations
 
-MEMBERS = ['attenuate', 'bulkhead', 'host_csrf', 'limits', 'policy', 'push_security', 'ratelimit', 'security', 'security_events', 'tree_cap', 'ws_security']
-PACKAGE = 'security'
-__all__ = ["MEMBERS", "PACKAGE"]
+# MANUAL_PUBLIC_API — sync_python_layout must not overwrite this file
+
+from ux_channel.security.host_csrf import intent_headers
+from ux_channel.security.attenuate import attenuate
+
+PACKAGE = "security"
+__all__ = ["PACKAGE", "intent_headers", "attenuate"]

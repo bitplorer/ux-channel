@@ -1,38 +1,27 @@
-"""ux-channel 0.1.0 — Intent → Action → Result(ops) for server-driven UI.
+"""ux-channel — Intent → Action → Result(ops) for server-driven UI.
 
-Brand lines
------------
-| Layer | Name |
-|-------|------|
-| **PyPI / pip** | ``ux-channel`` |
-| **Import** | ``ux_channel`` |
-| **CLI** | ``uxchannel`` |
+**Install:** ``pip install ux-channel`` · **Import:** ``ux_channel`` · **CLI:** ``uxchannel``
 
 Application surface
 -------------------
-``Channel.boot`` → ``@region`` / ``@on`` → ``control`` → ``agents`` / ``state`` → ``done``.
-
-Application imports: ``from ux_channel import Channel, Region, …``
-or ``from ux_channel.api import Channel, Region, …`` (same objects; curated surface).
-See ``python/STABILITY.md`` + ``python/ONTOLOGY.md``.
-
-Import map (stable)
--------------------
 ::
 
-    # Application API
-    from ux_channel import Channel, ChannelConfig, agents, state, attach_audit
+    from ux_channel import Channel, Region, CapService, state
+    # or: from ux_channel.api import Channel, Region, CapService, state
 
-    # Power — import by concern (not on root)
-    from ux_channel.foundations.quantity import Quantity
-    from ux_channel.foundations.io_channel import IoGate, IoRoomClaim
-    from ux_channel.workplace import workplace, issue_mesh_membership
-    from ux_channel.transport.outbox import attach_outbox, drain_outbox
-    from ux_channel.security.host_csrf import intent_headers
+    ch = Channel.boot(...)
+    # @region / @on → control → done/fail
 
-HTML hosts (or templates) own **markup**. Channel owns **control**, **trust**,
-**regions**, and **ops**. See docs/start/API_SURFACE.md · docs/start/LAYERS.md · docs/start/FREEZE_0.1.md.
+Power packages (import by intent)
+---------------------------------
+``protocol`` · ``host`` · ``render`` · ``security`` · ``transport`` ·
+``foundations`` · ``realtime`` · ``bridge`` · ``bridges`` · ``asgi`` ·
+``devtools`` · ``wire`` · ``components`` · ``agents`` · ``mcp`` · ``workplace``
+
+Layout law: ``python/STABILITY.md``. Naming: root ``NAMING.md``.
+HTML hosts own markup; Channel owns control, trust, regions, and ops.
 """
+
 
 from __future__ import annotations
 

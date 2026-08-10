@@ -15,6 +15,13 @@
       "Region",
       "RegionBook",
       "ChannelConfig"
+    ],
+    "protocol_api": [
+      "Intent",
+      "Result",
+      "morph",
+      "toast",
+      "CapService"
     ]
   },
   "rust_parity": {

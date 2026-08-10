@@ -1,16 +1,10 @@
-"""Cohesive package: **transport**
+"""Transport package — batch, push, streams, websocket helpers.
 
-batch, push, ws helpers. ASGI adapters in asgi/.
-
-Modules: backoff, batch, concurrency, cors, intent_sync, middleware, outbox, push, stream, ws_limits, ws_protocol
-
-Import: ``from ux_channel.transport.MODULE import Symbol``
-Public apps: ``from ux_channel.api import …`` or ``from ux_channel import …``
-
-Source of truth: PACKAGE_MAP.json
+HTTP framework adapters live in ``ux_channel.asgi`` (not here).
 """
 from __future__ import annotations
 
-MEMBERS = ['backoff', 'batch', 'concurrency', 'cors', 'intent_sync', 'middleware', 'outbox', 'push', 'stream', 'ws_limits', 'ws_protocol']
-PACKAGE = 'transport'
-__all__ = ["MEMBERS", "PACKAGE"]
+# MANUAL_PUBLIC_API — sync_python_layout must not overwrite this file
+
+PACKAGE = "transport"
+__all__ = ["PACKAGE"]

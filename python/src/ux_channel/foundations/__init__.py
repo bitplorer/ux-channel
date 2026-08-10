@@ -1,16 +1,14 @@
-"""Cohesive package: **foundations**
+"""Foundations package — quantity, provenance, io_channel.
 
-Quantity, provenance, io_channel.
+Preferred::
 
-Modules: io_channel, provenance, quantity
-
-Import: ``from ux_channel.foundations.MODULE import Symbol``
-Public apps: ``from ux_channel.api import …`` or ``from ux_channel import …``
-
-Source of truth: PACKAGE_MAP.json
+    from ux_channel.foundations import Quantity
 """
 from __future__ import annotations
 
-MEMBERS = ['io_channel', 'provenance', 'quantity']
-PACKAGE = 'foundations'
-__all__ = ["MEMBERS", "PACKAGE"]
+# MANUAL_PUBLIC_API — sync_python_layout must not overwrite this file
+
+from ux_channel.foundations.quantity import Quantity
+
+PACKAGE = "foundations"
+__all__ = ["PACKAGE", "Quantity"]

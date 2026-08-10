@@ -55,3 +55,15 @@ def test_no_legacy_package_dirs():
     root = Path(__import__("ux_channel").__file__).resolve().parent
     for name in ("paint", "ops_dx", "bridge_meta", "day1", "zones", "security_plane"):
         assert not (root / name).exists(), name
+
+
+def test_cohesive_package_exports():
+    from ux_channel import host, protocol, render, security, foundations
+    from ux_channel.host import Channel, Region
+    from ux_channel.protocol import CapService, Intent, morph
+    from ux_channel.render import morph_ir
+    from ux_channel.security import intent_headers
+    from ux_channel.foundations import Quantity
+
+    assert Channel and Region and CapService and Intent and morph
+    assert morph_ir and intent_headers and Quantity
