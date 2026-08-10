@@ -2,6 +2,8 @@
 
 **Best of both worlds:** classic product layout from the release (`src/`, full `docs/`, `tests/`, `examples/`) **plus** monorepo enhancements (zones, day1, sorted `args_hash`, gate tests, Rust interop).
 
+**Region** = one DOM slot · **RegionBook** = registry (`ch.regions`) · not a rename.
+
 ## Open this way (do not alphabet-scroll `src/ux_channel`)
 
 | Doc | Purpose |

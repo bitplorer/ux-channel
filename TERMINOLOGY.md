@@ -166,23 +166,42 @@ Terms are grouped: **big picture → messages → security → wire → HTTP →
 ## 3. Security and authority
 
 
-### Region (Python host)
+### Region (Python host) — **one slot**
 
 | | |
 |--|--|
-| **Is** | A **stable DOM slot** (`data-channel-id`) the server can re-render after an action. |
-| **Does** | `render(ctx) → HTML`; refresh emits **morph** ops for that uid. |
-| **Not** | Not a bridge (npm island), not an action (mutation), not the whole page. |
-| **Where** | `ux_channel.regions` / `Region` class / optional `RegionDirectory`. Map: [`python/ONTOLOGY.md`](python/ONTOLOGY.md). |
+| **Is** | **One** stable DOM slot (`data-channel-id`) the server can re-paint. |
+| **Type** | Class `Region` (class style) **or** a function registered with `@ch.region`. |
+| **Does** | `render(ctx) → HTML` for that single uid. |
+| **Not** | **Not** renamed to RegionBook. **Not** a bridge, action, or whole page. |
+| **Import** | `from ux_channel.day1 import Region` · `from ux_channel import Region` |
+| **Where** | `ux_channel.host.region_component` (shim: `ux_channel.region_component`). |
 
-### RegionBook
+**You almost always mean this word when you say “a region.”**
+
+### RegionBook (Python host) — **the registry**
 
 | | |
 |--|--|
-| **Is** | Registry `uid → render` on the Channel (`ch.regions`). |
-| **Does** | Revalidates selected uids after actions (`refresh=[…]`). |
-| **Not** | Not file discovery (that is RegionDirectory) and not wire codec. |
+| **Is** | The **book of all regions** on a Channel: `uid → render` (`ch.regions`). |
+| **Type** | Class `RegionBook` — different type from `Region`. |
+| **Does** | After an action, re-runs selected renders and builds **morph** ops. |
+| **Not** | Not a single slot; not a rename of `Region`. |
+| **Import** | Usually via `ch.regions` — you rarely construct it yourself. |
+| **Where** | `ux_channel.host.regions` (shim: `ux_channel.regions`). |
 
+```text
+Region     = one chapter (one slot)
+RegionBook = the whole book (registry on the channel)
+```
+
+### RegionDirectory (Python host) — **optional file discovery**
+
+| | |
+|--|--|
+| **Is** | Opt-in loader that finds Region **classes** on disk/packages. |
+| **Does** | Registers them into the RegionBook. |
+| **Not** | Not required for core Intent plane; not RegionBook itself. |
 ### Bridge (Python host)
 
 | | |

@@ -91,6 +91,18 @@ If you are still unsure: **default to Region + Action + `ch.done(refresh=…)`**
 
 ## 4. Region ontology (precise)
 
+> ### Names (do not confuse)
+>
+> | Name | One-line |
+> |------|----------|
+> | **region** (idea) | A stable paint slot on the page |
+> | **`Region`** (type) | Class (or `@ch.region` fn) for **one** slot — **use this in apps** |
+> | **`RegionBook`** (type) | Registry of all slots on the Channel (`ch.regions`) — **not** a rename of Region |
+> | **`RegionDirectory`** | Optional FS discovery that fills the book |
+>
+> We did **not** rename Region → RegionBook. Both names always existed.
+
+
 ### 4.1 What a Region **is**
 
 | Property | Meaning |

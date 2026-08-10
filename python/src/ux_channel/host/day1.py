@@ -5,6 +5,9 @@ Why this module exists
 ``ux_channel`` is large. Day-1 apps should not browse 180 modules.
 Importing from ``ux_channel.day1`` documents intent: *I only need the frozen core*.
 
+Includes ``Region`` (one slot). ``RegionBook`` is also exported for advanced registry use;
+it is **not** a rename of ``Region``.
+
 Full package root (``from ux_channel import Channel``) remains supported and frozen.
 This is an additive clarity layer, not a rename.
 

@@ -4,6 +4,20 @@ Words: [TERMINOLOGY.md](TERMINOLOGY.md) · Flows: [HOW_IT_WORKS.md](HOW_IT_WORKS
 
 ---
 
+### Did Region get renamed to RegionBook?
+
+**No.** They were never the same thing.
+
+| Name | Means |
+|------|--------|
+| **Region** | One DOM slot (`class CartBadge(Region)` or `@ch.region`) |
+| **RegionBook** | Channel registry of all slots (`ch.regions`) |
+| **RegionDirectory** | Optional file/package discovery into that registry |
+
+```text
+Region = one slot · RegionBook = book of slots · you use Region every day
+```
+
 ### What is a Region vs a Bridge vs an Action?
 
 | | Region | Bridge | Action |

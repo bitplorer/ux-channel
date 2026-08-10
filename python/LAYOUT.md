@@ -21,6 +21,17 @@ Apps import day-1 or cohesive packages
 Legacy: top-level `ux_channel.regions` etc. are **thin shims** → same objects.
 ```
 
+
+## Region naming (quick)
+
+| Type | Package path | Role |
+|------|--------------|------|
+| `Region` | `host/region_component.py` | **One** slot — app code |
+| `RegionBook` | `host/regions.py` | Registry (`ch.regions`) |
+| shims | `region_component.py`, `regions.py` | Legacy imports |
+
+Not a rename: **Region ≠ RegionBook**.
+
 ## Preferred imports (new code)
 
 ```python

@@ -1,6 +1,8 @@
 """
 Regions — morphable SSR slots with stable identity.
 
+RegionBook is the REGISTRY (ch.regions). A single slot is Region / @ch.region — not this class renamed.
+
 First principles
 ----------------
 Server-driven UI updates a **fragment** of the page, not the whole document.

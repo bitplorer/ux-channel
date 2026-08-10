@@ -1,6 +1,8 @@
 """
 Class-style Region components — ux-dom-adjacent, low ceremony.
 
+Region is ONE slot. RegionBook (in regions.py) is the registry of all slots — different type, not a rename.
+
 First principles
 ----------------
 * A **Region** is a live DOM slot with a stable ``uid``.
