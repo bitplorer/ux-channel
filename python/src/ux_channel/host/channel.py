@@ -212,8 +212,6 @@ CHANNEL_PUBLIC_API = (
 # Power (not public API): refresh, diagnose, body_attrs, html, live, webrtc, patch, …
 # Power layers (not public API): webrtc under ch.media
 
-from ux_channel.realtime.media import MEDIA_PUBLIC_API  # re-export for audits
-
 WEBRTC_PUBLIC_API = (
     "enabled",
     "path",

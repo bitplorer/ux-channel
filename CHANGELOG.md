@@ -1,3 +1,13 @@
+## 2026-08-10 — execute longevity: strata map, checker, core/L4 boundary
+
+- PACKAGE_MAP strata L1–L5 + core_packages / plane_packages
+- scripts/check_longevity.py (eager L4 ban in core, root surface)
+- Lazy: host.channel no longer imports realtime; factory loads bridge plugins on demand
+- pyproject extras: asgi, agents, realtime, devtools; EXTENSIONS.md guide
+- verify.sh + gate + Makefile longevity target
+
+---
+
 ## 2026-08-10 — LONGEVITY: stable strata + anti-bloat extension doors
 
 - Document L0–L6 permanence model (law → demos)

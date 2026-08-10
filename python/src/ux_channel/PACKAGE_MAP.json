@@ -473,5 +473,64 @@
     "jsonutil",
     "mental_model",
     "agents"
-  ]
+  ],
+  "strata": {
+    "protocol": "L1",
+    "host": "L2",
+    "render": "L2",
+    "security": "L2",
+    "api": "L2",
+    "wire": "L3",
+    "asgi": "L3",
+    "transport": "L3",
+    "redis_extra": "L3",
+    "foundations": "L3",
+    "agent_runtime": "L4",
+    "mcp": "L4",
+    "workplace": "L4",
+    "bridge": "L4",
+    "bridges": "L4",
+    "realtime": "L4",
+    "components": "L4",
+    "io_adapters": "L4",
+    "devtools": "L5",
+    "scaffold": "L5",
+    "catalog": "L5",
+    "static": "L5"
+  },
+  "strata_legend": {
+    "L0": "SPEC + conformance (not a Python package)",
+    "L1": "Peer core \u2014 protocol IR + caps",
+    "L2": "Host core \u2014 Channel, regions, render, security, api",
+    "L3": "Adapters \u2014 wire, asgi, transport, stores backends",
+    "L4": "Product planes \u2014 optional, never on root",
+    "L5": "Tooling \u2014 free to churn",
+    "L6": "Demos / examples (out of package tree)"
+  },
+  "core_packages": [
+    "protocol",
+    "host",
+    "render",
+    "security",
+    "api"
+  ],
+  "plane_packages": [
+    "agent_runtime",
+    "mcp",
+    "workplace",
+    "bridge",
+    "bridges",
+    "realtime",
+    "components",
+    "io_adapters"
+  ],
+  "longevity": {
+    "doc": "LONGEVITY.md",
+    "rules": [
+      "root_binds_L1_L2_only",
+      "core_no_eager_L4_imports",
+      "planes_optional_extras",
+      "extension_doors_A_to_G"
+    ]
+  }
 }

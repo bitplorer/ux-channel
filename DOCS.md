@@ -30,6 +30,7 @@
 | [ARCHITECTURE.md](ARCHITECTURE.md) | System shape |
 | [FAQ.md](FAQ.md) | Common questions |
 | [python/docs/start/](python/docs/start/) | Application encyclopedia |
+| [python/docs/start/EXTENSIONS.md](python/docs/start/EXTENSIONS.md) | Extension doors for authors |
 
 ## Import cheat-sheet
 

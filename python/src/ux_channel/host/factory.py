@@ -8,15 +8,11 @@ and a Redis rate-limit before-hook (requires redis package).
 from __future__ import annotations
 
 import os
-from typing import Any, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Optional, Tuple
 
-from ux_channel.bridge.plugins import (
-    PluginHub,
-    get_hub,
-    load_builtin_hosts,
-    load_builtin_renderers,
-    set_hub,
-)
+if TYPE_CHECKING:
+    from ux_channel.bridge.plugins import PluginHub
+
 from ux_channel.host.registry import ActionRegistry
 from ux_channel.render.renderers import HtmlRenderer
 
@@ -50,7 +46,7 @@ def create_channel(
     app: Any = None,
     host: Optional[str] = "fastapi",
     path: str = "/ux-channel",
-    hub: Optional[PluginHub] = None,
+    hub: Any = None,
     renderer: Optional[HtmlRenderer] = None,
     require_cap: bool = True,
     load_entry_points: bool = False,
@@ -61,13 +57,20 @@ def create_channel(
     auto_redis: bool = True,
     max_in_flight: int | None = None,
     **registry_kwargs: Any,
-) -> Tuple[ActionRegistry, PluginHub]:
+) -> Tuple[ActionRegistry, Any]:
     """
     Create ActionRegistry + PluginHub and optionally mount a host.
 
     Prefer ``config=ChannelConfig.from_env()`` in production.
     Set ``REDIS_URL`` or ``redis_url=`` for multi-worker stores (optional).
     """
+    from ux_channel.bridge.plugins import (
+        get_hub,
+        load_builtin_hosts,
+        load_builtin_renderers,
+        set_hub,
+    )
+
     hub = hub or get_hub()
     load_builtin_hosts(hub)
     load_builtin_renderers(hub)

@@ -238,3 +238,21 @@ Before merging a feature, answer:
 | Tutorial app | examples/ | L6 |
 
 **Longevity formula:** *stable grammar (Intent/Result/cap/hooks) + replaceable bodies (stores, adapters, planes) + empty root for everything else.*
+
+
+## 10. Enforcement (automated)
+
+| Check | Command |
+|-------|---------|
+| Strata map + core/L4 eager-import ban | `python3 scripts/check_longevity.py` |
+| Layout / PACKAGE_MAP | `python3 scripts/sync_python_layout.py --check` |
+| Root application surface | `python/tests/gate/test_longevity_strata.py` |
+| Full CI | `./verify.sh` (includes longevity) |
+
+`PACKAGE_MAP.json` fields:
+
+* `strata` — package → `L1`…`L5`
+* `core_packages` — L1+L2
+* `plane_packages` — L4
+
+Extension authors: [python/docs/start/EXTENSIONS.md](python/docs/start/EXTENSIONS.md).

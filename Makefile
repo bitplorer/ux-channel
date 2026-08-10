@@ -20,7 +20,10 @@ health:
 layout:
 	python3 scripts/sync_python_layout.py --check
 
-verify: health layout
+longevity:
+	python3 scripts/check_longevity.py
+
+verify: health layout longevity
 	./verify.sh
 
 verify-http: health layout

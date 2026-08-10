@@ -54,13 +54,23 @@ opentelemetry-sdk = { version = ">=1.20", optional = true }
 orjson = { version = ">=3.9", optional = true }
 
 [tool.poetry.extras]
+# Door F — host adapters
+asgi = ["fastapi", "starlette"]
 fastapi = ["fastapi", "starlette"]
 starlette = ["starlette"]
+# Door B — durable backends
 redis = ["redis"]
-pydantic = ["pydantic"]
-otel = ["opentelemetry-api", "opentelemetry-sdk"]
+# Door C — faster codecs
 speed = ["orjson"]
 serde = ["orjson"]
+# Door G — optional product planes (deps only; code is in-tree)
+# agents/realtime are pure-Python planes; list empty extras as documentation aliases
+agents = []
+realtime = []
+devtools = ["opentelemetry-api", "opentelemetry-sdk"]
+pydantic = ["pydantic"]
+otel = ["opentelemetry-api", "opentelemetry-sdk"]
+# Batteries
 full = [
   "fastapi",
   "starlette",

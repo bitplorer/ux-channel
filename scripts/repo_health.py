@@ -26,6 +26,7 @@ REQUIRED = [
     "rust/src/lib.rs",
     "conformance/manifest.json",
     "scripts/sync_python_layout.py",
+    "scripts/check_longevity.py",
 ]
 
 STALE = [

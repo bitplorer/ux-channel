@@ -22,6 +22,8 @@ python3 "$ROOT/scripts/repo_health.py"
 
 echo "== python layout =="
 python3 "$ROOT/scripts/sync_python_layout.py" --check
+echo "== longevity strata =="
+python3 "$ROOT/scripts/check_longevity.py"
 
 echo "== JSON vectors =="
 python3 conformance/harness/validate_json_vectors.py
