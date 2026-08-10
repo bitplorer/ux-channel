@@ -20,7 +20,7 @@ from typing import Any, Callable
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from ux_channel import ops as O  # noqa: E402
+from ux_channel.protocol import ops as O  # noqa: E402
 from ux_channel.wire import encode as wire_encode  # noqa: E402
 from ux_channel.wire.cxb import decode_cxb, encode_cxb  # noqa: E402
 

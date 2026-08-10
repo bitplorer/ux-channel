@@ -1,3 +1,11 @@
+## 2026-08-11 — CI green: msgpack for CXB goldens + test path fixes
+
+- requirements-dev: msgpack + hypothesis (CXB oracle decode needs msgpack)
+- Harden CXB `_free_loads` error when msgpack missing
+- Fix ops imports and monorepo paths in core tests
+
+---
+
 ## 2026-08-11 — Rust/Python tests: unit, property, integration + docs
 
 - Rust: proptest cap/wire properties; integration_peer; README layout/tests

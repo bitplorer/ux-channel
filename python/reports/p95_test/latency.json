@@ -1,0 +1,26 @@
+{
+  "title": "ux-channel p95 test",
+  "latencies": [
+    {
+      "name": "dispatch_one",
+      "n": 30,
+      "p50_ms": 0.1123,
+      "p95_ms": 0.149,
+      "p99_ms": 0.1818,
+      "mean_ms": 0.1193,
+      "min_ms": 0.1074,
+      "max_ms": 0.1924
+    },
+    {
+      "name": "dispatch_parallel_20",
+      "n": 30,
+      "p50_ms": 3.6293,
+      "p95_ms": 3.7797,
+      "p99_ms": 3.8041,
+      "mean_ms": 3.6359,
+      "min_ms": 3.4788,
+      "max_ms": 3.8133
+    }
+  ],
+  "note": "Concurrency is internal; apps should not tune parallel flags."
+}

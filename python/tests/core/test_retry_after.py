@@ -1,3 +1,4 @@
+from pathlib import Path
 
 """Retry-After parse, override, batch, HTTP headers."""
 
@@ -106,8 +107,8 @@ def test_http_retry_after_header():
 
 
 def test_client_js_has_retry_after_helpers():
-    from pathlib import Path
-    js = Path("src/ux_channel/static/ux-channel.js").read_text()
+    js_path = Path(__file__).resolve().parents[2] / "src" / "ux_channel" / "static" / "ux-channel.js"
+    js = js_path.read_text(encoding="utf-8")
     assert "parseRetryAfter" in js
     assert "mergeRetryAfter" in js
     assert "channel:retryAfter" in js

@@ -233,6 +233,10 @@ def _free_dumps(obj: Any, default: Callable[[Any], Any]) -> bytes:
 
 
 def _free_loads(data: bytes) -> Any:
+    """Decode free-form nested payload (msgpack preferred; JSON fallback).
+
+    Golden CXB blobs use msgpack free-form; CI must install ``msgpack``.
+    """
     if not data:
         return None
     if _MSGPACK is not None:
@@ -240,7 +244,13 @@ def _free_loads(data: bytes) -> Any:
             return _MSGPACK.unpackb(data, raw=False, strict_map_key=False)
         except Exception:
             pass
-    return json.loads(data.decode("utf-8"))
+    try:
+        return json.loads(data.decode("utf-8"))
+    except UnicodeDecodeError as exc:
+        raise ValueError(
+            "CXB free-form payload is not UTF-8 JSON; install msgpack "
+            "(required for oracle/golden decode)"
+        ) from exc
 
 
 # Varint (protobuf-style zigzag for signed ints)

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import unittest
 
-from ux_channel import ops as O
+from ux_channel.protocol import ops as O
 from ux_channel.wire import decode, encode, reset_wire
 from ux_channel.wire.cxb import decode_cxb, encode_cxb
 
