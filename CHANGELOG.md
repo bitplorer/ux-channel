@@ -1,3 +1,11 @@
+## 2026-08-10 — caller planes analysis; pure agent_runtime kernel
+
+- Document caller planes (human / agent_runtime / mcp / guest / workplace / peer)
+- agent_runtime: pure implementation (AgentRunner…); remove callable-module hack
+- Keep name agent_runtime; no umbrella runtimes/ until a new principal class needs it
+
+---
+
 ## 2026-08-10 — deeper×2 + wider: freeze truth, agent_runtime, identity matrix
 
 - PUBLIC_API_FREEZE rewritten (mint, stores, current packages)

@@ -76,12 +76,14 @@ def test_region_command_preserves_principal_on_ctx():
 
 
 def test_agents_facade_callable_after_agents_package_import():
-    """Submodule import must not make `agents` unusable as agents(ch)."""
-    # Force package load (historical shadowing of the façade function).
+    """Importing agent_runtime must not shadow root agents() function."""
     from ux_channel.agent_runtime import AgentRunner  # noqa: F401
     import ux_channel
+    import types
 
-    assert callable(ux_channel.agent_runtime)
+    assert isinstance(ux_channel.agent_runtime, types.ModuleType)
+    assert not callable(ux_channel.agent_runtime)
+    assert callable(ux_channel.agents)
     ch = Channel.boot(secret=SECRET)
     # Prefer re-import style callers use
     from ux_channel import agents as agents_fn
@@ -89,9 +91,9 @@ def test_agents_facade_callable_after_agents_package_import():
     ag = agents_fn(ch)
     assert ag is not None
     assert hasattr(ag, "tools_for")
-    # Direct package call also works
-    ag2 = ux_channel.agent_runtime(ch)
-    assert ag2 is not None
+    # agent_runtime is the kernel package — not a callable façade
+    from ux_channel.agent_runtime import AgentRunner
+    assert AgentRunner is not None
 
 
 def test_dispatch_principal_override_still_wins():

@@ -121,3 +121,16 @@ Deep modules: `ux_channel.<package>.<module>`.
 | `ux_channel.agent_runtime` | Implementation package |
 
 Never name a package `agents` — it shadows the function on `ux_channel`.
+
+
+## Caller planes (runtimes)
+
+| Name | Role |
+|------|------|
+| (default) Channel | Human Intent path |
+| `agent_runtime` | Non-human tool kernel (`AgentRunner`) |
+| `bridge.guest_runtime` | Sealed island guest |
+| `mcp` | MCP adapter **on top of** agent_runtime |
+| `workplace` | Room policy / tickets (not a tool runner) |
+
+`agents()` is a **function** façade. Implementation package is `agent_runtime` (never `agents/`).
