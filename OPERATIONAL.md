@@ -77,7 +77,15 @@ Clients must still branch on the **Result body**; HTTP status is for proxies/log
 
 ---
 
-## 6. Quick production checklist
+## 6. Local automation
+
+```bash
+make peer-demo     # demo peer (oracle allow-listed)
+make verify-http   # full smoke including HTTP
+make peer-stop
+```
+
+## 7. Quick production checklist
 
 1. [ ] `UXC_CAP_SECRET` set to a private value (≥ 16 chars, not the oracle string)  
 2. [ ] `UXC_ALLOW_ORACLE_SECRET` **unset**  

@@ -17,6 +17,9 @@ for a in "$@"; do
   esac
 done
 
+echo "== repo health =="
+python3 "$ROOT/scripts/repo_health.py"
+
 echo "== JSON vectors =="
 python3 conformance/harness/validate_json_vectors.py
 

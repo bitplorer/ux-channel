@@ -6,6 +6,16 @@ Format: newest first. “Law” vs “demo” follows [STRUCTURE.md](STRUCTURE.m
 
 ---
 
+## 2026-08-10 — automation so humans do not re-audit by hand
+
+### Added
+- `.github/workflows/ci.yml` — runs repo health + `./verify.sh` (+ `--http`)
+- `scripts/repo_health.py` — broken links, stale paths, required files
+- `Makefile` — `make verify`, `make verify-http`, `make peer-demo`, …
+- `verify.sh` now runs repo health first
+
+---
+
 ## 2026-08-10 — production monorepo layout
 
 ### Changed

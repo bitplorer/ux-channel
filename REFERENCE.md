@@ -264,6 +264,8 @@ Exit `0` only if `result.ok`. Ops are printed unchanged.
 ## 9. Verify commands
 
 ```bash
+make verify
+make verify-http
 ./verify.sh          # JSON + CXB + cargo test + uxc_check
 ./verify.sh --http   # + live peer + python_forward
 ```

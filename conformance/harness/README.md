@@ -26,7 +26,7 @@ verify_cap(token: str, action: str, sealed_args: dict, *, max_age: int) -> dict 
 | `validate_cxb_expected.py` | Magic/len/sha256/CRC; re-encode when oracle importable | stdlib; optional `ux_channel` |
 | `regenerate_cxb_expected.py` | Rebuild `expected/cxb/*` from pure-Python oracle | `ux_channel` on PYTHONPATH |
 
-Rust peer: `cargo run --bin uxc_check -- ../../conformance`  
+Rust peer: `cargo run --bin uxc_check -- ../conformance`  
 Optional live peer: `… --http http://127.0.0.1:8787`
 
 ## Suggested test loop (pseudocode)

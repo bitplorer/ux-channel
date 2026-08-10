@@ -26,16 +26,17 @@ One IR. JSON floor. Caps authorize. Transports only deliver. Peers > FFI.
 
 ## Verify before claiming green
 
+Do **not** ask humans to re-run steps by hand — use automation:
+
 ```bash
-python3 conformance/harness/validate_json_vectors.py
-python3 conformance/harness/validate_cxb_expected.py
-cd rust && cargo test --lib
-cargo run --bin uxc_check -- ../../conformance
-# optional live (demo only):
-# UXC_ALLOW_ORACLE_SECRET=1 UXC_PORT=8787 cargo run --bin uxc_peer &
-# cargo run --bin uxc_check -- ../../conformance --http http://127.0.0.1:8787
-python3 demos/python_forward/forward_to_rust.py --mint-via-peer
+make verify          # preferred (repo health + law + rust)
+make verify-http     # + live peer + demo forward
+# equivalents:
+./verify.sh
+./verify.sh --http
 ```
+
+CI runs the same on every push (`.github/workflows/ci.yml`).
 
 ## Intentional policies (not bugs)
 

@@ -94,6 +94,13 @@ Until then, monorepo + clear roots is the lower-risk production default.
 
 ## Commands
 
+Prefer Make (CI uses the same):
+
+```bash
+make verify
+make verify-http
+```
+
 ```bash
 ./verify.sh              # law + rust unit/check
 ./verify.sh --http       # + live rust peer + demo forward

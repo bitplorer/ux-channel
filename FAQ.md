@@ -108,9 +108,11 @@ Yes, **as a demo**, if permanent tests still pass. Do not delete SPEC, vectors, 
 ### How do I prove the tree is green?
 
 ```bash
-./verify.sh
-./verify.sh --http
+make verify
+make verify-http
 ```
+
+CI runs this on every push. You should not need to re-audit docs/paths by hand — `scripts/repo_health.py` is in the gate.
 
 ---
 

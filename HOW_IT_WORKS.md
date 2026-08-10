@@ -527,7 +527,7 @@ Same steps expanded:
 3. cd rust && cargo test --lib
       → unit tests: cap, cxb, peer gate, actions escape/coercion
 
-4. cargo run --bin uxc_check -- ../../conformance
+4. cargo run --bin uxc_check -- ../conformance
       → Rust loads vectors + oracle cap + CXB + edge cases
 
 5. (optional live — verify.sh --http)

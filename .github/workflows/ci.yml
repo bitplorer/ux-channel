@@ -1,0 +1,38 @@
+name: ci
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  verify:
+    name: law + rust + repo health
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: rust
+
+      - name: Repo health (links, stale paths, required files)
+        run: python3 scripts/repo_health.py
+
+      - name: Full verify
+        run: ./verify.sh
+
+      # Live HTTP is flaky in some runners if port binds fail; still run when possible
+      - name: Live HTTP smoke
+        run: ./verify.sh --http

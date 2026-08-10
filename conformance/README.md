@@ -81,7 +81,7 @@ Machine index: [`manifest.json`](manifest.json). Full HTTP recipes: [`../REFEREN
 ```bash
 python3 conformance/harness/validate_json_vectors.py
 python3 conformance/harness/validate_cxb_expected.py   # oracle if PYTHONPATH set
-cd rust && cargo run --bin uxc_check -- ../../conformance
+cd rust && cargo run --bin uxc_check -- ../conformance
 ```
 
 ## Related

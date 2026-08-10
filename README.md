@@ -86,6 +86,15 @@ Read top → bottom if you are new. Layers do not mix “law” with “demo.”
 
 ## Quick verification
 
+Automation (prefer these — CI runs the same):
+
+```bash
+make verify        # repo health + law + rust
+make verify-http   # + live peer smoke
+```
+
+Or directly:
+
 ```bash
 ./verify.sh
 # or step by step:
