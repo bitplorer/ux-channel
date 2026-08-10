@@ -7,7 +7,7 @@ from fastapi.testclient import TestClient
 
 from ux_channel import Channel, ChannelConfig
 from ux_channel.host.channel import CHANNEL_PUBLIC_API
-from ux_channel.realtime.media import DAY1_MEDIA_API
+from ux_channel.realtime.media import MEDIA_PUBLIC_API
 
 
 def _boot(**kw):
@@ -24,7 +24,7 @@ def _boot(**kw):
 
 def test_public_api_includes_media():
     assert "media" in CHANNEL_PUBLIC_API
-    for name in DAY1_MEDIA_API:
+    for name in MEDIA_PUBLIC_API:
         assert name in (
             "plugin",
             "session",

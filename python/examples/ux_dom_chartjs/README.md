@@ -23,7 +23,7 @@ ux-bridge.js + chartjs-adapter.js  →  Chart.js 4 (CDN)
 | `ch.bridge.register` | Method allowlist |
 | `ch.bridge.update_ops` | Push new series into the chart |
 | `ch.bridge.call(..., package="chart.js")` | e.g. `setType` |
-| `ux_channel.demo.script_tags(ch.runtime())` | Channel JS (no HTML as truth) |
+| `ux_channel.render.kit.script_tags(ch.runtime())` | Channel JS (no HTML as truth) |
 | Adapter | Maps props → Chart.js |
 
 ## Run

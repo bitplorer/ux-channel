@@ -8,7 +8,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from ux_channel import Channel, ChannelConfig
-from ux_channel.host.channel import DAY1_WEBRTC_API
+from ux_channel.host.channel import WEBRTC_PUBLIC_API
 from ux_channel.realtime.webrtc import IceAccess
 
 
@@ -26,7 +26,7 @@ def _ch(monkeypatch=None, **kw):
 
 
 def test_public_api_includes_ice():
-    assert "ice" in DAY1_WEBRTC_API
+    assert "ice" in WEBRTC_PUBLIC_API
 
 
 def test_ice_html_never_has_credentials(monkeypatch):

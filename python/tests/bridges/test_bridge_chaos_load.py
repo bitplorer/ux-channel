@@ -310,7 +310,7 @@ def test_load_many_presets_sequential():
             assert "update" in methods and "ping" in methods
 
 
-def test_capability_regression_bridge_day1():
+def test_capability_regression_bridge_public_api():
     """Public API API still present after all refactors."""
     ch = _ch()
     assert hasattr(ch, "bridge")

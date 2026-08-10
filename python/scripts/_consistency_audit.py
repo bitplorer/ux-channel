@@ -37,14 +37,14 @@ def main() -> int:
 
     for name in CHANNEL_PUBLIC_API:
         if not hasattr(ch, name):
-            note("critical", "day1", f"missing {name}")
+            note("critical", "public_api", f"missing {name}")
 
     public = sorted(
         n
         for n in dir(ch)
         if not n.startswith("_") and callable(getattr(ch, n, None))
     )
-    note("info", "surface", f"callable surface={len(public)} day1={len(CHANNEL_PUBLIC_API)}")
+    note("info", "surface", f"callable surface={len(public)} public_api={len(CHANNEL_PUBLIC_API)}")
 
     for md in sorted((ROOT / "docs").glob("*.md")):
         text = md.read_text(encoding="utf-8", errors="ignore")

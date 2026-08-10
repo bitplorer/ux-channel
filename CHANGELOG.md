@@ -1,3 +1,13 @@
+## 2026-08-10 — deeper+wider pass 2: verify layout, public API constants, tests
+
+- verify.sh runs sync_python_layout --check (fixed quoting)
+- DAY1_*_API → CHANNEL/WEBRTC/MEDIA_PUBLIC_API everywhere
+- tests/dx → tests/devtools; path-stable webrtc example/static tests
+- STRUCTURE.md monorepo map; gate rust-parity + public API constant freezes
+- remove stale check_python_layout.py
+
+---
+
 ## 2026-08-10 — deeper + wider monorepo consistency
 
 - Active tree jargon sweep (demo→render.kit, CapService.sign→mint, …)

@@ -53,7 +53,7 @@ def test_package_public_api():
 
 def test_no_legacy_package_dirs():
     root = Path(__import__("ux_channel").__file__).resolve().parent
-    for name in ("paint", "ops_dx", "bridge_meta", "day1", "zones", "security_plane"):
+    for name in ("paint", "ops_dx", "bridge_meta", "public_api", "zones", "security_plane"):
         assert not (root / name).exists(), name
 
 
@@ -113,3 +113,18 @@ def test_api_is_subset_of_root_identity():
             continue
         assert hasattr(u, name), name
         assert getattr(api, name) is getattr(u, name), name
+
+
+def test_rust_parity_cap_names():
+    from ux_channel.protocol.capability import CapService, CapError
+    assert hasattr(CapService, "mint")
+    assert hasattr(CapService, "verify")
+    assert hasattr(CapService, "hash_args")
+    assert not hasattr(CapService, "sign")
+    assert CapError is not None
+
+
+def test_public_api_constants_named_consistently():
+    from ux_channel.host.channel import CHANNEL_PUBLIC_API, WEBRTC_PUBLIC_API
+    assert "boot" in CHANNEL_PUBLIC_API and "mint" in CHANNEL_PUBLIC_API
+    assert "plugin" in WEBRTC_PUBLIC_API

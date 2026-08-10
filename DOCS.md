@@ -5,6 +5,7 @@
 | Doc | Topic |
 |-----|--------|
 | [README.md](README.md) | Repo overview |
+| [STRUCTURE.md](STRUCTURE.md) | Monorepo map |
 | [python/README.md](python/README.md) | Python host |
 | [python/STABILITY.md](python/STABILITY.md) | Layout + identity law |
 | [NAMING.md](NAMING.md) | Intent ↔ name (Rust-parity caps) |

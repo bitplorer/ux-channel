@@ -7,7 +7,7 @@ from fastapi.testclient import TestClient
 
 from ux_channel import Channel, ChannelConfig, Intent, __all__ as ROOT_ALL
 from ux_channel.render.kit import attr_string, demo_button, demo_page, demo_scripts, script_tags
-from ux_channel.host.channel import CHANNEL_PUBLIC_API, DAY1_WEBRTC_API
+from ux_channel.host.channel import CHANNEL_PUBLIC_API, WEBRTC_PUBLIC_API
 from ux_channel.realtime.webrtc import WebRTCPlane, reset_rtc_store
 from ux_channel.realtime.webrtc_http import handle_rtc_poll, handle_rtc_post
 from ux_channel.realtime.webrtc_ui import RtcPlugin, RtcSession
@@ -18,10 +18,10 @@ def test_root_excludes_webrtc_internals():
         assert name not in ROOT_ALL
 
 
-def test_webrtc_day1_is_plugin_not_ui():
-    assert "plugin" in DAY1_WEBRTC_API
-    assert "session" not in DAY1_WEBRTC_API  # public API is plugin; session is power
-    assert "page" not in DAY1_WEBRTC_API and "panel" not in DAY1_WEBRTC_API
+def test_webrtc_public_api_is_plugin_not_ui():
+    assert "plugin" in WEBRTC_PUBLIC_API
+    assert "session" not in WEBRTC_PUBLIC_API  # public API is plugin; session is power
+    assert "page" not in WEBRTC_PUBLIC_API and "panel" not in WEBRTC_PUBLIC_API
     assert not hasattr(WebRTCPlane, "page")
     assert not hasattr(WebRTCPlane, "panel")
     assert not hasattr(RtcSession, "panel_html")
@@ -81,7 +81,7 @@ def test_core_and_webrtc_capabilities_together():
 
     for name in CHANNEL_PUBLIC_API:
         assert hasattr(ch, name) or name in ("boot",), name
-    for name in DAY1_WEBRTC_API:
+    for name in WEBRTC_PUBLIC_API:
         assert hasattr(ch.webrtc, name), name
 
 

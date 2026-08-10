@@ -20,8 +20,8 @@ done
 echo "== repo health =="
 python3 "$ROOT/scripts/repo_health.py"
 
-echo "== python layout zones =="
-python3 "$ROOT/scripts/check_python_layout.py"
+echo "== python layout =="
+python3 "$ROOT/scripts/sync_python_layout.py" --check
 
 echo "== JSON vectors =="
 python3 conformance/harness/validate_json_vectors.py

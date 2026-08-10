@@ -8,7 +8,7 @@ on:
 
 jobs:
   verify:
-    name: law + rust + repo health
+    name: law + layout + python gate + rust
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:

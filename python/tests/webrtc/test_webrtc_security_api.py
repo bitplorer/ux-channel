@@ -1,16 +1,16 @@
 """DTLS/simulcast docs posture + API pattern + diagnose security fields."""
 
 from ux_channel import Channel, ChannelConfig
-from ux_channel.host.channel import DAY1_WEBRTC_API
+from ux_channel.host.channel import WEBRTC_PUBLIC_API
 from ux_channel.realtime.webrtc import WebRTCPlane, reset_rtc_store
 
 
 def test_public_api_webrtc_api_minimal():
-    assert "sign_ticket" in DAY1_WEBRTC_API
-    assert "diagnose" in DAY1_WEBRTC_API
+    assert "sign_ticket" in WEBRTC_PUBLIC_API
+    assert "diagnose" in WEBRTC_PUBLIC_API
     # power methods stay off public API list
-    assert "store" not in DAY1_WEBRTC_API
-    assert "default_ice_servers" not in DAY1_WEBRTC_API
+    assert "store" not in WEBRTC_PUBLIC_API
+    assert "default_ice_servers" not in WEBRTC_PUBLIC_API
 
 
 def test_diagnose_security_posture():
@@ -42,7 +42,7 @@ def test_describe_mentions_webrtc():
 def test_client_js_has_simulcast_and_security_notes():
     from pathlib import Path
 
-    js = Path("src/ux_channel/static/ux-webrtc.js").read_text()
+    js = (Path(__file__).resolve().parents[2] / "src" / "ux_channel" / "static" / "ux-webrtc.js").read_text()
     assert "simulcast" in js
     assert "setSimulcastLayers" in js
     assert "securityNotes" in js
