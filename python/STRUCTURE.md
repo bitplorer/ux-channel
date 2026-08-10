@@ -9,7 +9,8 @@
 
 ```text
 python/
-  src/ux_channel/   ← package (src layout)
+  src/ux_channel/   ← package (src layout + cohesive subpackages)
+    protocol/ host/ paint/ security_plane/ …
   ONTOLOGY.md           ← what things *are* (Region vs Bridge vs …)
   LAYOUT.md             ← every module mapped to a zone (anti-flat)
   STRUCTURE.md          ← this file (what may change)

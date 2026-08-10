@@ -1,76 +1,15 @@
-"""Zone: **ops_dx**
+"""Zone / package: **ops_dx**
 
-Audit, CLI, observability — **operate and diagnose**.
+Audit, CLI, observability, agents façade.
 
-This package does **not** move implementations. It is a **navigation + re-export hub**
-so you never have to guess intent from a flat 100-file directory listing.
-
-Canonical implementations still live at ``ux_channel.<module>`` (stable import paths).
-Prefer day-1: ``from ux_channel.day1 import ...``.
-
-Members
--------
-* ``audit`` — attach_audit intent log+forensics
-* ``intent_log`` — Ordered Intent log
-* ``forensics`` — Reconstruct painted frames
-* ``trace`` — Action/bridge tracing
-* ``explain`` — Teachable error recipes
-* ``inspect_api`` — Live inspect (prod-closed)
-* ``observability`` — Logging/metrics hooks
-* ``otel`` — OpenTelemetry (optional)
-* ``metrics_prom`` — Prometheus sink (optional)
-* ``profiling`` — Maintainer profiling
-* ``dx_errors`` — CLI/DX exceptions
-* ``dx_log`` — DX console logging
-* ``dx_dashboard`` — Operator dashboard
-* ``info`` — Package/runtime info
-* ``upgrade_check`` — Scan projects for outdated patterns
-* ``cli`` — uxchannel CLI
-* ``__main__`` — python -m ux_channel
-* ``_version`` — Package version
-* ``codegen`` — TS client codegen (optional)
-* ``enterprise`` — Multi-tenant helpers
-* ``pydantic_actions`` — Pydantic-validated actions (opt)
-* ``schema_models`` — Optional Pydantic IR models
-* ``ticket_revoke`` — Revoke live push tickets
-* ``scaffold`` — SUBPACKAGE: project scaffold templates
+Physical code: ``ux_channel.{pkg}`` (or existing subpackage).
 """
 from __future__ import annotations
-
-ZONE = "ops_dx"
-DESCRIPTION = 'Audit, CLI, observability — **operate and diagnose**.'
-
-MEMBERS: dict[str, str] = {
-    'audit': 'attach_audit intent log+forensics',
-    'intent_log': 'Ordered Intent log',
-    'forensics': 'Reconstruct painted frames',
-    'trace': 'Action/bridge tracing',
-    'explain': 'Teachable error recipes',
-    'inspect_api': 'Live inspect (prod-closed)',
-    'observability': 'Logging/metrics hooks',
-    'otel': 'OpenTelemetry (optional)',
-    'metrics_prom': 'Prometheus sink (optional)',
-    'profiling': 'Maintainer profiling',
-    'dx_errors': 'CLI/DX exceptions',
-    'dx_log': 'DX console logging',
-    'dx_dashboard': 'Operator dashboard',
-    'info': 'Package/runtime info',
-    'upgrade_check': 'Scan projects for outdated patterns',
-    'cli': 'uxchannel CLI',
-    '__main__': 'python -m ux_channel',
-    '_version': 'Package version',
-    'codegen': 'TS client codegen (optional)',
-    'enterprise': 'Multi-tenant helpers',
-    'pydantic_actions': 'Pydantic-validated actions (opt)',
-    'schema_models': 'Optional Pydantic IR models',
-    'ticket_revoke': 'Revoke live push tickets',
-    'scaffold': 'SUBPACKAGE: project scaffold templates',
-}
-
+ZONE = 'ops_dx'
+DESCRIPTION = 'Audit, CLI, observability, agents façade.'
+MEMBERS = {'agent_peer': 'Agent peer Intent path — internal to AX (``agents_api``).', 'agents_api': 'AX — Agent Experience façade (day-1 public).', 'audit': 'Audit — intent log + forensics as one attach.', 'cli': 'uxchannel CLI super-command for **ux-channel**.', 'codegen': 'Minimal TypeScript client codegen from ActionRegistry (optional power).', 'dx_dashboard': 'DX Dashboard — observe-only operator surface for **ux-channel**.', 'dx_errors': 'DX / CLI exceptions — cognitively consistent, never silent failures.', 'dx_log': 'DX console logging — nothing silent; text or structured JSON for automation.', 'enterprise': 'Enterprise helpers — multi-tenant safety nets for production apps.', 'explain': 'Teachable failures — map error codes / results to recipes and fixes.', 'forensics': 'Forensic frames — reconstruct what was painted after an Intent.', 'info': 'Package / runtime info for /version endpoints and diagnostics.', 'inspect_api': 'Live UX · AX · DX inspect — read-only, principal-scoped, prod-closed by default.', 'intent_log': 'Intent log — ordered record of dispatched Intents (support / audit).', 'metrics_prom': 'Prometheus metrics sink (optional).', 'observability': 'Logging and metrics hooks for production observability.', 'otel': 'OpenTelemetry integration for **ux-channel** (optional soft dependency).', 'profiling': 'Internal / maintainer profiling helpers (not a day-1 user API).', 'pydantic_actions': 'Pydantic-validated actions (optional; requires pydantic v2).', 'schema_models': 'Optional Pydantic models for OpenAPI / typed Intent-Result (extra: pydantic).', 'ticket_revoke': 'Ticket revocation — logout / ban kills live push tickets.', 'trace': 'Action & bridge tracing — Wireshark-like DX for the Channel protocol.', 'upgrade_check': 'Scan a project tree for outdated / high-cognitive-load patterns.'}
 __all__ = ["ZONE", "DESCRIPTION", "MEMBERS", "help"]
 
 def help() -> str:
-    """Human summary of this zone."""
-    rows = "\n".join(f"  {k:24} {v}" for k, v in MEMBERS.items())
+    rows = "\n".join(f"  {k:28} {v}" for k, v in MEMBERS.items())
     return f"zone={ZONE}\n{DESCRIPTION}\n\n{rows}\n"
-

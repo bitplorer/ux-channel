@@ -1,63 +1,17 @@
-"""Day-1 public surface — prefer this import style for new application code.
+"""Compatibility shim — implementation: ``ux_channel.host.day1``.
 
-Why this module exists
-----------------------
-``ux_channel`` is large. Day-1 apps should not browse 180 modules.
-Importing from ``ux_channel.day1`` documents intent: *I only need the frozen core*.
+Stable::
 
-Full package root (``from ux_channel import Channel``) remains supported and frozen.
-This is an additive clarity layer, not a rename.
+    from ux_channel.day1 import ...
 
-See: ``python/LAYOUT.md`` (zones), ``python/ONTOLOGY.md``, ``python/STRUCTURE.md``.
+Preferred::
+
+    from ux_channel.host.day1 import ...
 """
 from __future__ import annotations
 
-from ux_channel import (
-    ActionError,
-    ActionNotFound,
-    ActionRegistry,
-    CapabilityError,
-    CapabilityService,
-    Channel,
-    ChannelConfig,
-    ChannelError,
-    ControlAttrs,
-    Intent,
-    Region,
-    RegionBook,
-    RegionContext,
-    Result,
-    action_attrs,
-    agents,
-    attach_audit,
-    attach_state,
-    morph,
-    signal_set,
-    state,
-    toast,
-)
+from ux_channel.host.day1 import *  # noqa: F403
 
-__all__ = [
-    "Channel",
-    "ChannelConfig",
-    "Region",
-    "RegionBook",
-    "RegionContext",
-    "Intent",
-    "Result",
-    "ActionRegistry",
-    "CapabilityService",
-    "CapabilityError",
-    "ChannelError",
-    "ActionError",
-    "ActionNotFound",
-    "ControlAttrs",
-    "action_attrs",
-    "state",
-    "attach_state",
-    "agents",
-    "attach_audit",
-    "morph",
-    "toast",
-    "signal_set",
-]
+import ux_channel.host.day1 as _impl
+
+__all__ = [n for n in dir(_impl) if not n.startswith("_")]

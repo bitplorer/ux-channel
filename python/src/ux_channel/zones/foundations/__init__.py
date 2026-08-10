@@ -1,38 +1,15 @@
-"""Zone: **foundations**
+"""Zone / package: **foundations**
 
-Quantity, provenance, I/O, workplace — **domain integrity**.
+Quantity, provenance, I/O channel.
 
-This package does **not** move implementations. It is a **navigation + re-export hub**
-so you never have to guess intent from a flat 100-file directory listing.
-
-Canonical implementations still live at ``ux_channel.<module>`` (stable import paths).
-Prefer day-1: ``from ux_channel.day1 import ...``.
-
-Members
--------
-* ``quantity`` — Store-grounded measures
-* ``provenance`` — Source stamps for sensitive values
-* ``io_channel`` — I/O channel authorize/record
-* ``io_adapters`` — SUBPACKAGE: sample I/O adapters
-* ``workplace`` — SUBPACKAGE: rooms/mesh/tickets
+Physical code: ``ux_channel.{pkg}`` (or existing subpackage).
 """
 from __future__ import annotations
-
-ZONE = "foundations"
-DESCRIPTION = 'Quantity, provenance, I/O, workplace — **domain integrity**.'
-
-MEMBERS: dict[str, str] = {
-    'quantity': 'Store-grounded measures',
-    'provenance': 'Source stamps for sensitive values',
-    'io_channel': 'I/O channel authorize/record',
-    'io_adapters': 'SUBPACKAGE: sample I/O adapters',
-    'workplace': 'SUBPACKAGE: rooms/mesh/tickets',
-}
-
+ZONE = 'foundations'
+DESCRIPTION = 'Quantity, provenance, I/O channel.'
+MEMBERS = {'io_channel': 'I/O channel — authorize and record I/O intents; never own device buses.', 'provenance': 'Provenance — durable source stamps for sensitive values.', 'quantity': 'Quantity — store-grounded measure (magnitude + unit + provenance).'}
 __all__ = ["ZONE", "DESCRIPTION", "MEMBERS", "help"]
 
 def help() -> str:
-    """Human summary of this zone."""
-    rows = "\n".join(f"  {k:24} {v}" for k, v in MEMBERS.items())
+    rows = "\n".join(f"  {k:28} {v}" for k, v in MEMBERS.items())
     return f"zone={ZONE}\n{DESCRIPTION}\n\n{rows}\n"
-

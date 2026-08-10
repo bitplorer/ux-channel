@@ -1,3 +1,13 @@
+## 2026-08-10 — cohesive packages (mature library structure)
+
+### Structure
+- Physical packages: `protocol`, `host`, `paint`, `security_plane`, `transport`, `foundations`, `realtime`, `bridge_meta`, `ops_dx`
+- Top-level modules are **thin compatibility shims** (0.x imports unchanged)
+- Coupling rules documented in `python/LAYOUT.md`
+- No features removed; gate 31 + Rust green
+
+---
+
 ## 2026-08-10 — best of both: release layout + monorepo enhancements
 
 ### Merged from release zip

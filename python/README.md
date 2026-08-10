@@ -13,10 +13,14 @@
 | [docs/regions/](docs/regions/) | Region recipes |
 
 ```python
-# Apps
+# Apps (day-1)
 from ux_channel.day1 import Channel, Region, state
 
-# Explore by intent
+# Cohesive packages (preferred for libraries/extensions)
+from ux_channel.host.dx import Channel
+from ux_channel.protocol.capability import CapabilityService
+
+# Explore
 from ux_channel.zones import host, protocol
 print(host.help())
 ```
@@ -30,7 +34,10 @@ export PYTHONPATH="$PWD/python/src${PYTHONPATH:+:$PYTHONPATH}"
 ```text
 python/
   src/
-    ux_channel/           # package (zones + day1 + all modules)
+    ux_channel/
+      protocol/ host/ paint/ security_plane/ …  # cohesive packages
+      wire/ asgi/ bridges/ …                     # focused subpackages
+      *.py                                      # legacy shims (stable)
     ux_channel_ux_dom/    # optional ux-dom glue
   docs/                   # full domain docs (start, regions, bridges, …)
   tests/

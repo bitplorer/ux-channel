@@ -20,3 +20,7 @@
 Only `tests/gate/` runs in `make verify` (no FastAPI required).
 
 Full suite is optional when extras are installed.
+
+## Cohesive packages (later refinement)
+
+Implementations moved into domain packages; top-level names remain as shims. See LAYOUT.md.

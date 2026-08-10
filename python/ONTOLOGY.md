@@ -8,7 +8,7 @@ If two names sound similar, the table here decides which one you mean.
 
 | Doc | When |
 |-----|------|
-| [LAYOUT.md](LAYOUT.md) | **Zone map of every module** (escape the flat list) |
+| [LAYOUT.md](LAYOUT.md) | **Cohesive packages** + legacy shims |
 | [STRUCTURE.md](STRUCTURE.md) | Permanent vs moving |
 | [docs/start/LAYERS.md](docs/start/LAYERS.md) | Import tiers |
 | [docs/start/GOLDEN_PATH.md](docs/start/GOLDEN_PATH.md) | Day-1 walkthrough |

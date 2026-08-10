@@ -1,46 +1,17 @@
-# Copyright (c) 2026 UX-CHANNEL
-#
-# This software is released under the MIT License.
-# https://opensource.org/licenses/MIT
-"""JSON helpers — thin re-export of ``ux_channel.wire`` dumps/loads.
+"""Compatibility shim — implementation: ``ux_channel.protocol.serde``.
 
-Prefer ``ux_channel.wire`` when selecting formats (json/msgpack/cxb).
+Stable::
+
+    from ux_channel.serde import ...
+
+Preferred::
+
+    from ux_channel.protocol.serde import ...
 """
-
 from __future__ import annotations
 
-from ux_channel.wire import (
-    MEDIA_TYPES,
-    Codec,
-    WireBlob,
-    WirePolicy,
-    available_engines,
-    available_formats,
-    configure_wire,
-    dumps,
-    dumps_bytes,
-    get_codec,
-    get_policy,
-    loads,
-    loads_bytes,
-    reset_wire,
-    size_of,
-)
+from ux_channel.protocol.serde import *  # noqa: F403
 
-__all__ = [
-    "MEDIA_TYPES",
-    "Codec",
-    "WireBlob",
-    "WirePolicy",
-    "available_engines",
-    "available_formats",
-    "configure_wire",
-    "dumps",
-    "dumps_bytes",
-    "get_codec",
-    "get_policy",
-    "loads",
-    "loads_bytes",
-    "reset_wire",
-    "size_of",
-]
+import ux_channel.protocol.serde as _impl
+
+__all__ = [n for n in dir(_impl) if not n.startswith("_")]

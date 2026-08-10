@@ -1,54 +1,15 @@
-"""Zone: **transport**
+"""Zone / package: **transport**
 
-ASGI, push, WS, batch — **how Intents arrive**.
+Batch, push, WS helpers (ASGI subpackage stays separate).
 
-This package does **not** move implementations. It is a **navigation + re-export hub**
-so you never have to guess intent from a flat 100-file directory listing.
-
-Canonical implementations still live at ``ux_channel.<module>`` (stable import paths).
-Prefer day-1: ``from ux_channel.day1 import ...``.
-
-Members
--------
-* ``asgi`` — SUBPACKAGE: HTTP/ASGI adapters
-* ``batch`` — Batch Intent dispatch
-* ``stream`` — SSE progressive Results
-* ``push`` — Server push bus
-* ``cors`` — CORS helper
-* ``middleware`` — ASGI middleware helpers
-* ``ws_protocol`` — WebSocket message helpers
-* ``ws_limits`` — WebSocket rate limits
-* ``backoff`` — Retry backoff strategies
-* ``concurrency`` — Internal parallel dispatch
-* ``outbox`` — Intent outbox queue
-* ``intent_sync`` — Cross-worker intent sync
-* ``redis_extra`` — SUBPACKAGE: Redis stores (optional)
+Physical code: ``ux_channel.{pkg}`` (or existing subpackage).
 """
 from __future__ import annotations
-
-ZONE = "transport"
-DESCRIPTION = 'ASGI, push, WS, batch — **how Intents arrive**.'
-
-MEMBERS: dict[str, str] = {
-    'asgi': 'SUBPACKAGE: HTTP/ASGI adapters',
-    'batch': 'Batch Intent dispatch',
-    'stream': 'SSE progressive Results',
-    'push': 'Server push bus',
-    'cors': 'CORS helper',
-    'middleware': 'ASGI middleware helpers',
-    'ws_protocol': 'WebSocket message helpers',
-    'ws_limits': 'WebSocket rate limits',
-    'backoff': 'Retry backoff strategies',
-    'concurrency': 'Internal parallel dispatch',
-    'outbox': 'Intent outbox queue',
-    'intent_sync': 'Cross-worker intent sync',
-    'redis_extra': 'SUBPACKAGE: Redis stores (optional)',
-}
-
+ZONE = 'transport'
+DESCRIPTION = 'Batch, push, WS helpers (ASGI subpackage stays separate).'
+MEMBERS = {'backoff': 'Backoff strategies for retries (batch, clients, workers).', 'batch': 'Batch dispatch — multiple Intents, one HTTP round-trip.', 'concurrency': 'Internal parallel + concurrent dispatch for **ux-channel**.', 'cors': 'CORS helper for browser apps that call Channel from a separate frontend origin.', 'intent_sync': 'Real-time intent sync across workers (Redis pub/sub).', 'middleware': 'ASGI middleware helpers for production DX (request IDs, optional client version)', 'outbox': 'Intent outbox — queue Intents when the channel/mesh cannot apply them yet.', 'push': 'Server push bus — server-initiated Results.', 'stream': 'SSE streaming of Result chunks — progressive apply for long actions.', 'ws_limits': 'WebSocket connection / message rate limits (Wave 1).', 'ws_protocol': 'WebSocket message helpers for uxchannel duplex channel.'}
 __all__ = ["ZONE", "DESCRIPTION", "MEMBERS", "help"]
 
 def help() -> str:
-    """Human summary of this zone."""
-    rows = "\n".join(f"  {k:24} {v}" for k, v in MEMBERS.items())
+    rows = "\n".join(f"  {k:28} {v}" for k, v in MEMBERS.items())
     return f"zone={ZONE}\n{DESCRIPTION}\n\n{rows}\n"
-
