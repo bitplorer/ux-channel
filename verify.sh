@@ -6,6 +6,7 @@
 set -eu
 ROOT="$(CDPATH= cd -- "$(dirname "$0")" && pwd)"
 cd "$ROOT"
+export PYTHONPATH="$ROOT/python/src${PYTHONPATH:+:$PYTHONPATH}"
 HTTP=0
 for a in "$@"; do
   case "$a" in
@@ -51,10 +52,10 @@ if [ "$HTTP" -eq 1 ]; then
   cd rust
   cargo run --quiet --bin uxc_check -- ../conformance --http http://127.0.0.1:8787
   echo "== python forward (demo) =="
-  python3 "$ROOT/demos/python_forward/forward_to_rust.py" --mint-via-peer >/dev/null
+  PYTHONPATH="$ROOT/python/src${PYTHONPATH:+:$PYTHONPATH}" python3 "$ROOT/demos/python_forward/forward_to_rust.py" --mint-via-peer >/dev/null
   echo "python forward: ok"
   echo "== cross-mint Python↔Rust =="
-  python3 "$ROOT/scripts/cross_mint_check.py"
+  PYTHONPATH="$ROOT/python/src${PYTHONPATH:+:$PYTHONPATH}" python3 "$ROOT/scripts/cross_mint_check.py"
 fi
 
 echo "All verify checks passed."
