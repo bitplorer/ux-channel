@@ -1,4 +1,4 @@
-"""Public API API mental model — keep cognitive load low."""
+"""Public API mental model — keep cognitive load low."""
 from __future__ import annotations
 
 import unittest
@@ -6,7 +6,7 @@ import unittest
 from fastapi import FastAPI
 
 from ux_channel import Channel, ChannelConfig
-from ux_channel.host.dx import CHANNEL_PUBLIC_API, DAY1_WEBRTC_API
+from ux_channel.host.dx import CHANNEL_PUBLIC_API, WEBRTC_PUBLIC_API
 from ux_channel.realtime.webrtc import reset_rtc_store
 
 

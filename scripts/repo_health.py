@@ -55,7 +55,7 @@ REQUIRED = [
     "python/tests/gate/test_interop_conformance.py",
     "python/ONTOLOGY.md",
     "python/tests/gate/test_public_api_freeze.py",
-    "python/tests/gate/test_day1_regions.py",
+    "python/tests/gate/test_api_regions.py",
     "python/src/ux_channel/api/__init__.py",
     "python/STRUCTURE.md",
     "python/LAYOUT.md",
