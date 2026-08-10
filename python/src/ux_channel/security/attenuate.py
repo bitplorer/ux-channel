@@ -1,13 +1,7 @@
-"""
-Cap attenuation — child capabilities may only narrow parent authority.
+"""Cap attenuation — child capabilities may only narrow parent authority.
 
-=================================================================
-PUBLIC / PRIVATE
-=================================================================
-* **Power public:** ``from ux_channel.security.attenuate import attenuate, verify_attenuated``
 * Law: scopes/caveats of a child ⊆ parent; never widen.
-* Pairs with ``tree_cap`` (document-shaped envelopes) and ``CapService``.
-"""
+* Pairs with ``tree_cap`` (document-shaped envelopes) and ``CapService``."""
 
 
 from __future__ import annotations

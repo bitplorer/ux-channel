@@ -5,15 +5,10 @@
 """Core wire codec: formats, JSON engines, process policy.
 
 Production contract
--------------------
 * **Safe floor:** process always has a working JSON codec (stdlib at minimum).
 * **Default format is JSON** — binary (msgpack/cbor/cxb) is opt-in only.
 * **Immutable codecs** shared across threads; encode/decode use per-call buffers.
-* **Policy swap is atomic** — a failed ``configure_wire`` never leaves a broken policy.
-* **Bad env / missing libs** fall back to JSON instead of crashing import.
-* ``dumps``/``loads`` are **always JSON** (independent of binary process format).
-* Cache keys are **normalized** to concrete (format, engine) — no thrash on ``auto``.
-"""
+* **Policy swap is atomic** — a failed ``configure_wire`` never leaves a broken…"""
 
 from __future__ import annotations
 
@@ -69,7 +64,6 @@ _MEDIA_ALIASES: dict[str, str] = {
 def _default(obj: Any) -> Any:
     """Fail-soft for non-JSON-native types."""
     return str(obj)
-
 
 
 @dataclass(frozen=True)
@@ -162,9 +156,7 @@ class WirePolicy:
         return self.codec.media_type
 
 
-# ---------------------------------------------------------------------------
 # JSON engines
-# ---------------------------------------------------------------------------
 
 
 def _make_stdlib_json() -> Codec:
@@ -266,9 +258,7 @@ def _make_ujson() -> Optional[Codec]:
     )
 
 
-# ---------------------------------------------------------------------------
 # Binary formats (opt-in upgrades)
-# ---------------------------------------------------------------------------
 
 
 def _make_msgpack() -> Optional[Codec]:
@@ -334,15 +324,10 @@ def _make_cbor() -> Optional[Codec]:
     )
 
 
-# ---------------------------------------------------------------------------
 # Discovery + build
-# ---------------------------------------------------------------------------
 
 
-
-# ---------------------------------------------------------------------------
 # Wire format plugins (CXB is one plugin — replaceable anytime)
-# ---------------------------------------------------------------------------
 
 
 @dataclass(frozen=True)
@@ -566,8 +551,6 @@ def available_formats() -> list[str]:
     return out
 
 
-
-
 def _build_json_engine(engine: str) -> Codec:
     key = (engine or "auto").strip().lower() or "auto"
     if key == "auto":
@@ -589,7 +572,6 @@ def _build_json_engine(engine: str) -> Codec:
             raise RuntimeError("ujson is not installed")
         return c
     raise ValueError(f"unknown JSON engine: {engine!r}")
-
 
 
 def _env_format() -> str:
@@ -830,8 +812,6 @@ def reset_wire() -> Codec:
     return get_codec()
 
 
-
-
 def _snapshot_doc(obj: Any) -> Any:
     """Shallow snapshot so concurrent mutation cannot tear encode."""
     if isinstance(obj, Mapping):
@@ -938,7 +918,6 @@ def _decode_one(data: Raw, fmt: str, engine: str | None) -> Any:
         raise
     except Exception as exc:
         raise ValueError(f"wire decode failed ({codec.format}): {exc}") from exc
-
 
 
 def _sniff_format(data: Raw) -> str | None:
@@ -1159,7 +1138,6 @@ def decode_many(
             i, doc = fut.result()
             out[i] = doc
     return out
-
 
 
 def _json_codec() -> Codec:

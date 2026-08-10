@@ -1,36 +1,9 @@
-"""
-SSE / push subscribe authorization — production-ready doors for GET /push/{topic}.
-
-WHY THIS MODULE EXISTS
-----------------------
+"""SSE / push subscribe authorization — production-ready doors for GET /push/{topic}.
 POST /action is gated by caps, CSRF header, origin, and optional auth.
 GET /push/{topic} is a long-lived stream and previously only had an optional
 shared ``push_token``. That is not enough for production private boards.
-
 This module provides:
-
-1. **Topic validation** — reject empty, oversized, or path-like names
-2. **Public prefixes** — e.g. ``public.*`` may be open without credentials
-3. **Shared push_token** — Bearer or ``?token=`` (service-wide shared secret)
-4. **Signed push tickets** — short-lived HMAC bound to topic (+ optional sub)
-5. **Fail-closed policy** — ``push_require_auth`` in production
-
-INTENDED USAGE
---------------
-::
-
-    from ux_channel.security.push_security import (
-        authorize_push_subscribe,
-        sign_push_ticket,
-        topic_is_public,
-    )
-
-    # mint for a logged-in page render:
-    ticket = sign_push_ticket(cfg, "shop.lobby", sub=user_id)
-
-    # on SSE connect:
-    ok, reason = authorize_push_subscribe(cfg, topic, token=…, ticket=…)
-"""
+1. **Topic validation** — reject empty, oversized, or path-like…"""
 
 from __future__ import annotations
 
@@ -49,7 +22,6 @@ _PUSH_SALT = "ux-channel-push-ticket"
 
 class PushAuthError(ChannelError):
     """Subscribe denied or ticket invalid."""
-
 
 
 def _ticket_not_revoked(ticket: str | None) -> tuple[bool, str]:

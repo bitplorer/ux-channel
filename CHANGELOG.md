@@ -1,3 +1,11 @@
+## 2026-08-10 — denoise library internals
+
+- Strip PUBLIC/PRIVATE / WHY THIS MODULE banner docstrings across packages
+- Remove decorative section rulers; keep short module summaries
+- Tighten state_api, agents_api, agent policy docs
+
+---
+
 ## 2026-08-10 — deeper: cold import ~28 modules (lazy façades + markers)
 
 - Root/api lazy state/agents/audit via __getattr__

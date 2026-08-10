@@ -1,28 +1,6 @@
-"""
-Channel state — application flat API (session · client · db guards).
+"""Channel state façade — ``state(ch)`` for session · client · db guards.
 
-=================================================================
-PUBLIC / PRIVATE
-=================================================================
-* **Application public:** ``from ux_channel import state`` → ``state(ch)``
-* **Not** a database — ``st.db`` is guards only; you own durable stores.
-* Quantity paths: load via ``Quantity.from_store``; chrome holds ids only.
-
-::
-
-    from ux_channel import state
-    from ux_channel.foundations.quantity import Quantity
-
-    st = state(ch, allow=["ui.theme"])
-    n = st.session("n", 0)
-    st.client("ui.theme", "dark", persist=True)
-    st.db.guard(args)
-    q = Quantity.from_store(order.amount, order.currency,
-                            source=f"db.order.{order.id}.amount",
-                            revision=order.version)
-    st.db.require(amount=float(q.magnitude))
-
-Kinds: **session** (server draft) · **client** (browser) · **db** (your store).
+Application: ``from ux_channel import state``. Not a database; durable stores are yours.
 """
 
 
@@ -85,7 +63,7 @@ class ChannelState:
         self.client = client
         self.db = db
 
-    # ── session ────────────────────────────────────────────────────────
+# session
 
     def session(
         self,
@@ -101,7 +79,7 @@ class ChannelState:
         """Many independent session values (e.g. per row)."""
         return self._bag.namespace(*parts)
 
-    # ── regions / actions (same object — no second import) ─────────────
+# regions / actions (same object — no second import)
 
     def region(self, uid: Any = None, **kw: Any) -> Any:
         return self._bag.region(uid, **kw)
@@ -132,7 +110,7 @@ class ChannelState:
     def changes(self, **kw: Any):
         return self._bag.changes(**kw)
 
-    # ── discovery ──────────────────────────────────────────────────────
+# discovery
 
     def help(self) -> str:
         return (

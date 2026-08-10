@@ -2,73 +2,13 @@
 #
 # This software is released under the MIT License.
 # https://opensource.org/licenses/MIT
-"""
-**CXB** — Channel eXchange Binary (``format="cxb"``).
-
+"""**CXB** — Channel eXchange Binary (``format="cxb"``).
 Why this exists (vs protobuf)
------------------------------
 Protobuf wins on *generic* RPC when you own a closed schema and a codegen
 pipeline. **ux-channel** documents are open (args, meta, freeform ops) and
 must speak **JSON to browsers on day‑1** with **zero codegen**.
-
 CXB is a **domain-native** binary for Intent / Result / ops that aims to be
-*better than protobuf for this stack*:
-
-| Concern | Protobuf | CXB |
-|---------|----------|-----|
-| Schema / codegen | Required (``.proto`` + protoc) | **None** — field registry in code |
-| Browser day‑1 | Needs wasm/codegen | JSON remains default; CXB opt-in |
-| Open maps (args/meta) | Awkward ``Struct`` / ``Any`` | First-class freeform blobs |
-| Op union | Oneof per service schema | Shared op tag table for all apps |
-| Evolution | Field numbers | Field numbers **+** open extension map |
-| Isomorphism | Binary-only | Round-trips through the same ``dict`` |
-| DX | Compile step | ``encode(doc)`` / ``decode(bytes)`` |
-
-Frame layout (v1) — read this once
----------------------------------
-::
-
-    CXB1 | kind | string_table | nfields | fields… | extensions | ~CRC+crc32
-      │      │         │            │          │          │            │
-      │      │         │            │          │          │            └─ integrity (8 bytes)
-      │      │         │            │          │          └─ open keys not in Intent/Result schema
-      │      │         │            │          └─ tag:u16 + value (wire-typed)
-      │      │         │            └─ u16 BE count of known fields
-      │      │         └─ interned strings used by this message
-      │      └─ 1=Intent  2=Result  3=generic doc
-      └─ magic (or whole frame zlib'd as CXBZ when smaller)
-
-Application API (only names you need)
-------------------------------
-* format: ``"cxb"``
-* media type: ``application/ux-channel+cxb``
-* ``encode(doc, format="cxb")`` / ``decode(bytes, format="cxb")``
-* low-level: ``encode_cxb`` / ``decode_cxb`` / ``is_cxb``
-
-Wire types (u8)
----------------
-0 null · 1 false · 2 true · 3 varint (zigzag) · 4 f64 BE
-5 utf8 · 6 bytes · 7 array · 8 map · 9 freeform (msgpack→JSON)
-10 intern string · 11 dense op map (u8 key tags)
-
-Ops (any type, forever)
------------------------
-* ``op`` values are free strings — no enum, no codegen for new ops.
-* Known field names use dense tags; **unknown fields keep their names**.
-* Nested maps/lists/scalars in any field round-trip via the generic wire.
-* Plugin ops with huge/open key sets fall back to freeform maps.
-
-Safety (always on)
-------------------
-* Per-call buffers — safe under threads
-* Input snapshot — concurrent dict mutation cannot tear a frame
-* ``~CRC`` trailer — bit-flips rejected
-* Resource ceilings — table/fields/depth/blob/zlib expand
-* Large frames may wrap as ``CXBZ`` only when smaller
-
-**Full documentation (normative):** ``docs/core/CXB.md`` — layout, tags,
-backends, CXBZ gates, ceilings, HTTP, use cases, interoperability.
-"""
+*better than protobuf…"""
 
 from __future__ import annotations
 
@@ -271,9 +211,7 @@ _INTENT_KEYS = frozenset(
 _RESULT_KEYS = frozenset({"v", "ok", "ops", "error", "meta"})
 
 
-# ---------------------------------------------------------------------------
 # Freeform blob (msgpack preferred)
-# ---------------------------------------------------------------------------
 
 
 _MSGPACK = None
@@ -305,9 +243,7 @@ def _free_loads(data: bytes) -> Any:
     return json.loads(data.decode("utf-8"))
 
 
-# ---------------------------------------------------------------------------
 # Varint (protobuf-style zigzag for signed ints)
-# ---------------------------------------------------------------------------
 
 
 def _write_varint(buf: bytearray, n: int) -> None:
@@ -344,9 +280,7 @@ def _zigzag_decode(n: int) -> int:
     return (n >> 1) ^ (-(n & 1))
 
 
-# ---------------------------------------------------------------------------
 # Encoder
-# ---------------------------------------------------------------------------
 
 
 class _Enc:
@@ -571,7 +505,6 @@ def _snapshot_for_cxb(doc: Any) -> Any:
     return doc
 
 
-
 def _note_str(freq: dict[str, int], s: str, *, max_len: int = INTERN_MAX_LEN) -> None:
     if INTERN_MIN_LEN <= len(s) <= max_len:
         freq[s] = freq.get(s, 0) + 1
@@ -646,10 +579,7 @@ def _allow_set_from_freq(freq: dict[str, int]) -> set[str]:
     return allow
 
 
-
-# ---------------------------------------------------------------------------
 # Runtime: Rust ``_cxb_native`` (default) + pure Python (optional fallback)
-# ---------------------------------------------------------------------------
 # The Rust crate lives in-repo at ``cxb_native/cxb_rs/`` and builds the extension
 # module ``ux_channel._cxb_native`` (CXB1 + CXBZ). Pure Python below is the
 # full reference implementation and safety net.
@@ -694,7 +624,6 @@ def cxb_impl() -> str:
         return "native" if native_available() else "python"
     # auto
     return "native" if native_available() else "python"
-
 
 
 def encode_cxb_python(
@@ -843,8 +772,6 @@ def encode_cxb(doc: Any, *, default: Optional[Callable[[Any], Any]] = None) -> b
     return encode_cxb_python(snap, default=default)
 
 
-
-
 class _Dec:
     __slots__ = ("mv", "i", "table", "depth")
 
@@ -981,7 +908,6 @@ def is_cxb(data: bytes) -> bool:
         return False
     m = bytes(data[:4])
     return m == MAGIC or m == MAGIC_Z
-
 
 
 def decode_cxb_python(data: bytes) -> Any:

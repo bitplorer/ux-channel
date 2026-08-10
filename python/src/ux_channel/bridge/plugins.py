@@ -1,47 +1,10 @@
-"""
-Plugin system — plug-and-play integration points for ux-channel.
-
-WHY THIS MODULE EXISTS
-----------------------
+"""Plugin system — plug-and-play integration points for ux-channel.
 Uid Channel must stay **library-agnostic**: FastAPI, Starlette, Django, Jinja,
 ux-dom, plain strings, and future stacks should all drive the same
 Intent → Action → Result loop without forking the core.
-
 This module defines *extension contracts* (protocols) and a small registry so
 third-party packages can register:
-
-  1. **HtmlRenderer** plugins  — turn framework objects into HTML fragments
-  2. **Host adapters**         — mount the HTTP/SSE endpoint on a web framework
-  3. **Bridge manifests**      — describe npm bridge packages for the client
-
-CONTRIBUTION TO THE LIBRARY
----------------------------
-- Keeps ``ux-channel`` core free of hard deps on FastAPI/ux-dom/Jinja.
-- Enables ``pip install ux-channel-xxx`` style extensions later.
-- Supports runtime discovery via entry points:
-  group ``ux_channel.plugins`` (optional).
-
-INTENDED USAGE
---------------
-Built-in::
-
-    from ux_channel.bridge.plugins import PluginHub, get_hub
-    hub = get_hub()
-    hub.add_renderer(MyRenderer())
-
-Third-party package ``setup.cfg`` / pyproject::
-
-    [project.entry-points.\"ux_channel.plugins\"]
-    mylib = \"mylib_uid:register\"
-
-    # mylib_uid.py
-    def register(hub: PluginHub) -> None:
-        hub.add_renderer(MyLibRenderer())
-        hub.add_bridge_manifest(my_chart_manifest)
-
-Framework hosts (FastAPI) call ``hub.load_entry_points()`` once at startup
-if you want auto-discovery; otherwise register explicitly (clearer for apps).
-"""
+  1.…"""
 
 from __future__ import annotations
 

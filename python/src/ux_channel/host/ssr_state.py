@@ -287,7 +287,7 @@ class Namespace:
         self.parts = tuple(stable_part(p) for p in parts)
         self.path = join_key(*self.parts)
 
-    # ── identity ───────────────────────────────────────────────────────
+# identity
 
     @property
     def uid(self) -> str:
@@ -302,7 +302,7 @@ class Namespace:
         """Nest further: ``row.namespace('meta').session('note', '')``."""
         return Namespace(self._ui, *self.parts, *parts)
 
-    # ── cells ──────────────────────────────────────────────────────────
+# cells
 
     def session(
         self,
@@ -346,7 +346,7 @@ class Namespace:
             refresh = self.uid
         return self._ui.use(self.key(name), default, refresh=refresh)
 
-    # ── region ─────────────────────────────────────────────────────────
+# region
 
     def region(self, fn: Optional[Callable[..., Any]] = None, **kw: Any) -> Any:
         """
@@ -467,7 +467,7 @@ class SsrState:
         self.ch.html = html  # type: ignore[method-assign]
         self._patched = True
 
-    # ── namespace (only multi-cell API) ────────────────────────────────
+# namespace (only multi-cell API)
 
     def namespace(self, *parts: Any) -> Namespace:
         """
@@ -483,7 +483,7 @@ class SsrState:
         """
         return Namespace(self, *parts)
 
-    # ── cells ──────────────────────────────────────────────────────────
+# cells
 
     def session(
         self,
@@ -539,7 +539,7 @@ class SsrState:
             keys = tuple(self._subs.keys()) or tuple(self._vars.keys())
         return {str(k): self.session(k).peek() for k in keys}
 
-    # ── batch ──────────────────────────────────────────────────────────
+# batch
 
     @contextmanager
     def changes(self, *, auto_done: bool = True) -> Iterator["SsrState"]:
@@ -555,7 +555,7 @@ class SsrState:
             if depth == 0 and auto_done:
                 self.done()
 
-    # ── regions / paint ────────────────────────────────────────────────
+# regions / paint
 
     def region(self, uid: Any = None, **region_kwargs: Any) -> Any:
         if callable(uid) and not isinstance(uid, str):
@@ -571,7 +571,7 @@ class SsrState:
     def paint(self, uid: Any, **kwargs: Any) -> str:
         return self.ch.html(uid, **kwargs)
 
-    # ── commit ─────────────────────────────────────────────────────────
+# commit
 
     def regions_for_dirty(self, *extra_keys: str) -> list[str]:
         dirty = self.take_dirty()
@@ -608,7 +608,7 @@ class SsrState:
             refresh=uids if uids else [],
         )
 
-    # ── actions ────────────────────────────────────────────────────────
+# actions
 
     def action(
         self,

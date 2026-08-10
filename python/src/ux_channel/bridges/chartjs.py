@@ -182,7 +182,7 @@ class ChartBridge:
         if auto_register:
             self.register()
 
-    # ── factory ────────────────────────────────────────────────────────
+# factory
 
     def __call__(self, id: str, **kwargs: Any) -> "ChartBridge":
         """
@@ -215,7 +215,7 @@ class ChartBridge:
                 "charts = ChartBridge(ch); rev = charts('revenue', values=[…])"
             )
 
-    # ── register / configure ───────────────────────────────────────────
+# register / configure
 
     def register(self) -> "ChartBridge":
         self.ch.bridge.register(
@@ -257,7 +257,7 @@ class ChartBridge:
             st.options = dict(options)
         return self
 
-    # ── ops (lists) — power users ──────────────────────────────────────
+# ops (lists) — power users
 
     def set_values(
         self,
@@ -352,7 +352,7 @@ class ChartBridge:
             self.configure(**known)
         return self.update_ops()
 
-    # ── commit — hides ch.done(*) ──────────────────────────────────────
+# commit — hides ch.done(*)
 
     def _result_with_ops(self, ops: list, *, notice: str | None = None) -> Any:
         """Merge bridge ops into a success Result (ch.done does not take *ops)."""
@@ -428,7 +428,7 @@ class ChartBridge:
             "kinds": list(_KIND),
         }
 
-    # ── Chart.js mapping (hidden) ──────────────────────────────────────
+# Chart.js mapping (hidden)
 
     def _chart_js_type(self) -> str:
         k = (self._state.kind or "bar").lower()

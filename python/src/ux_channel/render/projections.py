@@ -1,12 +1,6 @@
-"""
-Multi-surface projections from Morph IR.
+"""Multi-surface projections from Morph IR.
 
-=================================================================
-PUBLIC / PRIVATE
-=================================================================
-* **Power public:** ``from ux_channel.render.projections import project_all``
-* **Not AX** — ``project_agent_view`` is Morph IR; world model is ``agents(ch).situation``.
-"""
+* **Not AX** — ``project_agent_view`` is Morph IR; world model is ``agents(ch).situation``."""
 
 from __future__ import annotations
 

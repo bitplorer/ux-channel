@@ -1,10 +1,5 @@
-"""
-Mesh membership — WebRTC door + Workplace policy as one issuance.
+"""Mesh membership — WebRTC door + Workplace policy as one issuance.
 
-=================================================================
-PUBLIC / PRIVATE
-=================================================================
-* **Power public:** exported from ``ux_channel.workplace``
 * Core WebRTC stays a media/signaling door; **scopes always from server policy**
 * Does not alter ``Channel.boot`` — opt-in upgrade only
 
@@ -13,8 +8,7 @@ Flow::
     issue_mesh_membership(ch, room, sub=…, scopes=[…])
         → rtc_ticket   (ch.webrtc.sign_ticket)
         → workplace_ticket (sign_workplace_ticket)
-        → optional Workplace via workplace_from_membership / from_rtc
-"""
+        → optional Workplace…"""
 
 from __future__ import annotations
 

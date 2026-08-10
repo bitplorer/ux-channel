@@ -81,9 +81,6 @@ class RedisIdempotencyStore:
         self.r.set(f"{self.prefix}{key}", _serde.dumps(result, default=str), ex=int(ttl_s))
 
 
-
-
-
 class RedisPushBackend:
     """
     Multi-worker push via Redis pub/sub.
@@ -410,9 +407,7 @@ class RedisStateStore:
         return self.update(key, _mut, default=default)
 
 
-# ---------------------------------------------------------------------------
 # WebRTC multi-worker signaling
-# ---------------------------------------------------------------------------
 
 
 class RedisRtcStore:

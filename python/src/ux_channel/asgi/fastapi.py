@@ -1,29 +1,12 @@
-"""
-FastAPI host adapter — production-capable Channel HTTP surface.
-
-WHY THIS MODULE EXISTS
-----------------------
+"""FastAPI host adapter — production-capable Channel HTTP surface.
 Optional FastAPI host that mounts:
-
   - POST {path}/action   — Intent → Result
   - GET  {path}/health   — liveness (safe by default)
   - GET  {path}/ready    — readiness (registry present)
   - GET  {path}/static/* — client JS
-
 Production extras (via ChannelConfig):
   - Content-Length / body size guards
-  - Origin / same-origin checks
-  - Per-IP rate limiting
-  - No action-name leak on /health unless configured
-
-INTENDED USAGE
---------------
-::
-
-    cfg = ChannelConfig.from_env()
-    reg = ActionRegistry.from_config(cfg)
-    mount_channel(app, reg, config=cfg)
-"""
+  - Origin / same-origin…"""
 
 from __future__ import annotations
 
@@ -73,8 +56,6 @@ def _trace_authorized(request: Request, config: Any) -> bool:
     if request.query_params.get("token") == token:
         return True
     return False
-
-
 
 
 def static_dir() -> Path:
@@ -1106,7 +1087,7 @@ def mount_channel(
             return StreamingResponse(gen(), media_type="text/event-stream")
 
 
-    # ── WebRTC signaling (HTTP poll + WebSocket trickle) ───────────────────
+# WebRTC signaling (HTTP poll + WebSocket trickle)
     if config is None or getattr(config, "webrtc_enabled", True):
 
         def _rtc_auth(request: Request, room: str, ticket: str | None = None):
@@ -1451,8 +1432,7 @@ def mount_channel(
                     pass
 
 
-
-    # ── WebRTC metrics + WHIP/WHEP (optional) ─────────────────────────────
+# WebRTC metrics + WHIP/WHEP (optional)
     @router.get("/rtc/metrics")
     async def uid_rtc_metrics():
         """JSON snapshot of WebRTC signaling counters (P1)."""

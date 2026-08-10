@@ -1,48 +1,13 @@
-"""
-Backoff strategies for retries (batch, clients, workers).
-
+"""Backoff strategies for retries (batch, clients, workers).
 WHY
 ---
 Fixed sleep is fine for one retry; under load (rate_limited / unavailable)
 many clients retrying on the same schedule create **retry storms**.
 Exponential + jitter spreads load.
-
 STRATEGIES
-----------
 ``fixed``
     Always ``base_ms``. Simple, predictable. Default for batch (low max_retries).
-
-``linear``
-    ``base_ms * attempt`` (attempt is 1-based for the *upcoming* wait after
-    failure #1, #2, …).
-
-``exponential``
-    ``base_ms * factor ** (attempt - 1)``, capped at ``max_ms``.
-    Classic AWS/Google style without jitter.
-
-``exponential_full_jitter`` (recommended under contention)
-    Wait = random.uniform(0, min(max_ms, base_ms * factor ** (attempt - 1))).
-    Best at preventing synchronized herds (AWS Architecture Blog).
-
-``exponential_equal_jitter``
-    temp = min(max_ms, base_ms * factor ** (attempt - 1))
-    Wait = temp/2 + random.uniform(0, temp/2).
-    Bounds worst-case while still spreading.
-
-USAGE
------
-::
-
-    from ux_channel.transport.backoff import compute_backoff_ms, BackoffPolicy
-
-    policy = BackoffPolicy(strategy="exponential_full_jitter", base_ms=50, max_ms=2000)
-    delay = policy.delay_ms(attempt=1)  # after first failure, before 2nd try
-
-Batch::
-
-    dispatch_batch(..., retry_backoff_ms=50, retry_backoff_strategy="exponential",
-                   retry_backoff_max_ms=2000)
-"""
+``linear``"""
 
 from __future__ import annotations
 
@@ -185,9 +150,7 @@ class BackoffPolicy:
         }
 
 
-# ---------------------------------------------------------------------------
 # Retry-After (RFC 7231) override
-# ---------------------------------------------------------------------------
 # When a Result or HTTP response carries Retry-After, clients and batch retry
 # MUST NOT wait less than that interval. Policy:
 #   - If Retry-After present → wait = max(computed_backoff_ms, retry_after_ms)

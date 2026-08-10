@@ -1,25 +1,15 @@
-"""
-Logging and metrics hooks for production observability.
+"""Logging and metrics hooks for production observability.
 
-WHY THIS MODULE EXISTS
-----------------------
 Heavy-lifting apps need to answer: which actions are slow, failing, or hot?
 Channel must not force OpenTelemetry, but must make instrumentation trivial.
 
-CONTRIBUTION TO THE LIBRARY
----------------------------
 - Structured log records via stdlib logging
 - Metrics protocol (counters/timers) apps can bind to Prometheus/StatsD
 - after-hook factory used by ActionRegistry.from_config
 
-INTENDED USAGE
---------------
 ::
 
-    import logging
-    logging.basicConfig(level=logging.INFO)
-    reg.after(observability_after_hook(log_slow_ms=200))
-"""
+   …"""
 
 from __future__ import annotations
 

@@ -1,38 +1,9 @@
-"""
-Action & bridge tracing — Wireshark-like Developer tooling for the Channel protocol.
-
-WHY THIS MODULE EXISTS
-----------------------
+"""Action & bridge tracing — Wireshark-like Developer tooling for the Channel protocol.
 When server-driven UI misbehaves, you need a **packet capture** of:
-
   Intent → cap verify → hooks → handler → encode → Result.ops
   (and on the client) apply each op + bridge mount/update/call
-
 This module records ordered **frames** (like PCAP packets) in a ring buffer,
-correlates them by ``request_id`` / ``trace_id``, and exposes them to:
-
-  - Python API (tests, logging)
-  - HTTP ``/ux-channel/trace`` (dev/staging)
-  - Browser inspector (ux-inspector.js)
-
-CONTRIBUTION TO THE LIBRARY
----------------------------
-Observability beyond metrics: **forensic Developer tooling** for actions and bridges.
-Disabled by default in production configs (overhead + data sensitivity).
-
-INTENDED USAGE
---------------
-::
-
-    from ux_channel.devtools.trace import get_tracer, TraceConfig
-    tracer = get_tracer()
-    tracer.configure(TraceConfig(enabled=True, retain=500))
-
-    # automatic via ActionRegistry when config.trace_enabled
-    # or:
-    frames = tracer.frames(request_id=\"req_abc\")
-    print(tracer.export_json())
-"""
+correlates them by ``request_id`` /…"""
 
 from __future__ import annotations
 

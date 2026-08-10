@@ -1,49 +1,12 @@
-"""
-WebRTC peer-to-peer **signaling** plane for ux-channel.
-
+"""WebRTC peer-to-peer **signaling** plane for ux-channel.
 Boundary
---------
 * **This module + HTTP/WS**: roster + JSEP ferry (offer/answer/ICE)
 * **Browser only**: media, DTLS-SRTP, SCTP data channels
 * **Host only**: call UI markup (use ``ch.webrtc.plugin()`` placement bag)
-
 Wire contract (keep in sync with ``static/ux-webrtc.js``)
----------------------------------------------------------
 Kinds::
-
     offer | answer | ice | ice-done
-
-Payload shapes (validated by :func:`validate_signal_payload`)::
-
-    offer/answer → { "type": kind, "sdp": "v=…" }   # RTCSessionDescriptionInit
-    ice          → RTCIceCandidateInit object
-    ice-done     → null
-
-HTTP::
-
-    GET  {path}/rtc?room=&peer=&name=&since=[&ticket=]
-    POST {path}/rtc   {op: signal|leave, ...}
-    GET  {path}/rtc/ice?room=&ticket=&sub=   # live ICE (TURN)
-
-WebSocket::
-
-    WS {path}/rtc/ws?room=&peer=&name=[&ticket=]
-    client → {op: signal|leave|ping|hello|poll, ...}
-    server → {type: hello|roster|signal|peer_left|pong|error, ...}
-
-ICE placement (:class:`IceAccess` / ``ch.webrtc.ice``)::
-
-    html() → STUN only (data-*, plugin.client.iceServers)
-    live() → short-lived TURN (server or GET ice.url)
-    url    → ticketed GET path (plugin.client.iceUrl)
-
-Auth (production)::
-
-    webrtc_require_ticket / webrtc_require_origin
-    ticket = ch.webrtc.sign_ticket(room, sub=user_id)
-
-Standards: docs/STANDARDS.md · docs/WEBRTC_SIGNALING.md
-"""
+Payload shapes (validated by…"""
 from __future__ import annotations
 
 from ux_channel.protocol import serde as _serde
@@ -110,8 +73,6 @@ def validate_signal_payload(kind: str, payload: Any) -> Any:
     raise ValueError(f"unknown kind {kind!r}")
 
 
-
-
 def _now() -> float:
     return time.time()
 
@@ -147,7 +108,6 @@ def _peer_id_ok(peer_id: str, config: Any = None) -> bool:
     if min_len <= 0:
         return True
     return len(peer_id) >= min_len
-
 
 
 def _json_size(payload: Any) -> int:
@@ -417,9 +377,7 @@ class MemoryRtcStore:
                 self._subs[room].pop(peer_id, None)
 
 
-# ---------------------------------------------------------------------------
 # Tickets (HMAC) — optional door for /rtc
-# ---------------------------------------------------------------------------
 
 
 def sign_rtc_ticket(
@@ -481,10 +439,7 @@ def verify_rtc_ticket(
     return True, str((data or {}).get("sub") or "")
 
 
-
-# ---------------------------------------------------------------------------
 # Signaling rate limit (process-local)
-# ---------------------------------------------------------------------------
 
 _RTC_LIMITER = None
 _RTC_LIMITER_LOCK = threading.Lock()
@@ -592,9 +547,7 @@ def authorize_rtc(
     return True, ""
 
 
-# ---------------------------------------------------------------------------
 # Process singleton
-# ---------------------------------------------------------------------------
 
 _STORE: "MemoryRtcStore | Any | None" = None
 _STORE_LOCK = threading.Lock()
@@ -674,10 +627,7 @@ def webrtc_enabled(config: Any) -> bool:
     return bool(getattr(config, "webrtc_enabled", True))
 
 
-
-# ---------------------------------------------------------------------------
 # ICE — one rule, two places (low cognitive load)
-# ---------------------------------------------------------------------------
 #
 #   html  →  STUN only (safe in data-* / plugin client seed)
 #   live  →  STUN + short-lived TURN (after ticket / server auth only)
@@ -725,9 +675,7 @@ class IceAccess:
         return self.plane.turn_posture()
 
 
-# ---------------------------------------------------------------------------
 # Channel façade
-# ---------------------------------------------------------------------------
 
 
 @dataclass

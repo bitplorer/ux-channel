@@ -1,13 +1,7 @@
-"""
-Ops — client apply instructions inside a Result.
+"""Ops — client apply instructions inside a Result.
 
-=================================================================
-PUBLIC / PRIVATE
-=================================================================
-* **Power public:** builders (``morph``, ``toast``, ``navigate``, …).
 * Application apps usually return ``ch.done`` / ``ch.fail`` (which emit ops).
-* Wire keys are immortal: ``op``, paths, ``data-channel-*`` targets.
-"""
+* Wire keys are immortal: ``op``, paths, ``data-channel-*`` targets."""
 
 from __future__ import annotations
 

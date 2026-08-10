@@ -1,29 +1,11 @@
-"""
-Rate limiting for action endpoints — protect heavy-lifting apps under load.
+"""Rate limiting for action endpoints — protect heavy-lifting apps under load.
 
-WHY THIS MODULE EXISTS
-----------------------
 Server-driven UI multiplies POST traffic (every click is an action). Without
 limits, a single client or bot can exhaust workers. This module provides:
 
   1. In-memory token bucket (single process / dev / sticky workers)
   2. RateLimiter protocol for Redis/multi-worker backends
-  3. Registry before-hook factory
-
-CONTRIBUTION TO THE LIBRARY
----------------------------
-Production safety without mandating Redis. Swap backend via Protocol.
-
-INTENDED USAGE
---------------
-::
-
-    from ux_channel.security.ratelimit import MemoryRateLimiter, rate_limit_hook
-    limiter = MemoryRateLimiter(rate_per_minute=120, burst=30)
-    reg.before(rate_limit_hook(limiter, key_fn=lambda intent, args: intent.action))
-
-HTTP hosts also apply IP-based limits before dispatch.
-"""
+  3. Registry before-hook…"""
 
 from __future__ import annotations
 

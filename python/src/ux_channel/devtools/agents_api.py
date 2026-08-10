@@ -1,18 +1,6 @@
-"""
-AX — Agent Experience façade (application public).
+"""AX façade — ``agents(ch)`` for tools_for · situation · dispatch · effects.
 
-=================================================================
-PUBLIC / PRIVATE
-=================================================================
-* **Application public:** ``from ux_channel import agents`` → ``agents(ch)``
-* **Only** agent product API (tools_for · situation · dispatch · effects).
-* Peer impl: ``ux_channel.agent_runtime.peer`` (prefer ``ag.dispatch``).
-* Foundations (quantity, caps, Morph IR) are **not** AX.
-
-::
-
-    Human button  →  ch.control → Intent → registry → Result
-    Agent client  →  agents(ch).dispatch → same registry → Result
+Human path: Intent + caps. Agent path: ``agents(ch).dispatch`` → same registry.
 """
 
 

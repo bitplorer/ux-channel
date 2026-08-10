@@ -1,13 +1,7 @@
-"""
-Sealed guest runtime — islands may paint, not invent durable quantities.
+"""Sealed guest runtime — islands may paint, not invent durable quantities.
 
-=================================================================
-PUBLIC / PRIVATE
-=================================================================
-* **Power public:** ``GuestRuntime``, ``GuestBudget``.
 * Enforces call budgets + refuse client quantity paths on events.
-* Protocol allowlists come from ``bridge_protocol``.
-"""
+* Protocol allowlists come from ``bridge_protocol``."""
 
 
 from __future__ import annotations

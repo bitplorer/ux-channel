@@ -1,29 +1,9 @@
-"""
-WebSocket authorization — production doors for ``WS /ux-channel/ws``.
-
-WHY THIS MODULE EXISTS
-----------------------
+"""WebSocket authorization — production doors for ``WS /ux-channel/ws``.
 SSE push is one-way. WebSockets add duplex traffic (subscribe + optional Intent
 dispatch). Security must cover:
-
 1. **Connect-time auth** — same ticket / push_token / public policy as SSE
 2. **Origin** — browsers send Origin on WS; reject cross-site when configured
-3. **Per-topic subscribe** — re-check on each ``subscribe`` message
-4. **Actions over WS** — still require normal cap verification (registry)
-
-Tickets are the same HMAC shape as SSE (``sign_push_ticket``) so one mint
-works for both transports.
-
-INTENDED USAGE
---------------
-::
-
-    from ux_channel.security.ws_security import authorize_ws_connect, check_ws_origin
-
-    ok, reason = authorize_ws_connect(cfg, token=…, ticket=…, topics=[…])
-    if not check_ws_origin(origin, config=cfg, host=host):
-        close
-"""
+3. **Per-topic subscribe** — re-check on each ``subscribe``…"""
 
 from __future__ import annotations
 

@@ -1,41 +1,10 @@
-"""
-Enterprise helpers — multi-tenant safety nets for production apps.
-
-=================================================================
+"""Enterprise helpers — multi-tenant safety nets for production apps.
 WHAT THIS MODULE IS FOR
-=================================================================
 Patterns that show up in real commerce / admin products:
-
 1. **once=True capabilities** — money moves, refunds, irreversible deletes.
    Boot wires MemoryNonceStore so once-caps work without Redis in single-worker
    dev; multi-worker must use Redis nonce store.
-
-2. **roles=[...]** on @ch.on — handler runs only if principal/args roles
-   intersect the allow-list (fail closed with ch.fail.forbidden).
-
-3. **audit=True** — ring-buffer audit log (swap emitter for SIEM later).
-
-4. **paginate()** — stable list paging for region loaders.
-
-5. **PolicyRegistry** — ch.mint / ch.control auto-apply once= from @ch.on policy
-   so buttons cannot forget one-shot signing.
-
-INTENDED USAGE
---------------
-::
-
-    @ch.on("Order.refund", refresh=["Admin:refunds"], auth=True,
-           once=True, roles=["finance"], audit=True)
-    def refund(order_id: str, ctx):
-        db.refund(order_id, actor=ctx.user_id)
-        return ch.done(notice="Refunded")
-
-FUTURE ENHANCEMENTS
--------------------
-- Pluggable AuditSink protocol (Datadog, HTTP, file)
-- OIDC/JWT principal adapter helpers
-- TenantMembership protocol hook before mutators
-"""
+2. **roles=[...]** on @ch.on — handler runs…"""
 
 from __future__ import annotations
 

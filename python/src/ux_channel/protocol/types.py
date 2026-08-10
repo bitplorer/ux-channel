@@ -1,40 +1,10 @@
-"""
-Protocol types: Intent (request) and Result (response).
-
-WHY THIS MODULE EXISTS
-----------------------
+"""Protocol types: Intent (request) and Result (response).
 ux-channel's wire language is deliberately small and versioned:
-
   Intent  — client names an action + args + capability
   Result  — server returns ordered apply ops (+ error/meta)
-
 These types are the **contract** shared by Python encode/dispatch, host
 adapters, tests, and the browser runtime (ux-channel.js). Keeping them
-dependency-free (stdlib dataclasses only) means Jinja/Django/FastAPI/ux-dom
-can all speak the same JSON without importing each other.
-
-CONTRIBUTION TO THE LIBRARY
----------------------------
-- Single source of truth for protocol version field ``v: \"1\"``
-- ``Result.success(...)`` / ``Result.failure(...)`` sugar for actions
-- ``to_dict`` / ``from_dict`` for HTTP and tests
-
-INTENDED USAGE
---------------
-Actions should return ``Result`` (or values encode_result can lift)::
-
-    return Result.success(morph(...), toast(\"Saved\"))
-    return Result.failure(\"validation\", \"Fix fields\", morph(form_html), fields={...})
-
-Clients POST Intent JSON to ``/ux-channel/action``.
-
-Region identity (separate concept)
----------------------------------
-* Python: ``Region.uid`` / ``@ch.region("cart.badge")``
-* HTML: ``data-channel-id="cart.badge"``
-* Action meta: ``region_uid`` binds an action to its region
-* Wire protocol version is **``v``**, never the region id
-"""
+dependency-free…"""
 
 from __future__ import annotations
 

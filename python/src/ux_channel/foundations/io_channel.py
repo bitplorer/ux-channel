@@ -1,44 +1,10 @@
-"""
-I/O channel — authorize and record I/O intents; never own device buses.
-
-=================================================================
+"""I/O channel — authorize and record I/O intents; never own device buses.
 CONSTITUTION (long-term stable)
-=================================================================
 uxchannel is a **capability-shaped I/O channel** for multi-actor workplaces
 (UI · agents · edge adapters), including **mesh membership**. It is **not**
 a device driver, soft PLC, or protocol stack (GPIO, OPC-UA, ROS, Matter, …).
-
     Mesh is how envelopes travel.
-    Channel is how authority is shaped.
-    Adapters are how effects land.
-
-Laws
-----
-1. **No effect without Intent** (or a sealed, audited path that still records one).
-2. **Caps / scopes attenuate only** — joining a room never widens authority.
-3. **Chrome ≠ Quantity** — ids in session; magnitudes via ``Quantity.from_store``.
-4. **Adapters fail closed** — unknown method/event is an error.
-5. **Commands are discrete; control loops are local** to the adapter.
-6. **Audit is product** for physical / irreversible acts.
-7. **AX uses the same registry** — agents never get a backdoor I/O API.
-8. **Mesh ≠ trust** — ticket/room is membership; scopes decide what may be intended.
-
-I/O classes
------------
-* **command** — write/actuate: require scope + optional ``QuantityBudget`` + audit.
-* **reading** — sense/read: may return/stamp ``Quantity``; still sealed methods.
-* **stream** — high-rate A/V or telemetry: **not** the Intent path (WebRTC media /
-  side planes). Channel may ticket membership only.
-
-=================================================================
-PUBLIC / PRIVATE
-=================================================================
-* **Power public:** ``from ux_channel.foundations.io_channel import …``
-* Application apps keep using ``Channel`` / ``agents`` / ``state``; this module is the
-  stable port for adapters and mesh-bound I/O policy.
-* Reuses ``SealedBridgeProtocol``, ``Quantity`` / ``QuantityBudget``, guest
-  event filtering — does **not** reimplement drivers.
-"""
+    Channel is how authority…"""
 
 from __future__ import annotations
 
@@ -91,7 +57,7 @@ __all__ = [
 ]
 
 
-# ── Constitution (importable; tests and docs pin these) ───────────────────
+# Constitution (importable; tests and docs pin these)
 
 IO_CONSTITUTION = (
     "uxchannel is the capability-shaped I/O channel for multi-actor mesh "
@@ -432,7 +398,7 @@ def get_io_gate(channel: Any) -> Optional[IoGate]:
     return g if isinstance(g, IoGate) else None
 
 
-# ── Mesh ticket → room claim (B1) ─────────────────────────────────────────
+# Mesh ticket → room claim (B1)
 
 
 def claim_from_mapping(
@@ -492,7 +458,7 @@ def claim_from_ticket_claims(
     )
 
 
-# ── Protocol JSON (C3) ────────────────────────────────────────────────────
+# Protocol JSON (C3)
 
 
 def protocol_from_mapping(data: Mapping[str, Any]) -> IoProtocol:
@@ -546,7 +512,7 @@ def load_protocol_json(path: Union[str, Any]) -> IoProtocol:
     return protocol_from_mapping(_serde.loads(p.read_text(encoding="utf-8")))
 
 
-# ── Audit I/O invocations (D1) ────────────────────────────────────────────
+# Audit I/O invocations (D1)
 
 
 @dataclass(frozen=True)
@@ -614,7 +580,7 @@ def get_io_audit(channel: Any) -> Optional[IoAuditLog]:
     return lg if isinstance(lg, IoAuditLog) else None
 
 
-# ── Checked run: gate + adapter + audit (B2 / D1) ─────────────────────────
+# Checked run: gate + adapter + audit (B2 / D1)
 
 
 def run_checked(

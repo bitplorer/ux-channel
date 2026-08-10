@@ -1,39 +1,9 @@
-"""
-HtmlRenderer protocol — turn *any* library's values into HTML fragments.
-
-WHY THIS MODULE EXISTS
-----------------------
+"""HtmlRenderer protocol — turn *any* library's values into HTML fragments.
 Actions may return framework-native objects (ux-dom trees, Jinja templates,
 Markup strings, custom components). The encoder only understands Result/ops/HTML.
 Renderers are the **plug-and-play adapter** from \"library object\" → \"str HTML\".
-
-CONTRIBUTION TO THE LIBRARY
----------------------------
 - Zero hard dependency on ux-dom/Jinja (optional classes degrade gracefully).
-- ChainRenderer composes multiple libraries: first non-None wins.
-- PluginHub.chain_renderer() stacks third-party renderers automatically.
-
-INTENDED USAGE
---------------
-::
-
-    reg = ActionRegistry(
-        secret=...,
-        renderer=ChainRenderer(UxDomRenderer(), StringRenderer()),
-    )
-
-    @reg.action(\"Home\")
-    def home():
-        return div(h1(\"Hi\"))  # ux-dom — if UxDomRenderer installed
-
-Custom library::
-
-    class PolarsTableRenderer:
-        def render(self, value):
-            if isinstance(value, pl.DataFrame):
-                return value.to_html()
-            return None
-"""
+-…"""
 
 from __future__ import annotations
 

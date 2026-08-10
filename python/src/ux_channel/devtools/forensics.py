@@ -1,13 +1,7 @@
-"""
-Forensic frames — reconstruct what was painted after an Intent.
+"""Forensic frames — reconstruct what was painted after an Intent.
 
-=================================================================
-PUBLIC / PRIVATE
-=================================================================
 * **Prefer product façade:** ``attach_audit(ch)``.
-* **Power:** ``attach_forensics`` / ``MemoryForensicStore``.
-* Frames may include morph HTML snippets for support replay.
-"""
+* Frames may include morph HTML snippets for support replay."""
 
 
 from __future__ import annotations

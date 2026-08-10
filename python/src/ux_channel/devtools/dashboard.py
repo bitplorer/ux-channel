@@ -3,52 +3,11 @@
 # This software is released under the MIT License.
 # https://opensource.org/licenses/MIT
 """DX Dashboard — observe-only operator surface for **ux-channel**.
-
 Brand: PyPI ``ux-channel`` · import ``ux_channel`` · CLI ``uxchannel``.
-
-================================================================
-First principles
-================================================================
-
 This is **not product UI**. It answers a fixed set of operator jobs:
-
 1. **Status** — Can I trust this process right now?
 2. **Guidance** — What should I fix next? (actionable hints only)
-3. **Performance** — Is the hot path within budget? (only when sampled)
-4. **Inventory** — What surface is registered? (actions, regions, path)
-5. **Policy** — Safety-relevant defaults (never secrets)
-6. **Observability** — OpenTelemetry attach + channel trace tail (no payloads)
-7. **Subsystems** — bridge / media / webrtc digests (shallow, no secrets)
-8. **Extensions** — team panels (opt-in; never required)
-
-Integrity rules (non-negotiable)
---------------------------------
-* Observe only — never mutates Channel state
-* No secrets, tokens, or full config dumps
-* Missing data is labeled missing — never invented
-* Model (JSON) is the stable product; HTML shell is optional
-* Built-in pack is a default projector of the sections above, not a vanity layout
-
-Pipeline::
-
-    Context  +  Extensions  →  Model (sections + panels)  →  Shell
-
-Application::
-
-    uxchannel dashboard
-
-Extend (team metrics only — do not re-implement Status)::
-
-    from ux_channel.devtools.dashboard import Widget, register_plugin
-
-    class Cost:
-        id = "team.cost"
-        order = 50
-        def contribute(self, ctx):
-            return [Widget("team.cost", "Cost", props={"budget_ms": 5})]
-
-    register_plugin(Cost())
-"""
+3. **Performance** — Is the hot path within budget? (only when…"""
 
 from __future__ import annotations
 
@@ -154,7 +113,7 @@ class _FmtMap(dict):
         return ""
 
 
-# ── data ──────────────────────────────────────────────────────────────────
+# data
 
 
 @dataclass
@@ -331,7 +290,7 @@ class Widget:
         )
 
 
-# ── sections (integrity core) ─────────────────────────────────────────────
+# sections (integrity core)
 
 
 _SECRET_KEYS = frozenset(
@@ -483,7 +442,7 @@ def build_sections(
     }
 
 
-# ── extension contract ────────────────────────────────────────────────────
+# extension contract
 
 
 @runtime_checkable
@@ -538,7 +497,7 @@ def _safe_contribute(ext: Extension, ctx: Context) -> list[Panel]:
         ]
 
 
-# ── registry ──────────────────────────────────────────────────────────────
+# registry
 
 
 @dataclass(frozen=True)
@@ -711,7 +670,7 @@ def load_plugins_from_env(spec: str | None = None) -> list[str]:
     return loaded
 
 
-# ── built-in pack: project sections → panels (use-case order) ─────────────
+# built-in pack: project sections → panels (use-case order)
 
 
 def _svg_bars(latencies: Sequence[Mapping[str, Any]], *, w: int = 640, h: int = 220) -> str:
@@ -979,7 +938,7 @@ def _builtins() -> list[Extension]:
     return [_BuiltinSections()]
 
 
-# ── pipeline ──────────────────────────────────────────────────────────────
+# pipeline
 
 
 def _runtime_snapshot() -> dict[str, Any]:
@@ -1064,7 +1023,7 @@ def build_dashboard_model(
     }
 
 
-# ── shell ─────────────────────────────────────────────────────────────────
+# shell
 
 
 def _render_panel(panel: Panel) -> str:

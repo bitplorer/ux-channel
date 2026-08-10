@@ -1,12 +1,4 @@
-"""
-Agent / MCP policy — production guardrails for non-human callers.
-
-WHY THIS MODULE EXISTS
-----------------------
-Humans click buttons with short-lived caps. Agents and MCP tools can call
-thousands of actions. Policy is the **allow/deny + confirmation + budget**
-layer so production stays safe even if the model is buggy or prompt-injected.
-"""
+"""Agent / MCP policy — allow, deny, confirm, and budget guardrails for non-human callers."""
 
 from __future__ import annotations
 

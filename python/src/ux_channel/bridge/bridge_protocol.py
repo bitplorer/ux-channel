@@ -1,13 +1,7 @@
-"""
-Sealed bridge protocols — guest islands may only use declared methods/events.
+"""Sealed bridge protocols — guest islands may only use declared methods/events.
 
-=================================================================
-PUBLIC / PRIVATE
-=================================================================
-* **Power public:** ``SealedBridgeProtocol``, registry helpers.
 * Fail closed: unknown methods/events raise ``BridgeFirewallError``.
-* Complements ``guest_runtime`` budgets and channel caps.
-"""
+* Complements ``guest_runtime`` budgets and channel caps."""
 
 
 from __future__ import annotations

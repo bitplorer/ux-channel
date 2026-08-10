@@ -1,30 +1,9 @@
-"""
-SSE streaming of Result chunks — progressive apply for long actions.
-
-WHY THIS MODULE EXISTS
-----------------------
+"""SSE streaming of Result chunks — progressive apply for long actions.
 Some actions (reports, multi-step dashboards) should update the UI **before**
 the final answer: toast \"Working…\", then morph a panel, then toast \"Done\".
 HTTP JSON returns one body; Server-Sent Events allow **ordered chunks** that
 the client applies incrementally (see RESULT.md stream envelope).
-
-CONTRIBUTION TO THE LIBRARY
----------------------------
-Extends the protocol without changing Intent/Result core types. Host adapters
-may expose ``Accept: text/event-stream`` later; this module formats bytes.
-
-INTENDED USAGE
---------------
-::
-
-    from ux_channel.transport.stream import ResultStream, format_sse
-
-    async def generate():
-        stream = ResultStream()
-        yield format_sse(stream.chunk(Result.success(toast(\"Working…\"))))
-        # ... work ...
-        yield format_sse(stream.chunk(Result.success(morph(...)), done=True))
-"""
+Extends the protocol…"""
 
 from __future__ import annotations
 

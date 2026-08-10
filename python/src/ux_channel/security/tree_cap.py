@@ -1,13 +1,7 @@
-"""
-Capability-shaped documents — envelopes attenuate down the tree.
+"""Capability-shaped documents — envelopes attenuate down the tree.
 
-=================================================================
-PUBLIC / PRIVATE
-=================================================================
-* **Power public:** ``TreeEnvelope``, ``nest_envelope``, ``compile_tree_caps``
 * Pure channel dict trees; ux-dom conversion lives in ``ux_channel_ux_dom``.
-* Trust maps hold **ids only** — not Quantity magnitudes.
-"""
+* Trust maps hold **ids only** — not Quantity magnitudes."""
 
 
 from __future__ import annotations

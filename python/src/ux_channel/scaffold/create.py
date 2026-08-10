@@ -1,22 +1,11 @@
-"""
-Project generator for ux-channel.
+"""Project generator for ux-channel.
 
-WHY THIS MODULE EXISTS
-----------------------
 Application Developer tooling should match React/Vue ``create-*`` tools: one command, runnable app,
 opinionated defaults, readable generated sources.
 
 MAINTENANCE RULES (read before editing templates)
--------------------------------------------------
 * Prefer **string templates with clear sections** over deep metaprogramming.
-* Every generated file starts with a short module docstring (intent + run command).
-* Defaults must be **safe for local demo**, not production hard-coded secrets
-  in committed repos — we write ``.env.example`` and generate a secret into
-  ``.env`` (gitignored) when possible.
-* Templates must stay **importable without Redis / TURN**.
-* If you add a new template, update ``available_templates()``, ``docs/SCAFFOLD.md``,
-  and ``tests/test_scaffold.py``.
-"""
+* Every generated file starts with a short module docstring (intent + run…"""
 
 from __future__ import annotations
 
@@ -32,9 +21,7 @@ __all__ = [
     "validate_scaffold",
 ]
 
-# ---------------------------------------------------------------------------
 # Template catalogue — single source of truth for CLI help + validation
-# ---------------------------------------------------------------------------
 
 _TEMPLATES = (
     "minimal",  # counter + region morph
@@ -98,9 +85,7 @@ class ScaffoldOptions:
             self.bridges = [str(b).strip() for b in self.bridges if str(b).strip()]
 
 
-# ---------------------------------------------------------------------------
 # File writers
-# ---------------------------------------------------------------------------
 
 
 def create_app(opts: ScaffoldOptions) -> Path:
@@ -259,9 +244,7 @@ def _render_project(opts: ScaffoldOptions, *, secret: str) -> dict[str, str]:
     return files
 
 
-# ---------------------------------------------------------------------------
 # Static fragments (heavily commented for maintainers of *generated* apps)
-# ---------------------------------------------------------------------------
 
 _GITIGNORE = """\
 # uxchannel scaffold defaults
@@ -526,17 +509,13 @@ from ux_channel.render.kit import demo_button, demo_page, demo_scripts, attr_str
 
 from app.config import get_channel_config
 
-# ---------------------------------------------------------------------------
 # Process bootstrap — one Channel per process
-# ---------------------------------------------------------------------------
 
 app = FastAPI(title="{title}", version="0.1.0")
 ch = Channel.boot(app, config=get_channel_config())
 
 
-# ---------------------------------------------------------------------------
 # Regions — HTML fragments the client can morph without full reload
-# ---------------------------------------------------------------------------
 
 @ch.region
 def counter(ctx):
@@ -545,9 +524,7 @@ def counter(ctx):
     return f'<strong data-channel-id="counter">{{n}}</strong>'
 
 
-# ---------------------------------------------------------------------------
 # Actions — Intent → mutate → Result(ops) including region refresh
-# ---------------------------------------------------------------------------
 
 @ch.on(refresh=[counter], idempotent=False)
 def inc():
@@ -560,9 +537,7 @@ def reset():
     ch.draft.set("n", 0)
 
 
-# ---------------------------------------------------------------------------
 # HTTP routes — your app surface (channel is under /ux-channel/*)
-# ---------------------------------------------------------------------------
 
 @app.get("/health")
 def health():
@@ -668,7 +643,6 @@ def _main_webrtc(*, title: str, port: int) -> str:
     from ux_channel.scaffold.templates_src import WEBRTC_MAIN
 
     return WEBRTC_MAIN.replace("__TITLE__", title).replace("__PORT__", str(port))
-
 
 
 def _main_media(*, title: str, port: int) -> str:

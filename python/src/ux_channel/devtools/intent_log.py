@@ -1,13 +1,7 @@
-"""
-Intent log — ordered record of dispatched Intents (support / audit).
+"""Intent log — ordered record of dispatched Intents (support / audit).
 
-=================================================================
-PUBLIC / PRIVATE
-=================================================================
 * **Prefer product façade:** ``attach_audit(ch)`` (pairs log + forensics).
-* **Power:** ``attach_intent_log`` / ``MemoryIntentLog`` for custom sinks.
-* Not a substitute for your business event store.
-"""
+* Not a substitute for your business event store."""
 
 
 from __future__ import annotations

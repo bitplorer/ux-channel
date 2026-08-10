@@ -1,8 +1,5 @@
-"""
-Error plane — codes → HTTP status, client kind, batch envelope status.
+"""Error plane — codes → HTTP status, client kind, batch envelope status.
 
-First principles
-----------------
 A Result body is the source of truth (``ok`` / ``error.code``). HTTP status
 is a cache/proxy convenience. This module is the **only** mapping table so
 FastAPI, Starlette, and batch envelopes never diverge.
@@ -10,20 +7,14 @@ FastAPI, Starlette, and batch envelopes never diverge.
 Also:
 
 - ``ensure_error_meta`` fills ``error_kind`` / ``retryable`` defaults
-- ``batch_http_status`` / ``enrich_batch_envelope`` for multi-action posts
-- Retry-After is **not** invented here (producers set ``meta.retry_after``)
-
-See: docs/ERRORS.md, docs/CLIENT_ERRORS.md.
-"""
+- ``batch_http_status`` /…"""
 from __future__ import annotations
 
 from typing import Any, Mapping, Optional
 
 from ux_channel.protocol.types import Result
 
-# ---------------------------------------------------------------------------
 # Canonical codes → HTTP status
-# ---------------------------------------------------------------------------
 # Keep keys lowercase snake_case. Unknown codes → DEFAULT_ERROR_STATUS.
 ERROR_HTTP_STATUS: dict[str, int] = {
     # Auth / access
@@ -166,9 +157,7 @@ def catalog() -> list[dict[str, Any]]:
     return rows
 
 
-# ---------------------------------------------------------------------------
 # Batch envelope status
-# ---------------------------------------------------------------------------
 # A batch response is NOT a single Result when items ran:
 #   { "ok": bool, "batch": [Result, ...], "ops": [...], "meta": {...} }
 # Oversized/invalid batch may still be a single Result.failure dict.

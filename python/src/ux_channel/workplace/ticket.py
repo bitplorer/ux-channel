@@ -1,9 +1,5 @@
-"""
-Workplace tickets — signed membership for policy-shaped rooms.
+"""Workplace tickets — signed membership for policy-shaped rooms.
 
-=================================================================
-PUBLIC / PRIVATE
-=================================================================
 * Power public via ``ux_channel.workplace``
   (``sign_workplace_ticket``, ``claim_from_workplace_ticket``, …).
 * Separate salt from WebRTC RTC tickets so media doors and workplace
@@ -12,11 +8,7 @@ PUBLIC / PRIVATE
 
 Ticket payload (v1)::
 
-    {"v": 1, "room": str, "sub": str, "scopes": [str, ...], "trust": {str: str},
-     "iat": int, "ttl": int}
-
-Logical expiry: ``iat + ttl`` (enforced on verify even if serializer max_age is wider).
-"""
+    {"v": 1, "room":…"""
 
 from __future__ import annotations
 

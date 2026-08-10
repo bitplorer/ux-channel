@@ -1,16 +1,10 @@
-"""
-Morph IR — host-agnostic UI structure for multi-surface projection.
+"""Morph IR — host-agnostic UI structure for multi-surface projection.
 
-=================================================================
-PUBLIC / PRIVATE
-=================================================================
-* **Power public:** ``from ux_channel.render.morph_ir import elem, region, morph_ops``
 * **Not AX** — ``project_agent`` is an IR skin, not ``agents(ch).situation(...)``.
 * ``region(uid, …)`` is a **morph target** (same law as ``@ch.region``) — not an HTML tag.
 
 Authoring may happen in a document host (via interop) or plain dicts; this module
-never imports a document library. HTML is one projection among many.
-"""
+never imports a document library. HTML is one projection among many."""
 
 from __future__ import annotations
 

@@ -1,18 +1,14 @@
-"""
-CORS helper for browser apps that call Channel from a separate frontend origin.
+"""CORS helper for browser apps that call Channel from a separate frontend origin.
 
 WHY
 ---
 Same-origin is the default (enforce_same_origin). SPAs on another origin need
 CORS *and* an explicit allowed_origins list on ChannelConfig.
 
-INTENDED USAGE
---------------
 ::
 
     from ux_channel.transport.cors import apply_cors
-    apply_cors(app, origins=[\"https://app.example.com\"], path_prefix=\"/ux-channel\")
-"""
+    apply_cors(app, origins=[\"https://app.example.com\"], path_prefix=\"/ux-channel\")"""
 
 from __future__ import annotations
 

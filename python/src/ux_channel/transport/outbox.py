@@ -1,23 +1,12 @@
-"""
-Intent outbox — queue Intents when the channel/mesh cannot apply them yet.
+"""Intent outbox — queue Intents when the channel/mesh cannot apply them yet.
 
-=================================================================
 CONSTITUTION
-=================================================================
 Offline / partition does **not** invent a second mutation door.
 Queued items are still Intent-shaped (action + args + optional cap metadata)
 and drain through the same registry / ``Workplace.dispatch`` / agents path.
 
     Mesh is down or claim expired → enqueue
-    Link restored / claim refreshed → drain → Intent → Action → Result
-
-=================================================================
-PUBLIC / PRIVATE
-=================================================================
-* **Power public:** ``from ux_channel.transport.outbox import IntentOutbox, MemoryIntentOutbox``
-* Optional Redis: ``RedisIntentOutbox`` when redis available
-* Not application; does not alter Channel.boot
-"""
+    Link restored / claim refreshed → drain →…"""
 
 from __future__ import annotations
 

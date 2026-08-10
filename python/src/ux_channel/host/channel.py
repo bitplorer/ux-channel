@@ -1,17 +1,10 @@
-"""
-Channel — the app-facing façade for ux-channel.
+"""Channel — the app-facing façade for ux-channel.
 
-=================================================================
-PUBLIC / PRIVATE
-=================================================================
-* **Public API public:** ``Channel.boot`` → ``@region`` / ``@on`` / ``control`` /
   ``draft`` / ``done`` / ``fail`` / ``webrtc`` / …
 * Does **not** own HTML trees (ux-dom / templates do).
 * Owns registration, capabilities, ephemeral draft, Results, live plane.
 
-See ``Channel.describe()`` and docs/API_SURFACE.md.
-"""
-
+See ``Channel.describe()`` and docs/API_SURFACE.md."""
 
 
 from __future__ import annotations
@@ -187,9 +180,7 @@ class UiBuilder:
         return b.fail("validation", message, fields=fields)
 
 
-# ---------------------------------------------------------------------------
 # Public API architecture overview (keep small — decades of DX)
-# ---------------------------------------------------------------------------
 # Public API: boot → region → on → control → runtime → draft/done → media → bridge
 # Power: webrtc, sign_*, live, flow, before/after, multi, diagnose, enterprise
 # Demo HTML — ux_channel.render.kit only (not on Channel)
@@ -813,9 +804,6 @@ class Channel:
         return str(action), target
 
 
-
-
-
     @property
     def ui(self) -> UiBuilder:
         """Fresh fluent Result builder."""
@@ -864,7 +852,6 @@ class Channel:
     def redirect(self, href: str) -> Union[Go, Result]:
         """Full-page navigation after success (Login → /app)."""
         return Go(href)
-
 
 
     def wrap(self, uid_id: str, inner: str, *, tag: str = "div", **attrs: str) -> str:
