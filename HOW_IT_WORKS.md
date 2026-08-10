@@ -195,6 +195,10 @@ ux-channel/                          ← this package root
 │   ├── vectors/                     ← JSON Intent/Result/cap samples
 │   ├── expected/cxb/                ← frozen binary blobs
 │   └── harness/                     ← Python validators
+├── python/
+│   ├── ux_channel/                 ← FULL Python host library (wire, caps, ASGI, …)
+│   ├── ux_dom/                     ← DOM helpers
+│   └── docs/core/                  ← WIRE.md, CXB.md
 └── peers/
     ├── ux_channel_rs/               ← Rust second implementation
     │   └── src/

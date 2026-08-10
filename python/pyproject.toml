@@ -1,0 +1,146 @@
+[tool.poetry]
+name = "ux-channel"
+version = "0.1.0"
+description = "ux-channel 0.1 — Intent → Action → Result(ops) (PyPI: ux-channel · import: ux_channel · CLI: uxchannel)"
+authors = ["bitplorer <bitplorer@outlook.com>"]
+license = "MIT"
+readme = "README.md"
+homepage = "https://github.com/bitplorer/ux-channel"
+repository = "https://github.com/bitplorer/ux-channel"
+documentation = "https://github.com/bitplorer/ux-channel/tree/main/docs"
+keywords = [
+  "server-driven-ui",
+  "hypermedia",
+  "fastapi",
+  "actions",
+  "ux-dom",
+  "ux-channel",
+]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.14",
+  "Topic :: Internet :: WWW/HTTP",
+  "Framework :: FastAPI",
+  "Typing :: Typed",
+]
+packages = [
+  { include = "ux_channel", from = "src" },
+  { include = "ux_channel_ux_dom", from = "src" },
+]
+include = [
+  "src/ux_channel/py.typed",
+  "src/ux_channel/static/**/*",
+  "src/ux_channel/io_adapters/contracts/**/*",
+  "src/ux_channel/scaffold/**/*",
+  "cxb_native/cxb_rs/**/*",
+  "cxb_native/README.md",
+  "cxb_native/build.sh",
+]
+
+[tool.poetry.dependencies]
+python = ">=3.14,<3.15"
+itsdangerous = ">=2.1"
+
+# Optional extras (ux-dom is a peer — install separately for glue tests)
+fastapi = { version = ">=0.100", optional = true }
+starlette = { version = ">=0.27", optional = true }
+redis = { version = ">=5.0", optional = true }
+pydantic = { version = ">=2.0", optional = true }
+opentelemetry-api = { version = ">=1.20", optional = true }
+opentelemetry-sdk = { version = ">=1.20", optional = true }
+orjson = { version = ">=3.9", optional = true }
+
+[tool.poetry.extras]
+fastapi = ["fastapi", "starlette"]
+starlette = ["starlette"]
+redis = ["redis"]
+pydantic = ["pydantic"]
+otel = ["opentelemetry-api", "opentelemetry-sdk"]
+speed = ["orjson"]
+serde = ["orjson"]
+full = [
+  "fastapi",
+  "starlette",
+  "redis",
+  "pydantic",
+  "opentelemetry-api",
+  "opentelemetry-sdk",
+  "orjson",
+]
+
+[tool.poetry.group.dev.dependencies]
+black = ">=24.0.0"
+mypy = ">=1.10.0"
+ruff = ">=0.6.0"
+fakeredis = ">=2.20"
+httpx = ">=0.24"
+fastapi = ">=0.100"
+starlette = ">=0.27"
+
+[tool.poetry.group.test.dependencies]
+pytest = ">=8.0.0"
+pytest-asyncio = ">=0.24.0"
+hypothesis = ">=6.100"
+httpx = ">=0.24"
+fakeredis = ">=2.20"
+
+[tool.poetry.scripts]
+uxchannel = "ux_channel.cli:main"
+
+[build-system]
+requires = ["poetry-core>=1.9.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+# Ontological collection order (core → stress). Do not alphabetize packages away.
+testpaths = [
+  "tests/core",
+  "tests/regions",
+  "tests/state",
+  "tests/asgi",
+  "tests/bridges",
+  "tests/client",
+  "tests/webrtc",
+  "tests/workplace",
+  "tests/agents",
+  "tests/redis_store",
+  "tests/ux_dom_glue",
+  "tests/dx",
+  "tests/foundations",
+  "tests/security",
+  "tests/stress",
+]
+pythonpath = ["src", ".", "tests"]
+asyncio_mode = "auto"
+filterwarnings = [
+  "ignore::DeprecationWarning",
+]
+
+[tool.mypy]
+python_version = "3.14"
+ignore_missing_imports = true
+mypy_path = "src"
+
+[tool.ruff]
+line-length = 88
+target-version = "py314"
+src = ["src"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.coverage.run]
+branch = false
+source = ["ux_channel", "ux_channel_ux_dom"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+exclude_lines = [
+  "pragma: no cover",
+  "if TYPE_CHECKING:",
+  "raise NotImplementedError",
+]

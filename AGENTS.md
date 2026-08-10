@@ -67,3 +67,5 @@ python3 peers/python_forward/forward_to_rust.py --mint-via-peer
 | FAQ | `FAQ.md` |
 | Operators | `OPERATIONAL.md` |
 | Roadmap next steps | `ux-channel-roadmap.md` |
+| Full Python host library | `python/ux_channel/` (see `python/README.md`) |
+| Thin Python→Rust forward | `peers/python_forward/` |

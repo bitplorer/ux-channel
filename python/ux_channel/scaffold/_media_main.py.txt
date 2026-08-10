@@ -1,0 +1,85 @@
+"""
+__TITLE__ — media plane scaffold (ch.media.plugin).
+
+Run::
+
+    uvicorn app.main:app --host 0.0.0.0 --port __PORT__ --reload
+
+DX: ch.media.plugin places scripts + client bag; you own video tags.
+"""
+
+from __future__ import annotations
+
+from fastapi import FastAPI
+from fastapi.responses import HTMLResponse
+
+from ux_channel import Channel
+
+from app.config import get_channel_config
+
+app = FastAPI(title="__TITLE__", version="0.1.0")
+ch = Channel.boot(app, config=get_channel_config())
+
+
+@app.get("/health")
+def health():
+    return ch.doctor()
+
+
+@app.get("/", response_class=HTMLResponse)
+def index():
+    p = ch.media.plugin("lobby", sub="demo-user")
+    client = p.client_json
+    style = (
+        "body{margin:0;padding:1.25rem;background:#0b0d12;color:#e8eaef;"
+        "font-family:system-ui,sans-serif}"
+        ".grid{display:grid;gap:1rem;grid-template-columns:1fr 1fr;max-width:960px}"
+        "video{width:100%;background:#000;border-radius:12px;aspect-ratio:4/3}"
+        ".badge{display:inline-block;padding:.2rem .5rem;border-radius:999px;"
+        "background:#1e293b;font-size:12px}pre{font-size:12px;opacity:.75}"
+    )
+    js = (
+        "(function(){"
+        "var opts=JSON.parse(document.getElementById('opts').textContent);"
+        "if(opts.mode==='sfu'||opts.provider==='livekit'){console.log('sfu',opts.room);return;}"
+        "function boot(n){"
+        "if(!window.UxWebRTC){if(n>80)return;return setTimeout(function(){boot(n+1);},25);}"
+        "UxWebRTC.join(Object.assign({},opts,{"
+        "onLocalStream:function(s){var el=document.querySelector('[data-ux-media-local]');if(el)el.srcObject=s;},"
+        "onTrack:function(id,stream){var el=document.querySelector('[data-ux-media-remote]');if(el)el.srcObject=stream;}"
+        "})).then(function(room){window.__uidRtcRoom=room;console.log('mesh',room.peer);});"
+        "}"
+        "boot(0);"
+        "})();"
+    )
+    html = (
+        "<!doctype html><html lang='en'><head>"
+        "<meta charset='utf-8'/>"
+        "<title>__TITLE__</title>"
+        + p.scripts_html
+        + "<style>"
+        + style
+        + "</style></head><body "
+        + p.attr_string
+        + "><h1>__TITLE__ <span class='badge'>"
+        + p.mode
+        + " / "
+        + p.provider
+        + "</span></h1>"
+        "<p>Host-owned UI. Mesh: UxWebRTC. SFU: LiveKit when LIVEKIT_* set.</p>"
+        "<div class='grid'>"
+        "<video data-ux-media-local autoplay playsinline muted></video>"
+        "<video data-ux-media-remote autoplay playsinline></video></div>"
+        "<pre id='opts'>"
+        + client
+        + "</pre><script>"
+        + js
+        + "</script></body></html>"
+    )
+    return HTMLResponse(html)
+
+
+if __name__ == "__main__":
+    import uvicorn
+
+    uvicorn.run("app.main:app", host="0.0.0.0", port=__PORT__, reload=True)

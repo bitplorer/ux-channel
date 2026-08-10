@@ -421,6 +421,7 @@ Clients still branch on **Result**, not status alone.
 | **`uxc_peer`** | HTTP binary | Serves action/health/mint/demo page | Not the only possible transport |
 | **`uxc_check`** | Conformance runner | Loads vectors, oracle, CXB, optional `--http` | Not a production server |
 | **`python_forward`** | Tiny adapter | Mint + POST Intent; return ops unchanged | Not a full ASGI host |
+| **`python/ux_channel`** | Full Python host package | Wire, caps, ASGI, CXB oracle, bridges | Not under `peers/` |
 | **`verify.sh`** | Local CI script | One-command green harness | Not shipped as product API |
 | **`startup-peer.sh`** | Dev helper | Idempotent demo peer on :8787 | Uses oracle allow by default |
 | **conformance vectors** | Golden JSON/CXB | Executable interop law | Not optional examples only |

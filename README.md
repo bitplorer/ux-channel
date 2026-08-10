@@ -51,13 +51,18 @@ Read top → bottom if you are new. Layers do not mix “law” with “demo.”
 | [conformance/](conformance/) | Golden JSON vectors + CXB expected blobs + harnesses |
 | [PUBLIC_API_FREEZE.md](PUBLIC_API_FREEZE.md) | Day-1 public names (host package alignment) |
 
-### C. Peers (implementations)
+### C. Peers + Python host
 
 | Path | Role |
 |------|------|
+| **[python/](python/)** | **Full Python host package** (`ux_channel/`, wire, caps, ASGI, CXB oracle) |
 | [peers/ux_channel_rs/](peers/ux_channel_rs/) | Rust peer: types, JSON, cap, CXB, HTTP, `uxc_check` / `uxc_peer` |
-| [peers/python_forward/](peers/python_forward/) | Minimal Python → Rust forward (ops returned unchanged) |
+| [peers/python_forward/](peers/python_forward/) | Minimal Python → Rust forward (1 script, not the full library) |
+| [conformance/harness/](conformance/harness/) | Stdlib Python vector validators |
 | [startup-peer.sh](startup-peer.sh) | Idempotent local demo peer helper (oracle allow-listed) |
+
+> **Looking for Python code?** Open [`python/README.md`](python/README.md) and [`python/ux_channel/`](python/ux_channel/).  
+> `peers/python_forward` is only a tiny HTTP client — not the product library.
 
 ### D. Planning only (not law)
 

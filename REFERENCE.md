@@ -23,7 +23,8 @@
 | [PUBLIC_API_FREEZE.md](PUBLIC_API_FREEZE.md) | Law | Host package public names |
 | [ux-channel-*.md](ux-channel-roadmap.md) | Planning | Thesis / causal / roadmap (not law) |
 | [peers/ux_channel_rs/README.md](peers/ux_channel_rs/README.md) | Peer | Rust build + HTTP notes |
-| [peers/python_forward/README.md](peers/python_forward/README.md) | Peer | Python adapter |
+| [peers/python_forward/README.md](peers/python_forward/README.md) | Peer | Tiny Python → Rust forward |
+| [python/README.md](python/README.md) | Host | **Full Python library** (`ux_channel/`) |
 
 ---
 
@@ -228,7 +229,18 @@ Run: `./verify.sh` or harness scripts in `conformance/harness/`.
 
 ---
 
-## 7. Python forward (recipe)
+## 7. Python code locations
+
+| Path | What |
+|------|------|
+| [`python/ux_channel/`](python/ux_channel/) | Full host library (wire, capability, ASGI, …) |
+| [`python/docs/core/`](python/docs/core/) | WIRE.md, CXB.md |
+| [`peers/python_forward/forward_to_rust.py`](peers/python_forward/forward_to_rust.py) | Thin Intent POST client |
+| [`conformance/harness/*.py`](conformance/harness/) | Vector validators |
+
+See [`python/README.md`](python/README.md).
+
+## 8. Python forward (recipe)
 
 ```bash
 # peer must be up with allow-listed oracle for demo
@@ -248,7 +260,7 @@ Exit `0` only if `result.ok`. Ops are printed unchanged.
 
 ---
 
-## 8. Verify commands
+## 9. Verify commands
 
 ```bash
 ./verify.sh          # JSON + CXB + cargo test + uxc_check
@@ -257,7 +269,7 @@ Exit `0` only if `result.ok`. Ops are printed unchanged.
 
 ---
 
-## 9. Related
+## 10. Related
 
 - Glossary: [TERMINOLOGY.md](TERMINOLOGY.md)  
 - Flows: [HOW_IT_WORKS.md](HOW_IT_WORKS.md)  

@@ -1,0 +1,20 @@
+{
+  "name": "lab.dut",
+  "version": "1",
+  "strict": true,
+  "events": ["ready"],
+  "methods": {
+    "flash": {
+      "kind": "command",
+      "scopes": ["lab", "lab.flash"],
+      "unit": "count",
+      "max_magnitude": 1,
+      "allow_event_keys": ["dut_id"],
+      "description": "Flash firmware once per budgeted Quantity"
+    },
+    "id": {
+      "kind": "reading",
+      "scopes": ["lab", "view"]
+    }
+  }
+}
