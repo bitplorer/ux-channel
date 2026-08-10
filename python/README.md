@@ -1,66 +1,68 @@
-# Python host package (ux-channel 0.1.0)
+# Python host (`ux-channel`)
 
-**Best of both worlds:** classic product layout from the release (`src/`, full `docs/`, `tests/`, `examples/`) **plus** monorepo enhancements (zones, day1, sorted `args_hash`, gate tests, Rust interop).
+Long-term layout: **implementations in cohesive packages**, **generated aliases** at the top level, **Rust-parity names** for shared cap/IR APIs.
 
-**Region** = one DOM slot · **RegionBook** = registry (`ch.regions`) · not a rename.
-
-## Open this way (do not alphabet-scroll `src/ux_channel`)
-
-| Doc | Purpose |
-|-----|---------|
-| **[LAYOUT.md](LAYOUT.md)** | Every module → **zone** (intent map) |
-| **[ONTOLOGY.md](ONTOLOGY.md)** | Region vs Bridge vs Action |
-| **[STRUCTURE.md](STRUCTURE.md)** | Permanent vs moving |
-| [docs/start/](docs/start/) | Full day-1 encyclopedia (from release) |
-| [docs/regions/](docs/regions/) | Region recipes |
-
-```python
-# Apps (day-1)
-from ux_channel.day1 import Channel, Region, state
-
-# Cohesive packages (preferred for libraries/extensions)
-from ux_channel.host.dx import Channel
-from ux_channel.protocol.capability import CapService
-
-# Explore
-from ux_channel.zones import host, protocol
-print(host.help())
-```
+## Start (apps)
 
 ```bash
 export PYTHONPATH="$PWD/python/src${PYTHONPATH:+:$PYTHONPATH}"
 ```
 
-## Tree (merged layout)
+```python
+from ux_channel.day1 import Channel, ChannelConfig, Region, CapService, state
+
+ch = Channel.boot(secret="…")  # or FastAPI app + ChannelConfig
+
+class Badge(Region):
+    def render(self, ctx):
+        return f"<b>{self.ch.draft.get('n', 0)}</b>"
+
+    @Region.action
+    def add(self):
+        self.ch.draft.set("n", self.ch.draft.get("n", 0) + 1)
+```
+
+Cap (same words as Rust):
+
+```python
+svc = CapService(secret)
+token = svc.mint("Cart.add", {"sku": "a", "qty": 1})
+svc.verify(token, action="Cart.add", args={"sku": "a", "qty": 1})
+```
+
+## Structure (no alphabet scrolling)
 
 ```text
-python/
-  src/
-    ux_channel/
-      protocol/ host/ paint/ security_plane/ …  # cohesive packages
-      wire/ asgi/ bridges/ …                     # focused subpackages
-      *.py                                      # legacy shims (stable)
-    ux_channel_ux_dom/    # optional ux-dom glue
-  docs/                   # full domain docs (start, regions, bridges, …)
-  tests/
-    gate/                 # monorepo CI gate (always run)
-    core/ regions/ …      # full suite from release (optional extras)
-  examples/               # product examples from release
-  scripts/                # package maintenance scripts
-  LAYOUT.md ONTOLOGY.md STRUCTURE.md
+src/ux_channel/
+  PACKAGE_MAP.json     ← source of truth
+  protocol/ host/ paint/ security_plane/ …
+  wire/ asgi/ bridges/ …   ← product subpackages
+  *.py                     ← GENERATED aliases (sync_python_layout.py)
+  day1                     ← public app surface (via host.day1)
 ```
+
+```bash
+python3 scripts/sync_python_layout.py --check
+from ux_channel.zones import help_public; print(help_public())
+```
+
+## Docs (few, durable)
+
+| Doc | Why |
+|-----|-----|
+| **[STABILITY.md](STABILITY.md)** | How we stay maintainable |
+| [LAYOUT.md](LAYOUT.md) | Packages + coupling |
+| [ONTOLOGY.md](ONTOLOGY.md) | Concepts |
+| [docs/start/](docs/start/) | Day-1 encyclopedia |
+| [../NAMING.md](../NAMING.md) | Intent ↔ name |
 
 ## Tests
 
 ```bash
-# Always (CI / make verify) — no FastAPI required
-make test-python
-
-# Full release suite (needs extras: fastapi, httpx, …)
-PYTHONPATH=python/src pytest python/tests -q --ignore=python/tests/gate
+make verify             # gate + rust (required)
+make test-python-host   # host regression (regions/state/day1)
 ```
 
-## Relation to Rust
+## Rust
 
-Shared law: repo `../conformance/` + `../SPEC/`.  
-`make verify` runs Python gate + Rust. Cross-mint: `make verify-http`.
+Shared law: repo `conformance/` + `CapService.mint/verify`. Host-only: regions, Channel, bridges, …

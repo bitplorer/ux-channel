@@ -58,6 +58,9 @@ REQUIRED = [
     "python/src/ux_channel/day1.py",
     "python/STRUCTURE.md",
     "python/LAYOUT.md",
+    "scripts/sync_python_layout.py",
+    "python/STABILITY.md",
+    "python/src/ux_channel/PACKAGE_MAP.json",
     "Makefile",
     "pytest.ini",
 ]

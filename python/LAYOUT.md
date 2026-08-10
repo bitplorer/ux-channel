@@ -1,6 +1,11 @@
-# Python package layout — cohesive packages (mature library structure)
+# Python package layout
 
-> **Goal:** high cohesion, low coupling, cognitive clarity — without losing any 0.x import paths.
+**Source of truth:** [`src/ux_channel/PACKAGE_MAP.json`](src/ux_channel/PACKAGE_MAP.json)  
+**Sync:** `python3 scripts/sync_python_layout.py` (`--check` in CI)  
+**Stability rules:** [STABILITY.md](STABILITY.md) · **Naming:** [../NAMING.md](../NAMING.md)
+
+Top-level `ux_channel/<module>.py` files are **generated full-module aliases**.  
+Read implementations under `host/`, `protocol/`, `paint/`, …
 
 ## Mental model (read this once)
 

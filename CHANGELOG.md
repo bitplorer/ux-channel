@@ -1,3 +1,12 @@
+## 2026-08-10 — durable Python host layout (no patchy drift)
+
+- `PACKAGE_MAP.json` single source of truth for module→package
+- `scripts/sync_python_layout.py` generates aliases + catalog; `--check` in CI
+- `python/STABILITY.md` long-term rules; slim README; fewer doc entry points
+- Gate contract test; host suite 203 passed
+
+---
+
 ## 2026-08-10 — Python host stability: shims + day-1 mint + host suite
 
 ### Fixed

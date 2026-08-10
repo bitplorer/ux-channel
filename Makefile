@@ -32,6 +32,10 @@ peer-stop:
 test-rust:
 	cd rust && cargo test --lib
 
+sync-python:
+	python3 scripts/sync_python_layout.py
+	python3 scripts/sync_python_layout.py --check
+
 test-python-host:
 	@python3 -c "import fastapi" 2>/dev/null || python3 -m pip install -q fastapi httpx starlette
 	PYTHONPATH="$(CURDIR)/python/src:$${PYTHONPATH:-}" python3 -m pytest \

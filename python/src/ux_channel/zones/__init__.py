@@ -1,55 +1,34 @@
-"""Navigational zones aligned with cohesive packages.
+"""Package map navigator — generated catalog, not an implementation layer.
 
-Physical packages (preferred for new code)::
-
-    from ux_channel.host.dx import Channel
-    from ux_channel.protocol.capability import CapService
-
-Legacy shims (still supported)::
-
-    from ux_channel.dx import Channel
+    from ux_channel.zones import catalog, help_public
+    print(help_public())
 """
 from __future__ import annotations
 
-from . import agents as agents
-from . import asgi as asgi
-from . import bridge_meta as bridge_meta
-from . import bridges as bridges
-from . import components as components
-from . import foundations as foundations
-from . import host as host
-from . import legacy_shims as legacy_shims
-from . import mcp as mcp
-from . import ops_dx as ops_dx
-from . import paint as paint
-from . import protocol as protocol
-from . import realtime as realtime
-from . import security_plane as security_plane
-from . import transport as transport
-from . import wire as wire
-from . import workplace as workplace
+import json
+from pathlib import Path
 
-ZONES = {
-    "agents": agents,
-    "asgi": asgi,
-    "bridge_meta": bridge_meta,
-    "bridges": bridges,
-    "components": components,
-    "foundations": foundations,
-    "host": host,
-    "legacy_shims": legacy_shims,
-    "mcp": mcp,
-    "ops_dx": ops_dx,
-    "paint": paint,
-    "protocol": protocol,
-    "realtime": realtime,
-    "security_plane": security_plane,
-    "transport": transport,
-    "wire": wire,
-    "workplace": workplace,
-}
+_CAT = Path(__file__).resolve().parent / "catalog.json"
+catalog: dict = json.loads(_CAT.read_text(encoding="utf-8"))
 
-__all__ = ["ZONES", "help_all", *list(ZONES.keys())]
+__all__ = ["catalog", "help_public", "help_package"]
 
-def help_all() -> str:
-    return "\n---\n".join(ZONES[k].help() for k in ZONES)
+
+def help_public() -> str:
+    pe = catalog.get("public_entry", {})
+    rp = catalog.get("rust_parity", {})
+    lines = [
+        "Public entry: " + str(pe.get("preferred", "ux_channel.day1")),
+        "Host: " + ", ".join(pe.get("host_api", [])),
+        "Cap (Rust-parity): " + ", ".join(pe.get("cap_api", [])),
+        "Rust parity map: " + ", ".join(f"{k}→{v}" for k, v in rp.items()),
+    ]
+    return "\n".join(lines) + "\n"
+
+
+def help_package(name: str) -> str:
+    members = catalog.get(name)
+    if not members:
+        return f"unknown package: {name}\n"
+    rows = "\n".join(f"  {k:28} {v}" for k, v in sorted(members.items()))
+    return f"package={name}\n{rows}\n"
