@@ -68,3 +68,15 @@ Law vectors: `../conformance/`. Human guides: `../TERMINOLOGY.md`, `../HOW_IT_WO
 
 `ux-channel-0.1.0.zip` at repo root (gitignored) is the full release tarball (examples, tests, scripts).  
 **Source for daily browsing is `python/`** so it is visible on GitHub without unzipping.
+
+## Tests (monorepo gate)
+
+```bash
+# from repo root — also part of ./verify.sh / make verify
+make test-python
+# or:
+PYTHONPATH=python pytest python/tests -q
+```
+
+These tests prove the host package matches shared `conformance/` (same law Rust must pass).
+

@@ -148,5 +148,8 @@ class CapabilityService:
 
     @staticmethod
     def _hash_args(args: Mapping[str, Any]) -> str:
-        raw = _serde.dumps(args, default=str)
+        # Canonical form is LAW (SPEC + conformance oracle + Rust CapService):
+        # sorted keys, compact separators, default=str. Do NOT use unordered
+        # JSON engines here — key order would break interop.
+        raw = json.dumps(args, sort_keys=True, separators=(",", ":"), default=str)
         return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:32]

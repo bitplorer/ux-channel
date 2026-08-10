@@ -26,6 +26,12 @@ python3 conformance/harness/validate_json_vectors.py
 echo "== CXB expected =="
 python3 conformance/harness/validate_cxb_expected.py
 
+echo "== Python host interop (sync with law) =="
+if ! python3 -c "import itsdangerous, pytest" 2>/dev/null; then
+  python3 -m pip install -q 'itsdangerous>=2.1' 'pytest>=8.0'
+fi
+PYTHONPATH="$ROOT/python${PYTHONPATH:+:$PYTHONPATH}" python3 -m pytest "$ROOT/python/tests" -q --tb=line
+
 echo "== Rust unit tests =="
 cd rust
 cargo test --lib

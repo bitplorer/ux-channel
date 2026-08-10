@@ -75,7 +75,8 @@ flowchart TB
 3. **Peer gate is permanent; actions/HTTP chrome are moving** (see STRUCTURE.md).  
 4. **Secrets fail closed** in any production binary (OPERATIONAL.md).  
 5. **JSON floor forever for IR 0.1**; CXB is opt-in upgrade.  
-6. **CI gate:** `./verify.sh` before merge; `./verify.sh --http` before release candidates.  
+6. **CI gate:** `./verify.sh` before merge (includes **Python + Rust** + law); `--http` before release candidates.  
+   Python suite: `python/tests` (cap oracle, JSON vectors, CXB expected). Rust: `cargo test` + `uxc_check`.  
 7. **Do not nest a production crate under `peers/`** — that name signals “optional experiment.” First-class `rust/` + `python/` signal ship-ready packages.
 
 ---

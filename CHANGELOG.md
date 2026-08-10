@@ -6,6 +6,17 @@ Format: newest first. “Law” vs “demo” follows [STRUCTURE.md](STRUCTURE.m
 
 ---
 
+## 2026-08-10 — Python + Rust both required in verify gate
+
+### Fixed
+- `CapabilityService._hash_args` now uses **sorted compact JSON** (SPEC/oracle/Rust) — was unsorted serde dumps (interop break)
+
+### Added
+- `python/tests/test_interop_conformance.py` — cap oracle, JSON vectors, CXB expected
+- `./verify.sh` / CI / `make test-python` run Python suite every time
+
+---
+
 ## 2026-08-10 — automation so humans do not re-audit by hand
 
 ### Added

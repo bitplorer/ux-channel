@@ -112,7 +112,12 @@ make verify
 make verify-http
 ```
 
-CI runs this on every push. You should not need to re-audit docs/paths by hand — `scripts/repo_health.py` is in the gate.
+This always runs **both** languages:
+- Python: `pytest python/tests` (cap oracle, JSON + CXB vectors)
+- Rust: `cargo test` + `uxc_check`
+- Law harnesses + repo health
+
+CI runs the same on every push.
 
 ---
 

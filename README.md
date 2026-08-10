@@ -122,6 +122,7 @@ python3 demos/python_forward/forward_to_rust.py --base http://127.0.0.1:8787 --m
 |-------|--------|
 | SPEC + freeze + invariants + breaking policy | Drafted and consistent |
 | Conformance JSON vectors + harness | **Green** |
+| Python host interop (`python/tests`) | **Green** (same law as Rust) |
 | Optional trace + surface-hello | Present (additive) |
 | Rust types + JSON round-trip | **Green** |
 | Cap verify in Rust | **Green** (oracle + mint/verify) |

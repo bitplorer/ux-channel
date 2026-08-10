@@ -1,5 +1,5 @@
 # Convenience targets — prefer these over remembering commands.
-.PHONY: help health verify verify-http peer-demo peer-stop test-rust python-path
+.PHONY: help health verify verify-http peer-demo peer-stop test-rust test-python python-path
 
 help:
 	@echo "Targets:"
@@ -9,6 +9,7 @@ help:
 	@echo "  make peer-demo    - start demo uxc_peer (oracle allow-listed)"
 	@echo "  make peer-stop    - kill uxc_peer if running"
 	@echo "  make test-rust    - cargo test --lib only"
+	@echo "  make test-python  - pytest python/tests (interop sync)"
 	@echo "  make python-path  - print PYTHONPATH export for host package"
 
 health:
@@ -30,6 +31,10 @@ peer-stop:
 
 test-rust:
 	cd rust && cargo test --lib
+
+test-python:
+	@python3 -c "import itsdangerous, pytest" 2>/dev/null || python3 -m pip install -q 'itsdangerous>=2.1' 'pytest>=8.0'
+	PYTHONPATH="$(CURDIR)/python:$${PYTHONPATH:-}" python3 -m pytest "$(CURDIR)/python/tests" -q --tb=short
 
 python-path:
 	@echo "export PYTHONPATH=\"$(CURDIR)/python:\$${PYTHONPATH:-}\""
