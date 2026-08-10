@@ -439,7 +439,7 @@ own forward-looking header policy.
 | **What** | Agent Experience API on top of the same Intent/Result bus |
 | **Use when** | Tool-using agents, automated operators, multi-agent dispatch |
 | **API** | `agents(ch)`, `Agents`, `attach_agents`, `agents_api` |
-| **Implements** | `agents/`, `agents_api.py`, `agent_peer.py` |
+| **Implements** | `agent_runtime/`, `devtools/agents_api.py` |
 | **Tests** | `tests/agents/` |
 | **Docs** | **[AGENTS](agents/AGENTS.md)** · [AGENTS_MCP](agents/AGENTS_MCP.md) |
 

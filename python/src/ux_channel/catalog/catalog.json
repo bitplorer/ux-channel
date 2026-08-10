@@ -53,7 +53,7 @@
       "plugins": "ux_channel.bridge.plugins"
     },
     "devtools": {
-      "agent_peer": "ux_channel.devtools.agent_peer",
+      "peer": "ux_channel.agent_runtime.peer",
       "agents_api": "ux_channel.devtools.agents_api",
       "cli": "ux_channel.devtools.cli",
       "codegen": "ux_channel.devtools.codegen",

@@ -30,7 +30,7 @@
   attenuate · tree_cap       capability nesting
   morph_ir · projections     multi-surface IR (elem, region)
   bridge_protocol · guest    sealed islands
-  agent_peer                 same-registry peer (prefer agents(ch))
+  agent_runtime.peer         same-registry peer (prefer agents(ch))
 ```
 
 ## Prefer / avoid
