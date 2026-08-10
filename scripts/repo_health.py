@@ -12,6 +12,7 @@ REQUIRED = [
     "README.md",
     "DOCS.md",
     "MENTAL_MODEL.md",
+    "LONGEVITY.md",
     "NAMING.md",
     "verify.sh",
     "Makefile",
@@ -113,7 +114,8 @@ def main() -> int:
         text = p.read_text(encoding="utf-8", errors="replace")
         rel = p.relative_to(ROOT).as_posix()
         # historical changelog may mention old names
-        if p.name in {"CHANGELOG.md", "STABILITY.md", "NAMING.md", "MENTAL_MODEL.md", "STRUCTURE.md", "PUBLIC_API_FREEZE.md"} or rel == "scripts/repo_health.py":
+        if p.name in {"CHANGELOG.md", "STABILITY.md", "NAMING.md", "MENTAL_MODEL.md",
+    "LONGEVITY.md", "STRUCTURE.md", "PUBLIC_API_FREEZE.md"} or rel == "scripts/repo_health.py":
             pass
         else:
             for pat in STALE:

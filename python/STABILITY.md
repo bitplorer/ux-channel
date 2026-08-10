@@ -7,6 +7,8 @@ You own HTML; Channel owns control, trust, regions, and ops.
 
 ## Layout law
 
+Long-term strata + extension doors: [../LONGEVITY.md](../LONGEVITY.md).
+
 ```text
 ux_channel/
   __init__.py       frozen public re-exports

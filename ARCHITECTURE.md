@@ -1,5 +1,7 @@
 # Architecture — production layout for the long run
 
+**Longevity strata + anti-bloat doors:** [LONGEVITY.md](LONGEVITY.md).
+
 **Decision:** keep **Python + Rust in one monorepo**, with **hard package boundaries** and a **shared law layer**.  
 Do **not** split into multiple repos until release volume forces it — protocol drift is worse than a larger tree.
 

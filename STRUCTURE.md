@@ -37,3 +37,5 @@ repo_health → layout → JSON vectors → CXB → pytest gate → cargo test �
 ```
 
 See [DOCS.md](DOCS.md), [python/STABILITY.md](python/STABILITY.md), [NAMING.md](NAMING.md).
+
+**Longevity / anti-bloat:** [LONGEVITY.md](LONGEVITY.md)

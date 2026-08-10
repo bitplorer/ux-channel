@@ -1,3 +1,11 @@
+## 2026-08-10 — LONGEVITY: stable strata + anti-bloat extension doors
+
+- Document L0–L6 permanence model (law → demos)
+- Extension doors: hooks, stores, wire plugins, bridge plugins, caller planes, adapters, extras
+- Wire DOCS/ARCHITECTURE/STABILITY + repo_health required file
+
+---
+
 ## 2026-08-10 — deeper: root binds application only (power off root)
 
 - Root no longer re-exports stores, ssr_state, planes, ChannelTest, sel, …
