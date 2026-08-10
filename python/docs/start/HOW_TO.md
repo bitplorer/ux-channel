@@ -1,3 +1,5 @@
+**First-time users:** [START_HERE.md](../../../START_HERE.md) (mental model, caps, mistakes, checklist).
+
 # How to use ux-channel 0.1.0
 
 ### Brand lines

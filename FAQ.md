@@ -1,3 +1,5 @@
+**New to the library?** [START_HERE.md](START_HERE.md)
+
 # FAQ — short answers
 
 Words: [TERMINOLOGY.md](TERMINOLOGY.md) · Flows: [HOW_IT_WORKS.md](HOW_IT_WORKS.md) · API: [REFERENCE.md](REFERENCE.md)

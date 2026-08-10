@@ -1,3 +1,5 @@
+**First-time users:** [START_HERE.md](../../../START_HERE.md) (mental model, caps, mistakes, checklist).
+
 # Course correction — long-term architecture (0.1)
 
 **Library version:** 0.1.0 (brand **0.1**).

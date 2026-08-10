@@ -1,3 +1,5 @@
+**First-time users:** read [START_HERE.md](START_HERE.md) first (this page is the short model).
+
 # Mental model
 
 ## One sentence

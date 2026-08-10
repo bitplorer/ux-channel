@@ -1,6 +1,6 @@
 # ux-channel — Wire-Native Peers (Intent → Action → Result / ops)
 
-**Start:** [MENTAL_MODEL.md](MENTAL_MODEL.md) · [DOCS.md](DOCS.md) · [python/STABILITY.md](python/STABILITY.md)
+**Start:** [START_HERE.md](START_HERE.md) · [MENTAL_MODEL.md](MENTAL_MODEL.md) · [DOCS.md](DOCS.md) · [python/STABILITY.md](python/STABILITY.md)
 
 **IR version:** `"v": "1"`  
 **Date:** 2026-08-10 (clarity + consistency audit)
@@ -10,10 +10,11 @@ This folder is the living design + conformance + second-implementation surface f
 **Layout:** [ARCHITECTURE.md](ARCHITECTURE.md) · **Docs map:** [DOCS.md](DOCS.md) · **Naming:** [NAMING.md](NAMING.md) · **Python map:** [python/LAYOUT.md](python/LAYOUT.md) · [python/ONTOLOGY.md](python/ONTOLOGY.md) — monorepo with `python/` + `rust/` + shared law.
 
 **New here?** (read in order)
-1. **[TERMINOLOGY.md](TERMINOLOGY.md)** — what every word means, does, and is **not**
-2. **[HOW_IT_WORKS.md](HOW_IT_WORKS.md)** — flows, algorithms, order of steps
-3. **[REFERENCE.md](REFERENCE.md)** — HTTP API, curl recipes, module map
-4. **[FAQ.md](FAQ.md)** — short answers
+1. **[START_HERE.md](START_HERE.md)** — full first-time path (mental model, caps, first app, mistakes)
+2. **[TERMINOLOGY.md](TERMINOLOGY.md)** — what every word means, does, and is **not**
+3. **[HOW_IT_WORKS.md](HOW_IT_WORKS.md)** — flows, algorithms, order of steps
+4. **[REFERENCE.md](REFERENCE.md)** — HTTP API, curl recipes, module map
+5. **[FAQ.md](FAQ.md)** — short answers
 Do not assume prior knowledge of IR / caps / CXB.
 
 ---

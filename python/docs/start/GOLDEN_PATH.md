@@ -1,3 +1,5 @@
+**First-time users:** [START_HERE.md](../../../START_HERE.md) (mental model, caps, mistakes, checklist).
+
 > **Media-first (application):** prefer ``ch.media.plugin(room, sub=…)`` (``mode='mesh'|'sfu'|'auto'``). ``ch.webrtc`` remains the mesh power plane.
 
 # Golden path — uxchannel 0.1

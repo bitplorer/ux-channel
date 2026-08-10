@@ -53,6 +53,9 @@ make test-python-host
 
 ## Docs
 
+**First time?** Start at [../START_HERE.md](../START_HERE.md).
+
+
 See [docs/index.md](docs/index.md) for the full encyclopedia.
 
 - [HOW_TO](docs/start/HOW_TO.md) · [GOLDEN_PATH](docs/start/GOLDEN_PATH.md) · [STABILITY](STABILITY.md) · [../MENTAL_MODEL.md](../MENTAL_MODEL.md)

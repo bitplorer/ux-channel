@@ -4,6 +4,7 @@
 
 | Doc | Topic |
 |-----|--------|
+| **[START_HERE.md](START_HERE.md)** | **First-time users (read this first)** |
 | [README.md](README.md) | Repo overview |
 | [STRUCTURE.md](STRUCTURE.md) | Monorepo map |
 | [MENTAL_MODEL.md](MENTAL_MODEL.md) | Intent → Result mental model |

@@ -1,3 +1,11 @@
+## 2026-08-10 — START_HERE: first-time user guide
+
+- Comprehensive onboarding: mental model, vocabulary, caps, regions, state, first app
+- Design choices, implementation map, import rules, common mistakes, checklist
+- Wired as primary entry from README, DOCS, FAQ, MENTAL_MODEL, python docs
+
+---
+
 ## 2026-08-10 — denoise library internals
 
 - Strip PUBLIC/PRIVATE / WHY THIS MODULE banner docstrings across packages
