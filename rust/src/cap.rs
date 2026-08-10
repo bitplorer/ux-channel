@@ -425,4 +425,99 @@ mod tests {
             Err(CapError::ArgsMismatch)
         ));
     }
+
+    /// hash_args is pure + order-independent for object keys.
+    #[test]
+    fn hash_args_key_order_independent() {
+        let a = json!({"sku": "a", "qty": 2});
+        let b = json!({"qty": 2, "sku": "a"});
+        assert_eq!(CapService::hash_args(&a), CapService::hash_args(&b));
+    }
+
+    #[test]
+    fn weak_secret_rejected() {
+        assert!(matches!(
+            CapService::new("short", 3600),
+            Err(CapError::WeakSecret)
+        ));
+    }
+}
+
+#[cfg(test)]
+mod prop_tests {
+    use super::*;
+    use proptest::prelude::*;
+    use serde_json::{json, Map, Value};
+
+    fn leaf() -> impl Strategy<Value = Value> {
+        prop_oneof![
+            Just(Value::Null),
+            any::<bool>().prop_map(Value::Bool),
+            (-1000i64..1000i64).prop_map(|n| json!(n)),
+            ".*".prop_map(|s| json!(s)),
+        ]
+    }
+
+    fn json_object() -> impl Strategy<Value = Value> {
+        prop::collection::btree_map("[a-z]{1,8}", leaf(), 0..6)
+            .prop_map(|m| {
+                let mut map = Map::new();
+                for (k, v) in m {
+                    map.insert(k, v);
+                }
+                Value::Object(map)
+            })
+    }
+
+    fn action_name() -> impl Strategy<Value = String> {
+        "[A-Za-z][A-Za-z0-9_.]{0,24}"
+    }
+
+    proptest! {
+        #[test]
+        fn hash_args_deterministic(args in json_object()) {
+            let h1 = CapService::hash_args(&args);
+            let h2 = CapService::hash_args(&args);
+            prop_assert_eq!(h1.clone(), h2);
+            prop_assert_eq!(h1.len(), 32);
+        }
+
+        #[test]
+        fn mint_verify_roundtrip_prop(
+            action in action_name(),
+            args in json_object(),
+        ) {
+            let svc = CapService::oracle();
+            let tok = svc.mint(&action, &args, None, None).expect("mint");
+            svc.verify(&tok, &action, &args).expect("verify");
+        }
+
+        #[test]
+        fn verify_rejects_tampered_args(
+            action in action_name(),
+            args in json_object(),
+            extra_key in "[a-z]{3,6}",
+        ) {
+            prop_assume!(!args.as_object().unwrap().contains_key(&extra_key));
+            let svc = CapService::oracle();
+            let tok = svc.mint(&action, &args, None, None).expect("mint");
+            let mut bad = args.clone();
+            bad.as_object_mut().unwrap().insert(extra_key, json!(1));
+            let err = svc.verify(&tok, &action, &bad).unwrap_err();
+            prop_assert!(matches!(err, CapError::ArgsMismatch));
+        }
+
+        #[test]
+        fn verify_rejects_wrong_action(
+            action in action_name(),
+            other in action_name(),
+            args in json_object(),
+        ) {
+            prop_assume!(action != other);
+            let svc = CapService::oracle();
+            let tok = svc.mint(&action, &args, None, None).expect("mint");
+            let err = svc.verify(&tok, &other, &args).unwrap_err();
+            prop_assert!(matches!(err, CapError::ActionMismatch));
+        }
+    }
 }

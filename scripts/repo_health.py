@@ -14,6 +14,7 @@ REQUIRED = [
     "MENTAL_MODEL.md",
     "LONGEVITY.md",
     "START_HERE.md",
+    "TESTING.md",
     "NAMING.md",
     "verify.sh",
     "Makefile",
@@ -118,7 +119,8 @@ def main() -> int:
         # historical changelog may mention old names
         if p.name in {"CHANGELOG.md", "STABILITY.md", "NAMING.md", "MENTAL_MODEL.md",
     "LONGEVITY.md",
-    "START_HERE.md", "STRUCTURE.md", "PUBLIC_API_FREEZE.md"} or rel == "scripts/repo_health.py":
+    "START_HERE.md",
+    "TESTING.md", "STRUCTURE.md", "PUBLIC_API_FREEZE.md"} or rel == "scripts/repo_health.py":
             pass
         else:
             for pat in STALE:

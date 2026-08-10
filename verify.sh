@@ -39,7 +39,7 @@ PYTHONPATH="$ROOT/python/src${PYTHONPATH:+:$PYTHONPATH}" python3 -m pytest "$ROO
 
 echo "== Rust unit tests =="
 cd rust
-cargo test --lib
+cargo test --lib --tests
 
 echo "== uxc_check (in-process) =="
 cargo run --quiet --bin uxc_check -- ../conformance

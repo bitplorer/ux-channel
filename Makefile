@@ -8,7 +8,7 @@ help:
 	@echo "  make layout            - package layout check (no shims)"
 	@echo "  make verify            - health + law + Python gate + Rust (CI)"
 	@echo "  make verify-http       - verify + live peer + demo forward"
-	@echo "  make test-rust         - cargo test --lib"
+	@echo "  make test-rust         - cargo test --lib --tests"
 	@echo "  make test-python-gate  - pytest python/tests/gate"
 	@echo "  make test-python-host  - pytest host regions/state/core"
 	@echo "  make test-python       - full python/tests (heavier)"
@@ -30,7 +30,7 @@ verify-http: health layout
 	./verify.sh --http
 
 test-rust:
-	cd rust && cargo test --lib
+	cd rust && cargo test --lib --tests
 
 test-python-gate:
 	cd python && PYTHONPATH=src python3 -m pytest tests/gate -q
@@ -43,3 +43,9 @@ test-python:
 
 python-path:
 	@echo "export PYTHONPATH=$(CURDIR)/python/src:$$PYTHONPATH"
+
+test-python-integration:
+	cd python && PYTHONPATH=src python3 -m pytest tests/integration tests/gate/test_cap_properties.py -q
+
+test-python-properties:
+	cd python && PYTHONPATH=src python3 -m pytest tests/gate/test_cap_properties.py tests/core/test_wire_properties.py -q

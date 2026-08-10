@@ -1,11 +1,8 @@
-//! ux_channel_rs — Rust peer for the ux-channel Intent → Result → ops contract.
+//! ux_channel_rs — Rust peer for ux-channel Intent → Result → ops.
 //!
-//! Phase 2 surface:
-//! - `types` / `wire_json` — IR JSON floor
-//! - `cap` — portable capability mint/verify (itsdangerous-compatible)
-//! - `cxb` / `op_tags` — CXB1/CXBZ codec (decode matches frozen oracle blobs)
-//! - `peer` / `actions` — Intent → Result dispatch
-//! - bins: `uxc_check`, `uxc_peer`
+//! Permanent: `types`, `wire_json`, `cap`, `cxb`, `op_tags`, `peer` gate.  
+//! Moving: `actions` demo handlers; `uxc_peer` HTTP chrome.  
+//! Docs: repo `START_HERE.md`, `TESTING.md`, `rust/README.md`.
 
 pub mod actions;
 pub mod cap;

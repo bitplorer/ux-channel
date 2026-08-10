@@ -1,3 +1,11 @@
+## 2026-08-11 — Rust/Python tests: unit, property, integration + docs
+
+- Rust: proptest cap/wire properties; integration_peer; README layout/tests
+- Python: gate cap properties (Hypothesis); integration Channel dispatch
+- TESTING.md; verify runs cargo test --lib --tests
+
+---
+
 ## 2026-08-10 — START_HERE: first-time user guide
 
 - Comprehensive onboarding: mental model, vocabulary, caps, regions, state, first app

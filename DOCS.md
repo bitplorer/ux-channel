@@ -28,6 +28,7 @@
 | Doc | Topic |
 |-----|--------|
 | [OPERATIONAL.md](OPERATIONAL.md) | Verify / CI |
+| [TESTING.md](TESTING.md) | Unit / property / integration |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | System shape |
 | [FAQ.md](FAQ.md) | Common questions |
 | [python/docs/start/](python/docs/start/) | Application encyclopedia |

@@ -19,6 +19,46 @@ Humans: [`TERMINOLOGY.md`](../TERMINOLOGY.md) → [`HOW_IT_WORKS.md`](../HOW_IT_
 | `bin/uxc_check` | Vectors + cap + CXB + peer edges + optional `--http` | moving surface, permanent duty |
 | `bin/uxc_peer` | HTTP peer: `POST /ux-channel/action` + demo UI | **moving** |
 
+## Layout
+
+```text
+rust/
+├── Cargo.toml
+├── README.md
+├── src/
+│   ├── lib.rs           # crate root re-exports
+│   ├── types.rs         # Intent, ResultDoc, Op (IR)
+│   ├── wire_json.rs     # JSON encode/decode + canonical_json
+│   ├── cap.rs           # CapService mint/verify/hash_args
+│   ├── cxb.rs           # CXB codec
+│   ├── op_tags.rs       # dense op tags (append-only)
+│   ├── peer.rs          # Intent → cap gate → actions
+│   ├── actions.rs       # demo actions (moving)
+│   └── bin/
+│       ├── uxc_check.rs # conformance runner
+│       └── uxc_peer.rs  # HTTP demo peer
+└── tests/
+    └── integration_peer.rs
+```
+
+**Permanent vs moving:** types/wire/cap/cxb/peer gate are permanent; `actions` + `uxc_peer` UI are demo/moving.
+
+## Tests
+
+| Kind | Command | What |
+|------|---------|------|
+| Unit + property | `cargo test --lib` | cap, wire, peer, CXB + proptest |
+| Integration | `cargo test --tests` | Peer cap gate end-to-end |
+| Conformance | `cargo run --bin uxc_check -- ../conformance` | golden vectors |
+
+Property invariants (proptest):
+
+* `hash_args` deterministic, 32 hex chars  
+* mint → verify roundtrip for arbitrary action/args  
+* tampered args → `ArgsMismatch`  
+* wrong action → `ActionMismatch`  
+* intent JSON encode/decode roundtrip  
+
 ## Build & check
 
 ```bash

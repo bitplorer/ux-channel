@@ -31,3 +31,7 @@ path = "src/bin/uxc_check.rs"
 [[bin]]
 name = "uxc_peer"
 path = "src/bin/uxc_peer.rs"
+
+[dev-dependencies]
+proptest = "1"
+
