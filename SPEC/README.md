@@ -12,6 +12,7 @@
 | [BREAKING_CHANGE_POLICY.md](BREAKING_CHANGE_POLICY.md) | Major vs additive process | **Normative process** |
 | [../STRUCTURE.md](../STRUCTURE.md) | Permanent vs moving (maintenance) | Process |
 | [../OPERATIONAL.md](../OPERATIONAL.md) | Secrets, env, HTTP honesty | Operators |
+| [../HOW_IT_WORKS.md](../HOW_IT_WORKS.md) | Human walkthrough (diagrams) | Guide |
 | [../ux-channel-design-causal-surface.md](../ux-channel-design-causal-surface.md) | Optional envelopes | Phase 1.5 (additive) |
 | Package `docs/core/CXB.md` | Binary wire format (CXB1 / CXBZ) | Normative inside 0.1.0 package |
 | Package `docs/core/WIRE.md` | Multi-format wire surface | Supporting |

@@ -514,7 +514,14 @@ Default bind: host `0.0.0.0`, port `8787` (`UXC_HOST` / `UXC_PORT`).
 
 ## 11. How we prove it still works
 
-Order of checks (run from package root):
+**One command** (from package root):
+
+```bash
+./verify.sh          # harnesses + cargo test + uxc_check
+./verify.sh --http   # also live peer + python forward
+```
+
+Same steps expanded:
 
 ```text
 1. python3 conformance/harness/validate_json_vectors.py
@@ -529,13 +536,10 @@ Order of checks (run from package root):
 4. cargo run --bin uxc_check -- ../../conformance
       → Rust loads vectors + oracle cap + CXB + edge cases
 
-5. (optional live)
-   UXC_ALLOW_ORACLE_SECRET=1 cargo run --bin uxc_peer
-   cargo run --bin uxc_check -- ../../conformance --http http://127.0.0.1:8787
-      → real HTTP health honesty + Cart.add + missing-cap
-
-6. python3 peers/python_forward/forward_to_rust.py --mint-via-peer
-      → second language posts Intent, prints Result
+5. (optional live — verify.sh --http)
+   startup-peer.sh / UXC_ALLOW_ORACLE_SECRET=1 uxc_peer
+   uxc_check --http http://127.0.0.1:8787
+   python_forward --mint-via-peer
 ```
 
 **Green means:** same Intent/Result/cap story works in vectors, in Rust, and over HTTP JSON.

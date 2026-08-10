@@ -21,20 +21,49 @@ JSON is the floor; CXB is the dense upgrade; caps travel with the Intent.
 
 ---
 
-## Layout
+## Layout (structured)
+
+Read top → bottom if you are new. Layers do not mix “law” with “demo.”
+
+### A. Start here (humans)
 
 | Path | Role |
 |------|------|
-| **`HOW_IT_WORKS.md`** | **Human walkthrough** — diagrams, order of steps, codecs, failures |
-| `SPEC/` | Normative drafts: IR, Capability, Invariants, Breaking-change policy |
-| `STRUCTURE.md` | Permanent vs moving (do not mix law with demos) |
-| `OPERATIONAL.md` | Secrets, env vars, HTTP honesty — **read before running `uxc_peer`** |
-| `conformance/` | Golden vectors + harnesses + **CXB expected blobs** |
-| `peers/ux_channel_rs/` | Rust peer: types, JSON, cap, CXB, HTTP, `uxc_check` / `uxc_peer` |
-| `peers/python_forward/` | Minimal Python → Rust forward (ops returned unchanged) |
-| `PUBLIC_API_FREEZE.md` | Day-1 public surface aligned with package freeze docs |
-| `AGENTS.md` | Agent orientation + intentional policies |
-| `ux-channel-*.md` | Thesis / causal surface / roadmap (planning, not law) |
+| **[HOW_IT_WORKS.md](HOW_IT_WORKS.md)** | Full walkthrough: diagrams, algorithms, order of steps, failures, CXB status |
+| [STRUCTURE.md](STRUCTURE.md) | Permanent (law) vs moving (demos) |
+| [OPERATIONAL.md](OPERATIONAL.md) | Secrets, env vars, HTTP honesty — **before** `uxc_peer` |
+| [AGENTS.md](AGENTS.md) | Short agent checklist |
+
+### B. Law (change only via major IR or bugfix)
+
+| Path | Role |
+|------|------|
+| [SPEC/](SPEC/) | IR, capability, invariants, breaking-change policy |
+| [conformance/](conformance/) | Golden JSON vectors + CXB expected blobs + harnesses |
+| [PUBLIC_API_FREEZE.md](PUBLIC_API_FREEZE.md) | Day-1 public names (host package alignment) |
+
+### C. Peers (implementations)
+
+| Path | Role |
+|------|------|
+| [peers/ux_channel_rs/](peers/ux_channel_rs/) | Rust peer: types, JSON, cap, CXB, HTTP, `uxc_check` / `uxc_peer` |
+| [peers/python_forward/](peers/python_forward/) | Minimal Python → Rust forward (ops returned unchanged) |
+| [startup-peer.sh](startup-peer.sh) | Idempotent local demo peer helper (oracle allow-listed) |
+
+### D. Planning only (not law)
+
+| Path | Role |
+|------|------|
+| [ux-channel-core-ideas.md](ux-channel-core-ideas.md) | Thesis / motivation |
+| [ux-channel-design-causal-surface.md](ux-channel-design-causal-surface.md) | Optional envelopes (Phase 1.5) |
+| [ux-channel-roadmap.md](ux-channel-roadmap.md) | Phased plan |
+
+### E. One-command verify
+
+```bash
+./verify.sh                 # JSON + CXB harnesses + cargo test + uxc_check
+./verify.sh --http          # also live peer smoke (starts demo peer if needed)
+```
 
 ---
 

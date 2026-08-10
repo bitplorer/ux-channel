@@ -61,7 +61,9 @@ cd peers/ux_channel_rs && cargo run --bin uxc_check -- ../../conformance
 
 ## Related
 
-- `SPEC/intent-result-ops.md`
-- `SPEC/capability.md`
-- `SPEC/BREAKING_CHANGE_POLICY.md`
-- Package `docs/core/CXB.md`
+- [`../HOW_IT_WORKS.md`](../HOW_IT_WORKS.md) — human walkthrough
+- [`../SPEC/intent-result-ops.md`](../SPEC/intent-result-ops.md)
+- [`../SPEC/capability.md`](../SPEC/capability.md)
+- [`../SPEC/INVARIANTS.md`](../SPEC/INVARIANTS.md)
+- [`../SPEC/BREAKING_CHANGE_POLICY.md`](../SPEC/BREAKING_CHANGE_POLICY.md)
+- Package `docs/core/CXB.md` (inside 0.1.0 zip)

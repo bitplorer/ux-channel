@@ -37,4 +37,10 @@ Exit code `0` only when `result.ok` is true.
 2. JSON floor  
 3. Caps travel on the Intent  
 4. Peers > FFI (HTTP, not PyO3 for business logic)  
-5. Ops are never rewritten by the forward adapter  
+5. Ops are never rewritten by the forward adapter
+
+## See also
+
+- [`../../HOW_IT_WORKS.md`](../../HOW_IT_WORKS.md)
+- [`../../OPERATIONAL.md`](../../OPERATIONAL.md)
+

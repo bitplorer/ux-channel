@@ -1,5 +1,7 @@
 # Operational notes — not tribal knowledge
 
+Story + diagrams: [`HOW_IT_WORKS.md`](HOW_IT_WORKS.md). Permanent vs moving: [`STRUCTURE.md`](STRUCTURE.md).
+
 These rules are **normative for operators** of any peer that uses this package.
 They are easy to miss if you only read the IR SPEC.
 
