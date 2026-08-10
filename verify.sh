@@ -48,6 +48,8 @@ if [ "$HTTP" -eq 1 ]; then
   echo "== python forward (demo) =="
   python3 "$ROOT/demos/python_forward/forward_to_rust.py" --mint-via-peer >/dev/null
   echo "python forward: ok"
+  echo "== cross-mint Python↔Rust =="
+  python3 "$ROOT/scripts/cross_mint_check.py"
 fi
 
 echo "All verify checks passed."
