@@ -49,21 +49,28 @@ def test_core_packages_listed_L1_L2():
 
 
 def test_root_import_weight():
-    """Importing ux_channel must not load agent runner / devtools.trace / realtime."""
-    import importlib
+    """Importing ux_channel must not load agent runner / devtools.trace / realtime.
+
+    Runs in a subprocess so purging sys.modules cannot poison later tests.
+    """
+    import subprocess
     import sys
+    from textwrap import dedent
 
-    for m in list(sys.modules):
-        if m.startswith("ux_channel"):
-            del sys.modules[m]
-    importlib.invalidate_caches()
-    import ux_channel  # noqa: F401
-
-    for heavy in (
-        "ux_channel.agent_runtime.runner",
-        "ux_channel.agent_runtime.tools",
-        "ux_channel.devtools.trace",
-        "ux_channel.realtime",
-        "ux_channel.mcp",
-    ):
-        assert heavy not in sys.modules, heavy
+    code = dedent(
+        """
+        import sys
+        import ux_channel  # noqa: F401
+        heavy = (
+            "ux_channel.agent_runtime.runner",
+            "ux_channel.agent_runtime.tools",
+            "ux_channel.devtools.trace",
+            "ux_channel.realtime",
+            "ux_channel.mcp",
+        )
+        bad = [m for m in heavy if m in sys.modules]
+        assert not bad, bad
+        """
+    )
+    r = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True)
+    assert r.returncode == 0, r.stderr or r.stdout
