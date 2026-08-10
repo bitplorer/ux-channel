@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import subprocess
 import sys
+import types
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -40,9 +41,9 @@ def test_public_paths():
 
 def test_package_public_api():
     """Cohesive packages expose primary symbols without deep paths."""
-    from ux_channel.protocol import CapService, Intent, Result, morph
-    from ux_channel.host import Channel, Region, RegionBook
     from ux_channel.api import Channel as C2
+    from ux_channel.host import Channel, Region, RegionBook
+    from ux_channel.protocol import CapService, Intent, Result, morph
 
     assert Channel is C2
     assert callable(morph)
@@ -51,19 +52,43 @@ def test_package_public_api():
 
 
 def test_no_legacy_package_dirs():
-    from pathlib import Path
     root = Path(__import__("ux_channel").__file__).resolve().parent
     for name in ("paint", "ops_dx", "bridge_meta", "day1", "zones", "security_plane"):
         assert not (root / name).exists(), name
 
 
 def test_cohesive_package_exports():
-    from ux_channel import host, protocol, render, security, foundations
+    from ux_channel import foundations, host, protocol, render, security
+    from ux_channel.foundations import Quantity
     from ux_channel.host import Channel, Region
     from ux_channel.protocol import CapService, Intent, morph
     from ux_channel.render import morph_ir
-    from ux_channel.security import intent_headers
-    from ux_channel.foundations import Quantity
+    from ux_channel.security import intent_headers, safe_href
 
     assert Channel and Region and CapService and Intent and morph
-    assert morph_ir and intent_headers and Quantity
+    assert morph_ir and intent_headers and Quantity and safe_href
+
+
+def test_state_api_not_shadowed_by_host_state_module():
+    """host.state is the store module; state() lives on state_api / root."""
+    from ux_channel import state as root_state
+    from ux_channel.host import state as host_state_mod
+    from ux_channel.host.state_api import state as api_state
+
+    assert isinstance(host_state_mod, types.ModuleType)
+    assert root_state is api_state
+    assert callable(root_state)
+
+
+def test_root_identity_with_packages():
+    import ux_channel as u
+    from ux_channel.devtools import attach_audit
+    from ux_channel.host import Channel
+    from ux_channel.protocol import CapService, morph
+    from ux_channel.render import esc
+
+    assert u.Channel is Channel
+    assert u.CapService is CapService
+    assert u.morph is morph
+    assert u.attach_audit is attach_audit
+    assert u.esc is esc

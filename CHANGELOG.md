@@ -1,3 +1,11 @@
+## 2026-08-10 — package surface polish (root via packages)
+
+- Root re-exports primarily through package public APIs
+- Richer protocol/render/security/devtools/bridge surfaces
+- Document host.state vs state() name collision; gate identity tests
+
+---
+
 ## 2026-08-10 — deep clean: map v2, package surfaces, harness paths
 
 - Rebuild PACKAGE_MAP.json from disk (v2) with forbidden_names

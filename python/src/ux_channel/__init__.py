@@ -10,7 +10,6 @@ Application surface
     # or: from ux_channel.api import Channel, Region, CapService, state
 
     ch = Channel.boot(...)
-    # @region / @on → control → done/fail
 
 Power packages (import by intent)
 ---------------------------------
@@ -18,20 +17,26 @@ Power packages (import by intent)
 ``foundations`` · ``realtime`` · ``bridge`` · ``bridges`` · ``asgi`` ·
 ``devtools`` · ``wire`` · ``components`` · ``agents`` · ``mcp`` · ``workplace``
 
-Layout law: ``python/STABILITY.md``. Naming: root ``NAMING.md``.
-HTML hosts own markup; Channel owns control, trust, regions, and ops.
+Layout: ``python/STABILITY.md`` · Naming: root ``NAMING.md``.
 """
-
 
 from __future__ import annotations
 
 from ux_channel._version import __version__, __version_info__
 
-# ── Protocol ──────────────────────────────────────────────────────────────
-from ux_channel.protocol.types import ErrorObject, Intent, Result
-from ux_channel.protocol.errors import ActionError, ActionNotFound, ChannelError
-from ux_channel.protocol.ops import (
+# ── Protocol (package surface + encode) ───────────────────────────────────
+from ux_channel.protocol import (
+    ActionError,
+    ActionNotFound,
+    CapError,
+    CapService,
+    ChannelError,
+    ErrorObject,
+    Go,
+    Intent,
+    Navigate,
     Op,
+    Result,
     clear_errors,
     focus,
     morph,
@@ -47,51 +52,56 @@ from ux_channel.protocol.ops import (
     swap,
     toast,
 )
-from ux_channel.protocol.encode import Go, Navigate
 
-# ── Runtime ───────────────────────────────────────────────────────────────
-from ux_channel.host.registry import ActionRegistry
-from ux_channel.protocol.capability import CapError, CapService
-from ux_channel.host.context import ActionContext, Principal
-from ux_channel.host.config import ChannelConfig
-from ux_channel.host.state import MemoryStateStore, NullStateStore, StateConflict
-from ux_channel.host.nonce import MemoryNonceStore
-from ux_channel.host.idempotency import MemoryIdempotencyStore
-
-# ── Façade + regions ──────────────────────────────────────────────────────
-from ux_channel.host.channel import Channel, UiBuilder, sel
-from ux_channel.host.regions import RegionBook, RegionContext, RegionDef
-from ux_channel.host.region_component import Region
-from ux_channel.host.flow import Flow, FailFlow, attach_flow
-from ux_channel.host.ssr_state import ssr_state, attach_ssr_state, SsrState, SessionVar, Namespace
-from ux_channel.host.state_planes import (
-    planes,
-    attach_planes,
-    Planes,
-    ClientPlane,
-    Db,
-    ClientSafetyError,
-    path_is_risky,
-    RISKY_SEGMENTS,
+# ── Host runtime ──────────────────────────────────────────────────────────
+from ux_channel.host import (
+    ActionRegistry,
+    Channel,
+    ChannelConfig,
+    Region,
+    RegionBook,
+    RegionContext,
+    RegionDef,
+    create_channel,
 )
-from ux_channel.host.state_api import state, attach_state, ChannelState, Client
-from ux_channel.devtools.agents_api import agents as _agents_facade, attach_agents, Agents, EffectReport
+from ux_channel.host.state_api import ChannelState, Client, attach_state, state
+from ux_channel.host.channel import UiBuilder, sel
+from ux_channel.host.context import ActionContext, Principal
+from ux_channel.host.flow import FailFlow, Flow, attach_flow
+from ux_channel.host.idempotency import MemoryIdempotencyStore
+from ux_channel.host.nonce import MemoryNonceStore
+from ux_channel.host.region_directory import RegionDirectory, attach_region_directory, path_to_uid
+from ux_channel.host.ssr_state import Namespace, SessionVar, SsrState, attach_ssr_state, ssr_state
+from ux_channel.host.state import MemoryStateStore, NullStateStore, StateConflict
+from ux_channel.host.state_planes import (
+    RISKY_SEGMENTS,
+    ClientPlane,
+    ClientSafetyError,
+    Db,
+    Planes,
+    attach_planes,
+    path_is_risky,
+    planes,
+)
+from ux_channel.host.testing import ChannelTest
+
+# ── Devtools / agents ─────────────────────────────────────────────────────
+from ux_channel.devtools import AuditBundle, attach_audit, inspect_channel, inspect_enabled
+from ux_channel.devtools.agents_api import Agents, EffectReport, attach_agents
+from ux_channel.devtools.agents_api import agents as _agents_facade
 
 agents = _agents_facade
 
-from ux_channel.host.region_directory import RegionDirectory, path_to_uid, attach_region_directory
-from ux_channel.devtools.inspect_api import inspect_channel, inspect_enabled
-from ux_channel.devtools.audit import attach_audit, AuditBundle
-
-# ── HTML safety + control attrs ───────────────────────────────────────────
-from ux_channel.render.html import (
+# ── Render ────────────────────────────────────────────────────────────────
+from ux_channel.render import (
     ControlAttrs,
+    SafeHtml,
     action_attrs,
-    attr_escape,
-    form_open,
-    json_attr,
+    esc,
+    mark_safe,
+    user_content,
 )
-from ux_channel.render.html_safe import SafeHtml, esc, mark_safe, user_content
+from ux_channel.render.html import attr_escape, form_open, json_attr
 
 # ── Error plane ───────────────────────────────────────────────────────────
 from ux_channel.protocol.error_map import (
@@ -100,15 +110,10 @@ from ux_channel.protocol.error_map import (
     http_status_for,
 )
 
-# ── Factory / testing ─────────────────────────────────────────────────────
-from ux_channel.host.factory import create_channel
-from ux_channel.host.testing import ChannelTest
-
-# Power layers stay off root — import by concern (quantity, workplace, outbox, …)
-
 __all__ = [
     "__version__",
     "__version_info__",
+    # protocol
     "ErrorObject",
     "Intent",
     "Result",
@@ -132,9 +137,10 @@ __all__ = [
     "toast",
     "Go",
     "Navigate",
-    "ActionRegistry",
     "CapError",
     "CapService",
+    # host
+    "ActionRegistry",
     "ActionContext",
     "Principal",
     "ChannelConfig",

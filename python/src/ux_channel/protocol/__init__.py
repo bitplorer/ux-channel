@@ -28,6 +28,7 @@ from ux_channel.protocol.ops import (
     toast,
 )
 from ux_channel.protocol.types import ErrorObject, Intent, Result
+from ux_channel.protocol.encode import Go, Navigate
 
 PACKAGE = "protocol"
 __all__ = [
@@ -55,4 +56,6 @@ __all__ = [
     "signal_set",
     "noop",
     "push_url",
+    "Go",
+    "Navigate",
 ]

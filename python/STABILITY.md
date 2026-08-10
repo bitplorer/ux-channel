@@ -78,3 +78,14 @@ Cohesive packages may expose a small set on the package root
 | `foundations` | `Quantity` |
 
 Deep modules remain available as `ux_channel.<package>.<module>`.
+
+
+## Name collisions to respect
+
+| Path | Meaning |
+|------|---------|
+| `ux_channel.host.state` | **Module** — memory/null stores |
+| `ux_channel.host.state_api.state` | **Function** — day-1 `state(ch)` API |
+| `from ux_channel import state` | The function (root re-export) |
+
+Never put `state` on `host.__all__` — it shadows the submodule.
