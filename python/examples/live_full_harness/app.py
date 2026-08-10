@@ -96,7 +96,7 @@ def dx():
 
 @app.get("/dx.json")
 def dx_json():
-    from ux_channel import serde as _serde
+    from ux_channel.protocol import serde as _serde
     from fastapi.responses import Response
     model = build_dashboard_model(doctor=ch.doctor(), latencies=[])
     return Response(_serde.dumps(model), media_type="application/json")

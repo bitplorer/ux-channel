@@ -57,8 +57,10 @@ def regenerate(meta: dict) -> list[str]:
         init = PKG / pkg / "__init__.py"
         doc = package_docs.get(pkg, "Cohesive implementation package.")
         text = PKG_INIT.format(pkg=pkg, doc=doc, modules=", ".join(stems), members=stems)
+        init.parent.mkdir(parents=True, exist_ok=True)
+        if init.exists() and "MANUAL_PUBLIC_API" in init.read_text(encoding="utf-8"):
+            continue  # hand-maintained public package API
         if not init.exists() or init.read_text(encoding="utf-8") != text:
-            init.parent.mkdir(parents=True, exist_ok=True)
             init.write_text(text, encoding="utf-8")
             actions.append(f"write {init.relative_to(ROOT)}")
 

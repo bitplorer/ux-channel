@@ -1,16 +1,16 @@
-"""Cohesive package: **paint**
+"""Paint package — morph IR, HTML safety, placement.
 
-HTML safety, morph IR, placement — paint only, no cap crypto.
+Preferred::
 
-Modules: demo, html, html_document, html_safe, morph_ir, placement, projections, render, response, slot_compile
-
-Import: ``from ux_channel.paint.MODULE import Symbol``
-Public apps: ``from ux_channel.day1 import …`` or ``from ux_channel import …``
-
-Source of truth: PACKAGE_MAP.json
+    from ux_channel.paint import morph_ir, html_safe, placement
 """
 from __future__ import annotations
 
-MEMBERS = ['demo', 'html', 'html_document', 'html_safe', 'morph_ir', 'placement', 'projections', 'render', 'response', 'slot_compile']
-PACKAGE = 'paint'
-__all__ = ["MEMBERS", "PACKAGE"]
+# MANUAL_PUBLIC_API — sync_python_layout must not overwrite this file
+
+from ux_channel.paint import morph_ir
+from ux_channel.paint import html_safe
+from ux_channel.paint import placement
+
+PACKAGE = "paint"
+__all__ = ["PACKAGE", "morph_ir", "html_safe", "placement"]

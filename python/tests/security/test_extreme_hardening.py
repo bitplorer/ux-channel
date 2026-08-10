@@ -175,7 +175,7 @@ def test_previous_secrets_rotation_roundtrip():
     old, new = SECRET, "new-secret-key-32chars-minimum!!xx"
     reg_old = ActionRegistry(secret=old, require_cap=True)
     reg_old.register("Hi", lambda: Result.success(toast("hi")))
-    cap = reg_old.sign("Hi", {})
+    cap = reg_old.mint("Hi", {})
     reg_new = ActionRegistry(secret=new, require_cap=True, previous_secrets=[old])
     reg_new.register("Hi", lambda: Result.success(toast("hi")))
     assert reg_new.dispatch(Intent(action="Hi", args={}, cap=cap)).ok

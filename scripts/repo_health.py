@@ -38,6 +38,7 @@ REQUIRED = [
     "STRUCTURE.md",
     "CHANGELOG.md",
     "README.md",
+    "DOCS.md",
     "NAMING.md",
     "AGENTS.md",
     "verify.sh",

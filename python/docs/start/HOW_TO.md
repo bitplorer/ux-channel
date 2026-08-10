@@ -216,7 +216,7 @@ from fastapi.testclient import TestClient
 from ux_channel import Intent
 
 client = TestClient(app)
-cap = ch.sign("add", {"product_id": "sku"})
+cap = ch.mint("add", {"product_id": "sku"})
 r = client.post(
     "/ux-channel/action",
     json={"action": "add", "args": {"product_id": "sku"}, "cap": cap},

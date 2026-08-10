@@ -1,3 +1,12 @@
+## 2026-08-10 — package public APIs + docs map + mint consistency
+
+- `protocol` / `host` / `paint` expose primary symbols on the package
+- Root [DOCS.md](DOCS.md) documentation index
+- Remaining `sign`→`mint` and serde import drift cleaned
+- sync preserves MANUAL_PUBLIC_API package inits
+
+---
+
 ## 2026-08-10 — single-truth Python: packages only, zero shims
 
 - Removed all top-level compatibility aliases

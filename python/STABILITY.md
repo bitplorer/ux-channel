@@ -34,10 +34,10 @@ Shared law   →  CapService.mint/verify  (same as Rust)
 # Apps
 from ux_channel.day1 import Channel, Region, CapService, state
 
-# Library / power
-from ux_channel.host.regions import RegionBook
-from ux_channel.protocol.capability import CapService
-from ux_channel.paint.morph_ir import elem
+# By package (preferred power imports)
+from ux_channel.protocol import CapService, Intent, Result, morph
+from ux_channel.host import Channel, Region, RegionBook
+from ux_channel.paint import morph_ir
 ```
 
 ## Change process

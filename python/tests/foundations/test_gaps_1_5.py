@@ -20,7 +20,7 @@ def test_capability_secret_rotation():
     data = rotated.verify(token, "Pay", {"n": 1})
     assert data["action"] == "Pay"
     # signing uses new secret
-    tok2 = rotated.sign("Pay", {"n": 2})
+    tok2 = rotated.mint("Pay", {"n": 2})
     rotated.verify(tok2, "Pay", {"n": 2})
     # old-only service cannot verify new token
     with pytest.raises(Exception):
@@ -36,7 +36,7 @@ def test_registry_rotation_via_previous_secrets():
     def hi():
         return Result.success(toast("hi"))
 
-    cap = reg_old.sign("Hi", {})
+    cap = reg_old.mint("Hi", {})
     reg_new = ActionRegistry(secret=new, require_cap=True, previous_secrets=[old])
     reg_new.replace("Hi", hi)
     r = reg_new.dispatch(Intent(action="Hi", args={}, cap=cap))

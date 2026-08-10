@@ -19,6 +19,10 @@ class Badge(Region):
 ```
 
 ```python
+# By cohesive package
+from ux_channel.protocol import CapService, Intent, Result, morph
+from ux_channel.host import Channel, Region, RegionBook
+
 # Caps — Rust names
 svc = CapService(secret)
 token = svc.mint("Cart.add", {"sku": "a", "qty": 1})

@@ -53,7 +53,7 @@ def apply_filters(period: str = "7d"):
 ## Call action from TestClient
 
 ```python
-cap = ch.sign("inc", {})
+cap = ch.mint("inc", {})
 r = client.post(
     "/ux-channel/action",
     json={"action": "inc", "args": {}, "cap": cap},

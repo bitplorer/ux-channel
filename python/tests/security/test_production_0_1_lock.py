@@ -17,7 +17,7 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from ux_channel import serde as _serde
+from ux_channel.protocol import serde as _serde
 from ux_channel.host.config import ChannelConfig
 from ux_channel.ops_dx.dx_dashboard import DASHBOARD_MODEL_SCHEMA, build_dashboard_model
 from ux_channel.security.host_csrf import CHANNEL_CSRF_HEADER, CHANNEL_CSRF_VALUE

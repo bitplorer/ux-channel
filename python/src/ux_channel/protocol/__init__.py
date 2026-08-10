@@ -1,16 +1,58 @@
-"""Cohesive package: **protocol**
+"""Protocol package — IR, ops, caps (Rust-parity shared law).
 
-Wire IR + CapService (Rust-parity mint/verify). Shared law with rust/.
+Preferred::
 
-Modules: capability, encode, error_map, errors, jsonutil, ops, serde, types
-
-Import: ``from ux_channel.protocol.MODULE import Symbol``
-Public apps: ``from ux_channel.day1 import …`` or ``from ux_channel import …``
-
-Source of truth: PACKAGE_MAP.json
+    from ux_channel.protocol import CapService, Intent, Result, morph, toast
 """
 from __future__ import annotations
 
-MEMBERS = ['capability', 'encode', 'error_map', 'errors', 'jsonutil', 'ops', 'serde', 'types']
-PACKAGE = 'protocol'
-__all__ = ["MEMBERS", "PACKAGE"]
+# MANUAL_PUBLIC_API — sync_python_layout must not overwrite this file
+
+from ux_channel.protocol.capability import CapError, CapService
+from ux_channel.protocol.errors import ActionError, ActionNotFound, ChannelError
+from ux_channel.protocol.ops import (
+    Op,
+    clear_errors,
+    focus,
+    morph,
+    navigate,
+    noop,
+    push_url,
+    reload,
+    remove,
+    scroll,
+    set_attr,
+    set_text,
+    signal_set,
+    swap,
+    toast,
+)
+from ux_channel.protocol.types import ErrorObject, Intent, Result
+
+PACKAGE = "protocol"
+__all__ = [
+    "PACKAGE",
+    "CapService",
+    "CapError",
+    "Intent",
+    "Result",
+    "ErrorObject",
+    "Op",
+    "ChannelError",
+    "ActionError",
+    "ActionNotFound",
+    "morph",
+    "toast",
+    "swap",
+    "navigate",
+    "reload",
+    "focus",
+    "scroll",
+    "set_text",
+    "set_attr",
+    "remove",
+    "clear_errors",
+    "signal_set",
+    "noop",
+    "push_url",
+]
