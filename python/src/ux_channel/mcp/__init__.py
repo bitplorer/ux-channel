@@ -1,5 +1,18 @@
-"""MCP adapter package — tools, effects, verticals, sessions, resources, subscribe."""
+"""MCP adapter package — tools, effects, verticals, sessions (L4 plane).
 
+Design
+    Non-human tool door into the **same** action registry. MCP is a plane, not
+    a second Channel or shadow action table.
+
+Architecture
+    L4 — sessions/verticals/resources hang off the adapter; confirm paths need
+    signed secrets (fail-closed). Not on root exports.
+
+Implementation
+    Preferred::
+
+        from ux_channel.mcp import McpToolAdapter, effects_from_result
+"""
 from ux_channel.mcp.adapter import McpToolAdapter
 from ux_channel.mcp.effects import effects_from_result
 from ux_channel.mcp.verticals import (
@@ -23,4 +36,5 @@ __all__ = [
     "enrich_tools",
     "classify_tool",
     "subscribe_info",
-    "publish_effects_invalidation"]
+    "publish_effects_invalidation",
+]

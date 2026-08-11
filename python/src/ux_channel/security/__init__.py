@@ -1,8 +1,18 @@
-"""Security package — CSRF, limits, attenuation, rate limits.
+"""Security package — CSRF, limits, attenuation, rate limits (L2/L3).
 
-Preferred::
+Design
+    Policy helpers that sit beside caps: CSRF headers, arg attenuation, rate
+    limits, WS/push security. Caps remain in protocol; this package does not
+    reimplement CapService.
 
-    from ux_channel.security import intent_headers, attenuate, safe_href
+Architecture
+    Host dispatch may call into these modules; nothing here should invent a
+    second Intent trust story.
+
+Implementation
+    Preferred public names::
+
+        from ux_channel.security import intent_headers, attenuate, safe_href
 """
 from __future__ import annotations
 

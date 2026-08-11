@@ -2,22 +2,29 @@
 #
 # This software is released under the MIT License.
 # https://opensource.org/licenses/MIT
-"""Wire plane — encode/decode Intent & Result.
+"""Wire plane — encode/decode Intent & Result (L3).
 
-Public API (app developers)::
+Design
+    JSON is the forever floor for interop; CXB is a dense opt-in upgrade for
+    the **same** IR. Never invent a parallel protocol.
 
-    from ux_channel.wire import encode, decode, dumps, loads, configure_wire
+Architecture
+    L3 adapters — format plugins may register codecs; apps only call encode/
+    decode. HTTP negotiation helpers live here; ASGI mounting is ``asgi``.
 
-    configure_wire(format="json", engine="auto")  # default
-    blob = encode(result)                         # or format="cxb"
-    doc = decode(blob.data)
+Implementation
+    Public API (app developers)::
 
-Formats: ``json`` (default) · ``msgpack`` · ``cbor`` · ``cxb``.
-CXB is built-in; optional ``_cxb_native`` is used automatically when present.
+        from ux_channel.wire import encode, decode, dumps, loads, configure_wire
 
-Codec authors (internal plugins): ``ux_channel.wire.plugins``.
+        configure_wire(format="json", engine="auto")  # default
+        blob = encode(result)                         # or format="cxb"
+        doc = decode(blob.data)
 
-Env: ``UX_CHANNEL_WIRE``, ``UX_CHANNEL_WIRE_ENGINE``, ``UX_CHANNEL_WIRE_WORKERS``.
+    Formats: ``json`` (default) · ``msgpack`` · ``cbor`` · ``cxb``.
+    Codec authors: ``ux_channel.wire.plugins``.
+
+    Env: ``UX_CHANNEL_WIRE``, ``UX_CHANNEL_WIRE_ENGINE``, ``UX_CHANNEL_WIRE_WORKERS``.
 """
 
 from __future__ import annotations

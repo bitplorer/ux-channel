@@ -1,10 +1,17 @@
-"""Transport helpers — batch, push, streams, websocket.
+"""Transport helpers — batch, push, streams, outbox (L3).
 
-HTTP framework adapters live in ``ux_channel.asgi``.
+Design
+    Delivery mechanics around Intent/Result: batching, push channels, outbox,
+    concurrency helpers. Not the wire codecs and not the ASGI mount.
 
-::
+Architecture
+    L3 adapters — HTTP framework mounting lives in ``ux_channel.asgi``; codecs
+    in ``wire``. Transport must not redefine IR shapes.
 
-    from ux_channel.transport import batch, push, outbox
+Implementation
+    Preferred::
+
+        from ux_channel.transport import batch, push, outbox
 """
 from __future__ import annotations
 

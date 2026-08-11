@@ -1,12 +1,21 @@
-"""Render package — HTML safety + control attrs (common); heavy modules lazy.
+"""Render package — HTML safety + morph IR + control attrs (L2).
 
-Application-common::
+Design
+    Turns Result ops into DOM-safe HTML and control attributes. Free-form
+    morph/toast strings escape; ``signal_set`` stays raw by design.
 
-    from ux_channel.render import esc, action_attrs, ControlAttrs, SafeHtml
+Architecture
+    L2 host-adjacent: protocol builds ops; render implements how they paint.
+    Heavy modules (morph_ir, placement, renderers) load lazily.
 
-Power modules (import when needed)::
+Implementation
+    Application-common::
 
-    from ux_channel.render import morph_ir, placement, renderers
+        from ux_channel.render import esc, action_attrs, ControlAttrs, SafeHtml
+
+    Power modules::
+
+        from ux_channel.render import morph_ir, placement, renderers
 """
 from __future__ import annotations
 

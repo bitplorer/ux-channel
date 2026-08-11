@@ -1,8 +1,17 @@
-"""Foundations package — quantity, provenance, io_channel.
+"""Foundations package — quantity, provenance, io_channel (L3 primitives).
 
-Preferred::
+Design
+    Shared non-UI primitives used by workplace / agents without depending on
+    HTML or ASGI.
 
-    from ux_channel.foundations import Quantity
+Architecture
+    L3 — optional adapters and value types; not part of IR law.
+
+Implementation
+    Public starter: ``Quantity``. Deeper: ``provenance``, ``io_channel`` modules.
+    Preferred::
+
+        from ux_channel.foundations import Quantity
 """
 from __future__ import annotations
 

@@ -1,12 +1,17 @@
-"""Application API — curated exports for product code.
+"""Application API — curated exports for product code (L2 surface).
 
-Same objects as the package root application surface (not a second implementation).
+Design
+    Same objects as the package root application surface — **not** a second
+    implementation. Identity law: ``api.Channel is host.Channel is root.Channel``.
 
-::
+Architecture
+    Preferred import door for apps. Power features stay in packages
+    (``host``, ``protocol``, ``render``, ``security``, …).
 
-    from ux_channel.api import Channel, Region, CapService, state, agents, morph
+Implementation
+    Preferred::
 
-Power features: import from ``host``, ``protocol``, ``render``, ``security``, …
+        from ux_channel.api import Channel, Region, CapService, state, agents, morph
 """
 from __future__ import annotations
 

@@ -1,5 +1,14 @@
 """
-Workplace — policy-shaped room on a Channel (power layer).
+Workplace — policy-shaped room on a Channel (L4 plane).
+
+Design
+    Coordinate multi-party rooms/tickets on the same Channel trust story.
+    Does not replace application ``agents(ch)`` / ``state(ch)``.
+
+Architecture
+    L4 plane — ticket + mesh + room modules; adapters stay host-owned.
+
+Implementation
 
 One import surface::
 

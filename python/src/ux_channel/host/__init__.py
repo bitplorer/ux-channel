@@ -1,13 +1,24 @@
-"""Host package — Channel, regions, actions, state (app runtime).
+"""Host package — Channel, regions, actions, state (L2 app runtime).
 
-Preferred::
+Design
+    Application control plane: boot Channel, register regions/actions, mint
+    controls, dispatch Intents, apply Result ops. You own markup; Channel owns
+    trust, registry, and region bookkeeping.
 
-    from ux_channel.host import Channel, Region, RegionBook, ChannelConfig
-    from ux_channel.host.state_api import state   # note: not host.state (module)
+Architecture
+    L2 host core sits on L1 protocol (caps/IR). Adapters (asgi/wire) and L4
+    planes hang off this package — they must not redefine CapService/Channel.
 
-``state`` cannot be re-exported on this package root — it collides with
-the ``host.state`` module (stores). Use ``state_api`` or package root
-``from ux_channel import state``.
+Implementation
+    ``channel``, ``regions`` / ``region_component``, ``registry``, ``state_api``,
+    ``stores``. Note: ``state`` is not re-exported here (collides with stores
+    module path) — use ``state_api`` or package root.
+
+    Preferred::
+
+        from ux_channel.host import Channel, Region, RegionBook, ChannelConfig
+        from ux_channel.host.state_api import state
+        from ux_channel.host.stores import MemoryStateStore
 """
 from __future__ import annotations
 
@@ -26,4 +37,5 @@ __all__ = [
     "RegionContext",
     "RegionDef",
     "ActionRegistry",
-    "create_channel"]
+    "create_channel",
+]

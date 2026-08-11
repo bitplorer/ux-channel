@@ -1,8 +1,18 @@
-"""Devtools package — audit, inspect, CLI, observability.
+"""Devtools package — audit, inspect, CLI, observability (L5 tooling).
 
-Preferred::
+Design
+    Free-to-churn operator surface. Must not become required for production
+    dispatch or pollute the application root exports.
 
-    from ux_channel.devtools import attach_audit, inspect_channel
+Architecture
+    L5 only — hangs off Channel via attach hooks; identity of CapService/Channel
+    stays in protocol/host.
+
+Implementation
+    Audit bundle + inspect API are the stable-ish entry; dashboard/CLI may churn.
+    Preferred::
+
+        from ux_channel.devtools import attach_audit, inspect_channel
 """
 from __future__ import annotations
 

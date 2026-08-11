@@ -15,9 +15,10 @@ Any peer  ◀── Result { ok, ops[], error } ──  Any peer
 
 One IR. JSON floor. Caps authorize. Transports only deliver. Peers > FFI.
 
-## Automation first (ceremonial code)
+## Automation first (default — ceremonial never hand-edited)
 
-**Do not hand-edit derived / boring inventories.** Default to generators:
+**Default to generators.** Hand-code only when extending features, changing law,
+or designing public API / trust. Everything boring stays regenerated.
 
 | Need | Command |
 |------|---------|
@@ -28,6 +29,8 @@ One IR. JSON floor. Caps authorize. Transports only deliver. Peers > FFI.
 
 Never hand-edit `catalog/catalog.json` or `PACKAGE_MAP.json` → `modules` / `module_count`.  
 Package `__init__.py` export lists **are** hand design (public API).  
+Short **Design / Architecture / Implementation** overviews live on package `__init__.py`  
+(and one-liners in `package_docs`); deep encyclopedia stays in `python/docs/`.  
 Policy details: [AUTOMATION.md](AUTOMATION.md).
 
 ## Non-negotiables
@@ -41,6 +44,7 @@ Policy details: [AUTOMATION.md](AUTOMATION.md).
 6b. Read `ARCHITECTURE.md` for monorepo package boundaries (`python/`, `rust/`, law).
 7. Read `OPERATIONAL.md` before suggesting `cargo run --bin uxc_peer`.
 8. Do not leave recovery docs pointing at dead sandbox paths — GitHub `main` is truth.
+9. Do not reintroduce forbidden packages (`zones`, `day1`, `paint`, shims).
 
 ## Verify before claiming green
 

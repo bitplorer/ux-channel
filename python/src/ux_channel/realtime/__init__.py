@@ -1,8 +1,17 @@
-"""Realtime — WebRTC, SFU, media placement (optional plane).
+"""Realtime — WebRTC, SFU, media placement (L4 plane).
 
-::
+Design
+    Optional product plane for live media. Same Channel/trust story; never a
+    second action registry.
 
-    from ux_channel.realtime import media, webrtc
+Architecture
+    L4 — must not appear on root ``__all__``. Defaults fail closed (tickets,
+    origins) per production hardening.
+
+Implementation
+    Preferred::
+
+        from ux_channel.realtime import media, webrtc
 """
 from __future__ import annotations
 

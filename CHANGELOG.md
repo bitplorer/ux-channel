@@ -1,3 +1,11 @@
+## 2026-08-11 — Automation default + freshness + package design overviews
+
+- **Default:** ceremonial code is automated; hand-code only when extending features or making law/public-API changes ([AUTOMATION.md](AUTOMATION.md))
+- Catalog regen mirrors `package_docs` + `strata`; layout soft-skips import smoke if host deps missing
+- Package `__init__.py` Design / Architecture / Implementation overviews on core packages
+- Fix stale [python/MERGE.md](python/MERGE.md) (no `zones`/shims as current truth); rewrite [python/CONTRIBUTING.md](python/CONTRIBUTING.md)
+- AGENTS.md aligned with automation-first checklist
+
 ## 2026-08-11 — Production hardening (connector push)
 
 - Soft principal id-only; meta/regions/flow no client roles

@@ -2,8 +2,10 @@
 
 **Start:** [START_HERE.md](START_HERE.md) · [MENTAL_MODEL.md](MENTAL_MODEL.md) · [DOCS.md](DOCS.md) · [AUTOMATION.md](AUTOMATION.md) · [python/STABILITY.md](python/STABILITY.md)
 
+**Default:** automate ceremonial inventories (`make regen` / `make sync-map`); hand-code only features, law, and public API — see [AUTOMATION.md](AUTOMATION.md).
+
 **IR version:** `"v": "1"`  
-**Date:** 2026-08-10 (clarity + consistency audit)
+**Date:** 2026-08-11 (automation-default + freshness + package design overviews)
 
 This folder is the living design + conformance + second-implementation surface for turning **ux-channel** from a strong Python library into a **wire-native peer platform**.
 

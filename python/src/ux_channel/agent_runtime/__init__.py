@@ -1,13 +1,18 @@
 """Agent execution kernel — non-human tool callers (L4 plane).
 
-Import specific modules to avoid loading the full kernel::
+Design
+    Agents call the **same** action registry as humans, through a policy/budget
+    door. No shadow Channel, no second database of actions.
 
-    from ux_channel.agent_runtime.peer import AgentPeer, dispatch_peer
-    from ux_channel.agent_runtime import AgentRunner  # lazy
+Architecture
+    L4 plane — import specific modules to avoid loading the full kernel.
+    Application façade remains ``from ux_channel import agents``.
 
-Application façade remains::
+Implementation
+    Preferred::
 
-    from ux_channel import agents
+        from ux_channel.agent_runtime.peer import AgentPeer, dispatch_peer
+        from ux_channel.agent_runtime import AgentRunner  # lazy
 """
 from __future__ import annotations
 

@@ -1,5 +1,14 @@
 """
-Optional Channel Components kit — not the default product UI path.
+Optional Channel Components kit — not the default product UI path (L4).
+
+Design
+    Convenience region/components kit for demos and internal apps. Core
+    products should prefer ux-dom + ``ch.control``.
+
+Architecture
+    L4 plane — never on root application exports.
+
+Implementation
 
 Import explicitly::
 
