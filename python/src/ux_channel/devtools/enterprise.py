@@ -87,34 +87,25 @@ def paginate(
 
 
 def roles_of(principal: Any, ctx: Any = None) -> set[str]:
-    """Collect roles from principal claims/scopes and/or ctx.scope."""
+    """Roles from principal claims/scopes only (never ctx.scope)."""
     found: set[str] = set()
-    if principal is not None:
-        if isinstance(principal, Mapping):
-            r = principal.get("roles") or principal.get("role") or ()
-        else:
-            r = getattr(principal, "roles", None) or getattr(principal, "role", None)
-            if not r and hasattr(principal, "claims"):
-                r = (principal.claims or {}).get("roles") or (principal.claims or {}).get(
-                    "role"
-                )
-            if not r and hasattr(principal, "scopes"):
-                # scopes often include role names for simple apps
-                r = principal.scopes
-            r = r or ()
-        if isinstance(r, str):
-            found.add(r)
-        else:
-            found.update(map(str, r or ()))
-    if ctx is not None:
-        if not found and getattr(ctx, "principal", None) is not None and principal is None:
-            return roles_of(ctx.principal, None)
-        scope = getattr(ctx, "scope", None) or {}
-        r = scope.get("roles") or scope.get("role")
-        if isinstance(r, str):
-            found.add(r)
-        elif isinstance(r, (list, tuple, set)):
-            found.update(map(str, r))
+    if principal is None and ctx is not None:
+        principal = getattr(ctx, "principal", None)
+    if principal is None:
+        return found
+    if isinstance(principal, Mapping):
+        r = principal.get("roles") or principal.get("role") or ()
+    else:
+        r = getattr(principal, "roles", None) or getattr(principal, "role", None)
+        if not r and hasattr(principal, "claims"):
+            r = (principal.claims or {}).get("roles") or (principal.claims or {}).get("role")
+        if not r and hasattr(principal, "scopes"):
+            r = principal.scopes
+        r = r or ()
+    if isinstance(r, str):
+        found.add(r)
+    else:
+        found.update(map(str, r or ()))
     return found
 
 
