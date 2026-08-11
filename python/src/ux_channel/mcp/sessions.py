@@ -92,11 +92,20 @@ class McpSession:
 class MemoryMcpSessionStore:
     """Process-local session store (dev / single worker)."""
 
-    def __init__(self) -> None:
+    def __init__(self, *, max_sessions: int = 20_000, max_revoked: int = 50_000) -> None:
         self._by_ticket: dict[str, McpSession] = {}
         self._by_id: dict[str, McpSession] = {}
         self._lock = threading.RLock()
         self._revoked: set[str] = set()
+        self.max_sessions = max_sessions
+        self.max_revoked = max_revoked
+
+    def _purge_expired(self) -> None:
+        dead = [tok for tok, s in self._by_ticket.items() if not s.alive()]
+        for tok in dead:
+            sess = self._by_ticket.pop(tok, None)
+            if sess is not None:
+                self._by_id.pop(sess.session_id, None)
 
     def create(
         self,
@@ -124,6 +133,11 @@ class MemoryMcpSessionStore:
             policy_allow=frozenset(str(a) for a in policy_allow),
         )
         with self._lock:
+            self._purge_expired()
+            if len(self._by_ticket) >= self.max_sessions:
+                raise RuntimeError(
+                    "MCP session store full — reject new sessions (fail closed)"
+                )
             self._by_ticket[tok] = sess
             self._by_id[sid] = sess
         return sess
