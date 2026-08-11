@@ -7,7 +7,8 @@ You own HTML; Channel owns control, trust, regions, and ops.
 
 ## Layout law
 
-Long-term strata + extension doors: [../LONGEVITY.md](../LONGEVITY.md).
+Long-term strata + extension doors: [../LONGEVITY.md](../LONGEVITY.md).  
+Ceremonial vs hand-coded: [../AUTOMATION.md](../AUTOMATION.md).
 
 ```text
 ux_channel/
@@ -25,8 +26,8 @@ ux_channel/
   wire/             JSON / CXB codecs
   asgi/             FastAPI / Starlette mount
   devtools/         audit, CLI, observability
-  catalog/          package navigator
-  PACKAGE_MAP.json  module → package map (no shims)
+  catalog/          package navigator (GENERATED catalog.json)
+  PACKAGE_MAP.json  packages inventory; modules/count are derived
 ```
 
 **Forbidden package names (must not reappear):**  
@@ -79,10 +80,15 @@ from ux_channel.devtools import attach_audit
 
 ## Package public APIs
 
-Every package ``__init__.py`` is **hand-maintained** (human-owned exports).
-Layout sync only regenerates ``catalog/catalog.json`` — it never overwrites
-package inits. There is **no** env var or Python symbol named
-``hand-maintained package init`` (that was a temporary magic comment; removed).
+Every package ``__init__.py`` export list is **hand-maintained** (public API is design).  
+Layout sync **always regenerates** ``catalog/catalog.json`` and the derived ``modules`` /
+``module_count`` fields in ``PACKAGE_MAP.json``. It never overwrites package inits.
+
+```bash
+make regen       # write derived artifacts
+make layout      # CI: fail if stale
+make sync-map    # opt-in: packages ← disk inventory
+```
 
 | Package | Primary exports |
 |---------|-----------------|
@@ -96,7 +102,8 @@ package inits. There is **no** env var or Python symbol named
 | `foundations` | `Quantity` |
 | `agent_runtime` | `AgentRunner`, `AgentPolicy`, `AgentPeer`, … |
 
-Deep modules: `ux_channel.<package>.<module>`.
+Deep modules: `ux_channel.<package>.<module>`.  
+One-line package intent also lives in `PACKAGE_MAP.json` → `package_docs`.
 
 ## Rename history (do not reintroduce)
 
@@ -118,57 +125,3 @@ Deep modules: `ux_channel.<package>.<module>`.
 | `mental_model()` | `Channel.describe()` |
 | `CapService.sign` | `CapService.mint` |
 | `DAY1_*_API` | `CHANNEL_PUBLIC_API` / `WEBRTC_PUBLIC_API` / `MEDIA_PUBLIC_API` |
-
-## Change process
-
-1. Put code in the correct package (`PACKAGE_MAP.json`).
-2. `python3 scripts/sync_python_layout.py` then `--check`.
-3. Public symbols only via root / `api` / package `__init__`.
-4. `make verify` (health + layout + gate + rust + uxc_check).
-
-
-## agents() vs agent_runtime
-
-| Name | Kind |
-|------|------|
-| `agents(ch)` | Function façade (root / api) |
-| `ux_channel.agent_runtime` | Implementation package |
-
-Never name a package `agents` — it shadows the function on `ux_channel`.
-
-
-## Caller planes (runtimes)
-
-| Name | Role |
-|------|------|
-| (default) Channel | Human Intent path |
-| `agent_runtime` | Non-human tool kernel (`AgentRunner`, `peer`, policy, session) |
-| `bridge.guest_runtime` | Sealed island guest |
-| `mcp` | MCP adapter **on top of** agent_runtime |
-| `workplace` | Room policy / tickets (not a tool runner) |
-
-`agents()` is a **function** façade. Implementation package is `agent_runtime` (never `agents/`).
-
-
-## Catalog disambiguation
-
-| Path | Role |
-|------|------|
-| `ux_channel.catalog` | Package navigator (layout map) |
-| `ux_channel.host.action_catalog` | Action registry metadata for docs/codegen |
-| `agent_runtime.tool_audit` | Agent tool-call audit sinks |
-| `devtools.audit` | Channel Intent audit / forensics façade |
-
-
-## PACKAGE_MAP v3
-
-Module keys are ``package.stem`` (unique), so short names may repeat:
-
-| Key | Module |
-|-----|--------|
-| `security.policy` | CSRF/security policy |
-| `agent_runtime.policy` | Agent allow/deny policy |
-| `protocol.errors` | Channel/action errors |
-| `devtools.errors` | Teachable DX errors |
-
-Catalog lists full import paths. Layout check fails if any on-disk module is unmapped.

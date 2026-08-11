@@ -1,6 +1,6 @@
 # Python layout
 
-Canonical law: [STABILITY.md](STABILITY.md) · Mental model: [../MENTAL_MODEL.md](../MENTAL_MODEL.md)
+Canonical law: [STABILITY.md](STABILITY.md) · Mental model: [../MENTAL_MODEL.md](../MENTAL_MODEL.md) · Automation: [../AUTOMATION.md](../AUTOMATION.md)
 
 ```text
 App → api/ or root
@@ -16,6 +16,7 @@ from ux_channel.host.stores import MemoryStateStore
 ```
 
 ```bash
-python3 scripts/sync_python_layout.py --check
+make regen       # derived catalog + map fields
+make layout      # CI freshness check
 make verify
 ```

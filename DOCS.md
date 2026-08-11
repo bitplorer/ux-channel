@@ -7,8 +7,10 @@
 | **[START_HERE.md](START_HERE.md)** | **First-time users (read this first)** |
 | [README.md](README.md) | Repo overview |
 | [STRUCTURE.md](STRUCTURE.md) | Monorepo map |
+| [ARCHITECTURE.md](ARCHITECTURE.md) | System shape / monorepo rules |
 | [MENTAL_MODEL.md](MENTAL_MODEL.md) | Intent → Result mental model |
 | [LONGEVITY.md](LONGEVITY.md) | Stable vs moving + anti-bloat doors |
+| **[AUTOMATION.md](AUTOMATION.md)** | **Ceremonial automation vs hand-coded design** |
 | [python/README.md](python/README.md) | Python host |
 | [python/STABILITY.md](python/STABILITY.md) | Layout + identity law |
 | [NAMING.md](NAMING.md) | Intent ↔ name (Rust-parity caps) |
@@ -27,9 +29,9 @@
 
 | Doc | Topic |
 |-----|--------|
-| [OPERATIONAL.md](OPERATIONAL.md) | Verify / CI |
+| [OPERATIONAL.md](OPERATIONAL.md) | Verify / CI / secrets |
 | [TESTING.md](TESTING.md) | Unit / property / integration |
-| [ARCHITECTURE.md](ARCHITECTURE.md) | System shape |
+| [RECOVERY.md](RECOVERY.md) | Hardening restore (GitHub-first) |
 | [FAQ.md](FAQ.md) | Common questions |
 | [python/docs/start/](python/docs/start/) | Application encyclopedia |
 | [python/docs/start/EXTENSIONS.md](python/docs/start/EXTENSIONS.md) | Extension doors for authors |
@@ -54,7 +56,9 @@ from ux_channel.devtools import attach_audit
 
 ```text
 make verify            # CI default
-make layout            # package map / no shims
+make regen             # derived catalog + map fields
+make layout            # fail if derived artifacts stale
+make sync-map          # packages inventory from disk
 make test-python-gate  # interop + layout freeze
 make test-python-host  # regions / state / core
 make test-rust

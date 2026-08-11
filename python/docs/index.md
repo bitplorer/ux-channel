@@ -13,6 +13,8 @@
 | [HOW_TO](start/HOW_TO.md) | Recipes |
 | [FREEZE_0.1](start/FREEZE_0.1.md) | Frozen application speech |
 
+Repo-level design maps: [ARCHITECTURE](../../ARCHITECTURE.md) · [AUTOMATION](../../AUTOMATION.md) · [LONGEVITY](../../LONGEVITY.md).
+
 ## By plane (ontology)
 
 | Package | Topics |
@@ -35,9 +37,14 @@
 ## Application imports
 
 ```python
-from ux_channel import Channel, ChannelConfig, agents, state, attach_audit
+from ux_channel import Channel, Region, CapService, state, morph, agents
+from ux_channel.api import Channel, CapService, state
+from ux_channel.host.stores import MemoryStateStore
+from ux_channel.foundations import Quantity
+from ux_channel.asgi import mount_channel
+from ux_channel.devtools import attach_audit
 ```
 
-Power layers: import by home (`ux_channel.quantity`, `.workplace`, `.io_channel`, …).
+Power layers: import by home (`ux_channel.foundations`, `.workplace`, `.realtime`, …) — never invent root aliases.
 
-- `Stack with ux-channel`
+Layout identity law: [../STABILITY.md](../STABILITY.md).

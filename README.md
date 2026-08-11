@@ -1,6 +1,6 @@
 # ux-channel — Wire-Native Peers (Intent → Action → Result / ops)
 
-**Start:** [START_HERE.md](START_HERE.md) · [MENTAL_MODEL.md](MENTAL_MODEL.md) · [DOCS.md](DOCS.md) · [python/STABILITY.md](python/STABILITY.md)
+**Start:** [START_HERE.md](START_HERE.md) · [MENTAL_MODEL.md](MENTAL_MODEL.md) · [DOCS.md](DOCS.md) · [AUTOMATION.md](AUTOMATION.md) · [python/STABILITY.md](python/STABILITY.md)
 
 **IR version:** `"v": "1"`  
 **Date:** 2026-08-10 (clarity + consistency audit)
@@ -46,6 +46,7 @@ Read top → bottom if you are new. Layers do not mix “law” with “demo.”
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Production monorepo boundaries |
 | [STRUCTURE.md](STRUCTURE.md) | Permanent (law) vs moving (demos) |
 | [OPERATIONAL.md](OPERATIONAL.md) | Secrets, env vars, HTTP honesty — **before** `uxc_peer` |
+| [AUTOMATION.md](AUTOMATION.md) | Ceremonial automation vs hand design |
 | [AGENTS.md](AGENTS.md) | Short agent checklist |
 | [CHANGELOG.md](CHANGELOG.md) | What landed in this tree |
 

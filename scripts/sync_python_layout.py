@@ -1,14 +1,25 @@
 #!/usr/bin/env python3
-"""Validate package layout and regenerate the navigation catalog.
+"""Layout automation — catalog, derived map fields, optional disk sync.
 
-Source of truth: python/src/ux_channel/PACKAGE_MAP.json (v3+)
+Source of truth for *intent*:
+  - ``packages`` in PACKAGE_MAP.json (which modules belong where)
+  - Or disk layout when you run ``--sync-map`` (opt-in inventory refresh)
 
-  python3 scripts/sync_python_layout.py          # regenerate catalog only
-  python3 scripts/sync_python_layout.py --check  # CI validate + identity smoke
+**Always automated (never hand-edit):**
+  - ``modules`` and ``module_count`` in PACKAGE_MAP.json
+  - ``python/src/ux_channel/catalog/catalog.json``
+  - catalog package ``__init__.py`` helpers (if missing/broken)
 
-Package ``__init__.py`` files are **always hand-maintained**. This script never
-overwrites them. There is no magic comment marker and no shell/Python export
-named MANUAL_PUBLIC_API (that was an internal layout guard — removed).
+Package ``__init__.py`` export lists remain **hand-maintained** (public API is design).
+
+Commands::
+
+  python3 scripts/sync_python_layout.py              # write derived artifacts
+  python3 scripts/sync_python_layout.py --check      # CI: fail if anything stale
+  python3 scripts/sync_python_layout.py --sync-map   # refresh packages from disk, then write
+  python3 scripts/sync_python_layout.py --sync-map --check
+
+See AUTOMATION.md.
 """
 from __future__ import annotations
 
@@ -21,9 +32,15 @@ ROOT = Path(__file__).resolve().parents[1]
 PKG = ROOT / "python" / "src" / "ux_channel"
 MAP_PATH = PKG / "PACKAGE_MAP.json"
 
+_SKIP_STEMS = frozenset({"__init__", "__main__", "__pycache__"})
+
 CATALOG_INIT = '''"""Package catalog — navigation helpers (not an implementation plane).
 
+Generated helpers over ``catalog.json``. Do not hand-maintain package lists here.
+
     from ux_channel.catalog import help_public, help_package, catalog
+
+Design: L5 tooling only — see AUTOMATION.md + LONGEVITY.md.
 """
 from __future__ import annotations
 
@@ -63,23 +80,83 @@ def load_map() -> dict:
 
 def packages_from_meta(meta: dict) -> dict[str, list[str]]:
     if isinstance(meta.get("packages"), dict) and meta["packages"]:
-        return {k: list(v) for k, v in meta["packages"].items()}
+        return {k: sorted(set(v)) for k, v in meta["packages"].items()}
     by_pkg: dict[str, list[str]] = {}
     for key, pkg in meta.get("modules", {}).items():
         stem = key.split(".", 1)[1] if "." in key else key
         by_pkg.setdefault(pkg, []).append(stem)
+    return {k: sorted(set(v)) for k, v in by_pkg.items()}
+
+
+def modules_from_packages(by_pkg: dict[str, list[str]]) -> dict[str, str]:
+    """Ceremonial inverse index — always derived, never hand-edited."""
+    out: dict[str, str] = {}
+    for pkg, stems in sorted(by_pkg.items()):
+        for stem in sorted(set(stems)):
+            out[f"{pkg}.{stem}"] = pkg
+    return out
+
+
+def disk_stems(pkg: str) -> set[str]:
+    """All module stems on disk (including private ``_`` helpers)."""
+    d = PKG / pkg
+    if not d.is_dir():
+        return set()
+    return {
+        p.stem
+        for p in d.glob("*.py")
+        if p.stem not in _SKIP_STEMS
+    }
+
+
+def public_disk_stems(pkg: str) -> set[str]:
+    """Non-private stems — candidates for auto inventory."""
+    return {s for s in disk_stems(pkg) if not s.startswith("_")}
+
+
+def discover_packages_from_disk(existing: dict[str, list[str]] | None = None) -> dict[str, list[str]]:
+    """Inventory packages from disk.
+
+    - Adds all non-private ``*.py`` stems
+    - Keeps intentionally mapped private ``_*.py`` stems if the file still exists
+    - Keeps empty packages that only have ``__init__.py``
+    """
+    existing = existing or {}
+    by_pkg: dict[str, list[str]] = {}
+    for d in sorted(PKG.iterdir()):
+        if not d.is_dir() or d.name.startswith((".", "_")):
+            continue
+        if d.name == "__pycache__":
+            continue
+        if not (d / "__init__.py").exists():
+            continue
+        pub = sorted(public_disk_stems(d.name))
+        priv_keep = [
+            s
+            for s in existing.get(d.name, [])
+            if s.startswith("_") and (d / f"{s}.py").exists()
+        ]
+        by_pkg[d.name] = sorted(set(pub) | set(priv_keep))
+    # Preserve package entries that only exist in map if dir still present
+    for pkg, stems in existing.items():
+        if pkg in by_pkg:
+            continue
+        if (PKG / pkg / "__init__.py").exists():
+            by_pkg[pkg] = sorted(
+                s for s in stems if (PKG / pkg / f"{s}.py").exists()
+            )
     return by_pkg
 
 
-def regenerate(meta: dict) -> list[str]:
-    """Regenerate catalog.json (+ catalog package init if missing). Never touch other __init__.py."""
-    actions: list[str] = []
+def build_catalog_data(meta: dict) -> dict:
     by_pkg = packages_from_meta(meta)
-
-    catalog_data = {
+    return {
         "policy": "no_shims",
         "map_version": meta.get("version"),
-        "note": "Package __init__.py files are hand-maintained; this catalog is generated.",
+        "note": (
+            "GENERATED by scripts/sync_python_layout.py — do not hand-edit. "
+            "Package __init__.py export lists stay hand-maintained (public API)."
+        ),
         "public_entry": meta.get("public_entry", {}),
         "rust_parity": meta.get("rust_parity", {}),
         "packages": {
@@ -87,30 +164,80 @@ def regenerate(meta: dict) -> list[str]:
             for pkg, stems in sorted(by_pkg.items())
         },
     }
+
+
+def catalog_text(meta: dict) -> str:
+    return json.dumps(build_catalog_data(meta), indent=2) + "\n"
+
+
+def apply_derived_fields(meta: dict) -> dict:
+    """Return a copy of meta with modules + module_count regenerated from packages."""
+    out = dict(meta)
+    by_pkg = packages_from_meta(out)
+    out["packages"] = {k: sorted(set(v)) for k, v in sorted(by_pkg.items())}
+    out["modules"] = modules_from_packages(out["packages"])
+    out["module_count"] = len(out["modules"])
+    return out
+
+
+def write_map(meta: dict) -> bool:
+    text = json.dumps(meta, indent=2) + "\n"
+    old = MAP_PATH.read_text(encoding="utf-8") if MAP_PATH.exists() else ""
+    if old != text:
+        MAP_PATH.write_text(text, encoding="utf-8")
+        return True
+    return False
+
+
+def regenerate(meta: dict, *, write: bool) -> tuple[dict, list[str]]:
+    """Regenerate derived map fields + catalog. Returns (meta, actions)."""
+    actions: list[str] = []
+    meta = apply_derived_fields(meta)
+
+    if write:
+        if write_map(meta):
+            actions.append("write PACKAGE_MAP.json (modules + module_count derived)")
+    else:
+        current = load_map()
+        if (
+            current.get("modules") != meta.get("modules")
+            or current.get("module_count") != meta.get("module_count")
+            or packages_from_meta(current) != packages_from_meta(meta)
+        ):
+            actions.append("STALE PACKAGE_MAP.json derived fields (run without --check)")
+
     catalog_dir = PKG / "catalog"
     catalog_dir.mkdir(exist_ok=True)
     cat_path = catalog_dir / "catalog.json"
-    cat_text = json.dumps(catalog_data, indent=2) + "\n"
-    if not cat_path.exists() or cat_path.read_text(encoding="utf-8") != cat_text:
-        cat_path.write_text(cat_text, encoding="utf-8")
-        actions.append("write catalog/catalog.json")
+    cat_text = catalog_text(meta)
+    if write:
+        if not cat_path.exists() or cat_path.read_text(encoding="utf-8") != cat_text:
+            cat_path.write_text(cat_text, encoding="utf-8")
+            actions.append("write catalog/catalog.json")
+    else:
+        if not cat_path.exists() or cat_path.read_text(encoding="utf-8") != cat_text:
+            actions.append("STALE catalog/catalog.json (run without --check)")
 
     zinit = catalog_dir / "__init__.py"
-    # catalog package is the only generated init (navigation helpers)
-    if not zinit.exists() or "help_public" not in zinit.read_text(encoding="utf-8"):
-        zinit.write_text(CATALOG_INIT, encoding="utf-8")
-        actions.append("write catalog/__init__.py")
+    if write:
+        if not zinit.exists() or "help_public" not in zinit.read_text(encoding="utf-8"):
+            zinit.write_text(CATALOG_INIT, encoding="utf-8")
+            actions.append("write catalog/__init__.py")
+    elif not zinit.exists() or "help_public" not in zinit.read_text(encoding="utf-8"):
+        actions.append("STALE catalog/__init__.py")
 
-    # refuse leftover top-level shims
     allowed = {"__init__", "__main__", "_version"}
     for path in PKG.glob("*.py"):
         if path.stem in allowed:
             continue
         body = path.read_text(encoding="utf-8", errors="replace")
         if "Compatibility" in body or "GENERATED by scripts" in body or "_sys.modules[__name__]" in body:
-            path.unlink()
-            actions.append(f"removed shim {path.name}")
-    return actions
+            if write:
+                path.unlink()
+                actions.append(f"removed shim {path.name}")
+            else:
+                actions.append(f"STALE shim present: {path.name}")
+    return meta, actions
 
 
 def check(meta: dict) -> list[str]:
@@ -127,12 +254,28 @@ def check(meta: dict) -> list[str]:
         if not d.is_dir():
             problems.append(f"missing package dir {pkg}/")
             continue
-        on_disk = {p.stem for p in d.glob("*.py") if p.name != "__init__.py"}
+        on_disk = disk_stems(pkg)
         mapped = set(stems)
+        # Unmapped public modules are errors; private _* unmapped is OK
         for extra in sorted(on_disk - mapped):
-            problems.append(f"unmapped module {pkg}/{extra}.py")
+            if extra.startswith("_"):
+                continue
+            problems.append(
+                f"unmapped module {pkg}/{extra}.py "
+                f"(add to PACKAGE_MAP packages or: scripts/sync_python_layout.py --sync-map)"
+            )
         for missing in sorted(mapped - on_disk):
             problems.append(f"mapped but missing {pkg}/{missing}.py")
+
+    expected_modules = modules_from_packages(by_pkg)
+    if meta.get("modules") != expected_modules:
+        problems.append(
+            "PACKAGE_MAP modules != packages (derived field stale — run sync_python_layout.py)"
+        )
+    if meta.get("module_count") != len(expected_modules):
+        problems.append(
+            f"PACKAGE_MAP module_count {meta.get('module_count')} != {len(expected_modules)}"
+        )
 
     allowed = {"__init__", "__main__", "_version"}
     for path in PKG.glob("*.py"):
@@ -147,14 +290,13 @@ def check(meta: dict) -> list[str]:
         if (PKG / legacy).exists():
             problems.append(f"legacy package {legacy}/ must not exist")
 
-    # magic comment must not reappear
     for p in PKG.rglob("__init__.py"):
         text = p.read_text(encoding="utf-8", errors="replace")
         if "MANUAL_PUBLIC_API" in text:
             problems.append(f"stale layout marker MANUAL_PUBLIC_API in {p.relative_to(PKG)}")
 
     if int(meta.get("version") or 0) >= 3:
-        for key, pkg in meta.get("modules", {}).items():
+        for key, pkg in (meta.get("modules") or {}).items():
             if "." not in key:
                 problems.append(f"v3 module key must be package.stem, got {key!r}")
             elif not key.startswith(pkg + "."):
@@ -207,16 +349,79 @@ def check(meta: dict) -> list[str]:
     return problems
 
 
+def merge_disk_into_packages(meta: dict) -> tuple[dict, list[str]]:
+    """Opt-in: set packages from disk (add public modules, drop missing). Keep mapped _*."""
+    notes: list[str] = []
+    old = packages_from_meta(meta)
+    disk = discover_packages_from_disk(old)
+
+    added = []
+    removed = []
+    for pkg in sorted(set(old) | set(disk)):
+        o, n = set(old.get(pkg, [])), set(disk.get(pkg, []))
+        for a in sorted(n - o):
+            added.append(f"{pkg}.{a}")
+        for r in sorted(o - n):
+            removed.append(f"{pkg}.{r}")
+    if added:
+        notes.append("sync-map added: " + ", ".join(added[:40]) + ("…" if len(added) > 40 else ""))
+    if removed:
+        notes.append(
+            "sync-map removed: " + ", ".join(removed[:40]) + ("…" if len(removed) > 40 else "")
+        )
+    if not added and not removed:
+        notes.append("sync-map: packages already match disk")
+
+    meta = dict(meta)
+    meta["packages"] = {k: sorted(set(v)) for k, v in sorted(disk.items())}
+    return meta, notes
+
+
 def main() -> int:
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--check", action="store_true")
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument(
+        "--check",
+        action="store_true",
+        help="CI mode: do not write; fail if derived artifacts are stale or layout invalid",
+    )
+    ap.add_argument(
+        "--sync-map",
+        action="store_true",
+        help="Refresh packages from disk (ceremonial inventory) before regenerate",
+    )
     args = ap.parse_args()
     meta = load_map()
-    if not args.check:
-        actions = regenerate(meta)
-        print("sync_python_layout:", "updated" if actions else "already up to date")
-        for a in actions[:20]:
+    notes: list[str] = []
+
+    if args.sync_map:
+        meta, notes = merge_disk_into_packages(meta)
+
+    write = not args.check
+    meta, actions = regenerate(meta, write=write)
+
+    if write:
+        print("sync_python_layout:", "updated" if (actions or notes) else "already up to date")
+        for n in notes:
+            print(" ", n)
+        for a in actions[:30]:
             print(" ", a)
+    else:
+        stale = [a for a in actions if a.startswith("STALE")]
+        drift = args.sync_map and any("added" in n or "removed" in n for n in notes)
+        if stale or drift:
+            print("FAILED: derived artifacts or map inventory stale", file=sys.stderr)
+            for n in notes:
+                print(" -", n, file=sys.stderr)
+            for a in actions:
+                print(" -", a, file=sys.stderr)
+            print(
+                "Fix: python3 scripts/sync_python_layout.py"
+                + (" --sync-map" if args.sync_map else ""),
+                file=sys.stderr,
+            )
+            return 1
+
+    meta = load_map() if write else apply_derived_fields(meta)
     problems = check(meta)
     if problems:
         print("FAILED:", file=sys.stderr)
@@ -224,7 +429,10 @@ def main() -> int:
             print(" -", p, file=sys.stderr)
         return 1
     n = sum(len(v) for v in packages_from_meta(meta).values())
-    print(f"sync_python_layout: OK ({n} modules in {len(packages_from_meta(meta))} packages, no shims)")
+    print(
+        f"sync_python_layout: OK ({n} modules in {len(packages_from_meta(meta))} packages, "
+        f"derived fields fresh, no shims)"
+    )
     return 0
 
 

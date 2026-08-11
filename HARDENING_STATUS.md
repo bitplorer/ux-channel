@@ -1,34 +1,38 @@
-# Hardening status — do not lose
+# Hardening status
 
-## Recover without this agent session
+Durable recovery: **[RECOVERY.md](RECOVERY.md)** · GitHub: [bitplorer/ux-channel](https://github.com/bitplorer/ux-channel).
+
+## Apply / re-apply the seal patch
 
 ```bash
-# From GitHub (this file + patch):
-curl -sL https://raw.githubusercontent.com/bitplorer/ux-channel/main/patches/0001-production-hardening-authz-seal.patch | git am
+# From a clone of this repo:
+bash scripts/apply-hardening.sh
 
-# Or from agent artifacts (if still present):
-unzip ux-channel-hardening-critical.zip
-# copy *.py into tree
-git am 0001-Production-hardening-authz-seal-fail-closed-stores-a.patch
+# Or pull the patch from main:
+curl -sL https://raw.githubusercontent.com/bitplorer/ux-channel/main/patches/0001-production-hardening-authz-seal.patch | git am
 ```
 
-## Already applied on main (connector)
+In-tree patch: [`patches/0001-production-hardening-authz-seal.patch`](patches/0001-production-hardening-authz-seal.patch).
 
-- MemoryRateLimiter fail-closed when full
-- MemoryIdempotencyStore fail-closed when full
-- roles_of: principal claims/scopes only
-- MemoryMcpSessionStore max_sessions fail-closed
+## Already applied on main
 
-## In the patch (apply with git am)
+- `MemoryRateLimiter` fail-closed when full  
+- `MemoryIdempotencyStore` fail-closed when full  
+- `roles_of`: principal claims/scopes only  
+- `MemoryMcpSessionStore` `max_sessions` fail-closed  
 
-- Soft principal: **id only** (no client roles)
-- ActionContext.meta: no client roles
-- RegionBook / flow: no client roles into scope
-- AgentRunner confirm: signed secret required (fail closed)
-- WebRTC ticket/origin defaults fail-closed (development opts out)
+## In the seal patch (source on main)
 
-## Local artifacts (agent workspace)
+- Soft principal: **id only** (no client roles from Intent)  
+- `ActionContext.meta`: no client roles  
+- RegionBook / flow: no client roles into scope  
+- AgentRunner confirm: signed secret required (fail closed)  
+- WebRTC ticket/origin defaults fail-closed (development may opt out)  
 
-- `/home/workdir/artifacts/ux-channel-hardened/` — hardened source files
-- `/home/workdir/artifacts/ux-channel-hardening-critical.zip`
-- `/home/workdir/artifacts/0001-Production-hardening-authz-seal-fail-closed-stores-a.patch`
+## Verify after any restore
+
+```bash
+make verify
+```
+
+Do not treat chat-session artifacts as the canonical tree — commit to GitHub and re-run automation ([AUTOMATION.md](AUTOMATION.md)).

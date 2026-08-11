@@ -1,44 +1,46 @@
-# COMPLETE HARDENED REPO — RECOVERY
+# Hardening recovery — durable sources only
 
-## On this machine (agent artifacts)
+**Source of truth is GitHub `main`**, not a chat session or sandbox zip.
 
-| Artifact | Size | Use |
-|----------|------|-----|
-| `ux-channel-FULL-HARDENED.zip` | ~2.3 MB | Full tree (830 files), no .git |
-| `ux-channel-FULL-HARDENED.bundle` | ~2.1 MB | `git clone ux-channel-FULL-HARDENED.bundle recovered` |
-| `0001-FULL-HARDENING-authz-seal-fail-closed-stores-agent-c.patch` | 8 KB | `git am` onto clean main |
-| `PRESERVE-HARDENED/` | sources | Direct copy of hardened .py files |
-| `patches/0001-production-hardening-authz-seal.patch` (GitHub) | on main | same patch online |
+## Preferred: already on main
 
-## Restore full tree
+The complete hardened tree is the current default branch:
 
 ```bash
-unzip ux-channel-FULL-HARDENED.zip
-cd uxc
-# OR from bundle:
-git clone ux-channel-FULL-HARDENED.bundle ux-channel-recovered
+git clone https://github.com/bitplorer/ux-channel.git
+cd ux-channel
+make verify
 ```
 
-## Apply only the hardening delta onto latest main
+## Apply only the authz-seal patch onto a clean fork of law
 
 ```bash
 git clone https://github.com/bitplorer/ux-channel.git
 cd ux-channel
 curl -sL https://raw.githubusercontent.com/bitplorer/ux-channel/main/patches/0001-production-hardening-authz-seal.patch | git am
+# or:
+bash scripts/apply-hardening.sh
 ```
+
+Patch lives in-repo: [`patches/0001-production-hardening-authz-seal.patch`](patches/0001-production-hardening-authz-seal.patch).
 
 ## Hardening inventory
 
-Already on main as source:
-- rate limit fail-closed
-- idempotency fail-closed
-- roles_of principal-only
-- MCP sessions max_sessions
+| Area | Status |
+|------|--------|
+| Rate limit / idempotency stores fail-closed when full | on `main` |
+| `roles_of`: principal claims only | on `main` |
+| MCP sessions `max_sessions` fail-closed | on `main` |
+| Soft principal: **id only** (no client roles) | on `main` / patch |
+| RegionBook / flow: no client roles into scope | on `main` / patch |
+| AgentRunner confirm: signed secret required | on `main` / patch |
+| WebRTC ticket/origin defaults fail-closed | on `main` / patch |
 
-In the patch / FULL zip (must apply or unzip):
-- registry soft principal id-only
-- regions/flow no client roles
-- agent confirm fail-closed
-- webrtc ticket/origin fail-closed defaults
+Details: [HARDENING_STATUS.md](HARDENING_STATUS.md) · policy: [AUTOMATION.md](AUTOMATION.md).
 
-Local commit: 241424f
+## Do not rely on
+
+- Agent sandbox paths or one-off workspace zips as the long-term archive  
+- Hand-editing generated catalog / map fields after a partial copy  
+
+If you received a snapshot zip, treat it as a **bootstrap**, then re-verify with `make verify` and push to your remote so Git history is the recovery mechanism.

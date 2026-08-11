@@ -1,6 +1,7 @@
 # Architecture — production layout for the long run
 
-**Longevity strata + anti-bloat doors:** [LONGEVITY.md](LONGEVITY.md).
+**Longevity strata + anti-bloat doors:** [LONGEVITY.md](LONGEVITY.md).  
+**Ceremonial automation (catalog, map, CXB expected):** [AUTOMATION.md](AUTOMATION.md).
 
 **Decision:** keep **Python + Rust in one monorepo**, with **hard package boundaries** and a **shared law layer**.  
 Do **not** split into multiple repos until release volume forces it — protocol drift is worse than a larger tree.
@@ -41,6 +42,7 @@ repo root
 ├── demos/                MOVING — examples only, not production deps
 │   └── python_forward/   thin Intent POST to Rust peer
 ├── docs guides           HOW_IT_WORKS, TERMINOLOGY, REFERENCE, FAQ, …
+├── AUTOMATION.md         what is generated vs hand design
 ├── verify.sh             one-command green for both products + law
 └── startup-peer.sh       local demo helper (oracle allow-listed)
 ```
@@ -59,6 +61,11 @@ flowchart TB
     PF[demos/python_forward]
     UI[uxc_peer demo HTML]
   end
+  subgraph AUTO["AUTOMATION — derived, never hand-stale"]
+    MAP[PACKAGE_MAP modules/count]
+    CAT[catalog.json]
+    CXB[expected/cxb]
+  end
   SPEC --> PY
   SPEC --> RS
   CONF --> PY
@@ -66,7 +73,24 @@ flowchart TB
   PY --> PF
   RS --> PF
   RS --> UI
+  PY --> MAP
+  PY --> CAT
+  CONF --> CXB
 ```
+
+---
+
+## Design / implementation placement
+
+| Layer | What you design by hand | What automation owns |
+|-------|-------------------------|----------------------|
+| Law | SPEC text, golden JSON vectors | CXB expected blobs from oracle |
+| Python core | Action handlers, cap logic, package `__init__` exports | `modules` / `module_count` / catalog |
+| Rust peer | Types, cap, CXB, HTTP bins | (n/a — rustc is the check) |
+| Tooling L5 | CLI UX, dashboard copy | Preset/codegen outputs |
+
+Package one-liners: `python/src/ux_channel/PACKAGE_MAP.json` → `package_docs`.  
+Deeper API encyclopedia: `python/docs/`.
 
 ---
 
@@ -79,7 +103,8 @@ flowchart TB
 5. **JSON floor forever for IR 0.1**; CXB is opt-in upgrade.  
 6. **CI gate:** `./verify.sh` before merge (includes **Python + Rust** + law); `--http` before release candidates.  
    Python suite: `python/tests` (cap oracle, JSON vectors, CXB expected). Rust: `cargo test` + `uxc_check`.  
-7. **Do not nest a production crate under `peers/`** — that name signals “optional experiment.” First-class `rust/` + `python/` signal ship-ready packages.
+7. **Do not nest a production crate under `peers/`** — that name signals “optional experiment.” First-class `rust/` + `python/` signal ship-ready packages.  
+8. **Derived artifacts stay fresh** — `make layout` fails if catalog or map fields lag disk/packages ([AUTOMATION.md](AUTOMATION.md)).
 
 ---
 
@@ -100,20 +125,8 @@ Until then, monorepo + clear roots is the lower-risk production default.
 Prefer Make (CI uses the same):
 
 ```bash
-make verify
-make verify-http
+make regen          # derived catalog + map fields
+make verify         # health + layout + longevity + law + tests
+make verify-http    # + live peer
+make sync-map       # opt-in packages inventory from disk
 ```
-
-```bash
-./verify.sh              # law + rust unit/check
-./verify.sh --http       # + live rust peer + demo forward
-
-# Python host on path
-export PYTHONPATH="$PWD/python${PYTHONPATH:+:$PYTHONPATH}"
-
-# Rust peer (production secret)
-export UXC_CAP_SECRET='…'
-cargo run --manifest-path rust/Cargo.toml --bin uxc_peer
-```
-
-See [STRUCTURE.md](STRUCTURE.md), [OPERATIONAL.md](OPERATIONAL.md), [python/ONTOLOGY.md](python/ONTOLOGY.md) (host concepts), [python/README.md](python/README.md), [rust/README.md](rust/README.md).

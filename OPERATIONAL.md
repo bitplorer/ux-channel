@@ -79,6 +79,8 @@ Clients must still branch on the **Result body**; HTTP status is for proxies/log
 
 ## 6. Local automation
 
+Prefer Make targets from [AUTOMATION.md](AUTOMATION.md): `make regen`, `make layout`, `make verify`.
+
 ```bash
 make peer-demo     # demo peer (oracle allow-listed)
 make verify-http   # full smoke including HTTP

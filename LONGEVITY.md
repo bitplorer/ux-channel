@@ -1,7 +1,7 @@
 # Longevity — stable core vs moving parts vs anti-bloat
 
 **Purpose:** keep the library usable for decades without becoming a monorepo junk drawer.  
-**Companion:** [MENTAL_MODEL.md](MENTAL_MODEL.md) · [PUBLIC_API_FREEZE.md](PUBLIC_API_FREEZE.md) · [ARCHITECTURE.md](ARCHITECTURE.md)
+**Companion:** [MENTAL_MODEL.md](MENTAL_MODEL.md) · [PUBLIC_API_FREEZE.md](PUBLIC_API_FREEZE.md) · [ARCHITECTURE.md](ARCHITECTURE.md) · [AUTOMATION.md](AUTOMATION.md)
 
 ---
 
@@ -244,15 +244,19 @@ Before merging a feature, answer:
 
 | Check | Command |
 |-------|---------|
-| Strata map + core/L4 eager-import ban | `python3 scripts/check_longevity.py` |
-| Layout / PACKAGE_MAP | `python3 scripts/sync_python_layout.py --check` |
+| Strata map + core/L4 eager-import ban | `python3 scripts/check_longevity.py` / `make longevity` |
+| Layout / PACKAGE_MAP / catalog freshness | `python3 scripts/sync_python_layout.py --check` / `make layout` |
+| Dead paths + required docs | `python3 scripts/repo_health.py` / `make health` |
 | Root application surface | `python/tests/gate/test_longevity_strata.py` |
-| Full CI | `./verify.sh` (includes longevity) |
+| Full CI | `make verify` / `./verify.sh` (includes longevity) |
 
 `PACKAGE_MAP.json` fields:
 
+* `packages` — intentional module inventory (or `make sync-map` from disk)
+* `modules`, `module_count` — **derived** (never hand-edit; see [AUTOMATION.md](AUTOMATION.md))
 * `strata` — package → `L1`…`L5`
 * `core_packages` — L1+L2
 * `plane_packages` — L4
+* `package_docs` — one-line design intent per package
 
 Extension authors: [python/docs/start/EXTENSIONS.md](python/docs/start/EXTENSIONS.md).

@@ -1,13 +1,18 @@
 # Convenience targets — prefer these over remembering commands.
-.PHONY: help health layout verify verify-http peer-demo peer-stop \
-	test-rust test-python test-python-gate test-python-host python-path
+# Policy: AUTOMATION.md — ceremonial outputs are regenerated, not hand-edited.
+.PHONY: help health layout longevity regen sync-map verify verify-http peer-demo peer-stop \
+	test-rust test-python test-python-gate test-python-host python-path cxb-regen
 
 help:
-	@echo "Targets:"
-	@echo "  make health            - links + stale paths + required files"
-	@echo "  make layout            - package layout check (no shims)"
+	@echo "Targets (see AUTOMATION.md):"
+	@echo "  make health            - links + stale/dead paths + required files"
+	@echo "  make layout            - package map + catalog freshness (CI)"
+	@echo "  make regen             - write derived map fields + catalog"
+	@echo "  make sync-map          - packages ← disk, then regen (opt-in inventory)"
+	@echo "  make longevity         - strata + no eager L4 in core"
 	@echo "  make verify            - health + law + Python gate + Rust (CI)"
 	@echo "  make verify-http       - verify + live peer + demo forward"
+	@echo "  make cxb-regen         - rebuild conformance/expected/cxb from oracle"
 	@echo "  make test-rust         - cargo test --lib --tests"
 	@echo "  make test-python-gate  - pytest python/tests/gate"
 	@echo "  make test-python-host  - pytest host regions/state/core"
@@ -20,8 +25,17 @@ health:
 layout:
 	python3 scripts/sync_python_layout.py --check
 
+regen:
+	python3 scripts/sync_python_layout.py
+
+sync-map:
+	python3 scripts/sync_python_layout.py --sync-map
+
 longevity:
 	python3 scripts/check_longevity.py
+
+cxb-regen:
+	PYTHONPATH=$(CURDIR)/python/src python3 conformance/harness/regenerate_cxb_expected.py
 
 verify: health layout longevity
 	./verify.sh

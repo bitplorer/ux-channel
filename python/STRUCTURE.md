@@ -1,13 +1,23 @@
-# Python host structure
+# Python package structure
 
-Canonical docs:
+Canonical law: [STABILITY.md](STABILITY.md) · Automation: [../AUTOMATION.md](../AUTOMATION.md)
 
-| Doc | Role |
-|-----|------|
-| [../MENTAL_MODEL.md](../MENTAL_MODEL.md) | Intent → Result model |
-| [STABILITY.md](STABILITY.md) | Layout + identity law |
-| [../STRUCTURE.md](../STRUCTURE.md) | Monorepo map |
-| [ONTOLOGY.md](ONTOLOGY.md) | Region / Bridge / Action |
-| [LAYOUT.md](LAYOUT.md) | Import cheat-sheet |
+```text
+src/ux_channel/
+  protocol/ host/ render/ security/ api/     # core (hand design + tests)
+  wire/ asgi/ transport/                     # adapters
+  bridge/ bridges/ realtime/ …               # L4 planes (optional)
+  devtools/ scaffold/ catalog/               # L5 tooling
+  PACKAGE_MAP.json                           # packages intentional;
+                                             # modules + count DERIVED
+  catalog/catalog.json                       # GENERATED — make regen
+```
 
-Package `__init__.py` files are hand-maintained. Layout sync only regenerates `catalog/`.
+Package `__init__.py` export lists are hand-maintained.  
+Layout sync regenerates `catalog/` and derived map fields only.
+
+```bash
+make regen
+make layout    # CI freshness
+make verify
+```
