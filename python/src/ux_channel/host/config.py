@@ -279,10 +279,35 @@ class ChannelConfig:
         ``webrtc_require_ticket=False``.
 
         Audit trail on by default (intent log + forensics).
+        WebSocket Origin required (browsers always send it; service clients
+        may set ``ws_require_origin=False``).
+
+        When ``allowed_origins`` is set and ``navigate_allowed_hosts`` is not,
+        hostnames are derived so absolute navigate/push_url cannot open-redirect
+        off-site (relative paths remain allowed).
         """
         kwargs.setdefault("audit", True)
         kwargs.setdefault("webrtc_require_ticket", True)
         kwargs.setdefault("webrtc_require_origin", True)
+        kwargs.setdefault("ws_require_origin", True)
+        # Derive navigate host allowlist from browser origins when not explicit.
+        if (
+            "navigate_allowed_hosts" not in kwargs
+            and kwargs.get("allowed_origins")
+            and not kwargs.get("navigate_allowed_hosts")
+        ):
+            from urllib.parse import urlparse
+
+            hosts: list[str] = []
+            for origin in kwargs.get("allowed_origins") or ():
+                try:
+                    h = (urlparse(str(origin)).hostname or "").lower()
+                except Exception:
+                    h = ""
+                if h and h not in hosts:
+                    hosts.append(h)
+            if hosts:
+                kwargs["navigate_allowed_hosts"] = tuple(hosts)
         # observe defaults off; allow_memory_stores must be explicit
         return cls(secret=secret, environment="production", **kwargs).validate()
 
@@ -411,7 +436,10 @@ class ChannelConfig:
             "ws_enabled": os.environ.get(f"{prefix}WS_ENABLED", "1") not in ("0", "false"),
             "ws_allow_actions": os.environ.get(f"{prefix}WS_ALLOW_ACTIONS", "1")
             not in ("0", "false"),
-            "ws_require_origin": os.environ.get(f"{prefix}WS_REQUIRE_ORIGIN", "0")
+            "ws_require_origin": os.environ.get(
+                f"{prefix}WS_REQUIRE_ORIGIN",
+                "1" if env == "production" else "0",
+            )
             in ("1", "true"),
             "ws_max_subscriptions": _int("WS_MAX_SUBSCRIPTIONS", 16),
             "ws_max_message_bytes": _int("WS_MAX_MESSAGE_BYTES", 256_000),

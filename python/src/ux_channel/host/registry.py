@@ -540,12 +540,24 @@ class ActionRegistry:
                 args.setdefault(k, v)
 
         principal = self._resolve_principal()
+        soft_from_args = False
         # Soft identity: id only. NEVER take roles/scopes from client Intent args.
         if principal is None:
+            # Client-supplied roles are never trusted — emit so operators can see probes.
+            if args.get("roles") is not None or args.get("role") is not None:
+                _sec(
+                    "role_claim_ignored",
+                    action=intent.action,
+                    reason="roles in Intent.args are ignored; use auth_resolver / principal=",
+                    principal=str(
+                        args.get("user_id") or args.get("sub") or args.get("subject") or ""
+                    ),
+                )
             for key in ("user_id", "sub", "subject"):
                 val = args.get(key)
                 if val is not None and str(val).strip():
                     principal = Principal.of(str(val).strip())
+                    soft_from_args = True
                     break
         if self.require_principal and principal is None:
             return (
@@ -615,9 +627,23 @@ class ActionRegistry:
                     action=intent.action,
                     detail={"sub": cap_data.get("sub"), "once": cap_data.get("once")},
                 )
-                # Cap subject can identify actor when no principal was resolved
-                if principal is None and cap_data.get("sub"):
-                    principal = Principal(id=str(cap_data["sub"]))
+                # Cap subject is server-signed truth: fill missing principal, or
+                # override soft-from-args when they disagree (never trust client id
+                # over a signed sub).
+                cap_sub = cap_data.get("sub")
+                if cap_sub is not None and str(cap_sub).strip():
+                    cap_sub_s = str(cap_sub).strip()
+                    if principal is None:
+                        principal = Principal(id=cap_sub_s)
+                    elif soft_from_args and str(getattr(principal, "id", "") or "") != cap_sub_s:
+                        _sec(
+                            "principal_mismatch",
+                            action=intent.action,
+                            reason="soft principal from args differed from cap.sub; using cap.sub",
+                            principal=cap_sub_s,
+                            claimed=str(getattr(principal, "id", "") or ""),
+                        )
+                        principal = Principal(id=cap_sub_s)
             except CapError as exc:
                 _sec("cap_fail", action=getattr(intent, "action", ""), reason=str(exc))
                 tr.emit(

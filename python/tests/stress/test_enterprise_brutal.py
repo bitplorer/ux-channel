@@ -14,6 +14,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from ux_channel import Channel, ChannelConfig, Intent, Result
+from ux_channel.host.context import Principal
 from ux_channel.host.testing import ChannelTest
 from ux_channel.security.bulkhead import install_bulkhead
 from ux_channel.protocol.capability import CapError
@@ -175,11 +176,16 @@ def test_role_gate_refund():
 def test_once_cap_replay_blocked():
     ch = build_enterprise()
     assert ch.registry.nonce_store is not None
-    args = {"order_id": "o2", "user_id": "bob", "tenant_id": "t1", "roles": ["finance"]}
-    cap = ch.mint("Order.refund", args, once=True)
-    r1 = ch.registry.dispatch(Intent(action="Order.refund", args=args, cap=cap))
+    args = {"order_id": "o2", "user_id": "bob", "tenant_id": "t1"}
+    principal = Principal.of("bob", roles=["finance"])
+    cap = ch.mint("Order.refund", args, once=True, sub="bob")
+    r1 = ch.registry.dispatch(
+        Intent(action="Order.refund", args=args, cap=cap), principal=principal
+    )
     assert r1.ok, r1.error
-    r2 = ch.registry.dispatch(Intent(action="Order.refund", args=args, cap=cap))
+    r2 = ch.registry.dispatch(
+        Intent(action="Order.refund", args=args, cap=cap), principal=principal
+    )
     assert not r2.ok
     assert r2.error and "replay" in (r2.error.message or "").lower() or r2.error.code in (
         "unauthorized",
@@ -191,13 +197,16 @@ def test_once_cap_replay_blocked():
 def test_auto_once_on_sign_from_policy():
     ch = build_enterprise()
     # policy once=True should inject once into sign
-    cap = ch.mint("Order.refund", {"order_id": "x", "user_id": "bob"})
-    # decode via second use - if once, second fails
-    args = {"order_id": "x", "user_id": "bob", "tenant_id": "t1", "roles": ["admin"]}
+    args = {"order_id": "x", "user_id": "bob", "tenant_id": "t1"}
+    principal = Principal.of("bob", roles=["admin"])
     # resign with same policy
-    cap = ch.mint("Order.refund", args)
-    r1 = ch.registry.dispatch(Intent(action="Order.refund", args=args, cap=cap))
-    r2 = ch.registry.dispatch(Intent(action="Order.refund", args=args, cap=cap))
+    cap = ch.mint("Order.refund", args, sub="bob")
+    r1 = ch.registry.dispatch(
+        Intent(action="Order.refund", args=args, cap=cap), principal=principal
+    )
+    r2 = ch.registry.dispatch(
+        Intent(action="Order.refund", args=args, cap=cap), principal=principal
+    )
     assert r1.ok and not r2.ok
 
 
@@ -297,13 +306,18 @@ def test_stress_concurrent_cart_adds():
 def test_stress_once_caps_no_double_refund():
     ch = build_enterprise()
     ch.registry.hooks.before.clear()
-    args = {"order_id": "once-1", "user_id": "bob", "tenant_id": "t1", "roles": ["finance"]}
+    principal = Principal.of("bob", roles=["finance"])
+    args = {"order_id": "once-1", "user_id": "bob", "tenant_id": "t1"}
     # each thread gets own once cap
     def one(i: int) -> str:
         a = {**args, "order_id": f"once-{i}"}
-        cap = ch.mint("Order.refund", a)  # policy once
-        r1 = ch.registry.dispatch(Intent(action="Order.refund", args=a, cap=cap))
-        r2 = ch.registry.dispatch(Intent(action="Order.refund", args=a, cap=cap))
+        cap = ch.mint("Order.refund", a, sub="bob")  # policy once
+        r1 = ch.registry.dispatch(
+            Intent(action="Order.refund", args=a, cap=cap), principal=principal
+        )
+        r2 = ch.registry.dispatch(
+            Intent(action="Order.refund", args=a, cap=cap), principal=principal
+        )
         return f"{r1.ok}:{r2.ok}"
 
     with ThreadPoolExecutor(32) as ex:

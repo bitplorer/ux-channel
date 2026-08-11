@@ -35,6 +35,9 @@ Patch lives in-repo: [`patches/0001-production-hardening-authz-seal.patch`](patc
 | RegionBook / flow: no client roles into scope | on `main` / patch |
 | AgentRunner confirm: signed secret required | on `main` / patch |
 | WebRTC ticket/origin defaults fail-closed | on `main` / patch |
+| cap.sub overrides soft principal from args | on `main` |
+| Production `ws_require_origin` + navigate host derive | on `main` |
+| Security events (role claim / rate / agent confirm) | on `main` |
 
 Details: [HARDENING_STATUS.md](HARDENING_STATUS.md) · policy: [AUTOMATION.md](AUTOMATION.md).
 

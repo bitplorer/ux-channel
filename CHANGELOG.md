@@ -1,3 +1,11 @@
+## 2026-08-11 — Deeper hardening (post-seal)
+
+- cap.sub wins over soft principal from Intent.args when they disagree
+- Security events for role-claim probes, principal mismatch, rate limits, agent confirm denials
+- Production defaults: `ws_require_origin=True`; navigate hosts derived from `allowed_origins`
+- Tests updated: client-supplied roles no longer authorize (use `principal=Principal.of(..., roles=...)`)
+- Expanded `tests/gate/test_deeper_hardening.py`
+
 ## 2026-08-11 — Automation default + freshness + package design overviews
 
 - **Default:** ceremonial code is automated; hand-code only when extending features or making law/public-API changes ([AUTOMATION.md](AUTOMATION.md))

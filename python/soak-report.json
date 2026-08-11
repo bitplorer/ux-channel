@@ -1,0 +1,139 @@
+{
+  "ok": true,
+  "mode": "inline",
+  "duration_s": 20.618,
+  "slo": {
+    "action_success": 0.99,
+    "rtc_success": 0.99,
+    "ticket_deny": 1.0,
+    "p95_rtc_ms": 200.0,
+    "p95_action_ms": 100.0,
+    "ws_hello": 0.98
+  },
+  "scenarios": [
+    {
+      "name": "ticket_gate",
+      "ok": true,
+      "error": null,
+      "detail": {
+        "denies": 20,
+        "allows": 20,
+        "bad": 0,
+        "deny_rate": 1.0,
+        "allow_rate": 1.0,
+        "slo_deny": 1.0,
+        "slo_allow": 0.99
+      }
+    },
+    {
+      "name": "rtc_mesh",
+      "ok": true,
+      "error": null,
+      "detail": {
+        "pairs": 5,
+        "ok": 5,
+        "err": 0,
+        "success_rate": 1.0,
+        "p95_ms": 18.73,
+        "slo_success": 0.99,
+        "slo_p95_ms": 200.0
+      }
+    },
+    {
+      "name": "rtc_ws",
+      "ok": true,
+      "error": null,
+      "detail": {
+        "hellos": 1,
+        "fails": 0,
+        "success_rate": 1.0,
+        "slo": 0.98
+      }
+    },
+    {
+      "name": "action_mix",
+      "ok": true,
+      "error": null,
+      "detail": {
+        "n": 20,
+        "ok": 20,
+        "err": 0,
+        "success_rate": 1.0,
+        "p95_ms": 5.27,
+        "slo_success": 0.99,
+        "slo_p95_ms": 100.0
+      }
+    },
+    {
+      "name": "metrics_slo",
+      "ok": true,
+      "error": null,
+      "detail": {
+        "uptime_s": 20.27,
+        "counters": {
+          "auth_fail": 40,
+          "poll_total": 36,
+          "signals_total": 20,
+          "signal_offer": 5,
+          "signal_answer": 5,
+          "signal_ice": 5,
+          "signal_ice_done": 5,
+          "ws_accept": 1
+        }
+      }
+    },
+    {
+      "name": "room_full",
+      "ok": true,
+      "error": null,
+      "detail": {
+        "store": "MemoryRtcStore",
+        "max_peers": 3,
+        "overflow": true
+      }
+    }
+  ],
+  "metrics_end": {
+    "uptime_s": 20.28,
+    "counters": {
+      "auth_fail": 40,
+      "poll_total": 39,
+      "signals_total": 20,
+      "signal_offer": 5,
+      "signal_answer": 5,
+      "signal_ice": 5,
+      "signal_ice_done": 5,
+      "ws_accept": 1
+    },
+    "gauges": {
+      "room_peers:tg_allow_8ba3b485_0": 1.0,
+      "room_peers_max": 3.0,
+      "room_peers:tg_allow_123c9ffa_1": 1.0,
+      "room_peers:tg_allow_9739ee04_2": 1.0,
+      "room_peers:tg_allow_c4d0b34b_3": 1.0,
+      "room_peers:tg_allow_bdccd9e0_4": 1.0,
+      "room_peers:tg_allow_e002727a_5": 1.0,
+      "room_peers:tg_allow_536cb6fc_6": 1.0,
+      "room_peers:tg_allow_eabdf625_7": 1.0,
+      "room_peers:tg_allow_dc0bc4b6_8": 1.0,
+      "room_peers:tg_allow_0e45a2e9_9": 1.0,
+      "room_peers:tg_allow_a013e306_10": 1.0,
+      "room_peers:tg_allow_47bd82fe_11": 1.0,
+      "room_peers:tg_allow_14cc80b1_12": 1.0,
+      "room_peers:tg_allow_f3b33d5f_13": 1.0,
+      "room_peers:tg_allow_df532eb4_14": 1.0,
+      "room_peers:tg_allow_98d78b80_15": 1.0,
+      "room_peers:tg_allow_e555e98a_16": 1.0,
+      "room_peers:tg_allow_01241bdc_17": 1.0,
+      "room_peers:tg_allow_a1bb69d5_18": 1.0,
+      "room_peers:tg_allow_83ec23c5_19": 1.0,
+      "room_peers:mesh_581aa832_0": 2.0,
+      "room_peers:mesh_581aa832_1": 2.0,
+      "room_peers:mesh_581aa832_2": 2.0,
+      "room_peers:mesh_581aa832_3": 2.0,
+      "room_peers:mesh_581aa832_4": 2.0,
+      "room_peers:ws_fae4cfa3": 1.0,
+      "room_peers:full": 3.0
+    }
+  }
+}

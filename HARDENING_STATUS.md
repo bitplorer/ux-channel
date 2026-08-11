@@ -16,23 +16,30 @@ In-tree patch: [`patches/0001-production-hardening-authz-seal.patch`](patches/00
 
 ## Already applied on main
 
+### Authz seal (0.1)
 - `MemoryRateLimiter` fail-closed when full  
 - `MemoryIdempotencyStore` fail-closed when full  
 - `roles_of`: principal claims/scopes only  
 - `MemoryMcpSessionStore` `max_sessions` fail-closed  
-
-## In the seal patch (source on main)
-
 - Soft principal: **id only** (no client roles from Intent)  
 - `ActionContext.meta`: no client roles  
 - RegionBook / flow: no client roles into scope  
 - AgentRunner confirm: signed secret required (fail closed)  
 - WebRTC ticket/origin defaults fail-closed (development may opt out)  
 
+### Deeper hardening (post-seal)
+- **cap.sub overrides soft principal** when args `user_id` disagrees with signed sub  
+- **Security events**: `role_claim_ignored`, `principal_mismatch`, `rate_limited`, `agent_confirm_denied`  
+- **Production** `ws_require_origin=True` (service clients may opt out)  
+- **Production** derives `navigate_allowed_hosts` from `allowed_origins` when not set (open-redirect control)  
+- Gate suite: [`python/tests/gate/test_deeper_hardening.py`](python/tests/gate/test_deeper_hardening.py)
+
 ## Verify after any restore
 
 ```bash
 make verify
+# security-focused:
+cd python && PYTHONPATH=src python3 -m pytest tests/gate/test_deeper_hardening.py tests/security -q
 ```
 
 Do not treat chat-session artifacts as the canonical tree — commit to GitHub and re-run automation ([AUTOMATION.md](AUTOMATION.md)).

@@ -277,6 +277,23 @@ class AgentRunner:
     def _confirmed(self, call: ToolCall) -> bool:
         if not call.confirmation:
             return False
+
+        def _deny(reason: str) -> bool:
+            try:
+                from ux_channel.security.security_events import emit_security
+
+                emit_security(
+                    "agent_confirm_denied",
+                    action=getattr(call, "name", "") or "",
+                    reason=reason,
+                    principal=str(
+                        getattr(getattr(self, "session", None), "agent_id", "") or ""
+                    ),
+                )
+            except Exception:
+                pass
+            return False
+
         secret = self.confirmation_secret or getattr(
             getattr(self.registry, "config", None), "secret", None
         )
@@ -287,7 +304,7 @@ class AgentRunner:
             if store is None:
                 self._confirm_nonces = set()  # type: ignore[attr-defined]
                 store = self._confirm_nonces
-            ok, _reason = verify_confirm_token(
+            ok, reason = verify_confirm_token(
                 str(secret),
                 call.confirmation,
                 action=call.name,
@@ -299,9 +316,11 @@ class AgentRunner:
             if isinstance(store, set) and len(store) > 50_000:
                 for _ in range(len(store) // 10):
                     store.pop()
-            return ok
+            if not ok:
+                return _deny(str(reason or "invalid confirmation token"))
+            return True
         # Fail closed without signing secret
-        return False
+        return _deny("confirmation_secret not configured")
 
     def _to_intent(self, call: ToolCall, *, dry_run: bool) -> Intent:
         args = dict(call.arguments)

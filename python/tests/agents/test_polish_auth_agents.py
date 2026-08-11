@@ -25,6 +25,7 @@ def test_soft_principal_auth_true_without_dispatch_principal():
 
 
 def test_soft_principal_roles_and_once_cap_replay():
+    """Roles must come from server-side principal — never Intent.args."""
     ch = Channel.boot(secret=SECRET)
 
     @ch.on(
@@ -37,21 +38,34 @@ def test_soft_principal_roles_and_once_cap_replay():
     def refund(order_id: str, ctx):
         return ch.done(f"Refunded by {ctx.user_id}")
 
+    # Client-supplied roles are ignored (authz seal) — need principal=
     args = {"order_id": "o1", "user_id": "bob", "roles": ["finance"]}
     cap = ch.mint("Order.refund", args, once=True)
-    r1 = ch.registry.dispatch(Intent(action="Order.refund", args=args, cap=cap))
+    r0 = ch.registry.dispatch(Intent(action="Order.refund", args=args, cap=cap))
+    assert not r0.ok and r0.error and r0.error.code == "forbidden"
+
+    finance = Principal.of("bob", roles=["finance"])
+    cap = ch.mint("Order.refund", args, once=True, sub="bob")
+    r1 = ch.registry.dispatch(
+        Intent(action="Order.refund", args=args, cap=cap), principal=finance
+    )
     assert r1.ok, r1.error
-    r2 = ch.registry.dispatch(Intent(action="Order.refund", args=args, cap=cap))
+    r2 = ch.registry.dispatch(
+        Intent(action="Order.refund", args=args, cap=cap), principal=finance
+    )
     assert not r2.ok
     assert r2.error and (
         "replay" in (r2.error.message or "").lower()
         or r2.error.code in ("unauthorized", "forbidden", "bad_request")
     )
 
-    # role gate
-    bad = {"order_id": "o2", "user_id": "carol", "roles": ["buyer"]}
-    cap_b = ch.mint("Order.refund", bad, once=True)
-    r3 = ch.registry.dispatch(Intent(action="Order.refund", args=bad, cap=cap_b))
+    # role gate — wrong roles on principal
+    bad = {"order_id": "o2", "user_id": "carol", "roles": ["admin"]}  # args bait
+    buyer = Principal.of("carol", roles=["buyer"])
+    cap_b = ch.mint("Order.refund", bad, once=True, sub="carol")
+    r3 = ch.registry.dispatch(
+        Intent(action="Order.refund", args=bad, cap=cap_b), principal=buyer
+    )
     assert not r3.ok and r3.error and r3.error.code == "forbidden"
 
 

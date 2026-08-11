@@ -111,6 +111,17 @@ def rate_limit_hook(
     def hook_fixed(intent: Intent, args: dict[str, Any]) -> Optional[Result]:
         if limiter.allow(_key(intent, args)):
             return None
+        try:
+            from ux_channel.security.security_events import emit_security
+
+            emit_security(
+                "rate_limited",
+                action=getattr(intent, "action", "") or "",
+                reason="rate limit",
+                client=str(_key(intent, args)),
+            )
+        except Exception:
+            pass
         ra = _retry_after_s()
         r = Result.failure(
             "rate_limited",

@@ -25,6 +25,9 @@ DEV_SECRET = "dev-secret-key-32chars-minimum!!!!"
 
 
 def _app(**kwargs):
+    # Integration WS tests exercise auth/tickets/intents; origin policy is unit-tested
+    # in check_ws_origin_*. Production factory defaults ws_require_origin=True.
+    kwargs.setdefault("ws_require_origin", False)
     cfg = ChannelConfig.production(
         secret=PROD_SECRET,
         allow_memory_stores=True,

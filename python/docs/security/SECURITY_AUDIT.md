@@ -153,10 +153,11 @@ CI expectation: **full `pytest` green** (currently 332+).
 ## Recommended next hardening (post-0.1)
 
 1. Optional **HTML sanitizer policy** for morph (strict mode) without breaking ux-dom.  
-2. **Navigate host allowlist** config.  
+2. ~~**Navigate host allowlist** config.~~ **Done** — `navigate_allowed_hosts` + production derives from `allowed_origins`.  
 3. Cap **binding to session cookie** / CSRF double-submit beyond custom header.  
 4. First-class **Redis** rate limit + nonce in default production factory.  
-5. Structured **security event** log stream (cap fail, origin fail, rate limit).
+5. ~~Structured **security event** log stream~~ **Done** — bus + emitters for cap/origin/CSRF/rate/role claim/agent confirm/WS.  
+6. Cap session binding (`bind_cap_to_principal=True` as production default when auth is always on).
 
 ---
 
