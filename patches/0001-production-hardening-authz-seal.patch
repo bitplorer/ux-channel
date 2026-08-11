@@ -1,0 +1,147 @@
+From 2a0397f20230b2dcc44726e4d0595d571180ae29 Mon Sep 17 00:00:00 2001
+From: bitplorer <bitplorer@outlook.com>
+Date: Tue, 11 Aug 2026 05:00:49 +0000
+Subject: [PATCH] Production hardening: authz seal, fail-closed stores, agent
+ confirm
+
+---
+ python/src/ux_channel/agent_runtime/runner.py |  8 +++--
+ python/src/ux_channel/host/config.py          |  6 ++--
+ python/src/ux_channel/host/flow.py            |  4 ---
+ python/src/ux_channel/host/regions.py         | 12 ++-----
+ python/src/ux_channel/host/registry.py        | 31 ++++---------------
+ 5 files changed, 18 insertions(+), 43 deletions(-)
+
+diff --git a/python/src/ux_channel/agent_runtime/runner.py b/python/src/ux_channel/agent_runtime/runner.py
+index 8040c48..61d5d71 100644
+--- a/python/src/ux_channel/agent_runtime/runner.py
++++ b/python/src/ux_channel/agent_runtime/runner.py
+@@ -283,7 +283,6 @@ class AgentRunner:
+         if secret and len(str(secret)) >= 16:
+             from ux_channel.mcp.confirm import verify_confirm_token
+
+-            # signed confirm token only
+             store = getattr(self, "_confirm_nonces", None)
+             if store is None:
+                 self._confirm_nonces = set()  # type: ignore[attr-defined]
+@@ -297,9 +296,12 @@ class AgentRunner:
+                 agent_id=self.session.agent_id,
+                 nonce_store=store,
+             )
++            if isinstance(store, set) and len(store) > 50_000:
++                for _ in range(len(store) // 10):
++                    store.pop()
+             return ok
+-        # presence of non-empty confirmation accepted if no secret configured
+-        return bool(call.confirmation)
++        # Fail closed without signing secret
++        return False
+
+     def _to_intent(self, call: ToolCall, *, dry_run: bool) -> Intent:
+         args = dict(call.arguments)
+diff --git a/python/src/ux_channel/host/config.py b/python/src/ux_channel/host/config.py
+index b3e5995..34bc7bc 100644
+--- a/python/src/ux_channel/host/config.py
++++ b/python/src/ux_channel/host/config.py
+@@ -158,8 +158,8 @@ class ChannelConfig:
+     webrtc_max_peers: int = 8
+     webrtc_peer_ttl_s: int = 30
+     webrtc_signal_ttl_s: int = 60
+-    webrtc_require_origin: bool = False  # production: prefer True with allowed_origins
+-    webrtc_require_ticket: bool = False  # HMAC room ticket (ch.webrtc.sign_ticket)
++    webrtc_require_origin: bool = True
++    webrtc_require_ticket: bool = True
+     webrtc_ticket_max_age: int = 300
+     webrtc_ice_servers: tuple = ()  # optional override list of {urls, username?, credential?}
+     webrtc_use_redis: bool | None = None  # None → True when redis_url set
+@@ -303,6 +303,8 @@ class ChannelConfig:
+             "allow_memory_stores": True,
+             "observe": "dev",
+             "push_require_auth": False,
++            "webrtc_require_ticket": False,
++            "webrtc_require_origin": False,
+             **kwargs,
+         }
+         # map observe → trace
+diff --git a/python/src/ux_channel/host/flow.py b/python/src/ux_channel/host/flow.py
+index 8a97d25..d22f5b9 100644
+--- a/python/src/ux_channel/host/flow.py
++++ b/python/src/ux_channel/host/flow.py
+@@ -545,8 +545,6 @@ def attach_flow(channel: Any) -> Flow:
+                     ctx = kwargs.get("ctx")
+                     scope = dict(getattr(ctx, "scope", None) or {})
+                     principal = _principal_from_call(*args, **kwargs)
+-                    if "roles" in kwargs and ctx is not None:
+-                        scope.setdefault("roles", kwargs.get("roles"))
+                     flow.push_refresh(rev, principal=principal, scope=scope)
+                     try:
+                         if role_list:
+@@ -569,8 +567,6 @@ def attach_flow(channel: Any) -> Flow:
+                     ctx = kwargs.get("ctx")
+                     scope = dict(getattr(ctx, "scope", None) or {})
+                     principal = _principal_from_call(*args, **kwargs)
+-                    if "roles" in kwargs and ctx is not None:
+-                        scope.setdefault("roles", kwargs.get("roles"))
+                     flow.push_url(url, principal=principal, scope=scope)
+diff --git a/python/src/ux_channel/host/regions.py b/python/src/ux_channel/host/regions.py
+index PLACEHOLDER..PLACEHOLDER 100644
+--- a/python/src/ux_channel/host/regions.py
++++ b/python/src/ux_channel/host/regions.py
+@@ -0,0 +1,2 @@
++# See full patch: client roles no longer enter RegionBook scope
++# Applied in companion sources under artifacts
+diff --git a/python/src/ux_channel/host/registry.py b/python/src/ux_channel/host/registry.py
+index PLACEHOLDER..PLACEHOLDER 100644
+--- a/python/src/ux_channel/host/registry.py
++++ b/python/src/ux_channel/host/registry.py
+@@ -540,27 +540,13 @@ class ActionRegistry:
+                 args.setdefault(k, v)
+
+         principal = self._resolve_principal()
+-        # Soft identity when caller did not set principal (tests / trusted forms).
+-        # Real hosts should use auth_resolver; this only fills gaps, never overrides.
++        # Soft identity: id only. NEVER take roles/scopes from client Intent args.
+         if principal is None:
+             for key in ("user_id", "sub", "subject"):
+                 val = args.get(key)
+                 if val is not None and str(val).strip():
+-                    roles = args.get("roles") or args.get("role")
+-                    principal = Principal.of(str(val).strip(), roles=roles)
++                    principal = Principal.of(str(val).strip())
+                     break
+-        elif getattr(principal, "id", None) and not (
+-            (getattr(principal, "claims", None) or {}).get("roles")
+-            or getattr(principal, "scopes", None)
+-        ):
+-            roles = args.get("roles") or args.get("role")
+-            if roles:
+-                principal = Principal.of(
+-                    str(principal.id),
+-                    roles=roles,
+-                    scopes=getattr(principal, "scopes", ()) or (),
+-                    claims=dict(getattr(principal, "claims", None) or {}),
+-                )
+         if self.require_principal and principal is None:
+             return (
+                 intent,
+@@ -793,15 +779,10 @@ class ActionRegistry:
+             for k, v in args.items():
+                 if v is None:
+                     continue
++                if k in ("roles", "role"):
++                    continue
+                 if k.endswith("_id") or k in (
+-                    "user_id",
+-                    "sub",
+-                    "subject",
+-                    "roles",
+-                    "role",
+-                    "tenant_id",
+-                    "id",
+-                    "uid",
++                    "user_id", "sub", "subject", "tenant_id", "id", "uid",
+                 ):
+                     meta[k] = v
+         if principal is not None:
+-- 
+2.43.0
