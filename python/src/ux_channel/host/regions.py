@@ -481,17 +481,11 @@ class RegionBook:
                                     or k in ("roles", "role", "user_id", "sub", "subject", "tenant_id")
                                 ):
                                     scope.setdefault(k, v)
-                # Identity / tenancy keys still present on the call
                 for k in list(kwargs.keys()):
+                    if k in ("roles", "role"):
+                        continue
                     if k.endswith("_id") or k in (
-                        "id",
-                        "uid",
-                        "sub",
-                        "user_id",
-                        "subject",
-                        "roles",
-                        "role",
-                        "tenant_id",
+                        "id", "uid", "sub", "user_id", "subject", "tenant_id",
                     ):
                         scope.setdefault(k, kwargs[k])
                 # Soft principal from ContextVar when still missing

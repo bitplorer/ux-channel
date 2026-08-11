@@ -1,8 +1,8 @@
-From 2a0397f20230b2dcc44726e4d0595d571180ae29 Mon Sep 17 00:00:00 2001
+From 241424fcd36214220179ba6a838c163aa4d4c259 Mon Sep 17 00:00:00 2001
 From: bitplorer <bitplorer@outlook.com>
-Date: Tue, 11 Aug 2026 05:00:49 +0000
-Subject: [PATCH] Production hardening: authz seal, fail-closed stores, agent
- confirm
+Date: Tue, 11 Aug 2026 05:05:28 +0000
+Subject: [PATCH] FULL HARDENING: authz seal, fail-closed stores, agent
+ confirm, webrtc defaults
 
 ---
  python/src/ux_channel/agent_runtime/runner.py |  8 +++--
@@ -19,7 +19,7 @@ index 8040c48..61d5d71 100644
 @@ -283,7 +283,6 @@ class AgentRunner:
          if secret and len(str(secret)) >= 16:
              from ux_channel.mcp.confirm import verify_confirm_token
-
+ 
 -            # signed confirm token only
              store = getattr(self, "_confirm_nonces", None)
              if store is None:
@@ -36,7 +36,7 @@ index 8040c48..61d5d71 100644
 -        return bool(call.confirmation)
 +        # Fail closed without signing secret
 +        return False
-
+ 
      def _to_intent(self, call: ToolCall, *, dry_run: bool) -> Intent:
          args = dict(call.arguments)
 diff --git a/python/src/ux_channel/host/config.py b/python/src/ux_channel/host/config.py
@@ -53,7 +53,7 @@ index b3e5995..34bc7bc 100644
 +    webrtc_require_ticket: bool = True
      webrtc_ticket_max_age: int = 300
      webrtc_ice_servers: tuple = ()  # optional override list of {urls, username?, credential?}
-     webrtc_use_redis: bool | None = None  # None \u2192 True when redis_url set
+     webrtc_use_redis: bool | None = None  # None → True when redis_url set
 @@ -303,6 +303,8 @@ class ChannelConfig:
              "allow_memory_stores": True,
              "observe": "dev",
@@ -62,7 +62,7 @@ index b3e5995..34bc7bc 100644
 +            "webrtc_require_origin": False,
              **kwargs,
          }
-         # map observe \u2192 trace
+         # map observe → trace
 diff --git a/python/src/ux_channel/host/flow.py b/python/src/ux_channel/host/flow.py
 index 8a97d25..d22f5b9 100644
 --- a/python/src/ux_channel/host/flow.py
@@ -82,7 +82,9 @@ index 8a97d25..d22f5b9 100644
                      principal = _principal_from_call(*args, **kwargs)
 -                    if "roles" in kwargs and ctx is not None:
 -                        scope.setdefault("roles", kwargs.get("roles"))
-                     flow.push_url(url, principal=principal, scope=scope)
+                     flow.push_refresh(rev, principal=principal, scope=scope)
+                     try:
+                         if role_list:
 diff --git a/python/src/ux_channel/host/regions.py b/python/src/ux_channel/host/regions.py
 index c66e114..5b3b616 100644
 --- a/python/src/ux_channel/host/regions.py
@@ -107,22 +109,23 @@ index c66e114..5b3b616 100644
 +                        "id", "uid", "sub", "user_id", "subject", "tenant_id",
                      ):
                          scope.setdefault(k, kwargs[k])
+                 # Soft principal from ContextVar when still missing
 diff --git a/python/src/ux_channel/host/registry.py b/python/src/ux_channel/host/registry.py
-index 85346d4..PLACEHOLDER 100644
+index 85346d4..4759195 100644
 --- a/python/src/ux_channel/host/registry.py
 +++ b/python/src/ux_channel/host/registry.py
-@@ -33,7 +33,7 @@ import contextvars
+@@ -43,7 +43,7 @@ import contextvars
  import inspect
  import logging
  import time
 -from typing import Optional, Any, Callable, Mapping, Optional, Sequence, TYPE_CHECKING
 +from typing import Any, Callable, Mapping, Optional, Sequence, TYPE_CHECKING
-
+ 
  from ux_channel.protocol.capability import CapError, CapService
  from ux_channel.host.context import ActionContext, AuthResolver, Principal
 @@ -540,27 +540,13 @@ class ActionRegistry:
                  args.setdefault(k, v)
-
+ 
          principal = self._resolve_principal()
 -        # Soft identity when caller did not set principal (tests / trusted forms).
 -        # Real hosts should use auth_resolver; this only fills gaps, never overrides.
@@ -171,3 +174,4 @@ index 85346d4..PLACEHOLDER 100644
          if principal is not None:
 -- 
 2.43.0
+

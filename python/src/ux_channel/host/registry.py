@@ -43,7 +43,7 @@ import contextvars
 import inspect
 import logging
 import time
-from typing import Optional, Any, Callable, Mapping, Optional, Sequence, TYPE_CHECKING
+from typing import Any, Callable, Mapping, Optional, Sequence, TYPE_CHECKING
 
 from ux_channel.protocol.capability import CapError, CapService
 from ux_channel.host.context import ActionContext, AuthResolver, Principal
@@ -540,27 +540,13 @@ class ActionRegistry:
                 args.setdefault(k, v)
 
         principal = self._resolve_principal()
-        # Soft identity when caller did not set principal (tests / trusted forms).
-        # Real hosts should use auth_resolver; this only fills gaps, never overrides.
+        # Soft identity: id only. NEVER take roles/scopes from client Intent args.
         if principal is None:
             for key in ("user_id", "sub", "subject"):
                 val = args.get(key)
                 if val is not None and str(val).strip():
-                    roles = args.get("roles") or args.get("role")
-                    principal = Principal.of(str(val).strip(), roles=roles)
+                    principal = Principal.of(str(val).strip())
                     break
-        elif getattr(principal, "id", None) and not (
-            (getattr(principal, "claims", None) or {}).get("roles")
-            or getattr(principal, "scopes", None)
-        ):
-            roles = args.get("roles") or args.get("role")
-            if roles:
-                principal = Principal.of(
-                    str(principal.id),
-                    roles=roles,
-                    scopes=getattr(principal, "scopes", ()) or (),
-                    claims=dict(getattr(principal, "claims", None) or {}),
-                )
         if self.require_principal and principal is None:
             return (
                 intent,
@@ -793,15 +779,10 @@ class ActionRegistry:
             for k, v in args.items():
                 if v is None:
                     continue
+                if k in ("roles", "role"):
+                    continue
                 if k.endswith("_id") or k in (
-                    "user_id",
-                    "sub",
-                    "subject",
-                    "roles",
-                    "role",
-                    "tenant_id",
-                    "id",
-                    "uid",
+                    "user_id", "sub", "subject", "tenant_id", "id", "uid",
                 ):
                     meta[k] = v
         if principal is not None:

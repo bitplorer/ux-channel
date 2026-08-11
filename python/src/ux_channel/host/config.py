@@ -158,8 +158,8 @@ class ChannelConfig:
     webrtc_max_peers: int = 8
     webrtc_peer_ttl_s: int = 30
     webrtc_signal_ttl_s: int = 60
-    webrtc_require_origin: bool = False  # production: prefer True with allowed_origins
-    webrtc_require_ticket: bool = False  # HMAC room ticket (ch.webrtc.sign_ticket)
+    webrtc_require_origin: bool = True
+    webrtc_require_ticket: bool = True
     webrtc_ticket_max_age: int = 300
     webrtc_ice_servers: tuple = ()  # optional override list of {urls, username?, credential?}
     webrtc_use_redis: bool | None = None  # None → True when redis_url set
@@ -303,6 +303,8 @@ class ChannelConfig:
             "allow_memory_stores": True,
             "observe": "dev",
             "push_require_auth": False,
+            "webrtc_require_ticket": False,
+            "webrtc_require_origin": False,
             **kwargs,
         }
         # map observe → trace

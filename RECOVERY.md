@@ -1,33 +1,44 @@
-# COMPLETE HARDENED REPO — NOTHING LOST
+# COMPLETE HARDENED REPO — RECOVERY
 
-## Instant recover (GitHub only)
+## On this machine (agent artifacts)
+
+| Artifact | Size | Use |
+|----------|------|-----|
+| `ux-channel-FULL-HARDENED.zip` | ~2.3 MB | Full tree (830 files), no .git |
+| `ux-channel-FULL-HARDENED.bundle` | ~2.1 MB | `git clone ux-channel-FULL-HARDENED.bundle recovered` |
+| `0001-FULL-HARDENING-authz-seal-fail-closed-stores-agent-c.patch` | 8 KB | `git am` onto clean main |
+| `PRESERVE-HARDENED/` | sources | Direct copy of hardened .py files |
+| `patches/0001-production-hardening-authz-seal.patch` (GitHub) | on main | same patch online |
+
+## Restore full tree
 
 ```bash
-git clone https://github.com/bitplorer/ux-channel.git && cd ux-channel
-bash scripts/apply-hardening.sh
-# or:
+unzip ux-channel-FULL-HARDENED.zip
+cd uxc
+# OR from bundle:
+git clone ux-channel-FULL-HARDENED.bundle ux-channel-recovered
+```
+
+## Apply only the hardening delta onto latest main
+
+```bash
+git clone https://github.com/bitplorer/ux-channel.git
+cd ux-channel
 curl -sL https://raw.githubusercontent.com/bitplorer/ux-channel/main/patches/0001-production-hardening-authz-seal.patch | git am
 ```
 
-## Full tree backup (agent artifacts — download before session ends)
+## Hardening inventory
 
-| File | Contents |
-|------|----------|
-| `ux-channel-FULL-HARDENED.zip` | **Complete** 830-file tree with all hardenings (~2.3 MB) |
-| `ux-channel-FULL-HARDENED.bundle` | Git bundle of hardened tip (~2.1 MB) |
-| `PRESERVE-HARDENED/` | Critical hardened `.py` sources |
-| `0001-FULL-HARDENING-*.patch` | Same delta as `patches/` on main |
+Already on main as source:
+- rate limit fail-closed
+- idempotency fail-closed
+- roles_of principal-only
+- MCP sessions max_sessions
 
-```bash
-unzip ux-channel-FULL-HARDENED.zip && cd uxc
-# or
-git clone ux-channel-FULL-HARDENED.bundle recovered-ux-channel
-```
+In the patch / FULL zip (must apply or unzip):
+- registry soft principal id-only
+- regions/flow no client roles
+- agent confirm fail-closed
+- webrtc ticket/origin fail-closed defaults
 
-## What is hardened
-
-**Already as source on main:** rate-limit fail-closed, idempotency fail-closed, roles_of principal-only, MCP sessions max_sessions.
-
-**In the patch / FULL zip:** registry principal id-only, regions/flow no client roles, agent confirm fail-closed, webrtc defaults fail-closed.
-
-Local hardened commit: `241424f`
+Local commit: 241424f

@@ -283,7 +283,6 @@ class AgentRunner:
         if secret and len(str(secret)) >= 16:
             from ux_channel.mcp.confirm import verify_confirm_token
 
-            # signed confirm token only
             store = getattr(self, "_confirm_nonces", None)
             if store is None:
                 self._confirm_nonces = set()  # type: ignore[attr-defined]
@@ -297,9 +296,12 @@ class AgentRunner:
                 agent_id=self.session.agent_id,
                 nonce_store=store,
             )
+            if isinstance(store, set) and len(store) > 50_000:
+                for _ in range(len(store) // 10):
+                    store.pop()
             return ok
-        # presence of non-empty confirmation accepted if no secret configured
-        return bool(call.confirmation)
+        # Fail closed without signing secret
+        return False
 
     def _to_intent(self, call: ToolCall, *, dry_run: bool) -> Intent:
         args = dict(call.arguments)

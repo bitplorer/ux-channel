@@ -545,8 +545,6 @@ def attach_flow(channel: Any) -> Flow:
                     ctx = kwargs.get("ctx")
                     scope = dict(getattr(ctx, "scope", None) or {})
                     principal = _principal_from_call(*args, **kwargs)
-                    if "roles" in kwargs and ctx is not None:
-                        scope.setdefault("roles", kwargs.get("roles"))
                     flow.push_refresh(rev, principal=principal, scope=scope)
                     try:
                         if role_list:
@@ -569,8 +567,6 @@ def attach_flow(channel: Any) -> Flow:
                     ctx = kwargs.get("ctx")
                     scope = dict(getattr(ctx, "scope", None) or {})
                     principal = _principal_from_call(*args, **kwargs)
-                    if "roles" in kwargs and ctx is not None:
-                        scope.setdefault("roles", kwargs.get("roles"))
                     flow.push_refresh(rev, principal=principal, scope=scope)
                     try:
                         if role_list:
