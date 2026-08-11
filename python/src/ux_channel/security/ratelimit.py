@@ -58,15 +58,12 @@ class MemoryRateLimiter:
     def allow(self, key: str, *, cost: float = 1.0) -> bool:
         now = time.monotonic()
         with self._lock:
-            if len(self._buckets) > self.max_keys and key not in self._buckets:
-                # crude eviction: drop oldest 10%
-                for k in list(self._buckets.keys())[: self.max_keys // 10]:
-                    self._buckets.pop(k, None)
+            if key not in self._buckets and len(self._buckets) >= self.max_keys:
+                return False
             b = self._buckets.get(key)
             if b is None:
                 b = _Bucket(tokens=self.burst, updated=now)
                 self._buckets[key] = b
-            # refill
             elapsed = max(0.0, now - b.updated)
             b.tokens = min(self.burst, b.tokens + elapsed * self.rate_per_sec)
             b.updated = now
