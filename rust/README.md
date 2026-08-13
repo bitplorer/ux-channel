@@ -1,6 +1,6 @@
 # ux_channel_rs — Rust peer (Phase 2)
 
-**Status:** types + JSON wire + **cap verify** + **once/jti** + **CXB** + **HTTP action endpoint** + **peer kernel + peer runtime** + `uxc_check`.
+**Status:** host kernel+runtime + peer kernel+runtime + cap/once/jti + CXB + HTTP demo gate + `uxc_check`.
 
 Operators: read repo-root [`OPERATIONAL.md`](../OPERATIONAL.md) before running `uxc_peer`.
 Humans: [`TERMINOLOGY.md`](../TERMINOLOGY.md) → [`HOW_IT_WORKS.md`](../HOW_IT_WORKS.md) → [`REFERENCE.md`](../REFERENCE.md) / [`FAQ.md`](../FAQ.md).
@@ -16,7 +16,8 @@ Humans: [`TERMINOLOGY.md`](../TERMINOLOGY.md) → [`HOW_IT_WORKS.md`](../HOW_IT_
 | `op_tags` | Dense op key tags 1–63 (append-only) | permanent |
 | `actions` | `Cart.add`, `Counter.inc`, `Counter.get` | **moving** demo |
 | `peer` | Intent → cap gate → dispatch → Result (always Result-shaped) | permanent gate |
-| `apply` | Peer kernel: applyResult, budgets, seq / invoke / timer (no DOM) | permanent |
+| `host` | Host kernel+runtime: `HostRuntime` (project, proofs, flow, registry, sessions) | permanent |
+| `effects` / `project` | EffectGraph builders + pure project(auto\|classic) | permanent |
 | `runtime` | `PeerRuntime`: hello, submit_intent, on_result, revoke + `Loopback` | permanent |
 | `proof` | HMAC-SHA256 effect proofs (Cap key ≠ proof key) | permanent |
 | `drivers` | web.v1 / agent.v1 log packs; `safe_href` | permanent |
@@ -36,10 +37,16 @@ rust/
 │   ├── cap.rs           # CapService mint/verify/hash_args
 │   ├── cxb.rs           # CXB codec
 │   ├── op_tags.rs       # dense op tags (append-only)
-│   ├── peer.rs          # Intent → cap gate → actions
+│   ├── peer.rs          # classic Intent → cap gate → demo actions
+│   ├── host.rs          # HostRuntime (kernel + runtime)
+│   ├── effects.rs       # EffectGraph builders
+│   ├── project.rs       # pure project(auto|classic)
+│   ├── registry.rs      # present-cap-must-verify dispatch
 │   ├── apply.rs         # PeerApply kernel (no DOM)
 │   ├── runtime.rs       # PeerRuntime + Loopback / Outbox
 │   ├── proof.rs         # effect proofs
+│   ├── flow.rs          # flow_id correlation only
+│   ├── stamps.rs        # invoke stamps
 │   ├── drivers.rs       # web.v1 / agent.v1 (no DOM)
 │   ├── actions.rs       # demo actions (moving)
 │   └── bin/
@@ -192,6 +199,7 @@ src/
 
 - [x] once/jti consumption + tests
 - [x] peer kernel (`PeerApply`) + peer runtime (`PeerRuntime` / `Loopback`)
+- [x] host kernel + host runtime (`HostRuntime` / project / registry)
 - [ ] HTTP Accept `+cxb` response path
 - [ ] Byte-identical encode vs Python oracle freeform
 - [ ] WASM island / mesh (later phases)
@@ -205,10 +213,12 @@ src/
 | args_hash | sorted compact JSON | same (`sort_keys=True`) |
 | CXB decode | `decode_cxb` | `wire.cxb.decode_cxb` |
 | Conformance | `uxc_check` | `conformance/harness/*` + gate tests |
-| Peer gate | `peer::Peer` | `Channel` / `HostRuntime.handle_intent` |
+| Peer gate | `peer::Peer` | demo `uxc_peer` (not HostRuntime) |
+| Host kernel + runtime | `host::HostRuntime` | `arch.HostRuntime` |
 | Peer kernel | `apply::PeerApply` | `arch.peer.PeerApply` |
 | Peer runtime | `runtime::PeerRuntime` | `arch.peer.PeerRuntime` |
 | Effect proofs | `proof::ProofService` | `arch.proof.ProofService` |
-| Full host (regions/ASGI) | — | `ux_channel` host |
+| Project | `project::project` | `arch.project` |
+| Full host (regions/ASGI) | — | `ux_channel` Channel |
 
 See [MENTAL_MODEL.md](../MENTAL_MODEL.md) and [NAMING.md](../NAMING.md).

@@ -1,3 +1,12 @@
+## 2026-08-13 — Rust host kernel + host runtime
+
+- `HostRuntime` (`rust/src/host.rs`): sessions, hello, `handle_intent`, project, proofs, flow correlation, health
+- Host kernel modules: `effects`, `project`, `registry`, `stamps`, `flow` (same law as Python `arch/`)
+- Peer kernel/runtime kept (`PeerApply` / `PeerRuntime`); classic `Peer` gate unchanged
+- Classic floor: no hello → flattened toast ops; Cap key ≠ proof key; flow_id is not authority
+
+---
+
 ## 2026-08-13 — Rust peer kernel + peer runtime
 
 - `rust/src/apply.rs` — `PeerApply` (proofs, single-flight, budgets, seq / invoke / timer). No DOM.

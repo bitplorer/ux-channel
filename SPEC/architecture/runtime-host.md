@@ -25,9 +25,9 @@ nonce_store: required if once Caps used
 | Language | Path |
 |----------|------|
 | Python | `python/src/ux_channel/arch/host_runtime.py` — `HostRuntime` |
-| Rust | `rust/src/peer.rs` — inbound **gate** (Intent → cap → dispatch). Not a full Channel host. |
+| Rust | `rust/src/host.rs` — `HostRuntime` (kernel + runtime). `peer.rs` is the classic demo gate only. |
 
-A Rust Channel (regions / ASGI) is out of scope. The Rust **peer gate** plus **peer runtime** is the architecture pair.
+A Rust **Channel** (regions / ASGI) is out of scope. The architecture host in Rust is `HostRuntime` (same contract as Python). The classic `uxc_peer` gate remains for IR 0.1 demo actions.
 
 ## Assumptions
 

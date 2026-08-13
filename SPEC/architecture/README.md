@@ -33,18 +33,13 @@ Cap key ≠ proof key
 
 | Layer | Path |
 |-------|------|
-| Production Cap (itsdangerous) | `python/src/ux_channel/protocol/capability.py` |
-| EffectGraph + project | `python/src/ux_channel/arch/` |
+| Host kernel | `rust/src/{cap,nonce,registry,effects,project,proof}.rs` + Python `arch/` |
+| Host runtime | `rust/src/host.rs` `HostRuntime` · Python `arch/host_runtime.py` |
+| Peer kernel | `rust/src/apply.rs` `PeerApply` · Python `arch/peer.py` · JS `ux-peer-kernel.js` |
+| Peer runtime | `rust/src/runtime.rs` `PeerRuntime` · Python `PeerRuntime` |
 | Channel attach (power) | `arch/attach.py` — `emit_graph` / `set_hello` / `grant_stamp` |
-| Host runtime | `arch/host_runtime.py` · SPEC [runtime-host.md](runtime-host.md) |
-| Peer kernel (Python) | `arch/peer.py` — `PeerApply` (no DOM) |
-| Peer runtime (Python) | `arch/peer.py` — `PeerRuntime` hello / submit / on_result / revoke |
 | JS apply (DOM client) | `static/ux-channel.js` — seq / timer / invoke / peerHello |
-| JS peer kernel (no DOM) | `static/ux-peer-kernel.js` |
-| Rust peer **gate** | `rust/src/peer.rs` — Intent → cap → dispatch |
-| Rust peer **kernel** | `rust/src/apply.rs` — `PeerApply` (no DOM) |
-| Rust peer **runtime** | `rust/src/runtime.rs` — `PeerRuntime` + `Loopback` / `Outbox` |
-| Rust proofs / drivers | `rust/src/proof.rs` · `rust/src/drivers.rs` |
+| Rust peer **gate** (classic) | `rust/src/peer.rs` — Intent → cap → demo actions (`uxc_peer`) |
 | Rust once/jti | `rust/src/nonce.rs` + `CapService::mint_once` / verify consume |
 | Redis nonce | `ux_channel.redis_extra.RedisNonceStore` (SET NX EX, fail-closed) |
 
