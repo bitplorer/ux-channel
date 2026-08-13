@@ -1,3 +1,18 @@
+## 2026-08-13 — Architecture polish (stability + clarity)
+
+- Shared `arch.modes` tokens; HostConfig rejects unknown effects/proofs/flow
+- Channel.boot installs MemoryNonceStore in development / allow_memory_stores (once/jti actually consumes)
+- ArchRegistry isolates handler exceptions (`internal`, zero ops)
+- PeerApply uses a real lock; budget/proof rejects recorded on `ctx["reject"]`
+- Timer body applies through the kernel (`apply_ops` / `ctx.apply_ops`)
+- Proofs use integer unix `exp`; fail closed if `proofs=require` without a key
+- FlowStore missing/closed ids raise `FlowError`; store has a max-row cap
+- Hello maps accept only profiles/features/effect_proof; Channel.revoke_session bumps gen
+- Rust jti mixes secret + clock + pid (not a time-only hash)
+- MemoryNonceStore evicts lazily instead of scanning every consume
+
+---
+
 ## 2026-08-13 — Architecture merge (IR 0.1 floor preserved)
 
 - Cap once/jti consume in Python `CapService.verify` (atomic, fail-closed) and Rust `mint_once` + `MemoryNonceStore`

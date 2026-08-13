@@ -101,6 +101,7 @@
       "effects": "ux_channel.arch.effects",
       "flow_store": "ux_channel.arch.flow_store",
       "host_runtime": "ux_channel.arch.host_runtime",
+      "modes": "ux_channel.arch.modes",
       "peer": "ux_channel.arch.peer",
       "project": "ux_channel.arch.project",
       "proof": "ux_channel.arch.proof",

@@ -27,11 +27,14 @@ class ArchRegistry:
     _handlers: Dict[str, Handler] = field(default_factory=dict)
 
     def register(self, action: str, handler: Handler) -> None:
+        if not action or not isinstance(action, str):
+            raise ValueError("action name required")
         self._handlers[action] = handler
 
     def dispatch(self, intent: Mapping[str, Any]) -> dict:
         action = str(intent.get("action") or "")
-        args = dict(intent.get("args") or {})
+        raw_args = intent.get("args") or {}
+        args = dict(raw_args) if isinstance(raw_args, Mapping) else {}
         cap_token = intent.get("cap")
         meta: dict[str, Any] = {"action": action}
         if intent.get("request_id") is not None:
@@ -48,14 +51,17 @@ class ArchRegistry:
         needs_cap = self.config.require_cap and action not in self.config.open_actions
         if needs_cap or cap_token:
             if not cap_token:
-                return _unauth("missing capability", meta)
+                return _fail("unauthorized", "missing capability", meta)
             try:
                 self.caps.verify(str(cap_token), action, args, consume_once=True)
             except CapError as e:
-                return _unauth(str(e), meta)
+                return _fail("unauthorized", str(e), meta)
 
         ctx: dict = {"action": action}
-        result = self._handlers[action](args, ctx)
+        try:
+            result = self._handlers[action](args, ctx)
+        except Exception as exc:
+            return _fail("internal", f"handler failed: {type(exc).__name__}", meta)
         if not isinstance(result, dict):
             result = {"ok": True, "ops": []}
         result.setdefault("ok", True)
@@ -66,10 +72,10 @@ class ArchRegistry:
         return result
 
 
-def _unauth(message: str, meta: dict) -> dict:
+def _fail(code: str, message: str, meta: dict) -> dict:
     return {
         "ok": False,
         "ops": [],
-        "error": {"code": "unauthorized", "message": message},
+        "error": {"code": code, "message": message},
         "meta": meta,
     }

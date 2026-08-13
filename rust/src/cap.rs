@@ -222,7 +222,7 @@ impl CapService {
             let j = jti
                 .map(|s| s.to_string())
                 .filter(|s| !s.is_empty())
-                .unwrap_or_else(fresh_jti);
+                .unwrap_or_else(|| fresh_jti(&self.secret));
             payload["jti"] = Value::String(j);
         } else if let Some(j) = jti.filter(|s| !s.is_empty()) {
             payload["jti"] = Value::String(j.to_string());
@@ -356,13 +356,18 @@ fn unix_now() -> i64 {
         .unwrap_or(0)
 }
 
-fn fresh_jti() -> String {
+fn fresh_jti(secret: &[u8]) -> String {
+    // Mix secret + clock + pid so jti is not a time-only hash.
     let nanos = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .map(|d| d.as_nanos())
         .unwrap_or(0);
-    let digest = Sha256::digest(format!("jti:{nanos}").as_bytes());
-    hex::encode(&digest[..16])
+    let mut h = Sha256::new();
+    h.update(secret);
+    h.update(b"|jti|");
+    h.update(nanos.to_le_bytes());
+    h.update(std::process::id().to_le_bytes());
+    hex::encode(&h.finalize()[..16])
 }
 
 fn derive_key(secret: &[u8], salt: &[u8]) -> Vec<u8> {

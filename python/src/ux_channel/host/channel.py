@@ -560,6 +560,7 @@ class Channel:
             "proofs": getattr(cfg, "proofs", None) if cfg else None,
             "flow": getattr(cfg, "flow", None) if cfg else None,
             "once_jti_enforced": getattr(self.registry, "nonce_store", None) is not None,
+            "proofs_configured": getattr(self, "proofs", None) is not None,
         }
 
     @classmethod

@@ -34,6 +34,13 @@ In-tree patch: [`patches/0001-production-hardening-authz-seal.patch`](patches/00
 - **Production** derives `navigate_allowed_hosts` from `allowed_origins` when not set (open-redirect control)  
 - Gate suite: [`python/tests/gate/test_deeper_hardening.py`](python/tests/gate/test_deeper_hardening.py)
 
+### Architecture plane (IR 0.1 floor)
+- once/jti consume is live on Python `CapService.verify` and Rust `mint_once`
+- Channel.boot installs a process-local nonce store in development
+- present-cap-must-verify on ActionRegistry and ArchRegistry
+- proofs fail closed (`proofs=require` without a key emits zero ops)
+- Gate suite: [`python/tests/gate/test_arch_e2e.py`](python/tests/gate/test_arch_e2e.py)
+
 ## Verify after any restore
 
 ```bash

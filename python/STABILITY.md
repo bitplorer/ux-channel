@@ -28,6 +28,7 @@ ux_channel/
   devtools/         audit, CLI, observability
   catalog/          package navigator (GENERATED catalog.json)
   PACKAGE_MAP.json  packages inventory; modules/count are derived
+  arch/             EffectGraph, project, proofs, stamps, HostRuntime (L2; not root)
 ```
 
 **Forbidden package names (must not reappear):**  

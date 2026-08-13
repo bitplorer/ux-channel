@@ -33,7 +33,14 @@
     var lock = false;
     var queue = [];
     var busy = false;
-    var ctx = { gen: gen, log: [], timers: {}, result_ok: true, session_id: sessionId };
+    var ctx = {
+      gen: gen,
+      log: [],
+      timers: {},
+      result_ok: true,
+      session_id: sessionId,
+      reject: null,
+    };
 
     function withinBudget(ops) {
       var count = 0;
@@ -70,14 +77,26 @@
       if (fn) fn(op, ctx);
     }
 
+    ctx.applyOp = applyOp;
+    ctx.apply_ops = function (ops) {
+      (ops || []).forEach(applyOp);
+    };
+
     function applyResult(result) {
+      ctx.reject = null;
       if (proofsRequired) {
-        if (!proofVerify || !proofVerify(result, sessionId, gen)) return;
+        if (!proofVerify || !proofVerify(result, sessionId, gen)) {
+          ctx.reject = "proof";
+          return;
+        }
       }
       if (lock) throw new Error("single-flight");
       lock = true;
       try {
-        if (!withinBudget(result.ops || [])) return;
+        if (!withinBudget(result.ops || [])) {
+          ctx.reject = "budget";
+          return;
+        }
         ctx.result_ok = result.ok;
         (result.ops || []).forEach(applyOp);
       } finally {
@@ -100,6 +119,7 @@
       gen += 1;
       ctx.gen = gen;
       ctx.timers = {};
+      ctx.reject = null;
       queue = [];
     }
 
@@ -151,6 +171,7 @@
         var fire = function () {
           if (ctx.gen !== g) return;
           if (applyOps) applyOps(body, ctx);
+          else if (typeof ctx.apply_ops === "function") ctx.apply_ops(body, ctx);
           else ctx.log.push(["timer_fire", id, body]);
         };
         ctx.timers[id] = { ms: ms, fire: fire, gen: g };

@@ -172,7 +172,7 @@ class CapService:
         if data.get("once") and consume_once:
             store = nonce_store if nonce_store is not None else self.nonce_store
             jti = data.get("jti")
-            if not jti:
+            if not jti or not str(jti).strip():
                 raise CapError("once capability missing jti")
             if store is None:
                 raise CapError(

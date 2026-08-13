@@ -54,6 +54,7 @@
       "effects",
       "flow_store",
       "host_runtime",
+      "modes",
       "peer",
       "project",
       "proof",
@@ -273,6 +274,7 @@
     "arch.effects": "arch",
     "arch.flow_store": "arch",
     "arch.host_runtime": "arch",
+    "arch.modes": "arch",
     "arch.peer": "arch",
     "arch.project": "arch",
     "arch.proof": "arch",
@@ -570,5 +572,5 @@
       "extension_doors_A_to_G"
     ]
   },
-  "module_count": 178
+  "module_count": 179
 }

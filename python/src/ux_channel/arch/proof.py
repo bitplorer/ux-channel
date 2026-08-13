@@ -24,7 +24,7 @@ class ProofService:
         if len(self.secret) < 16:
             raise ProofError("proof secret too short")
         self.kid = kid
-        self.max_age_s = max_age_s
+        self.max_age_s = float(max_age_s)
 
     @staticmethod
     def body_hash(result: Mapping[str, Any]) -> str:
@@ -46,7 +46,8 @@ class ProofService:
     ) -> dict:
         bh = self.body_hash(result)
         jti = jti or secrets.token_urlsafe(12)
-        exp = time.time() + self.max_age_s
+        # Integer unix seconds — stable across Python / JS / Rust JSON.
+        exp = int(time.time()) + int(self.max_age_s)
         payload = {
             "session_id": session_id,
             "gen": int(gen),
@@ -75,7 +76,7 @@ class ProofService:
                 return False
             if int(eff.get("gen")) != int(gen):
                 return False
-            if time.time() > float(eff["exp"]):
+            if int(time.time()) > int(eff["exp"]):
                 return False
             if eff.get("body_hash") != self.body_hash(result):
                 return False
@@ -83,7 +84,7 @@ class ProofService:
                 "session_id": eff["session_id"],
                 "gen": int(eff["gen"]),
                 "jti": eff["jti"],
-                "exp": float(eff["exp"]),
+                "exp": int(eff["exp"]),
                 "body_hash": eff["body_hash"],
                 "kid": eff["kid"],
             }
@@ -93,5 +94,5 @@ class ProofService:
             pad = sig_b64 + "=" * (-len(sig_b64) % 4)
             sig = base64.urlsafe_b64decode(pad)
             return hmac.compare_digest(expect, sig)
-        except Exception:
+        except (TypeError, ValueError, KeyError, json.JSONDecodeError):
             return False

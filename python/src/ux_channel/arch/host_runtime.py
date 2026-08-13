@@ -1,4 +1,7 @@
-"""Host runtime: session, registry, project, proof, stamps, flow.
+"""Standalone host runtime for architecture e2e / tests.
+
+Production apps should prefer ``Channel`` + ``attach_arch``. This class
+speaks dict Intent/Result so gate tests do not need FastAPI.
 
 Uses production ``CapService`` (itsdangerous) + MemoryNonceStore.
 Cap key must differ from proof key.
@@ -12,6 +15,7 @@ from typing import Any, Callable, Dict, Mapping, Optional
 from ux_channel.arch.dispatch import ArchRegistry, RegistryConfig
 from ux_channel.arch.effects import EffectGraph
 from ux_channel.arch.flow_store import FlowStore, attach_flow_meta
+from ux_channel.arch.modes import validate_arch_modes
 from ux_channel.arch.project import project
 from ux_channel.arch.proof import ProofService
 from ux_channel.arch.stamps import StampTable
@@ -26,6 +30,9 @@ class HostConfig:
     flow: str = "auto"
     demo_mode: bool = False
     require_cap: bool = True
+
+    def __post_init__(self) -> None:
+        validate_arch_modes(self.effects, self.proofs, self.flow)
 
 
 @dataclass
@@ -45,10 +52,14 @@ class HostRuntime:
     ) -> None:
         if not config:
             config = HostConfig()
+        else:
+            validate_arch_modes(config.effects, config.proofs, config.flow)
         if not config.demo_mode and "conformance-oracle" in cap_secret:
             raise RuntimeError("prod refuse: oracle/demo secret")
         if cap_secret == proof_secret:
             raise RuntimeError("Cap secret must differ from proof secret")
+        if config.proofs == "require" and not proof_secret:
+            raise RuntimeError("proofs=require needs a proof_secret")
 
         self.config = config
         self.nonce = MemoryNonceStore()
@@ -70,7 +81,7 @@ class HostRuntime:
 
     def set_hello(self, session_id: str, hello: Mapping[str, Any]) -> None:
         s = self.sessions.setdefault(session_id, Session(session_id=session_id))
-        s.peer_hello = dict(hello)
+        s.peer_hello = _sanitize_hello(hello)
 
     def revoke(self, session_id: str) -> None:
         s = self.sessions.get(session_id)
@@ -98,10 +109,7 @@ class HostRuntime:
         result: dict[str, Any] = {"ok": ok, "ops": ops, "meta": dict(meta or {})}
         if flow_id and self.config.flow == "auto":
             attach_flow_meta(result, flow_id=flow_id, step=step, flow_mode="auto")
-        need_proof = self.config.proofs in ("auto", "require") and (
-            s.peer_hello.get("effect_proof") or self.config.proofs == "require"
-        )
-        if need_proof:
+        if self._need_proof(s):
             self.proofs.sign(result, session_id=session_id, gen=s.gen)
         return result
 
@@ -126,10 +134,7 @@ class HostRuntime:
                 projected["error"] = result["error"]
             return projected
         s = self.sessions[session_id]
-        need_proof = self.config.proofs in ("auto", "require") and (
-            s.peer_hello.get("effect_proof") or self.config.proofs == "require"
-        )
-        if need_proof and result.get("ops") is not None:
+        if self._need_proof(s) and result.get("ops") is not None:
             self.proofs.sign(result, session_id=session_id, gen=s.gen)
         if self.config.flow == "auto":
             fid = (intent.get("args") or {}).get("flow_id") or (intent.get("meta") or {}).get(
@@ -139,6 +144,12 @@ class HostRuntime:
                 attach_flow_meta(result, flow_id=str(fid), flow_mode="auto")
         return result
 
+    def _need_proof(self, session: Session) -> bool:
+        mode = self.config.proofs
+        if mode == "off":
+            return False
+        return bool(session.peer_hello.get("effect_proof") or mode == "require")
+
     def health(self) -> dict:
         return {
             "demo_mode": self.config.demo_mode,
@@ -146,4 +157,19 @@ class HostRuntime:
             "proofs": self.config.proofs,
             "flow": self.config.flow,
             "sessions": len(self.sessions),
+            "once_jti_enforced": self.caps.nonce_store is not None,
         }
+
+
+def _sanitize_hello(hello: Mapping[str, Any]) -> dict:
+    """Keep only list/bool fields peers are allowed to advertise."""
+    out: dict[str, Any] = {}
+    profiles = hello.get("profiles")
+    features = hello.get("features")
+    if isinstance(profiles, (list, tuple)):
+        out["profiles"] = [str(p) for p in profiles]
+    if isinstance(features, (list, tuple)):
+        out["features"] = [str(f) for f in features]
+    if "effect_proof" in hello:
+        out["effect_proof"] = bool(hello.get("effect_proof"))
+    return out

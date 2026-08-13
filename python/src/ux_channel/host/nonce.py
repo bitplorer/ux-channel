@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import threading
 import time
-from typing import Optional, Protocol
+from typing import Protocol
 
 
 class NonceStore(Protocol):
@@ -24,7 +24,12 @@ class MemoryNonceStore:
     Eviction only removes **expired** keys. If the store is full of live keys,
     use_once returns False (fail closed) rather than dropping active nonces
     (which would allow once-cap replay).
+
+    Expired keys are dropped lazily: a hit on an expired key is deleted
+    immediately; a bounded sweep runs only when the map is at capacity.
     """
+
+    _SWEEP = 256
 
     def __init__(self, *, max_keys: int = 100_000):
         self._seen: dict[str, float] = {}
@@ -34,14 +39,24 @@ class MemoryNonceStore:
     def use_once(self, key: str, *, ttl_s: float = 3600) -> bool:
         now = time.monotonic()
         with self._lock:
-            # purge expired only
-            dead = [k for k, exp in self._seen.items() if exp < now]
-            for k in dead:
-                self._seen.pop(k, None)
-            if key in self._seen and self._seen[key] >= now:
-                return False
+            exp = self._seen.get(key)
+            if exp is not None:
+                if exp >= now:
+                    return False
+                del self._seen[key]
             if len(self._seen) >= self.max_keys:
-                # fail closed — do not drop live nonces
-                return False
+                self._sweep_expired(now)
+                if len(self._seen) >= self.max_keys:
+                    return False
             self._seen[key] = now + ttl_s
             return True
+
+    def _sweep_expired(self, now: float) -> None:
+        dead: list[str] = []
+        for i, (k, exp) in enumerate(self._seen.items()):
+            if exp < now:
+                dead.append(k)
+            if i >= self._SWEEP and dead:
+                break
+        for k in dead:
+            self._seen.pop(k, None)

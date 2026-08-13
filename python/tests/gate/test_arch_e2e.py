@@ -110,6 +110,7 @@ def test_proofs_roundtrip():
     bad["ops"] = [{"op": "toast", "message": "forged"}]
     peer2.apply_result(bad)
     assert peer2.ctx["log"] == []
+    assert peer2.ctx["reject"] == "proof"
 
 
 def test_invoke_stamp_check():
@@ -184,6 +185,7 @@ def test_budget_reject():
     ops = [{"op": "toast", "message": str(i)} for i in range(5)]
     peer.apply_result({"ok": True, "ops": ops})
     assert peer.ctx["log"] == []
+    assert peer.ctx["reject"] == "budget"
 
 
 def test_revoke_gen_clears_timers():
@@ -233,3 +235,77 @@ def test_inspect_does_not_burn_once():
     caps.verify(tok, "Once.x", {})
     with pytest.raises(CapError):
         caps.verify(tok, "Once.x", {})
+
+
+def test_handler_exception_is_internal():
+    host = HostRuntime(
+        cap_secret="0123456789abcdef",
+        proof_secret="proof-secret-16b!",
+        config=HostConfig(demo_mode=True, require_cap=False),
+    )
+
+    def boom(args, ctx):
+        raise RuntimeError("explode")
+
+    host.register("Boom.go", boom)
+    result = host.handle_intent({"action": "Boom.go", "args": {}})
+    assert result["ok"] is False
+    assert result["error"]["code"] == "internal"
+    assert result["ops"] == []
+
+
+def test_host_config_rejects_bad_modes():
+    with pytest.raises(ValueError):
+        HostConfig(effects="rich")
+    with pytest.raises(ValueError):
+        HostConfig(proofs="maybe")
+    with pytest.raises(ValueError):
+        HostConfig(flow="yes")
+
+
+def test_channel_boot_installs_memory_nonce():
+    from ux_channel import Channel
+
+    ch = Channel.boot(secret="dev-secret-key-32chars-minimum!!!!")
+    assert ch.registry.nonce_store is not None
+    assert ch.diagnose()["once_jti_enforced"] is True
+    tok = ch.registry._caps.mint("Once.x", {}, once=True)
+    ch.registry._caps.verify(tok, "Once.x", {})
+    with pytest.raises(CapError):
+        ch.registry._caps.verify(tok, "Once.x", {})
+
+
+def test_revoke_session_bumps_gen():
+    from ux_channel import Channel
+
+    ch = Channel.boot(secret="dev-secret-key-32chars-minimum!!!!")
+    ch.set_hello("s1", {"profiles": ["web.v1"]})
+    first = ch._arch_sessions.get_gen("s1")
+    nxt = ch.revoke_session("s1")
+    assert nxt == first + 1
+
+
+def test_unknown_flow_is_explicit():
+    from ux_channel.arch import FlowError, FlowStore
+
+    store = FlowStore()
+    with pytest.raises(FlowError):
+        store.advance("missing")
+
+
+def test_timer_zero_applies_body():
+    peer = PeerApply(make_web_drivers())
+    peer.apply_result(
+        {
+            "ok": True,
+            "ops": [
+                {
+                    "op": "timer.set",
+                    "id": "t0",
+                    "ms": 0,
+                    "ops": [{"op": "toast", "message": "now"}],
+                }
+            ],
+        }
+    )
+    assert any(x[0] == "toast" and x[1] == "now" for x in peer.ctx["log"])

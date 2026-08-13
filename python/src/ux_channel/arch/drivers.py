@@ -53,8 +53,9 @@ def make_web_drivers(
         def fire():
             if ctx.get("gen") != gen:
                 return
-            if apply_ops:
-                apply_ops(body, ctx)
+            runner = apply_ops or ctx.get("apply_ops")
+            if runner:
+                runner(body, ctx)
             else:
                 ctx.setdefault("log", []).append(("timer_fire", tid, body))
 
@@ -92,7 +93,11 @@ def make_agent_drivers(
         if fn is None:
             ctx.setdefault("log", []).append(("tool_missing", name))
             return
-        out = fn(dict(op.get("args") or {}))
+        try:
+            out = fn(dict(op.get("args") or {}))
+        except Exception as exc:
+            ctx.setdefault("log", []).append(("tool_error", name, type(exc).__name__))
+            return
         ctx.setdefault("log", []).append(("tool", name, out))
 
     def log(op, ctx):

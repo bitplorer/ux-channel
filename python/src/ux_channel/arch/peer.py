@@ -5,6 +5,7 @@ No DOM. Drivers (web.v1 / agent.v1) hold surface behavior.
 
 from __future__ import annotations
 
+import threading
 from collections import deque
 from typing import Any, Callable, Deque, Dict, List, Mapping, MutableMapping, Optional
 
@@ -36,39 +37,48 @@ class PeerApply:
         self.proofs_required = proofs_required
         self.session_id = session_id
         self.stamp_check = stamp_check
-        self._lock = False
+        self._lock = threading.Lock()
         self.session_gen = 1
         self.ctx: MutableMapping[str, Any] = {
             "gen": 1,
             "timers": {},
             "log": [],
             "session_id": session_id,
+            "reject": None,
+            "apply_ops": self._apply_from_driver,
         }
+
+    def _apply_from_driver(self, ops: list, ctx: MutableMapping[str, Any]) -> None:
+        self._apply_ops(list(ops), 0)
 
     def bump_gen(self) -> None:
         self.session_gen += 1
         self.ctx["gen"] = self.session_gen
         self.ctx["timers"] = {}
+        self.ctx["reject"] = None
 
     def apply_result(self, result: Mapping[str, Any]) -> None:
+        self.ctx["reject"] = None
         if self.proofs_required:
             if self.proof_service is None:
+                self.ctx["reject"] = "proof_unavailable"
                 return
             if not self.proof_service.verify(
                 result, session_id=self.session_id, gen=self.session_gen
             ):
+                self.ctx["reject"] = "proof"
                 return
-        if self._lock:
+        if not self._lock.acquire(blocking=False):
             raise ApplyError("single-flight: apply already in progress")
-        self._lock = True
         try:
             ops = list(result.get("ops") or [])
             if not self._within_budget(ops):
+                self.ctx["reject"] = "budget"
                 return
             self.ctx["result_ok"] = result.get("ok")
             self._apply_ops(ops, 0)
         finally:
-            self._lock = False
+            self._lock.release()
 
     def _within_budget(self, ops: List[Any]) -> bool:
         count = 0

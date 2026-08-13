@@ -1,19 +1,25 @@
 """Attach architecture plane onto Channel (power — not CHANNEL_PUBLIC_API).
 
-Wires EffectGraph project, optional proofs, flow_id correlation, stamps.
-Classic IR 0.1 clients stay on the floor until they send meta.hello.
+Two runtimes, one law:
+
+* ``Channel`` + ``attach_arch`` — production host (ActionRegistry, Result)
+* ``HostRuntime`` — dict-level e2e / tests (no ASGI)
+
+Classic IR 0.1 clients stay on the floor until they send ``meta.hello``.
 """
 
 from __future__ import annotations
 
+import threading
 from typing import Any, Mapping, Optional, Set
 
 from ux_channel.arch.effects import EffectGraph
 from ux_channel.arch.flow_store import FlowStore
+from ux_channel.arch.modes import validate_arch_modes
 from ux_channel.arch.project import project
 from ux_channel.arch.proof import ProofService
 from ux_channel.arch.stamps import StampTable
-from ux_channel.protocol.types import Result
+from ux_channel.protocol.types import ErrorObject, Result
 
 
 def _cfg(ch: Any, name: str, default: Any) -> Any:
@@ -30,34 +36,86 @@ def _session_id(intent: Any) -> str:
     return "default"
 
 
+def _sanitize_hello(hello: Mapping[str, Any]) -> dict:
+    out: dict[str, Any] = {}
+    profiles = hello.get("profiles")
+    features = hello.get("features")
+    if isinstance(profiles, (list, tuple)):
+        out["profiles"] = [str(p) for p in profiles]
+    if isinstance(features, (list, tuple)):
+        out["features"] = [str(f) for f in features]
+    if "effect_proof" in hello:
+        out["effect_proof"] = bool(hello.get("effect_proof"))
+    return out
+
+
+class _ArchSessions:
+    """Process-local peer hello + generation, keyed by session_id."""
+
+    def __init__(self) -> None:
+        self._lock = threading.Lock()
+        self.hello: dict[str, dict] = {}
+        self.gen: dict[str, int] = {}
+
+    def set_hello(self, session_id: str, hello: Mapping[str, Any]) -> None:
+        with self._lock:
+            self.hello[session_id] = _sanitize_hello(hello)
+            self.gen.setdefault(session_id, 1)
+
+    def get_hello(self, session_id: str) -> dict:
+        with self._lock:
+            return dict(self.hello.get(session_id) or {})
+
+    def get_gen(self, session_id: str) -> int:
+        with self._lock:
+            return self.gen.setdefault(session_id, 1)
+
+    def revoke(self, session_id: str) -> int:
+        with self._lock:
+            nxt = self.gen.get(session_id, 1) + 1
+            self.gen[session_id] = nxt
+            return nxt
+
+
 def attach_arch(ch: Any) -> Any:
     """Bind stamps / flow_store / proofs / after-hook / power methods."""
+    sessions = _ArchSessions()
     ch.stamps = StampTable()
     ch.flow_store = FlowStore()
-    ch._peer_hello: dict[str, dict] = {}
-    ch._session_gen: dict[str, int] = {}
+    ch._arch_sessions = sessions
+    # kept for callers that already read these names
+    ch._peer_hello = sessions.hello
+    ch._session_gen = sessions.gen
     ch.proofs = None
     proof_secret = _cfg(ch, "proof_secret", None)
     if proof_secret:
         ch.proofs = ProofService(proof_secret)
+
+    effects = _cfg(ch, "effects", "auto")
+    flow_mode = _cfg(ch, "flow", "auto")
+    proofs_mode = _cfg(ch, "proofs", "auto")
+    try:
+        validate_arch_modes(effects, proofs_mode, flow_mode)
+    except ValueError:
+        effects, proofs_mode, flow_mode = "classic", "off", "off"
+
+    def _need_proof(hello: Mapping[str, Any]) -> bool:
+        if proofs_mode == "off":
+            return False
+        return bool(hello.get("effect_proof") or proofs_mode == "require")
 
     def after_arch(intent: Any, result: Any) -> Any:
         if not isinstance(result, Result):
             return result
         meta_in = getattr(intent, "meta", None) or {}
         if isinstance(meta_in, dict) and isinstance(meta_in.get("hello"), dict):
-            ch._peer_hello[_session_id(intent)] = dict(meta_in["hello"])
+            sessions.set_hello(_session_id(intent), meta_in["hello"])
 
         sid = _session_id(intent)
-        effects = _cfg(ch, "effects", "auto")
-        flow_mode = _cfg(ch, "flow", "auto")
-        proofs_mode = _cfg(ch, "proofs", "auto")
+        hello = sessions.get_hello(sid)
 
-        g = None
         if result.meta and "_graph" in result.meta:
             g = result.meta.pop("_graph")
-        if g is not None:
-            hello = ch._peer_hello.get(sid) or {}
             result.ops = project(g, hello, effects=effects)
 
         if flow_mode == "auto":
@@ -70,28 +128,37 @@ def attach_arch(ch: Any) -> Any:
             if fid and "flow_id" not in result.meta:
                 result.meta["flow_id"] = str(fid)
 
-        hello = ch._peer_hello.get(sid) or {}
-        need_proof = proofs_mode in ("auto", "require") and (
-            hello.get("effect_proof") or proofs_mode == "require"
-        )
-        if need_proof and ch.proofs is not None:
-            gen = ch._session_gen.get(sid, 1)
-            body = result.to_dict()
-            ch.proofs.sign(body, session_id=sid, gen=gen)
-            if isinstance(body.get("meta"), dict):
-                result.meta = dict(body["meta"])
+        if _need_proof(hello):
+            if ch.proofs is None:
+                # fail closed: never emit unsigned ops when proofs are required
+                result.ops = []
+                if proofs_mode == "require":
+                    result.ok = False
+                    result.error = ErrorObject(
+                        code="internal",
+                        message="proofs=require but proof_secret is not configured",
+                    )
+            else:
+                body = result.to_dict()
+                ch.proofs.sign(body, session_id=sid, gen=sessions.get_gen(sid))
+                if isinstance(body.get("meta"), dict):
+                    result.meta = dict(body["meta"])
         return result
 
     if getattr(ch, "registry", None) is not None:
         ch.registry.after(after_arch)
 
     def set_hello(session_id: str, hello: Mapping[str, Any]) -> None:
-        ch._peer_hello[session_id] = dict(hello)
-        ch._session_gen.setdefault(session_id, 1)
+        sessions.set_hello(session_id, hello)
 
     def grant_stamp(session_id: str, kind: str, methods: Set[str]) -> str:
-        gen = ch._session_gen.setdefault(session_id, 1)
+        gen = sessions.get_gen(session_id)
         return ch.stamps.grant(session_id, gen, kind, set(methods)).stamp_id
+
+    def revoke_session(session_id: str) -> int:
+        gen = sessions.revoke(session_id)
+        ch.stamps.on_revoke(session_id)
+        return gen
 
     def emit_graph(
         g: EffectGraph,
@@ -102,9 +169,7 @@ def attach_arch(ch: Any) -> Any:
         step: Optional[int] = None,
         meta: Optional[dict] = None,
     ) -> Result:
-        hello = ch._peer_hello.get(session_id) or {}
-        effects = _cfg(ch, "effects", "auto")
-        flow_mode = _cfg(ch, "flow", "auto")
+        hello = sessions.get_hello(session_id)
         ops = project(g, hello, effects=effects)
         m = dict(meta or {})
         if flow_id and flow_mode == "auto":
@@ -112,18 +177,23 @@ def attach_arch(ch: Any) -> Any:
             if step is not None:
                 m["step"] = int(step)
         result = Result(ok=ok, ops=ops, meta=m)
-        proofs_mode = _cfg(ch, "proofs", "auto")
-        need_proof = proofs_mode in ("auto", "require") and (
-            hello.get("effect_proof") or proofs_mode == "require"
-        )
-        if need_proof and ch.proofs is not None:
-            gen = ch._session_gen.get(session_id, 1)
+        if _need_proof(hello):
+            if ch.proofs is None:
+                result.ops = []
+                if proofs_mode == "require":
+                    result.ok = False
+                    result.error = ErrorObject(
+                        code="internal",
+                        message="proofs=require but proof_secret is not configured",
+                    )
+                return result
             body = result.to_dict()
-            ch.proofs.sign(body, session_id=session_id, gen=gen)
+            ch.proofs.sign(body, session_id=session_id, gen=sessions.get_gen(session_id))
             result = Result.from_dict(body)
         return result
 
     ch.set_hello = set_hello
     ch.grant_stamp = grant_stamp
     ch.emit_graph = emit_graph
+    ch.revoke_session = revoke_session
     return ch
