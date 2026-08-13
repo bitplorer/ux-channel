@@ -44,6 +44,38 @@ Classic **`Peer`** (`uxc_peer`) is the demo Intent gate, not the kernel. `flow_i
 
 ---
 
+## What this can actually do
+
+Not another REST wrapper. A few things that are unusual, and real.
+
+**A checkout button that cannot be replayed.**  
+The host mints a **once** capability: this action, these args, this `jti`. Verify consumes the nonce *before* the handler. Store down? The pay path refuses. A stolen click is one shot.
+
+**The same action for a human and an agent.**  
+`Cart.add` is one handler. A browser sends a signed Intent; an agent sends the same IR. The peer kernel has **no DOM** — `web.v1` morphs HTML, `agent.v1` logs. You do not write two APIs.
+
+**Ship a new UI without breaking last year's client.**  
+The host builds an **EffectGraph** (`seq`, `invoke`, toast). `project(auto)` keeps the graph for a peer that advertised `seq`. A classic peer with no hello gets flattened toast/morph. IR 0.1 is a permanent floor.
+
+**A Python app talking to a Rust peer (or the reverse).**  
+Same Intent, same Cap HMAC, same Result ops. Golden vectors in `conformance/` are the law. If the two languages disagree, the vectors win — not whoever shipped last.
+
+**A Result nobody forged.**  
+Optional **effect proofs** (different key from Cap) bind `ok` + `ops` to a session generation. Peer verifies *before* any apply. `proofs=require` refuses peers that cannot check. Proof never authorizes the handler; Cap still does.
+
+**HTML the server owns, DOM the kernel never touches.**  
+You write the markup. Channel paints **regions**. Ops say “replace this slot.” The apply machine does not call `document.*` by string name. Drivers do.
+
+**A multi-step wizard without a second permission system.**  
+`meta.flow_id` is a tag so the host can resume. It is **not** a capability. Each money/delete step still mints its own Cap.
+
+**Fail closed, on purpose.**  
+Missing cap, bogus present cap, args hash mismatch, once replay, nonce store down, forged proof, over-budget ops — handler does not run, or apply does nothing. That is the product, not a missing feature.
+
+These are the doors: [START_HERE.md](START_HERE.md) for the first app, [SPEC/architecture/](SPEC/architecture/) for the law.
+
+---
+
 ## Layout (structured)
 
 Read top → bottom if you are new. Layers do not mix “law” with “demo.”

@@ -1,3 +1,9 @@
+## 2026-08-13 — README: what this can actually do
+
+- Concrete capabilities (once checkout, one action for human+agent, classic floor, proofs, fail-closed)
+
+---
+
 ## 2026-08-13 — README rewrite
 
 - Lead with the Intent story; keep every map, command, status row, and policy
