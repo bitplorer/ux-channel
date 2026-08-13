@@ -47,7 +47,7 @@ They are easy to miss if you only read the IR SPEC.
 | Integer args | `qty` / `by` reject non-integers — **no silent coercion** |
 | Morph + toast | Free-form strings embedded in morph HTML **and** toast display text are HTML-escaped |
 | signal_set | Carries **raw** semantic values (not HTML) — intentional |
-| once / jti | **SPEC requires once-semantics; Cap 0.1 Rust peer does not yet consume jti.** Health reports `policy.once_jti_enforced: false`. Treat as a known gap (see `SPEC/INVARIANTS.md`). |
+| once / jti | Enforced. Python `CapService.verify` + Rust `mint_once` / `MemoryNonceStore`. Health `policy.once_jti_enforced: true`. Multi-worker: Redis `SET NX EX`. |
 
 ---
 
@@ -60,7 +60,7 @@ They are easy to miss if you only read the IR SPEC.
 | `demo_mode` | `true` when the process is running with an allow-listed oracle/public secret |
 | `http.action.accept_response` | Response types clients may request **today** |
 | `policy.present_cap_must_verify` | Always `true` on this peer |
-| `policy.once_jti_enforced` | `false` until jti consumption lands |
+| `policy.once_jti_enforced` | `true` — jti consumption is live |
 | Status codes | `200` when `Result.ok`; `401` when `error.code == unauthorized`; other Result errors → `400`; encode failure → `500` |
 
 Never advertise CXB on HTTP `formats` until Accept negotiation is implemented.  
@@ -93,5 +93,5 @@ make peer-stop
 2. [ ] `UXC_ALLOW_ORACLE_SECRET` **unset**  
 3. [ ] `/ux-channel/mint` firewalled or disabled for public hosts  
 4. [ ] Health shows `demo_mode: false` and `formats` matches real Accept support  
-5. [ ] Health shows `policy.once_jti_enforced: false` — do not rely on single-use caps until green  
+5. [ ] Health shows `policy.once_jti_enforced: true` — once-caps require a nonce store (Redis multi-worker)  
 6. [ ] HTTPS / network ACLs as appropriate for your deploy  

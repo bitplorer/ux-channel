@@ -32,11 +32,17 @@
     "verify": "verify",
     "hash_args": "hash_args",
     "CapError": "CapError",
-    "Intent": "Intent"
+    "Intent": "Intent",
+    "HostRuntime": "HostRuntime",
+    "PeerApply": "PeerApply",
+    "PeerRuntime": "PeerRuntime",
+    "project": "project",
+    "ProofService": "ProofService"
   },
   "package_docs": {
     "agent_runtime": "AgentRunner, policy, session, peer, tool_audit \u2014 non-human callers.",
     "api": "Curated application exports \u2014 same objects as package root.",
+    "arch": "EffectGraph, project, proofs, stamps, FlowStore, HostRuntime, PeerApply/PeerRuntime \u2014 L2 host-adjacent; classic floor.",
     "asgi": "FastAPI / Starlette mount_channel adapters.",
     "bridge": "Island contracts, scaffold, guest runtime (singular package).",
     "bridges": "npm / fx / ui preset data (plural). Prefer preset gen over hand copies.",
@@ -64,6 +70,7 @@
     "render": "L2",
     "security": "L2",
     "api": "L2",
+    "arch": "L2",
     "wire": "L3",
     "asgi": "L3",
     "transport": "L3",
@@ -92,6 +99,19 @@
       "tools": "ux_channel.agent_runtime.tools"
     },
     "api": {},
+    "arch": {
+      "attach": "ux_channel.arch.attach",
+      "dispatch": "ux_channel.arch.dispatch",
+      "drivers": "ux_channel.arch.drivers",
+      "effects": "ux_channel.arch.effects",
+      "flow_store": "ux_channel.arch.flow_store",
+      "host_runtime": "ux_channel.arch.host_runtime",
+      "modes": "ux_channel.arch.modes",
+      "peer": "ux_channel.arch.peer",
+      "project": "ux_channel.arch.project",
+      "proof": "ux_channel.arch.proof",
+      "stamps": "ux_channel.arch.stamps"
+    },
     "asgi": {
       "core": "ux_channel.asgi.core",
       "fastapi": "ux_channel.asgi.fastapi",

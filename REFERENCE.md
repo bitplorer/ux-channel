@@ -52,7 +52,7 @@ curl -sS http://127.0.0.1:8787/ux-channel/health | python3 -m json.tool
 | `cap_required` | Actions that need a cap |
 | `demo_mode` | Using public/allow-listed secret? |
 | `policy.present_cap_must_verify` | Always true on this peer |
-| `policy.once_jti_enforced` | `false` until once/jti lands |
+| `policy.once_jti_enforced` | `true` — jti consume is live |
 
 ### 2.2 `POST /ux-channel/mint` (dev)
 
@@ -156,7 +156,7 @@ No cap required **unless** you send a `cap` field (then it must verify).
 |---------|--------|
 | `Accept: application/ux-channel+cxb` response | Library only; not negotiated |
 | Request body CXB Intent | Not accepted on `/action` yet |
-| once/jti single-use enforcement | SPEC gap |
+| once/jti single-use enforcement | Implemented (Python + Rust) |
 
 ---
 
@@ -174,7 +174,7 @@ No cap required **unless** you send a `cap` field (then it must verify).
 
 ---
 
-## 4. Module map (Rust peer)
+## 4. Module map (Rust crate)
 
 ```text
 rust/src/
@@ -182,9 +182,12 @@ rust/src/
   types.rs        Intent, ResultDoc, Op, ErrorObject, Trace  [PERMANENT]
   wire_json.rs    JSON encode/decode + canonical JSON        [PERMANENT]
   cap.rs          mint/verify (itsdangerous-compatible)      [PERMANENT API]
-  cxb.rs          CXB1/CXBZ encode/decode                    [PERMANENT tags]
-  op_tags.rs      dense op field tags 1–63                   [PERMANENT]
-  peer.rs         validate → cap gate → dispatch             [PERMANENT gate]
+  host.rs         HostRuntime (project, proofs, flow)        [PERMANENT]
+  project.rs      pure project(auto|classic)                 [PERMANENT]
+  apply.rs        PeerApply kernel (no DOM)                  [PERMANENT]
+  runtime.rs      PeerRuntime + Loopback                     [PERMANENT]
+  proof.rs        effect proofs (Cap key ≠ proof key)        [PERMANENT]
+  peer.rs         classic Intent → cap → demo actions        [PERMANENT gate]
   actions.rs      Cart / Counter demo handlers               [MOVING]
   bin/uxc_peer.rs HTTP transport + demo HTML                 [MOVING]
   bin/uxc_check.rs conformance runner                        [MOVING surface, permanent duty]
@@ -192,8 +195,9 @@ rust/src/
 
 | Call path | Functions |
 |-----------|-----------|
-| Bytes in → Result bytes | `Peer::handle_json` |
-| Already-parsed Intent | `Peer::handle_intent` |
+| Architecture host | `HostRuntime::handle_intent` / `handle_json` |
+| Architecture apply | `PeerApply::apply_result` / `PeerRuntime::on_result` |
+| Classic demo gate | `Peer::handle_json` / `Peer::handle_intent` |
 | Domain only | `actions::dispatch` |
 | Cap only | `CapService::mint` / `verify` |
 | CXB only | `encode_cxb` / `decode_cxb` / `is_cxb` |
@@ -223,6 +227,7 @@ Caps still run in `peer` — **never** reimplement verify inside the handler.
 | Cap | `01-valid-notes.md`, `02-oracle-token.json` | Algorithm notes + concrete oracle token |
 | Trace | `01`–`03` | Optional causal spine; missing trace still valid |
 | Handshake | `01-surface-hello` | Optional surface advertisement (Phase 1.5+) |
+| Arch | `project-*`, `apply-budget`, `flow-meta-ignored` | Classic floor, auto seq, agent-only, budgets, flow is not authority |
 | CXB expected | `expected/cxb/*` (14 blobs) | Decode interop with Python oracle |
 
 Index: `conformance/manifest.json`.  

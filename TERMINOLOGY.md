@@ -44,8 +44,8 @@ Terms are grouped: **big picture → messages → security → wire → HTTP →
 |--|--|
 | **Is** | Any process that can **accept an Intent** and **return a Result**. |
 | **Does** | Validates IR, verifies caps when needed, runs an action, emits ops or an error. |
-| **Not** | Not “only the HTTP server.” The in-process `Peer` struct is the gate; `uxc_peer` is one transport around it. |
-| **Where** | Logic: `rust/src/peer.rs`. HTTP shell: `bin/uxc_peer.rs`. |
+| **Not** | Not “only the HTTP server.” The in-process `Peer` struct is the **gate**; `PeerApply` / `PeerRuntime` apply Results; `uxc_peer` is one transport. |
+| **Where** | Gate: `rust/src/peer.rs`. Kernel: `rust/src/apply.rs`. Runtime: `rust/src/runtime.rs`. HTTP: `bin/uxc_peer.rs`. |
 
 ### Client / surface
 
@@ -301,7 +301,7 @@ RegionBook = the whole book (registry on the channel)
 |--|--|
 | **Is** | SPEC single-use cap: `once=true` requires unique `jti`; replay must fail. |
 | **Does** | (When implemented) prevents double-submit of destructive controls. |
-| **Not** | **Not enforced in Rust Cap 0.1 yet.** Health: `once_jti_enforced: false`. Do not claim single-use until green. |
+| **Not** | Health: `once_jti_enforced: true`. Replay and store-down refuse. |
 
 ### Attenuation
 
@@ -463,7 +463,11 @@ Clients still branch on **Result**, not status alone.
 | **`cap`** | Cap crypto | mint/verify | Not action handlers |
 | **`cxb`** | Binary codec | encode/decode CXB1/CXBZ | Not HTTP negotiation yet |
 | **`op_tags`** | Dense key table | Tag ↔ field name | Not op runtime |
-| **`peer`** | Gate | validate → cap → dispatch | Not transport |
+| **`peer`** | Classic demo gate | validate → cap → dispatch | Not PeerApply, not HostRuntime |
+| **`host`** | Host kernel + runtime | Cap → project → proof → Result | Not Python Channel / regions |
+| **`apply`** | Peer kernel | apply Result.ops; no DOM | Not a transport |
+| **`runtime`** | Peer process wrapper | hello, submit_intent, revoke | Not the apply machine |
+| **`project`** | Pure lower | EffectGraph + hello → ops | Not I/O, not Cap |
 | **`actions`** | Demo handlers | Cart / Counter | Not the product forever (moving) |
 | **`uxc_peer`** | HTTP binary | Serves action/health/mint/demo page | Not the only possible transport |
 | **`uxc_check`** | Conformance runner | Loads vectors, oracle, CXB, optional `--http` | Not a production server |
@@ -544,7 +548,7 @@ These prove the IR works. **Replace them** without an IR major as long as perman
 | **Oracle secret** | **Production secret** | Public test vs private authority |
 | **Peer gate** | **HTTP server** | Gate is permanent logic; HTTP is one moving transport |
 | **signal_set value** | **morph html** | Raw data vs escaped markup |
-| **once/jti SPEC** | **once/jti Rust** | Required by law docs; not enforced in Cap 0.1 yet |
+| **once/jti SPEC** | **once/jti Rust** | Required by law; enforced via `mint_once` + `MemoryNonceStore` |
 | **Permanent** | **Moving** | Law/vectors/types vs demos/actions/HTTP chrome |
 
 ---

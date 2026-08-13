@@ -69,7 +69,9 @@ def attenuate(
     parent_scopes: Optional[set[str]] = None
 
     if parent_token:
-        parent = caps.verify(parent_token, action, args or {}, expected_sub=sub)
+        parent = caps.verify(
+            parent_token, action, args or {}, expected_sub=sub, consume_once=False
+        )
         # Parent may be for a broader action only if action matches —
         # attenuation is same-action by default (safe). Cross-action needs explicit allow.
         parent_scopes = _caveat_set(parent.get("scopes"))
@@ -119,6 +121,7 @@ def verify_attenuated(
         args,
         expected_sub=expected_sub,
         required_scopes=required_caveats,
+        consume_once=False,
     )
     parent_fp = (data.get("extra") or {}).get("parent_fp")
     if parent_token is not None:
@@ -126,7 +129,9 @@ def verify_attenuated(
         if parent_fp != expect:
             raise AttenuationError("capability parent fingerprint mismatch")
         # ensure parent still valid for same action/args
-        caps.verify(parent_token, action, args, expected_sub=expected_sub)
+        caps.verify(
+            parent_token, action, args, expected_sub=expected_sub, consume_once=False
+        )
 
     caveats = tuple(data.get("scopes") or (data.get("extra") or {}).get("caveats") or ())
     return CapEnvelope(

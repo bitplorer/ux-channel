@@ -22,6 +22,13 @@ Trust vs form
 
 Never put secrets in args. Prefer ids + server-side reload of truth.
 
+once / jti
+----------
+``mint(..., once=True)`` binds a unique ``jti``. ``verify`` consumes that jti
+atomically **before** the caller runs side effects. No nonce store → refuse
+(fail closed). Replay of the same jti → ``CapError``. Pass
+``consume_once=False`` only for inspection (attenuation, tests).
+
 See: docs/SECURITY_AUDIT.md, docs/DESIGN.md.
 """
 from __future__ import annotations
@@ -53,6 +60,9 @@ class CapService:
         Active signing key (min 16 chars).
     previous_secrets:
         Older keys still accepted on verify (rotation window). Never used to sign.
+    nonce_store:
+        Optional ``use_once(key, ttl_s=)`` store. Required to verify ``once`` caps
+        when ``consume_once=True`` (the default).
     """
 
     def __init__(
@@ -62,6 +72,7 @@ class CapService:
         max_age: int = 3600,
         salt: str = "ux-channel-cap",
         previous_secrets: Optional[Sequence[str]] = None,
+        nonce_store: Any = None,
     ):
         if not secret or not isinstance(secret, str):
             raise ValueError("capability secret must be non-empty")
@@ -80,6 +91,7 @@ class CapService:
             if prev == secret:
                 continue
             self._previous.append(URLSafeTimedSerializer(secret_key=prev, salt=salt))
+        self.nonce_store = nonce_store
 
     def mint(
         self,
@@ -107,8 +119,6 @@ class CapService:
         payload = {k: v for k, v in payload.items() if v is not None}
         return self._ser.dumps(payload)
 
-
-
     def verify(
         self,
         token: str,
@@ -118,7 +128,19 @@ class CapService:
         max_age: Optional[int] = None,
         expected_sub: Optional[str] = None,
         required_scopes: Optional[Sequence[str]] = None,
+        consume_once: bool = True,
+        nonce_store: Any = None,
     ) -> dict[str, Any]:
+        """
+        Unsign + check action/args/principal/scopes, then consume once/jti.
+
+        ``consume_once=True`` (default) is the authorization path: atomic
+        consume before side effects. Missing store or missing jti on an
+        ``once`` token is a hard refuse. Pass ``consume_once=False`` to
+        inspect claims without burning the nonce.
+        """
+        if not token:
+            raise CapError("capability token required")
         age = max_age if max_age is not None else self._max_age
         data = None
         last_exc: Exception | None = None
@@ -146,6 +168,19 @@ class CapService:
             have = set(data.get("scopes") or [])
             if "*" not in have and not set(required_scopes).issubset(have):
                 raise CapError("capability missing scopes")
+
+        if data.get("once") and consume_once:
+            store = nonce_store if nonce_store is not None else self.nonce_store
+            jti = data.get("jti")
+            if not jti or not str(jti).strip():
+                raise CapError("once capability missing jti")
+            if store is None:
+                raise CapError(
+                    "once capability requires nonce_store "
+                    "(configure MemoryNonceStore or RedisNonceStore)"
+                )
+            if not store.use_once(f"cap:{jti}", ttl_s=float(self._max_age)):
+                raise CapError("capability replay (nonce)")
         return data
 
     @staticmethod
@@ -154,4 +189,3 @@ class CapService:
         payload = args or {}
         raw = json.dumps(payload, sort_keys=True, separators=(",", ":"), default=str)
         return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:32]
-

@@ -64,17 +64,20 @@ Related maps: [DOCS.md](DOCS.md) · [MENTAL_MODEL.md](MENTAL_MODEL.md) · [LONGE
 | “Just REST CRUD” | The unit of work is **action + signed args**, not resource URLs alone |
 | Client-authoritative business logic | The browser must not invent prices, balances, or durable truth |
 | Multiplayer game netcode | Realtime/WebRTC is an **optional plane**, not the core loop |
-| A second language runtime for Python apps | Rust is a **peer** for wire/cap law, not a required dependency to ship a Python app |
+| A second language runtime for Python apps | Rust is a **second implementation** of the same law, not required to ship a Python app |
 
 ### Two artifacts in the monorepo
 
 | Artifact | Path | You need it if… |
 |----------|------|------------------|
 | **Python host** | `python/` | Building a real app (almost everyone) |
-| **Rust peer** | `rust/` | Second implementation, `uxc_check`, interop, embedded peers |
+| **Rust crate** | `rust/` | Host+peer kernel/runtime, classic gate, `uxc_check`, interop |
 
 **Law** (both must obey): `SPEC/` + `conformance/` golden vectors.  
 If Python and Rust disagree, **vectors win**.
+
+Architecture (EffectGraph, proofs, flow correlation, peer kernel) is documented in
+[`SPEC/architecture/`](SPEC/architecture/README.md). Classic IR 0.1 clients stay on the floor.
 
 ---
 
@@ -307,10 +310,11 @@ Permanence strata and anti-bloat doors: [LONGEVITY.md](LONGEVITY.md).
 ### Monorepo
 
 ```text
-SPEC/              normative IR / cap notes
-conformance/       golden JSON + CXB + harnesses
+SPEC/              IR / cap + SPEC/architecture/ (host/peer kernel)
+conformance/       golden JSON + CXB + vectors/arch
 python/src/ux_channel/   host library (you import this)
-rust/              peer + uxc_check
+  arch/            HostRuntime, PeerApply, project, proofs
+rust/              HostRuntime + PeerApply + classic Peer gate + uxc_check
 verify.sh          law + both products
 ```
 

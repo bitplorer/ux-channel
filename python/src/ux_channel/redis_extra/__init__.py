@@ -57,9 +57,13 @@ class RedisNonceStore:
 
     def use_once(self, key: str, *, ttl_s: float = 3600) -> bool:
         rkey = f"{self.prefix}{key}"
-        # SET NX EX
-        ok = self.r.set(rkey, "1", nx=True, ex=int(ttl_s))
-        return bool(ok)
+        try:
+            # SET NX EX — atomic consume. Connection/store failure refuses
+            # (fail closed) rather than allowing a once-cap replay.
+            ok = self.r.set(rkey, "1", nx=True, ex=int(ttl_s))
+            return bool(ok)
+        except Exception:
+            return False
 
 
 class RedisIdempotencyStore:

@@ -145,7 +145,12 @@ class ActionRegistry:
     ):
         self._actions: dict[str, ActionHandler] = {}
         self._action_meta: dict[str, dict[str, Any]] = {}
-        self._caps = CapService(secret, max_age=max_cap_age, previous_secrets=previous_secrets)
+        self._caps = CapService(
+            secret,
+            max_age=max_cap_age,
+            previous_secrets=previous_secrets,
+            nonce_store=nonce_store,
+        )
         if renderer is None:
             from ux_channel.render.renderers import ChainRenderer, StringRenderer
 
@@ -160,11 +165,20 @@ class ActionRegistry:
         self.action_timeout_s = float(action_timeout_s or 0.0)
         self.config = config
         self.hooks = HookList()
-        self.nonce_store = nonce_store
+        self._nonce_store = nonce_store
         self.idempotency_store = idempotency_store
         self.auth_resolver = auth_resolver
         self.require_principal = require_principal
         # optional request stashed by host for auth_resolver
+
+    @property
+    def nonce_store(self) -> Optional[NonceStore]:
+        return self._nonce_store
+
+    @nonce_store.setter
+    def nonce_store(self, store: Optional[NonceStore]) -> None:
+        self._nonce_store = store
+        self._caps.nonce_store = store
 
     @classmethod
     def from_config(
@@ -573,7 +587,10 @@ class ActionRegistry:
             )
 
         cap_data: Optional[dict] = None
-        if self.require_cap:
+        cap_present = bool(intent.cap)
+        # present-cap-must-verify: a provided cap is never silently ignored,
+        # even when require_cap=False (open action).
+        if self.require_cap or cap_present:
             if not intent.cap:
                 _sec("cap_fail", action=intent.action, reason="missing capability")
                 tr.emit(
@@ -604,22 +621,9 @@ class ActionRegistry:
                     expected_sub=principal.id if principal and getattr(
                         self.config, "bind_cap_to_principal", False
                     ) else None,
+                    consume_once=True,
+                    nonce_store=self.nonce_store,
                 )
-                # one-shot nonce
-                # Only once=True capabilities require nonce consumption (jti alone is metadata)
-                if cap_data.get("once"):
-                    jti = cap_data.get("jti")
-                    if not jti:
-                        raise CapError("once capability missing jti")
-                    if self.nonce_store is None:
-                        raise CapError(
-                            "once capability requires nonce_store "
-                            "(configure MemoryNonceStore or RedisNonceStore)"
-                        )
-                    if not self.nonce_store.use_once(
-                        f"cap:{jti}", ttl_s=float(self._caps._max_age)
-                    ):
-                        raise CapError("capability replay (nonce)")
                 tr.emit(
                     _trace_api().FrameKind.CAP_OK,
                     "capability verified",

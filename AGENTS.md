@@ -71,7 +71,7 @@ CI runs the same on every push (`.github/workflows/ci.yml`).
 | Morph / toast display | Free-form strings HTML-escaped |
 | signal_set | Raw semantic values (not escaped) — intentional |
 | Oracle secret | Public; `uxc_peer` refuses it unless `UXC_ALLOW_ORACLE_SECRET=1` |
-| once/jti | SPEC requires; Rust Cap 0.1 does not enforce yet (`once_jti_enforced: false`) — do not claim green |
+| once/jti | Enforced: Python `CapService.verify` + Rust `mint_once` / `MemoryNonceStore` (`once_jti_enforced: true`) |
 | HTTP status | 200 / 401 unauthorized / 400 other Result errors / 500 encode failure — body still rules |
 
 ## Where to change things
@@ -81,7 +81,11 @@ CI runs the same on every push (`.github/workflows/ci.yml`).
 | IR types | `rust/src/types.rs` |
 | Cap crypto | `rust/src/cap.rs` |
 | CXB | `rust/src/cxb.rs` |
-| Dispatch | `rust/src/actions.rs` + `peer.rs` |
+| Dispatch (classic demo) | `rust/src/actions.rs` + `peer.rs` |
+| Host kernel + runtime | `rust/src/host.rs` · `python/src/ux_channel/arch/` |
+| Peer kernel (no DOM) | `rust/src/apply.rs` · `arch/peer.py` · `static/ux-peer-kernel.js` |
+| Project / effects | `rust/src/project.rs` · `arch/project.py` |
+| Architecture law | `SPEC/architecture/` + `conformance/vectors/arch/` |
 | HTTP surface | `rust/src/bin/uxc_peer.rs` |
 | Conformance | `conformance/` |
 | Invariants / structure | `SPEC/INVARIANTS.md`, `STRUCTURE.md` |

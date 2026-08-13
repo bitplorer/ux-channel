@@ -75,7 +75,7 @@ fn main() {
                     Ok(()) => checked += 1,
                     Err(e) => failures.push(e),
                 },
-                "handshake" => match check_value(&raw, file) {
+                "handshake" | "arch" => match check_value(&raw, file) {
                     Ok(()) => checked += 1,
                     Err(e) => failures.push(e),
                 },

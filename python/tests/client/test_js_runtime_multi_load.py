@@ -31,6 +31,29 @@ def test_min_matches_channel():
     assert a == b  # currently identical ship; keep in sync
 
 
+def test_arch_ops_and_peer_hello_in_js():
+    ch = (STATIC / "ux-channel.js").read_text()
+    assert 'case "seq":' in ch
+    assert 'case "timer.set":' in ch
+    assert 'case "timer.clear":' in ch
+    assert 'case "invoke":' in ch
+    assert "function peerHello" in ch
+    assert "peerHello: peerHello" in ch
+
+
+def test_peer_kernel_has_no_dom():
+    kernel = (STATIC / "ux-peer-kernel.js").read_text()
+    assert "createPeerKernel" in kernel
+    assert "function safeHref" in kernel
+    assert "document." not in kernel
+    assert "window." not in kernel
+    assert "innerHTML" not in kernel
+    assert "querySelector" not in kernel
+    assert 'op === "seq"' in kernel or 'op.op === "seq"' in kernel
+    assert "timer.set" in kernel
+    assert "invoke" in kernel
+
+
 def test_demo_scripts_order_mentions_bridge_before_adapters():
     from ux_channel.render.kit import bridge_script_tags, demo_scripts
     from ux_channel import Channel, ChannelConfig

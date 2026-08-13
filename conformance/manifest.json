@@ -20,7 +20,8 @@
     ],
     "cap": [
       {"file": "cap/01-valid-notes.md", "kind": "notes"},
-      {"file": "cap/02-oracle-token.json", "kind": "oracle", "notes": "illustrative token with known secret + args_hash algorithm"}
+      {"file": "cap/02-oracle-token.json", "kind": "oracle", "notes": "illustrative token with known secret + args_hash algorithm"},
+      {"file": "cap/03-once-jti-notes.md", "kind": "notes", "notes": "once/jti consume is implemented (Python + Rust)"}
     ],
     "trace": [
       {"file": "trace/01-single-hop.json", "kind": "positive", "optional": true},
@@ -29,6 +30,13 @@
     ],
     "handshake": [
       {"file": "handshake/01-surface-hello.json", "kind": "positive", "optional": true, "notes": "Phase 1.5/3 surface capability advertisement"}
+    ],
+    "arch": [
+      {"file": "arch/project-classic-only.json", "kind": "project"},
+      {"file": "arch/project-auto-web.json", "kind": "project"},
+      {"file": "arch/project-agent-only.json", "kind": "project"},
+      {"file": "arch/apply-budget.json", "kind": "budget"},
+      {"file": "arch/flow-meta-ignored.json", "kind": "apply"}
     ]
   },
   "cxb_expected": {

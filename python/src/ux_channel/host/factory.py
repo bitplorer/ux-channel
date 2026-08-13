@@ -88,6 +88,18 @@ def create_channel(
         idempotency_store = idempotency_store or ids
         redis_limiter = rl
 
+    env = getattr(config, "environment", environment) if config is not None else environment
+    allow_mem = (
+        bool(getattr(config, "allow_memory_stores", False))
+        if config is not None
+        else env != "production"
+    )
+    # Development and explicit single-worker prod must actually consume once/jti.
+    if nonce_store is None and (env != "production" or allow_mem):
+        from ux_channel.host.nonce import MemoryNonceStore
+
+        nonce_store = MemoryNonceStore()
+
     if config is not None:
         env = getattr(config, "environment", "production")
         allow_mem = bool(getattr(config, "allow_memory_stores", False))

@@ -19,8 +19,9 @@ these must not, except via a major IR version (see `BREAKING_CHANGE_POLICY.md`).
 7. Actions listed as cap-required (this peer: `Cart.add`) fail with `unauthorized` when cap is missing.
 8. Cap binds `action` + `args_hash` of sealed args; mismatch → `unauthorized`.
 9. Expired / bad signature → `unauthorized`.
-10. **once / jti (SPEC):** when `once=true`, replay of the same `jti` must fail closed.  
-    **Implementation status (Rust Cap 0.1):** mint/verify of basic fields is green; **jti consumption is not enforced yet** — tracked as a gap, not a silent “feature”.
+10. **once / jti:** when `once=true`, replay of the same `jti` must fail closed.
+    Python `CapService.verify` consumes atomically before handlers (no store → refuse).
+    Rust `CapService::mint_once` + `NonceStore` on `Peer` (health: `once_jti_enforced: true`).
 
 ## Safety / coercion
 
@@ -53,7 +54,7 @@ these must not, except via a major IR version (see `BREAKING_CHANGE_POLICY.md`).
 |-----------|-----------|
 | 1–5 | `validate_json_vectors.py` + types + `uxc_check` |
 | 6–9 | `uxc_check` peer edges + unit tests in `peer` / `cap` |
-| 10 | SPEC + roadmap (enforcement TBD); do not claim green until tests exist |
+| 10 | `test_arch_e2e.py` + Rust `once_replay_fails` / integration `once_cap_replay_unauthorized` |
 | 11–12 | `actions` unit tests + `uxc_check` edges |
 | 13–16 | `peer.handle_json` + health JSON + HTTP status mapping + CXB suite |
 

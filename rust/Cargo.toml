@@ -2,7 +2,7 @@
 name = "ux_channel_rs"
 version = "0.1.0"
 edition = "2021"
-description = "Rust peer for ux-channel IR 0.1 — Intent / Result / ops / caps / CXB"
+description = "Rust host+peer kernel/runtime for ux-channel IR 0.1"
 license = "MIT"
 readme = "README.md"
 

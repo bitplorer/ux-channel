@@ -15,7 +15,8 @@ use sha1::Sha1;
 use sha2::{Digest, Sha256};
 use std::collections::BTreeMap;
 use std::io::{Read, Write};
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::sync::Arc;
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use thiserror::Error;
 
 type HmacSha1 = Hmac<Sha1>;
@@ -42,6 +43,12 @@ pub enum CapError {
     PrincipalMismatch,
     #[error("capability missing scopes")]
     MissingScopes,
+    #[error("once capability missing jti")]
+    OnceMissingJti,
+    #[error("once capability requires nonce_store")]
+    OnceStoreRequired,
+    #[error("capability replay (nonce)")]
+    Replay,
     #[error("capability secret too short (min 16)")]
     WeakSecret,
     #[error("payload error: {0}")]
@@ -58,7 +65,10 @@ impl CapError {
             | CapError::ActionMismatch
             | CapError::ArgsMismatch
             | CapError::PrincipalMismatch
-            | CapError::MissingScopes => "unauthorized",
+            | CapError::MissingScopes
+            | CapError::OnceMissingJti
+            | CapError::OnceStoreRequired
+            | CapError::Replay => "unauthorized",
             CapError::WeakSecret | CapError::Payload(_) => "internal",
         }
     }
@@ -84,12 +94,22 @@ pub struct CapPayload {
 }
 
 /// HMAC capability issuer / verifier.
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct CapService {
     secret: Vec<u8>,
     previous: Vec<Vec<u8>>,
     salt: Vec<u8>,
     max_age: u64,
+    nonce: Option<Arc<dyn crate::nonce::NonceStore>>,
+}
+
+impl std::fmt::Debug for CapService {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("CapService")
+            .field("max_age", &self.max_age)
+            .field("has_nonce", &self.nonce.is_some())
+            .finish()
+    }
 }
 
 impl CapService {
@@ -123,7 +143,17 @@ impl CapService {
             previous,
             salt: salt.as_ref().to_vec(),
             max_age,
+            nonce: None,
         })
+    }
+
+    pub fn with_nonce_store(mut self, store: Arc<dyn crate::nonce::NonceStore>) -> Self {
+        self.nonce = Some(store);
+        self
+    }
+
+    pub fn has_nonce(&self) -> bool {
+        self.nonce.is_some()
     }
 
     pub fn max_age(&self) -> u64 {
@@ -145,6 +175,30 @@ impl CapService {
         sub: Option<&str>,
         scopes: Option<&[String]>,
     ) -> Result<String, CapError> {
+        self.mint_full(action, args, sub, scopes, false, None)
+    }
+
+    /// Mint a single-use cap (`once=true` + jti). Verify consumes the jti.
+    pub fn mint_once(
+        &self,
+        action: &str,
+        args: &Value,
+        sub: Option<&str>,
+        scopes: Option<&[String]>,
+        jti: Option<&str>,
+    ) -> Result<String, CapError> {
+        self.mint_full(action, args, sub, scopes, true, jti)
+    }
+
+    pub fn mint_full(
+        &self,
+        action: &str,
+        args: &Value,
+        sub: Option<&str>,
+        scopes: Option<&[String]>,
+        once: bool,
+        jti: Option<&str>,
+    ) -> Result<String, CapError> {
         let now = unix_now();
         let mut payload = serde_json::json!({
             "action": action,
@@ -163,6 +217,16 @@ impl CapService {
                 );
             }
         }
+        if once {
+            payload["once"] = Value::Bool(true);
+            let j = jti
+                .map(|s| s.to_string())
+                .filter(|s| !s.is_empty())
+                .unwrap_or_else(|| fresh_jti(&self.secret));
+            payload["jti"] = Value::String(j);
+        } else if let Some(j) = jti.filter(|s| !s.is_empty()) {
+            payload["jti"] = Value::String(j.to_string());
+        }
         let body = serde_json::to_vec(&payload).map_err(|e| CapError::Payload(e.to_string()))?;
         self.dumps_timed(&body)
     }
@@ -173,7 +237,17 @@ impl CapService {
         action: &str,
         args: &Value,
     ) -> Result<CapPayload, CapError> {
-        self.verify_full(token, action, args, None, None, None)
+        self.verify_full(token, action, args, None, None, None, true)
+    }
+
+    /// Inspect claims without consuming once/jti.
+    pub fn verify_inspect(
+        &self,
+        token: &str,
+        action: &str,
+        args: &Value,
+    ) -> Result<CapPayload, CapError> {
+        self.verify_full(token, action, args, None, None, None, false)
     }
 
     pub fn verify_full(
@@ -184,6 +258,7 @@ impl CapService {
         max_age: Option<u64>,
         expected_sub: Option<&str>,
         required_scopes: Option<&[String]>,
+        consume_once: bool,
     ) -> Result<CapPayload, CapError> {
         let age = max_age.unwrap_or(self.max_age);
         let mut last = CapError::Invalid;
@@ -216,6 +291,18 @@ impl CapService {
                                     return Err(CapError::MissingScopes);
                                 }
                             }
+                        }
+                    }
+                    if data.once == Some(true) && consume_once {
+                        let jti = data
+                            .jti
+                            .as_deref()
+                            .filter(|s| !s.is_empty())
+                            .ok_or(CapError::OnceMissingJti)?;
+                        let store = self.nonce.as_ref().ok_or(CapError::OnceStoreRequired)?;
+                        if !store.use_once(&format!("cap:{jti}"), Duration::from_secs(age.max(1)))
+                        {
+                            return Err(CapError::Replay);
                         }
                     }
                     return Ok(data);
@@ -267,6 +354,20 @@ fn unix_now() -> i64 {
         .duration_since(UNIX_EPOCH)
         .map(|d| d.as_secs() as i64)
         .unwrap_or(0)
+}
+
+fn fresh_jti(secret: &[u8]) -> String {
+    // Mix secret + clock + pid so jti is not a time-only hash.
+    let nanos = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|d| d.as_nanos())
+        .unwrap_or(0);
+    let mut h = Sha256::new();
+    h.update(secret);
+    h.update(b"|jti|");
+    h.update(nanos.to_le_bytes());
+    h.update(std::process::id().to_le_bytes());
+    hex::encode(&h.finalize()[..16])
 }
 
 fn derive_key(secret: &[u8], salt: &[u8]) -> Vec<u8> {
@@ -396,6 +497,7 @@ fn unsign_timed(
 mod tests {
     use super::*;
     use serde_json::json;
+    use std::sync::Arc;
 
     #[test]
     fn oracle_args_hash() {
@@ -439,6 +541,44 @@ mod tests {
         assert!(matches!(
             CapService::new("short", 3600),
             Err(CapError::WeakSecret)
+        ));
+    }
+
+    #[test]
+    fn once_replay_fails() {
+        let store: Arc<dyn crate::nonce::NonceStore> =
+            Arc::new(crate::nonce::MemoryNonceStore::default());
+        let svc = CapService::oracle().with_nonce_store(store);
+        let args = json!({});
+        let tok = svc.mint_once("Pay.go", &args, None, None, Some("j1")).unwrap();
+        svc.verify(&tok, "Pay.go", &args).unwrap();
+        assert!(matches!(
+            svc.verify(&tok, "Pay.go", &args),
+            Err(CapError::Replay)
+        ));
+    }
+
+    #[test]
+    fn once_without_store_refuses() {
+        let svc = CapService::oracle();
+        let tok = svc.mint_once("Pay.go", &json!({}), None, None, Some("j2")).unwrap();
+        assert!(matches!(
+            svc.verify(&tok, "Pay.go", &json!({})),
+            Err(CapError::OnceStoreRequired)
+        ));
+    }
+
+    #[test]
+    fn inspect_does_not_burn() {
+        let store: Arc<dyn crate::nonce::NonceStore> =
+            Arc::new(crate::nonce::MemoryNonceStore::default());
+        let svc = CapService::oracle().with_nonce_store(store);
+        let tok = svc.mint_once("Pay.go", &json!({}), None, None, Some("j3")).unwrap();
+        svc.verify_inspect(&tok, "Pay.go", &json!({})).unwrap();
+        svc.verify(&tok, "Pay.go", &json!({})).unwrap();
+        assert!(matches!(
+            svc.verify(&tok, "Pay.go", &json!({})),
+            Err(CapError::Replay)
         ));
     }
 }

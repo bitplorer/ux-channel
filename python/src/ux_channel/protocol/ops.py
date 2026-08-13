@@ -252,3 +252,50 @@ def signal_set(
 
 def noop(*, meta: Optional[Mapping[str, Any]] = None) -> Op:
     return _op("noop", meta=dict(meta) if meta else None)
+
+
+def seq(*ops: Mapping[str, Any], meta: Optional[Mapping[str, Any]] = None) -> Op:
+    """Ordered nested apply. Classic floor: host project() flattens when peer lacks seq."""
+    return _op(
+        "seq",
+        ops=[dict(o) for o in ops],
+        meta=dict(meta) if meta else None,
+    )
+
+
+def timer_set(
+    timer_id: str,
+    ms: int,
+    *ops: Mapping[str, Any],
+    meta: Optional[Mapping[str, Any]] = None,
+) -> Op:
+    """Schedule nested ops. Dropped by project() for classic-only peers when ms > 0."""
+    return _op(
+        "timer.set",
+        id=str(timer_id),
+        ms=int(ms),
+        ops=[dict(o) for o in ops] or None,
+        meta=dict(meta) if meta else None,
+    )
+
+
+def timer_clear(timer_id: str, *, meta: Optional[Mapping[str, Any]] = None) -> Op:
+    return _op("timer.clear", id=str(timer_id), meta=dict(meta) if meta else None)
+
+
+def invoke(
+    ref: str,
+    method: str,
+    args: Optional[Mapping[str, Any]] = None,
+    *ops: Mapping[str, Any],
+    meta: Optional[Mapping[str, Any]] = None,
+) -> Op:
+    """Host-stamped surface call. Peer checks stamp; classic project drops the wrapper."""
+    return _op(
+        "invoke",
+        ref=ref,
+        method=method,
+        args=dict(args or {}),
+        ops=[dict(o) for o in ops] or None,
+        meta=dict(meta) if meta else None,
+    )
