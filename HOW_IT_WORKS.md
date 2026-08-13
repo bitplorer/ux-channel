@@ -565,7 +565,7 @@ These are tracked in README status + INVARIANTS + health `once_jti_enforced: tru
 7. [SPEC/intent-result-ops.md](SPEC/intent-result-ops.md) — field tables.  
 8. [SPEC/capability.md](SPEC/capability.md) — cap rules.  
 9. [SPEC/INVARIANTS.md](SPEC/INVARIANTS.md) — kill criteria.  
-10. Code starting at `rust/src/peer.rs` (gate), then `actions.rs`, then `bin/uxc_peer.rs`.
+10. Code: `rust/src/peer.rs` (gate) · `rust/src/apply.rs` + `runtime.rs` (peer kernel/runtime) · `actions.rs` · `bin/uxc_peer.rs`.
 
 ---
 

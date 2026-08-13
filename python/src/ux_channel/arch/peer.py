@@ -151,6 +151,50 @@ class PeerRuntime:
             "effect_proof": bool(self.apply.proofs_required or self.apply.proof_service),
         }
 
+    def submit_intent(
+        self,
+        action: str,
+        args: Optional[Mapping[str, Any]] = None,
+        cap: Optional[str] = None,
+        request_id: Optional[str] = None,
+        *,
+        transport: Optional[Callable[[Mapping[str, Any]], Optional[Mapping[str, Any]]]] = None,
+    ) -> dict:
+        """Build an Intent (hello in meta). Optional transport returns a Result to apply.
+
+        Outbox is explicit opt-in via ``enable_outbox()``. Cap is never inferred.
+        """
+        intent: Dict[str, Any] = {
+            "v": "1",
+            "action": action,
+            "args": dict(args or {}),
+            "meta": {"hello": self.hello()},
+        }
+        if cap:
+            intent["cap"] = cap
+        if request_id:
+            intent["request_id"] = request_id
+        if getattr(self, "_outbox", None) is not None:
+            self._outbox.append(intent)
+        sender = transport or getattr(self, "_transport", None)
+        if sender:
+            result = sender(intent)
+            if result is not None:
+                self.on_result(result)
+        return intent
+
+    def enable_outbox(self) -> None:
+        if getattr(self, "_outbox", None) is None:
+            self._outbox: List[dict] = []
+
+    def recorded(self) -> List[dict]:
+        return list(getattr(self, "_outbox", None) or [])
+
+    def set_transport(
+        self, fn: Callable[[Mapping[str, Any]], Optional[Mapping[str, Any]]]
+    ) -> None:
+        self._transport = fn
+
     def on_result(self, result: Mapping[str, Any]) -> None:
         self._queue.append(result)
         self._drain()

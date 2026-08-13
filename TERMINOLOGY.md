@@ -44,8 +44,8 @@ Terms are grouped: **big picture → messages → security → wire → HTTP →
 |--|--|
 | **Is** | Any process that can **accept an Intent** and **return a Result**. |
 | **Does** | Validates IR, verifies caps when needed, runs an action, emits ops or an error. |
-| **Not** | Not “only the HTTP server.” The in-process `Peer` struct is the gate; `uxc_peer` is one transport around it. |
-| **Where** | Logic: `rust/src/peer.rs`. HTTP shell: `bin/uxc_peer.rs`. |
+| **Not** | Not “only the HTTP server.” The in-process `Peer` struct is the **gate**; `PeerApply` / `PeerRuntime` apply Results; `uxc_peer` is one transport. |
+| **Where** | Gate: `rust/src/peer.rs`. Kernel: `rust/src/apply.rs`. Runtime: `rust/src/runtime.rs`. HTTP: `bin/uxc_peer.rs`. |
 
 ### Client / surface
 

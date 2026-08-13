@@ -1,3 +1,14 @@
+## 2026-08-13 — Rust peer kernel + peer runtime
+
+- `rust/src/apply.rs` — `PeerApply` (proofs, single-flight, budgets, seq / invoke / timer). No DOM.
+- `rust/src/runtime.rs` — `PeerRuntime` hello / `submit_intent` / on_result / revoke; `Loopback` joins gate + runtime; `Outbox` opt-in
+- `rust/src/proof.rs` — HMAC-SHA256 effect proofs (Python-compatible body hash)
+- `rust/src/drivers.rs` — web.v1 / agent.v1 log packs + `safe_href`
+- Python `PeerRuntime.submit_intent` + optional outbox/transport (SPEC `runtime-peer.md`)
+- SPEC `runtime-peer.md` / `runtime-host.md` landed in `SPEC/architecture/`
+
+---
+
 ## 2026-08-13 — Architecture polish (stability + clarity)
 
 - Shared `arch.modes` tokens; HostConfig rejects unknown effects/proofs/flow

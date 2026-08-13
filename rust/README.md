@@ -1,6 +1,6 @@
 # ux_channel_rs — Rust peer (Phase 2)
 
-**Status:** types + JSON wire + **cap verify** + **CXB** + **HTTP action endpoint** + `uxc_check`.
+**Status:** types + JSON wire + **cap verify** + **once/jti** + **CXB** + **HTTP action endpoint** + **peer kernel + peer runtime** + `uxc_check`.
 
 Operators: read repo-root [`OPERATIONAL.md`](../OPERATIONAL.md) before running `uxc_peer`.
 Humans: [`TERMINOLOGY.md`](../TERMINOLOGY.md) → [`HOW_IT_WORKS.md`](../HOW_IT_WORKS.md) → [`REFERENCE.md`](../REFERENCE.md) / [`FAQ.md`](../FAQ.md).
@@ -16,6 +16,10 @@ Humans: [`TERMINOLOGY.md`](../TERMINOLOGY.md) → [`HOW_IT_WORKS.md`](../HOW_IT_
 | `op_tags` | Dense op key tags 1–63 (append-only) | permanent |
 | `actions` | `Cart.add`, `Counter.inc`, `Counter.get` | **moving** demo |
 | `peer` | Intent → cap gate → dispatch → Result (always Result-shaped) | permanent gate |
+| `apply` | Peer kernel: applyResult, budgets, seq / invoke / timer (no DOM) | permanent |
+| `runtime` | `PeerRuntime`: hello, submit_intent, on_result, revoke + `Loopback` | permanent |
+| `proof` | HMAC-SHA256 effect proofs (Cap key ≠ proof key) | permanent |
+| `drivers` | web.v1 / agent.v1 log packs; `safe_href` | permanent |
 | `bin/uxc_check` | Vectors + cap + CXB + peer edges + optional `--http` | moving surface, permanent duty |
 | `bin/uxc_peer` | HTTP peer: `POST /ux-channel/action` + demo UI | **moving** |
 
@@ -33,6 +37,10 @@ rust/
 │   ├── cxb.rs           # CXB codec
 │   ├── op_tags.rs       # dense op tags (append-only)
 │   ├── peer.rs          # Intent → cap gate → actions
+│   ├── apply.rs         # PeerApply kernel (no DOM)
+│   ├── runtime.rs       # PeerRuntime + Loopback / Outbox
+│   ├── proof.rs         # effect proofs
+│   ├── drivers.rs       # web.v1 / agent.v1 (no DOM)
 │   ├── actions.rs       # demo actions (moving)
 │   └── bin/
 │       ├── uxc_check.rs # conformance runner
@@ -41,13 +49,14 @@ rust/
     └── integration_peer.rs
 ```
 
-**Permanent vs moving:** types/wire/cap/cxb/peer gate are permanent; `actions` + `uxc_peer` UI are demo/moving.
+**Permanent vs moving:** types/wire/cap/cxb/peer gate/apply/runtime/proof/drivers are permanent; `actions` + `uxc_peer` UI are demo/moving.
+
 
 ## Tests
 
 | Kind | Command | What |
 |------|---------|------|
-| Unit + property | `cargo test --lib` | cap, wire, peer, CXB + proptest |
+| Unit + property | `cargo test --lib` | cap, wire, peer, apply, runtime, CXB + proptest |
 | Integration | `cargo test --tests` | Peer cap gate end-to-end |
 | Conformance | `cargo run --bin uxc_check -- ../conformance` | golden vectors |
 
@@ -182,6 +191,7 @@ src/
 ## Next
 
 - [x] once/jti consumption + tests
+- [x] peer kernel (`PeerApply`) + peer runtime (`PeerRuntime` / `Loopback`)
 - [ ] HTTP Accept `+cxb` response path
 - [ ] Byte-identical encode vs Python oracle freeform
 - [ ] WASM island / mesh (later phases)
@@ -195,6 +205,10 @@ src/
 | args_hash | sorted compact JSON | same (`sort_keys=True`) |
 | CXB decode | `decode_cxb` | `wire.cxb.decode_cxb` |
 | Conformance | `uxc_check` | `conformance/harness/*` + gate tests |
+| Peer gate | `peer::Peer` | `Channel` / `HostRuntime.handle_intent` |
+| Peer kernel | `apply::PeerApply` | `arch.peer.PeerApply` |
+| Peer runtime | `runtime::PeerRuntime` | `arch.peer.PeerRuntime` |
+| Effect proofs | `proof::ProofService` | `arch.proof.ProofService` |
 | Full host (regions/ASGI) | — | `ux_channel` host |
 
 See [MENTAL_MODEL.md](../MENTAL_MODEL.md) and [NAMING.md](../NAMING.md).

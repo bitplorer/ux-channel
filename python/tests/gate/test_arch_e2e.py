@@ -309,3 +309,21 @@ def test_timer_zero_applies_body():
         }
     )
     assert any(x[0] == "toast" and x[1] == "now" for x in peer.ctx["log"])
+
+
+def test_peer_runtime_submit_intent_outbox_and_transport():
+    peer = PeerApply(make_web_drivers())
+    rt = PeerRuntime(peer, profiles=["web.v1"], features=["seq"])
+    rt.enable_outbox()
+
+    def loopback(intent):
+        assert intent["meta"]["hello"]["profiles"] == ["web.v1"]
+        return {"ok": True, "ops": [{"op": "toast", "message": "from-host"}]}
+
+    rt.set_transport(loopback)
+    sent = rt.submit_intent("Counter.inc", {"by": 1}, request_id="r1")
+    assert sent["action"] == "Counter.inc"
+    assert sent["request_id"] == "r1"
+    assert rt.recorded()[0]["action"] == "Counter.inc"
+    assert any(x[0] == "toast" and x[1] == "from-host" for x in peer.ctx["log"])
+
