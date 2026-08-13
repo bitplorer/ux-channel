@@ -98,6 +98,7 @@ pub struct HostRuntime {
     pub flows: FlowStore,
     pub registry: Registry,
     sessions: HashMap<String, Session>,
+    idem: HashMap<(String, String), Value>,
 }
 
 impl HostRuntime {
@@ -131,6 +132,7 @@ impl HostRuntime {
             flows: FlowStore::default(),
             registry: Registry::new(require_cap),
             sessions: HashMap::new(),
+            idem: HashMap::new(),
         })
     }
 
@@ -189,18 +191,19 @@ impl HostRuntime {
         let hello = self.session(session_id).peer_hello.clone();
         let gen = self.session(session_id).gen;
         let ops = project(g, &hello, &self.config.effects).map_err(HostError::Config)?;
+        let meta = meta.unwrap_or_else(|| json!({}));
         if count_ops(&ops) > self.config.max_nodes {
             return Ok(json!({
                 "ok": false,
                 "ops": [],
                 "error": {"code": "budget", "message": "effect graph exceeds max_nodes"},
-                "meta": meta.unwrap_or_else(|| json!({})),
+                "meta": meta,
             }));
         }
         let mut result = json!({
             "ok": ok,
             "ops": ops,
-            "meta": meta.unwrap_or_else(|| json!({})),
+            "meta": meta.clone(),
         });
         if let Some(fid) = flow_id {
             if self.config.flow == "auto" {
@@ -208,6 +211,20 @@ impl HostRuntime {
             }
         }
         if self.need_proof(session_id) {
+            let can = self
+                .sessions
+                .get(session_id)
+                .and_then(|s| s.peer_hello.get("effect_proof"))
+                .and_then(|v| v.as_bool())
+                .unwrap_or(false);
+            if self.config.proofs == "require" && !can {
+                return Ok(json!({
+                    "ok": false,
+                    "ops": [],
+                    "error": {"code": "forbidden", "message": "proofs=require needs effect_proof in hello"},
+                    "meta": meta,
+                }));
+            }
             self.proofs
                 .sign_value(&mut result, session_id, gen as i64)
                 .map_err(|e| HostError::Proof(e.to_string()))?;
@@ -220,8 +237,38 @@ impl HostRuntime {
         if let Some(hello) = intent.get("meta").and_then(|m| m.get("hello")) {
             self.set_hello(session_id, hello.clone());
         }
+        if self.config.proofs == "require" {
+            let can = self
+                .sessions
+                .get(session_id)
+                .and_then(|s| s.peer_hello.get("effect_proof"))
+                .and_then(|v| v.as_bool())
+                .unwrap_or(false);
+            if !can {
+                return Ok(json!({
+                    "ok": false,
+                    "ops": [],
+                    "error": {"code": "forbidden", "message": "proofs=require needs effect_proof in hello"},
+                    "meta": {"action": intent.get("action").cloned().unwrap_or(Value::Null)},
+                }));
+            }
+        }
+        if let Some(rid) = intent.get("request_id").and_then(|v| v.as_str()) {
+            let key = (session_id.to_string(), rid.to_string());
+            if let Some(prev) = self.idem.get(&key) {
+                return Ok(prev.clone());
+            }
+            if self.idem.len() >= 10_000 {
+                return Ok(json!({
+                    "ok": false,
+                    "ops": [],
+                    "error": {"code": "unavailable", "message": "idempotency store full"},
+                    "meta": {"action": intent.get("action").cloned().unwrap_or(Value::Null)},
+                }));
+            }
+        }
         let (mut result, graph) = dispatch_typed(&self.registry, &self.caps, intent);
-        if let Some(g) = graph {
+        let out = if let Some(g) = graph {
             let flow_id = result
                 .get("meta")
                 .and_then(|m| m.get("flow_id"))
@@ -238,32 +285,39 @@ impl HostRuntime {
             if let Some(err) = result.get("error") {
                 projected["error"] = err.clone();
             }
-            return Ok(projected);
-        }
-        if self.need_proof(session_id) && result.get("ops").is_some() {
-            let gen = self.session(session_id).gen as i64;
-            self.proofs
-                .sign_value(&mut result, session_id, gen)
-                .map_err(|e| HostError::Proof(e.to_string()))?;
-        }
-        if self.config.flow == "auto" {
-            let fid = intent
-                .get("args")
-                .and_then(|a| a.get("flow_id"))
-                .or_else(|| intent.get("meta").and_then(|m| m.get("flow_id")))
-                .and_then(|v| v.as_str())
-                .map(|s| s.to_string());
-            let has = result
-                .get("meta")
-                .and_then(|m| m.get("flow_id"))
-                .is_some();
-            if let Some(fid) = fid {
-                if !has {
-                    attach_flow_meta(&mut result, &fid, None, "auto").map_err(HostError::Config)?;
+            projected
+        } else {
+            if self.need_proof(session_id) && result.get("ops").is_some() {
+                let gen = self.session(session_id).gen as i64;
+                self.proofs
+                    .sign_value(&mut result, session_id, gen)
+                    .map_err(|e| HostError::Proof(e.to_string()))?;
+            }
+            if self.config.flow == "auto" {
+                let fid = intent
+                    .get("args")
+                    .and_then(|a| a.get("flow_id"))
+                    .or_else(|| intent.get("meta").and_then(|m| m.get("flow_id")))
+                    .and_then(|v| v.as_str())
+                    .map(|s| s.to_string());
+                let has = result
+                    .get("meta")
+                    .and_then(|m| m.get("flow_id"))
+                    .is_some();
+                if let Some(fid) = fid {
+                    if !has {
+                        attach_flow_meta(&mut result, &fid, None, "auto")
+                            .map_err(HostError::Config)?;
+                    }
                 }
             }
+            result
+        };
+        if let Some(rid) = intent.get("request_id").and_then(|v| v.as_str()) {
+            self.idem
+                .insert((session_id.to_string(), rid.to_string()), out.clone());
         }
-        Ok(result)
+        Ok(out)
     }
 
     /// JSON bytes in → Result JSON out (HTTP adapter).
@@ -299,6 +353,8 @@ impl HostRuntime {
             "flow": self.config.flow,
             "sessions": self.sessions.len(),
             "once_jti_enforced": self.caps.has_nonce(),
+            "stores_ok": self.caps.has_nonce(),
+            "proof_kid": "p1",
         })
     }
 
@@ -531,5 +587,36 @@ mod tests {
         let health = h.health();
         assert_eq!(health["once_jti_enforced"], true);
         assert_eq!(health["demo_mode"], true);
+        assert_eq!(health["stores_ok"], true);
+    }
+
+    #[test]
+    fn proofs_require_refuses_unverified_peer() {
+        let mut h = host(HostConfig {
+            proofs: "require".into(),
+            demo_mode: true,
+            require_cap: false,
+            ..HostConfig::default()
+        });
+        h.register("Open.ping", |_| {
+            ActionOut::Result(json!({"ok": true, "ops": [{"op": "toast", "message": "x"}]}))
+        });
+        let bad = h
+            .handle_intent(&json!({"action": "Open.ping", "args": {}}), "s")
+            .unwrap();
+        assert_eq!(bad["ok"], false);
+        assert_eq!(bad["error"]["code"], "forbidden");
+        let ok = h
+            .handle_intent(
+                &json!({
+                    "action": "Open.ping",
+                    "args": {},
+                    "meta": {"hello": {"effect_proof": true, "profiles": ["web.v1"]}}
+                }),
+                "s",
+            )
+            .unwrap();
+        assert_eq!(ok["ok"], true);
+        assert!(ok["meta"]["effect"].is_object());
     }
 }

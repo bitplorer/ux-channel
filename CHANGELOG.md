@@ -1,3 +1,12 @@
+## 2026-08-13 — Architecture law alignment
+
+- `proofs=require` refuses peers that do not advertise `effect_proof` **before** the handler (Python HostRuntime + Channel before-hook + Rust)
+- `request_id` idempotency on HostRuntime is separate from once/jti
+- Host health includes `stores_ok` / `proof_kid`
+- JS peer kernel hello.effect_proof matches Python (set when a verifier exists)
+
+---
+
 ## 2026-08-13 — Docs polish (names + maps)
 
 - One speech: `HostRuntime` / `PeerApply` / `PeerRuntime` / classic `Peer` gate

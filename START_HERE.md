@@ -64,7 +64,7 @@ Related maps: [DOCS.md](DOCS.md) · [MENTAL_MODEL.md](MENTAL_MODEL.md) · [LONGE
 | “Just REST CRUD” | The unit of work is **action + signed args**, not resource URLs alone |
 | Client-authoritative business logic | The browser must not invent prices, balances, or durable truth |
 | Multiplayer game netcode | Realtime/WebRTC is an **optional plane**, not the core loop |
-| A second language runtime for Python apps | Rust is a **peer** for wire/cap law, not a required dependency to ship a Python app |
+| A second language runtime for Python apps | Rust is a **second implementation** of the same law, not required to ship a Python app |
 
 ### Two artifacts in the monorepo
 

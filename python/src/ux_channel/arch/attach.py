@@ -104,6 +104,22 @@ def attach_arch(ch: Any) -> Any:
             return False
         return bool(hello.get("effect_proof") or proofs_mode == "require")
 
+    def before_arch(intent: Any, args: dict) -> Any:
+        meta_in = getattr(intent, "meta", None) or {}
+        if isinstance(meta_in, dict) and isinstance(meta_in.get("hello"), dict):
+            sessions.set_hello(_session_id(intent), meta_in["hello"])
+        hello = sessions.get_hello(_session_id(intent))
+        if proofs_mode == "require" and not hello.get("effect_proof"):
+            return Result(
+                ok=False,
+                ops=[],
+                error=ErrorObject(
+                    code="forbidden",
+                    message="proofs=require needs effect_proof in hello",
+                ),
+            )
+        return None
+
     def after_arch(intent: Any, result: Any) -> Any:
         if not isinstance(result, Result):
             return result
@@ -153,6 +169,7 @@ def attach_arch(ch: Any) -> Any:
         return result
 
     if getattr(ch, "registry", None) is not None:
+        ch.registry.before(before_arch)
         ch.registry.after(after_arch)
 
     def set_hello(session_id: str, hello: Mapping[str, Any]) -> None:

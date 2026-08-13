@@ -10,7 +10,8 @@ Cap key must differ from proof key.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, Mapping, Optional
+from typing import Any, Callable, Dict, Mapping, Optional, Tuple
+import threading
 
 from ux_channel.arch.dispatch import ArchRegistry, RegistryConfig
 from ux_channel.arch.effects import EffectGraph
@@ -41,6 +42,31 @@ class Session:
     session_id: str
     gen: int = 1
     peer_hello: Dict[str, Any] = field(default_factory=dict)
+
+
+class _Idempotency:
+    """request_id dedupe — separate from once/jti (SPEC concurrency.md)."""
+
+    def __init__(self, *, max_rows: int = 10_000) -> None:
+        self._lock = threading.Lock()
+        self._rows: Dict[Tuple[str, str], dict] = {}
+        self.max_rows = max_rows
+
+    def get(self, session_id: str, request_id: str) -> Optional[dict]:
+        with self._lock:
+            return self._rows.get((session_id, request_id))
+
+    def full(self) -> bool:
+        with self._lock:
+            return len(self._rows) >= self.max_rows
+
+    def put(self, session_id: str, request_id: str, result: dict) -> Optional[str]:
+        with self._lock:
+            if (session_id, request_id) not in self._rows and len(self._rows) >= self.max_rows:
+                return "full"
+            self._rows[(session_id, request_id)] = result
+            return None
+
 
 
 class HostRuntime:
@@ -76,6 +102,7 @@ class HostRuntime:
             ),
         )
         self.sessions: Dict[str, Session] = {}
+        self.idem = _Idempotency()
 
     def register(self, action: str, handler: Callable) -> None:
         self.registry.register(action, handler)
@@ -118,6 +145,16 @@ class HostRuntime:
         if flow_id and self.config.flow == "auto":
             attach_flow_meta(result, flow_id=flow_id, step=step, flow_mode="auto")
         if self._need_proof(s):
+            if not s.peer_hello.get("effect_proof") and self.config.proofs == "require":
+                return {
+                    "ok": False,
+                    "ops": [],
+                    "error": {
+                        "code": "forbidden",
+                        "message": "proofs=require needs effect_proof in hello",
+                    },
+                    "meta": dict(meta or {}),
+                }
             self.proofs.sign(result, session_id=session_id, gen=s.gen)
         return result
 
@@ -126,6 +163,29 @@ class HostRuntime:
         hello = (intent.get("meta") or {}).get("hello")
         if isinstance(hello, dict):
             self.set_hello(session_id, hello)
+        s = self.sessions[session_id]
+        if self.config.proofs == "require" and not s.peer_hello.get("effect_proof"):
+            return {
+                "ok": False,
+                "ops": [],
+                "error": {
+                    "code": "forbidden",
+                    "message": "proofs=require needs effect_proof in hello",
+                },
+                "meta": {"action": intent.get("action")},
+            }
+        rid = intent.get("request_id")
+        if rid:
+            cached = self.idem.get(session_id, str(rid))
+            if cached is not None:
+                return dict(cached)
+            if self.idem.full():
+                return {
+                    "ok": False,
+                    "ops": [],
+                    "error": {"code": "unavailable", "message": "idempotency store full"},
+                    "meta": {"action": intent.get("action")},
+                }
         result = self.registry.dispatch(intent)
         if "_graph" in result:
             g = result.pop("_graph")
@@ -140,16 +200,19 @@ class HostRuntime:
             projected["ok"] = result.get("ok", True)
             if result.get("error"):
                 projected["error"] = result["error"]
-            return projected
-        s = self.sessions[session_id]
-        if self._need_proof(s) and result.get("ops") is not None:
-            self.proofs.sign(result, session_id=session_id, gen=s.gen)
-        if self.config.flow == "auto":
-            fid = (intent.get("args") or {}).get("flow_id") or (intent.get("meta") or {}).get(
-                "flow_id"
-            )
-            if fid and "flow_id" not in (result.get("meta") or {}):
-                attach_flow_meta(result, flow_id=str(fid), flow_mode="auto")
+            result = projected
+        else:
+            if self._need_proof(s) and result.get("ops") is not None:
+                self.proofs.sign(result, session_id=session_id, gen=s.gen)
+            if self.config.flow == "auto":
+                fid = (intent.get("args") or {}).get("flow_id") or (intent.get("meta") or {}).get(
+                    "flow_id"
+                )
+                if fid and "flow_id" not in (result.get("meta") or {}):
+                    attach_flow_meta(result, flow_id=str(fid), flow_mode="auto")
+        if rid:
+            if self.idem.put(session_id, str(rid), dict(result)) == "full":
+                return dict(result)
         return result
 
     def _need_proof(self, session: Session) -> bool:
@@ -166,6 +229,8 @@ class HostRuntime:
             "flow": self.config.flow,
             "sessions": len(self.sessions),
             "once_jti_enforced": self.caps.nonce_store is not None,
+            "stores_ok": self.caps.nonce_store is not None,
+            "proof_kid": getattr(self.proofs, "kid", "p1"),
         }
 
 

@@ -396,3 +396,55 @@ def test_flow_meta_is_not_authority():
     )
     assert any(x[0] == "toast" for x in peer.ctx["log"])
 
+
+def test_proofs_require_refuses_peer_without_hello():
+    hits = {"n": 0}
+    host = HostRuntime(
+        cap_secret="0123456789abcdef",
+        proof_secret="proof-secret-16b!",
+        config=HostConfig(proofs="require", demo_mode=True, require_cap=False),
+    )
+
+    def ping(args, ctx):
+        hits["n"] += 1
+        return {"ok": True, "ops": [{"op": "toast", "message": "pong"}]}
+
+    host.register("Open.ping", ping)
+    bad = host.handle_intent({"action": "Open.ping", "args": {}})
+    assert bad["ok"] is False
+    assert bad["error"]["code"] == "forbidden"
+    assert hits["n"] == 0
+    assert bad["ops"] == []
+
+    ok = host.handle_intent(
+        {
+            "action": "Open.ping",
+            "args": {},
+            "meta": {"hello": {"effect_proof": True, "profiles": ["web.v1"]}},
+        }
+    )
+    assert ok["ok"] is True
+    assert hits["n"] == 1
+    assert "effect" in ok["meta"]
+
+
+def test_request_id_is_not_once():
+    hits = {"n": 0}
+    host = HostRuntime(
+        cap_secret="0123456789abcdef",
+        proof_secret="proof-secret-16b!",
+        config=HostConfig(demo_mode=True, require_cap=False, proofs="off"),
+    )
+
+    def ping(args, ctx):
+        hits["n"] += 1
+        return {"ok": True, "ops": [{"op": "toast", "message": str(hits["n"])}]}
+
+    host.register("Open.ping", ping)
+    a = host.handle_intent({"action": "Open.ping", "args": {}, "request_id": "r1"})
+    b = host.handle_intent({"action": "Open.ping", "args": {}, "request_id": "r1"})
+    assert hits["n"] == 1
+    assert a["ops"] == b["ops"]
+    host.handle_intent({"action": "Open.ping", "args": {}, "request_id": "r2"})
+    assert hits["n"] == 2
+

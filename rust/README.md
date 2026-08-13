@@ -187,24 +187,8 @@ Oracle vector: `conformance/vectors/cap/02-oracle-token.json`.
 
 ## Python forward
 
-See [`../demos/python_forward/`](../demos/python_forward/) — host mints (or asks peer to mint), POSTs `Cart.add`, returns `Result.ops` unchanged.  
+See [`../demos/python_forward/`](../demos/python_forward/) — host mints (or asks the crate to mint), POSTs `Cart.add`, returns `Result.ops` unchanged.  
 Parses Result bodies from HTTP 4xx (peer keeps Result shape on 401/400).
-
-## Layout
-
-```text
-src/
-  lib.rs
-  types.rs       PERMANENT
-  wire_json.rs   PERMANENT
-  cap.rs         PERMANENT API (oracle = test-only constant)
-  cxb.rs         PERMANENT tags
-  op_tags.rs     PERMANENT
-  peer.rs        PERMANENT gate
-  actions.rs     MOVING demo domain
-  bin/uxc_check.rs
-  bin/uxc_peer.rs
-```
 
 ## Next
 

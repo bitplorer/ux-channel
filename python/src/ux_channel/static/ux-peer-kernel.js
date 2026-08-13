@@ -128,7 +128,7 @@
         profiles: options.profiles || ["web.v1"],
         features: options.features || ["seq", "invoke"],
         ir: "1",
-        effect_proof: proofsRequired,
+        effect_proof: !!(proofsRequired || proofVerify),
       };
     }
 

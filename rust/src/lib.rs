@@ -33,7 +33,7 @@ pub use effects::{after, dispatch_event, graph, invoke, morph, navigate, seq, to
 pub use flow::{attach_flow_meta, new_flow_id, FlowError, FlowStore};
 pub use host::{HostConfig, HostError, HostRuntime};
 pub use nonce::{MemoryNonceStore, NonceStore};
-pub use peer::Peer;
+pub use peer::Peer; // classic Intent gate (uxc_peer). Not PeerApply.
 pub use project::project;
 pub use proof::{ProofError, ProofService};
 pub use registry::{ActionOut, Registry};

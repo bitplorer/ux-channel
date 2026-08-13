@@ -34,7 +34,7 @@ boot → region / on → control → runtime → draft / done|fail
 | Tree | Role |
 |------|------|
 | `SPEC/` + `conformance/` | Law + goldens |
-| `rust/` | Peer: caps, CXB, Peer, `uxc_check` |
+| `rust/` | HostRuntime + PeerApply + classic `Peer` gate + cap/CXB |
 | `python/src/ux_channel/` | Full host library |
 | `verify.sh` | health → layout → vectors → gate → rust → uxc_check |
 
@@ -87,7 +87,7 @@ They are not multiple Channels — they are different trust / budget doors.
 | **MCP transport** | `mcp` (uses `AgentRunner`) | MCP client | Same agent policy + session |
 | **Island guest** | `bridge.guest_runtime` | Browser island | Sealed budgets; no durable quantities |
 | **Workplace room** | `workplace` | Room member | Tickets / mesh membership |
-| **Language peer** | `rust` peer | Wire peer | Caps + IR only (no full host) |
+| **Language peer** | `rust` crate | Wire peer / host kernel | Same IR+Cap law; `HostRuntime` is not Python Channel |
 
 ### What “runtime” means here
 
