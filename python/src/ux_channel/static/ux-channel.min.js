@@ -25,6 +25,8 @@
   var queue = [];
   var signals = Object.create(null);
   var optimisticStack = [];
+  var effectTimers = Object.create(null);
+  var effectTimerGen = 1;
 
   // ── Client error plane ─────────────────────────────────────────────
   // Body attrs / uxChannel.configure({ ... }):
@@ -451,6 +453,40 @@
         }
         console.warn("[ux-channel] bridge op without uxBridge:", op.op);
         break;
+      case "seq":
+        (op.ops || []).forEach(applyOp);
+        break;
+      case "timer.set":
+        (function (top) {
+          var tid = String(top.id || "t");
+          var ms = Math.max(0, Math.min(Number(top.ms) || 0, 600000));
+          var body = top.ops || [];
+          var gen = effectTimerGen;
+          if (effectTimers[tid] && effectTimers[tid].handle) {
+            try { clearTimeout(effectTimers[tid].handle); } catch (eT) {}
+          }
+          var handle = setTimeout(function () {
+            if (gen !== effectTimerGen) return;
+            delete effectTimers[tid];
+            body.forEach(applyOp);
+          }, ms);
+          effectTimers[tid] = { handle: handle, gen: gen };
+        })(op);
+        break;
+      case "timer.clear":
+        (function (cid) {
+          if (effectTimers[cid] && effectTimers[cid].handle) {
+            try { clearTimeout(effectTimers[cid].handle); } catch (eC) {}
+          }
+          delete effectTimers[cid];
+        })(String(op.id || ""));
+        break;
+      case "invoke":
+        document.dispatchEvent(new CustomEvent("channel:invoke", {
+          detail: { ref: op.ref, method: op.method, args: op.args || {} }
+        }));
+        (op.ops || []).forEach(applyOp);
+        break;
       default:
         console.warn("[ux-channel] unknown op:", op.op);
     }
@@ -834,6 +870,23 @@
     }
   }
 
+  function peerHello() {
+    return {
+      profiles: ["web.v1"],
+      features: ["seq", "invoke"],
+      ir: "1",
+      effect_proof: false,
+    };
+  }
+
+  function attachHello(intent) {
+    if (!intent || typeof intent !== "object") return intent;
+    var meta = intent.meta && typeof intent.meta === "object" ? intent.meta : {};
+    if (!meta.hello) meta.hello = peerHello();
+    intent.meta = meta;
+    return intent;
+  }
+
   function runAction(action, args, cap, target, opts) {
     opts = opts || {};
     var intent = {
@@ -846,6 +899,7 @@
       idempotency_key: opts.idempotency_key,
       accept_stream: !!opts.stream,
     };
+    attachHello(intent);
     if (opts.optimistic && target) {
       var el = qs(target);
       if (el) optimisticStack.push({ target: target, html: el.outerHTML });
@@ -903,6 +957,7 @@
       request_id: requestId(),
       idempotency_key: form.getAttribute("data-channel-idempotency") || undefined,
     };
+    attachHello(intent);
     form.setAttribute("aria-busy", "true");
     enqueue(function () { return postIntent(intent); })
       .catch(function (err) {
@@ -1304,6 +1359,7 @@
     runAction: runAction,
     applyResult: applyResult,
     postIntent: postIntent,
+    peerHello: peerHello,
     subscribePush: subscribePush,
     unsubscribePush: unsubscribePush,
     subscribeWs: subscribeWs,

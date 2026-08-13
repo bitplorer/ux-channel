@@ -62,7 +62,7 @@ On failure the Result is `ok=false` with an appropriate `error.code` (typically 
 | Rule | Status |
 |------|--------|
 | 1–6 | **Implemented** (`CapService` + oracle vector) |
-| 7 once/jti | **Not enforced yet** — payload fields parse; no jti store. Documented gap in `SPEC/INVARIANTS.md`. Do not claim production once-semantics until green tests exist. |
+| 7 once/jti | **Implemented** — Python `CapService.verify` consumes `cap:{jti}` (default `consume_once=True`); Rust `mint_once` + `MemoryNonceStore` on `Peer`. Store-down refuses. See `SPEC/architecture/ADR/0006-once-jti-fail-closed.md`. |
 
 ---
 

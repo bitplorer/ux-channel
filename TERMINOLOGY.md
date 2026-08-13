@@ -301,7 +301,7 @@ RegionBook = the whole book (registry on the channel)
 |--|--|
 | **Is** | SPEC single-use cap: `once=true` requires unique `jti`; replay must fail. |
 | **Does** | (When implemented) prevents double-submit of destructive controls. |
-| **Not** | **Not enforced in Rust Cap 0.1 yet.** Health: `once_jti_enforced: false`. Do not claim single-use until green. |
+| **Not** | Health: `once_jti_enforced: true`. Replay and store-down refuse. |
 
 ### Attenuation
 
@@ -544,7 +544,7 @@ These prove the IR works. **Replace them** without an IR major as long as perman
 | **Oracle secret** | **Production secret** | Public test vs private authority |
 | **Peer gate** | **HTTP server** | Gate is permanent logic; HTTP is one moving transport |
 | **signal_set value** | **morph html** | Raw data vs escaped markup |
-| **once/jti SPEC** | **once/jti Rust** | Required by law docs; not enforced in Cap 0.1 yet |
+| **once/jti SPEC** | **once/jti Rust** | Required by law; enforced via `mint_once` + `MemoryNonceStore` |
 | **Permanent** | **Moving** | Law/vectors/types vs demos/actions/HTTP chrome |
 
 ---

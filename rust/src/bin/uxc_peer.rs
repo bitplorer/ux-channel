@@ -152,7 +152,7 @@ fn main() {
                     "cap_required": ["Cart.add"],
                     "policy": {
                         "present_cap_must_verify": true,
-                        "once_jti_enforced": false,
+                        "once_jti_enforced": true,
                     },
                     "notes": if demo_mode {
                         "DEMO: capability secret is public oracle or explicitly allowed. JSON only on HTTP."

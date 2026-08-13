@@ -194,12 +194,30 @@ class ChannelConfig:
     redis_url: Optional[str] = None
     # Unified observability: off | dev | otel  (maps to trace flags)
     observe: str = "off"
+    # Architecture opt-ins (ADR 0002/0005). Classic floor when peer lacks hello.
+    effects: str = "auto"  # auto | classic
+    proofs: str = "auto"  # auto | require | off
+    flow: str = "auto"  # auto | off  (meta.flow_id = correlation only)
+    proof_secret: Optional[str] = None
 
     def validate(self) -> "ChannelConfig":
         """Raise ValueError if config is unsafe for declared environment."""
         obs = (self.observe or "off").lower()
         if obs not in ("off", "dev", "otel"):
             raise ValueError("observe must be off|dev|otel")
+        if self.effects not in ("auto", "classic"):
+            raise ValueError('effects must be "auto" or "classic"')
+        if self.proofs not in ("auto", "require", "off"):
+            raise ValueError('proofs must be "auto", "require", or "off"')
+        if self.flow not in ("auto", "off"):
+            raise ValueError('flow must be "auto" or "off"')
+        if self.proof_secret is not None:
+            if self.proof_secret == self.secret:
+                raise ValueError("proof_secret must differ from cap secret")
+            if len(self.proof_secret) < 16:
+                raise ValueError("proof_secret must be at least 16 characters")
+        if self.proofs == "require" and not self.proof_secret:
+            raise ValueError("proofs=require needs proof_secret (separate from cap secret)")
         if self.environment == "production":
             if self.secret in _WEAK_SECRETS or len(self.secret) < 32:
                 raise ValueError(
@@ -455,6 +473,10 @@ class ChannelConfig:
             in ("1", "true"),
             "redis_url": os.environ.get("REDIS_URL") or os.environ.get(f"{prefix}REDIS_URL") or None,
             "observe": os.environ.get(f"{prefix}OBSERVE", "off" if env == "production" else "dev"),
+            "effects": os.environ.get(f"{prefix}EFFECTS", "auto"),
+            "proofs": os.environ.get(f"{prefix}PROOFS", "auto"),
+            "flow": os.environ.get(f"{prefix}FLOW", "auto"),
+            "proof_secret": os.environ.get(f"{prefix}PROOF_SECRET") or None,
         }
         if base["environment"] == "development":
             base.setdefault("allow_memory_stores", True)

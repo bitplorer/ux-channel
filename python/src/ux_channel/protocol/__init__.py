@@ -23,6 +23,7 @@ from ux_channel.protocol.ops import (
     Op,
     clear_errors,
     focus,
+    invoke,
     morph,
     navigate,
     noop,
@@ -30,10 +31,13 @@ from ux_channel.protocol.ops import (
     reload,
     remove,
     scroll,
+    seq,
     set_attr,
     set_text,
     signal_set,
     swap,
+    timer_clear,
+    timer_set,
     toast,
 )
 from ux_channel.protocol.types import ErrorObject, Intent, Result
@@ -61,7 +65,12 @@ __all__ = [
     "remove",
     "clear_errors",
     "signal_set",
+    "seq",
+    "timer_set",
+    "timer_clear",
+    "invoke",
     "noop",
     "push_url",
     "Go",
-    "Navigate"]
+    "Navigate",
+]

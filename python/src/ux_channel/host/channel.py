@@ -305,6 +305,9 @@ class Channel:
         attach_webrtc(self)
         attach_media(self)
         attach_bridge(self)
+        from ux_channel.arch.attach import attach_arch
+
+        attach_arch(self)
 
     # --- bootstrap ---------------------------------------------------------
 
@@ -553,6 +556,10 @@ class Channel:
             "bridge": (lambda b: b.diagnose() if b is not None else {})(getattr(self, "bridge", None)),
             "otel": __import__("ux_channel.devtools.otel", fromlist=["status"]).status(),
             "presence": getattr(getattr(self, "live", None), "presence_snapshot", lambda: {})(),
+            "effects": getattr(cfg, "effects", None) if cfg else None,
+            "proofs": getattr(cfg, "proofs", None) if cfg else None,
+            "flow": getattr(cfg, "flow", None) if cfg else None,
+            "once_jti_enforced": getattr(self.registry, "nonce_store", None) is not None,
         }
 
     @classmethod

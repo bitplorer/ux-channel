@@ -132,7 +132,7 @@ python3 demos/python_forward/forward_to_rust.py --base http://127.0.0.1:8787 --m
 | Optional trace + surface-hello | Present (additive) |
 | Rust types + JSON round-trip | **Green** |
 | Cap verify in Rust | **Green** (oracle + mint/verify) |
-| once / jti consumption | **Gap** (SPEC requires; Rust Cap 0.1 not yet; health: `once_jti_enforced: false`) |
+| once / jti consumption | **Enforced** (Python + Rust; health: `once_jti_enforced: true`) |
 | HTTP action endpoint | **Green** (Result-shaped errors; honest health; no silent oracle; 401 on `unauthorized`) |
 | Python → Rust forward | **Green** |
 | CXB expected blobs | **Green** (14 frozen) |

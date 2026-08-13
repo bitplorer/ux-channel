@@ -111,7 +111,7 @@ Default bind: `0.0.0.0:8787` (`UXC_HOST` / `UXC_PORT`).
   "demo_mode": true,
   "http": { "action": { "content_type": "application/ux-channel+json", "...": "..." } },
   "cap_required": ["Cart.add"],
-  "policy": { "present_cap_must_verify": true, "once_jti_enforced": false }
+  "policy": { "present_cap_must_verify": true, "once_jti_enforced": true }
 }
 ```
 
@@ -126,7 +126,7 @@ Default bind: `0.0.0.0:8787` (`UXC_HOST` / `UXC_PORT`).
 2. Any Intent that includes `cap` must verify (open actions cannot carry a bogus cap and proceed)  
 3. Morph HTML **and** toast display text escape free-form strings; `signal_set` keeps raw semantic values  
 4. Integer args (`qty`, `by`) reject non-integers (no silent coercion)  
-5. once/jti: **not enforced** in Cap 0.1 (health: `once_jti_enforced: false`)
+5. once/jti: **enforced** (`mint_once` + `MemoryNonceStore`; health: `once_jti_enforced: true`)
 
 Wire/parse failures return a Result `{ ok:false, error, meta }` — never a bare non-IR body.
 
@@ -181,7 +181,7 @@ src/
 
 ## Next
 
-- [ ] once/jti consumption + tests
+- [x] once/jti consumption + tests
 - [ ] HTTP Accept `+cxb` response path
 - [ ] Byte-identical encode vs Python oracle freeform
 - [ ] WASM island / mesh (later phases)

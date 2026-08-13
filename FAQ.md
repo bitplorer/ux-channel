@@ -144,7 +144,7 @@ A **public** test secret in the repo so languages share golden cap tokens. Anyon
 
 ### Is once/jti single-use working?
 
-**SPEC requires it; Rust Cap 0.1 does not enforce yet.** Health reports `once_jti_enforced: false`. Do not build product features on single-use caps until that is green.
+**Yes.** `mint(..., once=True)` binds a `jti`. Verify consumes it atomically before the handler. Replay and store-down refuse. Health reports `once_jti_enforced: true`. Use Redis (`RedisNonceStore`) for multi-worker.
 
 ---
 

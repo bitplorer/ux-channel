@@ -317,7 +317,7 @@ flowchart LR
 4. payload.action == Intent.action? else → unauthorized (mismatch)
 5. payload.args_hash == hash(args)? else → unauthorized (args mismatch)
 6. sub / scopes checks if used      else → unauthorized
-7. once/jti not already used        SPEC requires; Rust: NOT YET
+7. once/jti not already used        enforced (Python + Rust)
 8. Only then → run action handler
 ```
 
@@ -387,7 +387,7 @@ Health makes that honest:
   },
   "policy": {
     "present_cap_must_verify": true,
-    "once_jti_enforced": false
+    "once_jti_enforced": true
   }
 }
 ```
@@ -397,7 +397,7 @@ Health makes that honest:
 | `formats` | What this HTTP endpoint **actually serves today** |
 | `codecs` | What the **library** can encode/decode (includes CXB offline) |
 | `accept_response` | What you may put in `Accept` **today** and get back |
-| `once_jti_enforced` | Whether single-use caps are real yet (**false**) |
+| `once_jti_enforced` | Whether single-use caps consume jti (**true**) |
 
 ### 8.2 What CXB is
 
@@ -550,7 +550,7 @@ Same steps expanded:
 | Byte-identical CXB freeform encode | Nice for golden sha256 | Structural re-encode only | Decode interop is the bar |
 | WASM / mesh | Roadmap | Not started | N/A |
 
-These are tracked in README status + INVARIANTS + health `once_jti_enforced: false`.
+These are tracked in README status + INVARIANTS + health `once_jti_enforced: true`.
 
 ---
 

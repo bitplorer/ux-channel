@@ -6,14 +6,17 @@
 //! - `Cart.add` always requires a valid cap.
 //! - If any Intent carries a `cap` field, it is verified against action+args
 //!   (present-cap-must-verify — never silently ignored).
-//! - once/jti is **not** enforced by Cap 0.1 (SPEC gap; see INVARIANTS).
+//! - once/jti is enforced: mint_once tokens consume jti atomically before
+//!   handlers; no store → refuse (Peer::new installs MemoryNonceStore).
 
 use crate::actions;
 use crate::cap::{CapError, CapService};
+use crate::nonce::{MemoryNonceStore, NonceStore};
 use crate::types::{ErrorObject, Intent, ResultDoc};
 use crate::wire_json::{decode_intent, encode_result, parse_intent_lenient, WireError};
 use serde_json::{json, Value};
 use std::collections::HashMap;
+use std::sync::Arc;
 
 /// Actions that require a capability token on this peer.
 const CAP_REQUIRED: &[&str] = &["Cart.add"];
@@ -26,13 +29,20 @@ pub struct Peer {
 
 impl Peer {
     pub fn with_oracle() -> Self {
+        let store: Arc<dyn NonceStore> = Arc::new(MemoryNonceStore::default());
         Self {
-            caps: CapService::oracle(),
+            caps: CapService::oracle().with_nonce_store(store),
             name: "ux_channel_rs".into(),
         }
     }
 
     pub fn new(caps: CapService) -> Self {
+        let caps = if caps.has_nonce() {
+            caps
+        } else {
+            let store: Arc<dyn NonceStore> = Arc::new(MemoryNonceStore::default());
+            caps.with_nonce_store(store)
+        };
         Self {
             caps,
             name: "ux_channel_rs".into(),

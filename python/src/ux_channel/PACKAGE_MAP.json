@@ -34,7 +34,8 @@
     "scaffold",
     "static",
     "api",
-    "catalog"
+    "catalog",
+    "arch"
   ],
   "packages": {
     "agent_runtime": [
@@ -46,6 +47,18 @@
       "tools"
     ],
     "api": [],
+    "arch": [
+      "attach",
+      "dispatch",
+      "drivers",
+      "effects",
+      "flow_store",
+      "host_runtime",
+      "peer",
+      "project",
+      "proof",
+      "stamps"
+    ],
     "asgi": [
       "core",
       "fastapi",
@@ -254,6 +267,16 @@
     "agent_runtime.session": "agent_runtime",
     "agent_runtime.tool_audit": "agent_runtime",
     "agent_runtime.tools": "agent_runtime",
+    "arch.attach": "arch",
+    "arch.dispatch": "arch",
+    "arch.drivers": "arch",
+    "arch.effects": "arch",
+    "arch.flow_store": "arch",
+    "arch.host_runtime": "arch",
+    "arch.peer": "arch",
+    "arch.project": "arch",
+    "arch.proof": "arch",
+    "arch.stamps": "arch",
     "asgi.core": "asgi",
     "asgi.fastapi": "asgi",
     "asgi.pipeline": "asgi",
@@ -452,6 +475,7 @@
   "package_docs": {
     "agent_runtime": "AgentRunner, policy, session, peer, tool_audit \u2014 non-human callers.",
     "api": "Curated application exports \u2014 same objects as package root.",
+    "arch": "EffectGraph, project, proofs, stamps, FlowStore, HostRuntime \u2014 L2 host-adjacent; classic floor.",
     "asgi": "FastAPI / Starlette mount_channel adapters.",
     "bridge": "Island contracts, scaffold, guest runtime (singular package).",
     "bridges": "npm / fx / ui preset data (plural). Prefer preset gen over hand copies.",
@@ -492,6 +516,7 @@
     "render": "L2",
     "security": "L2",
     "api": "L2",
+    "arch": "L2",
     "wire": "L3",
     "asgi": "L3",
     "transport": "L3",
@@ -545,5 +570,5 @@
       "extension_doors_A_to_G"
     ]
   },
-  "module_count": 168
+  "module_count": 178
 }

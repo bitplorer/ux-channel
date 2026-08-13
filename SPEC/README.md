@@ -16,7 +16,7 @@
 | [../HOW_IT_WORKS.md](../HOW_IT_WORKS.md) | Human walkthrough (diagrams) | Guide |
 | [../REFERENCE.md](../REFERENCE.md) | HTTP API + recipes | Guide |
 | [../FAQ.md](../FAQ.md) | Short Q&A | Guide |
-| [../ux-channel-design-causal-surface.md](../ux-channel-design-causal-surface.md) | Optional envelopes | Phase 1.5 (additive) |
+| [architecture/](architecture/) | EffectGraph, project, proofs, flow correlation, peer kernel | Additive; classic floor stays |
 | Package `docs/core/CXB.md` | Binary wire format (CXB1 / CXBZ) | Normative inside 0.1.0 package |
 | Package `docs/core/WIRE.md` | Multi-format wire surface | Supporting |
 
@@ -45,7 +45,7 @@ Portable encoding used by Python `CapService` and the Rust peer:
 - django-concat key derivation + HMAC-SHA1
 - `args_hash = sha256(json.dumps(args, sort_keys=True, separators=(',', ':'), default=str))[:32 hex]`
 - Oracle: `conformance/vectors/cap/02-oracle-token.json`
-- **once/jti:** required by this SPEC; Rust Cap 0.1 does **not** yet consume jti (documented gap — see INVARIANTS)
+- **once/jti:** required and **enforced** — Python `CapService.verify` + Rust `mint_once` / `MemoryNonceStore` (health `once_jti_enforced: true`)
 
 ## CXB
 
@@ -55,7 +55,6 @@ HTTP Accept negotiation for `application/ux-channel+cxb` is **not** on the wire 
 ## Current next work
 
 - HTTP Accept negotiation for `application/ux-channel+cxb` on the Rust peer
-- once/jti consumption + golden vectors
 - Byte-identical freeform encode alignment (msgpack key order)
 - Integrate ASGI forward into the full 0.1.0 package host
 - P3: surface hello runtime + UDS

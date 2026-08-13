@@ -52,7 +52,7 @@ curl -sS http://127.0.0.1:8787/ux-channel/health | python3 -m json.tool
 | `cap_required` | Actions that need a cap |
 | `demo_mode` | Using public/allow-listed secret? |
 | `policy.present_cap_must_verify` | Always true on this peer |
-| `policy.once_jti_enforced` | `false` until once/jti lands |
+| `policy.once_jti_enforced` | `true` — jti consume is live |
 
 ### 2.2 `POST /ux-channel/mint` (dev)
 
@@ -156,7 +156,7 @@ No cap required **unless** you send a `cap` field (then it must verify).
 |---------|--------|
 | `Accept: application/ux-channel+cxb` response | Library only; not negotiated |
 | Request body CXB Intent | Not accepted on `/action` yet |
-| once/jti single-use enforcement | SPEC gap |
+| once/jti single-use enforcement | Implemented (Python + Rust) |
 
 ---
 

@@ -43,8 +43,8 @@ def test_nonce_once_cap():
         return Result.success(toast("ok"))
 
     cap = reg.mint("Once", {}, once=True)
-    # extract jti via verify
-    data = reg._caps.verify(cap, "Once", {})
+    # extract jti via verify without consuming
+    data = reg._caps.verify(cap, "Once", {}, consume_once=False)
     assert data.get("jti")
     r1 = reg.dispatch(Intent(action="Once", args={}, cap=cap, request_id="r1"))
     assert r1.ok

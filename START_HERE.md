@@ -76,6 +76,9 @@ Related maps: [DOCS.md](DOCS.md) · [MENTAL_MODEL.md](MENTAL_MODEL.md) · [LONGE
 **Law** (both must obey): `SPEC/` + `conformance/` golden vectors.  
 If Python and Rust disagree, **vectors win**.
 
+Architecture (EffectGraph, proofs, flow correlation, peer kernel) is documented in
+[`SPEC/architecture/`](SPEC/architecture/README.md). Classic IR 0.1 clients stay on the floor.
+
 ---
 
 ## 2. Vocabulary (do not invent synonyms)

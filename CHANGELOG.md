@@ -1,3 +1,16 @@
+## 2026-08-13 — Architecture merge (IR 0.1 floor preserved)
+
+- Cap once/jti consume in Python `CapService.verify` (atomic, fail-closed) and Rust `mint_once` + `MemoryNonceStore`
+- present-cap-must-verify already on both peers; inspect path uses `consume_once=False`
+- `ux_channel.arch`: EffectGraph, project(auto|classic), proofs, stamps, FlowStore, HostRuntime, PeerApply
+- Channel power attach: `emit_graph` / `set_hello` / `grant_stamp` (not public API)
+- JS: seq / timer.set / timer.clear / invoke + `peerHello`; `static/ux-peer-kernel.js` (no DOM)
+- RedisNonceStore SET NX EX fail-closed; config `UX_CHANNEL_EFFECTS/PROOFS/FLOW/PROOF_SECRET`
+- SPEC/architecture ADRs 0001–0007; gate `test_arch_e2e.py`
+- Health `once_jti_enforced: true`
+
+---
+
 ## 2026-08-11 — Deeper hardening (post-seal)
 
 - cap.sub wins over soft principal from Intent.args when they disagree

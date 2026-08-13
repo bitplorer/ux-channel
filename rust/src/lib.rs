@@ -7,6 +7,7 @@
 pub mod actions;
 pub mod cap;
 pub mod cxb;
+pub mod nonce;
 pub mod op_tags;
 pub mod peer;
 pub mod types;
@@ -14,6 +15,7 @@ pub mod wire_json;
 
 pub use cap::{CapError, CapPayload, CapService, ORACLE_SECRET};
 pub use cxb::{decode_cxb, encode_cxb, is_cxb, CxbError, MEDIA_TYPE as CXB_MEDIA_TYPE};
+pub use nonce::{MemoryNonceStore, NonceStore};
 pub use peer::Peer;
 pub use types::{ErrorObject, Hop, Intent, Op, ResultDoc, Trace, IR_VERSION};
 pub use wire_json::{

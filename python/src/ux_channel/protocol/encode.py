@@ -49,6 +49,25 @@ def encode_result(
             )
         return value
 
+    # Architecture EffectGraph — project in Channel after-hook (classic floor otherwise)
+    if isinstance(value, Mapping) and "_graph" in value:
+        data = {k: v for k, v in value.items() if k != "_graph"}
+        data.setdefault("ok", True)
+        data.setdefault("ops", [])
+        try:
+            rebuilt = Result.from_dict(data)  # type: ignore[arg-type]
+        except Exception:
+            rebuilt = Result(
+                ok=bool(value.get("ok", True)),
+                ops=list(value.get("ops") or []),
+            )
+        rebuilt.meta = {
+            **base_meta,
+            **dict(value.get("meta") or {}),
+            "_graph": value["_graph"],
+        }
+        return rebuilt
+
     # Accidental Result.to_dict() / wire-shape return — common footgun
     if (
         isinstance(value, Mapping)

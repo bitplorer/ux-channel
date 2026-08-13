@@ -75,3 +75,19 @@ fn bogus_cap_on_open_action_fails() {
     assert!(!r.ok);
     assert_eq!(r.error.as_ref().unwrap().code, "unauthorized");
 }
+
+#[test]
+fn once_cap_replay_unauthorized() {
+    let peer = Peer::with_oracle();
+    let args = json!({"sku": "x", "qty": 1});
+    let tok = peer
+        .caps
+        .mint_once("Cart.add", &args, None, None, Some("once-itest"))
+        .unwrap();
+    let r1 = peer.handle_intent(&intent("Cart.add", args.clone(), Some(tok.clone())));
+    assert!(r1.ok, "{:?}", r1.error);
+    let r2 = peer.handle_intent(&intent("Cart.add", args, Some(tok)));
+    assert!(!r2.ok);
+    assert_eq!(r2.error.as_ref().unwrap().code, "unauthorized");
+    assert!(r2.error.as_ref().unwrap().message.contains("replay"));
+}
