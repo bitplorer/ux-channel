@@ -422,4 +422,16 @@ mod tests {
         assert_eq!(apply.ctx.reject, None);
         assert_eq!(apply.ctx.log.len(), 1);
     }
+
+    #[test]
+    fn single_flight() {
+        let mut apply = PeerApply::new(make_web_drivers());
+        apply
+            .in_flight
+            .store(true, std::sync::atomic::Ordering::SeqCst);
+        let err = apply
+            .apply_result(&json!({"ok": true, "ops": [toast("x")]}))
+            .unwrap_err();
+        assert_eq!(err, ApplyError::SingleFlight);
+    }
 }

@@ -41,6 +41,23 @@ def make_web_drivers(
             return
         ctx.setdefault("log", []).append(("navigate", href, bool(op.get("replace"))))
 
+    def push_url(op, ctx):
+        href = safe_href(op.get("href"))
+        if not href:
+            return
+        ctx.setdefault("log", []).append(("push_url", href, bool(op.get("replace"))))
+
+    def reload(op, ctx):
+        if ctx.get("result_ok") is False:
+            return
+        ctx.setdefault("log", []).append(("reload",))
+
+    def focus(op, ctx):
+        ctx.setdefault("log", []).append(("focus", op.get("target"), bool(op.get("select"))))
+
+    def set_text(op, ctx):
+        ctx.setdefault("log", []).append(("set_text", op.get("target"), op.get("text")))
+
     def dispatch(op, ctx):
         ctx.setdefault("log", []).append(("dispatch", op.get("name"), op.get("detail")))
 
@@ -75,6 +92,10 @@ def make_web_drivers(
         "toast": toast,
         "morph": morph,
         "navigate": navigate,
+        "push_url": push_url,
+        "reload": reload,
+        "focus": focus,
+        "set_text": set_text,
         "dispatch": dispatch,
         "timer.set": timer_set,
         "timer.clear": timer_clear,
@@ -104,3 +125,29 @@ def make_agent_drivers(
         ctx.setdefault("log", []).append(("log", op.get("message"), op.get("level")))
 
     return {"tool": tool, "log": log}
+
+
+def make_trace_drivers() -> Dict[str, Callable[[Mapping[str, Any], MutableMapping[str, Any]], None]]:
+    def record(op, ctx):
+        ctx.setdefault("trace", []).append(dict(op))
+        ctx.setdefault("log", []).append(("record", op.get("name") or op.get("op")))
+
+    def assert_frag(op, ctx):
+        ctx.setdefault("log", []).append(("assert", op.get("expect")))
+
+    return {"record": record, "assert": assert_frag}
+
+
+def make_wire_drivers(
+    *,
+    forward: Optional[Callable[[Mapping[str, Any]], None]] = None,
+) -> Dict[str, Callable[[Mapping[str, Any], MutableMapping[str, Any]], None]]:
+    def fwd(op, ctx):
+        if forward:
+            forward(op)
+        ctx.setdefault("log", []).append(("forward", op.get("to")))
+
+    def noop(op, ctx):
+        ctx.setdefault("log", []).append(("noop",))
+
+    return {"forward": fwd, "noop": noop}

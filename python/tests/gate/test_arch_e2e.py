@@ -327,3 +327,72 @@ def test_peer_runtime_submit_intent_outbox_and_transport():
     assert rt.recorded()[0]["action"] == "Counter.inc"
     assert any(x[0] == "toast" and x[1] == "from-host" for x in peer.ctx["log"])
 
+
+def test_agent_only_project_drops_morph():
+    from ux_channel.arch.effects import morph
+
+    g = graph(seq(toast("ok"), morph("#x", "<b>no</b>")))
+    ops = project(g, {"profiles": ["agent.v1"], "features": ["seq"]}, effects="auto")
+    assert ops[0]["op"] == "seq"
+    assert [o["op"] for o in ops[0]["ops"]] == ["toast"]
+
+
+def test_host_emit_budget():
+    host = HostRuntime(
+        cap_secret="0123456789abcdef",
+        proof_secret="proof-secret-16b!",
+        config=HostConfig(demo_mode=True, require_cap=False, max_nodes=1),
+    )
+    host.set_hello("s1", {"profiles": ["web.v1"], "features": ["seq"]})
+    r = host.emit_from_graph(graph(seq(toast("a"), toast("b"))), session_id="s1")
+    assert r["ok"] is False
+    assert r["error"]["code"] == "budget"
+    assert r["ops"] == []
+
+
+def test_single_flight():
+    from ux_channel.arch import ApplyError
+
+    peer = PeerApply(make_web_drivers())
+    assert peer._lock.acquire(blocking=False)
+    try:
+        with pytest.raises(ApplyError):
+            peer.apply_result({"ok": True, "ops": [{"op": "toast", "message": "x"}]})
+    finally:
+        peer._lock.release()
+
+
+def test_web_v1_extra_ops_and_profiles():
+    from ux_channel.arch import make_trace_drivers, make_wire_drivers
+
+    peer = PeerApply({**make_web_drivers(), **make_trace_drivers(), **make_wire_drivers()})
+    peer.apply_result(
+        {
+            "ok": True,
+            "ops": [
+                {"op": "push_url", "href": "/next"},
+                {"op": "set_text", "target": "#t", "text": "hi"},
+                {"op": "record", "name": "step"},
+                {"op": "noop"},
+            ],
+        }
+    )
+    kinds = [x[0] for x in peer.ctx["log"]]
+    assert "push_url" in kinds
+    assert "set_text" in kinds
+    assert "record" in kinds
+    assert "noop" in kinds
+
+
+def test_flow_meta_is_not_authority():
+    """Unknown meta including flow_id must not block apply (ADR 0007)."""
+    peer = PeerApply(make_web_drivers())
+    peer.apply_result(
+        {
+            "ok": True,
+            "ops": [{"op": "toast", "message": "hi"}],
+            "meta": {"flow_id": "flow_x", "not_a_cap": True},
+        }
+    )
+    assert any(x[0] == "toast" for x in peer.ctx["log"])
+

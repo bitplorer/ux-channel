@@ -1,0 +1,21 @@
+{
+  "id": "project/agent-only",
+  "kind": "project",
+  "hello": {"profiles": ["agent.v1"], "features": ["seq"]},
+  "effects": "auto",
+  "nodes": [
+    {
+      "kind": "seq",
+      "children": [
+        {"kind": "toast", "data": {"message": "ok", "level": "info"}},
+        {"kind": "morph", "data": {"target": "#x", "html": "<b>no</b>"}}
+      ]
+    }
+  ],
+  "expect_ops": [
+    {
+      "op": "seq",
+      "ops": [{"op": "toast", "message": "ok", "level": "info"}]
+    }
+  ]
+}

@@ -160,6 +160,21 @@
         if (!h) return;
         ctx.log.push(["navigate", h]);
       },
+      push_url: function (op, ctx) {
+        var h = safeHref(op.href);
+        if (!h) return;
+        ctx.log.push(["push_url", h]);
+      },
+      reload: function (op, ctx) {
+        if (ctx.result_ok === false) return;
+        ctx.log.push(["reload"]);
+      },
+      focus: function (op, ctx) {
+        ctx.log.push(["focus", op.target]);
+      },
+      set_text: function (op, ctx) {
+        ctx.log.push(["set_text", op.target, op.text]);
+      },
       dispatch: function (op, ctx) {
         ctx.log.push(["dispatch", op.name]);
       },

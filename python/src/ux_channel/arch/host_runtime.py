@@ -30,6 +30,7 @@ class HostConfig:
     flow: str = "auto"
     demo_mode: bool = False
     require_cap: bool = True
+    max_nodes: int = 256
 
     def __post_init__(self) -> None:
         validate_arch_modes(self.effects, self.proofs, self.flow)
@@ -106,6 +107,13 @@ class HostRuntime:
     ) -> dict:
         s = self.sessions.setdefault(session_id, Session(session_id=session_id))
         ops = project(g, s.peer_hello, effects=self.config.effects)
+        if _count_ops(ops) > int(self.config.max_nodes):
+            return {
+                "ok": False,
+                "ops": [],
+                "error": {"code": "budget", "message": "effect graph exceeds max_nodes"},
+                "meta": dict(meta or {}),
+            }
         result: dict[str, Any] = {"ok": ok, "ops": ops, "meta": dict(meta or {})}
         if flow_id and self.config.flow == "auto":
             attach_flow_meta(result, flow_id=flow_id, step=step, flow_mode="auto")
@@ -173,3 +181,17 @@ def _sanitize_hello(hello: Mapping[str, Any]) -> dict:
     if "effect_proof" in hello:
         out["effect_proof"] = bool(hello.get("effect_proof"))
     return out
+
+
+def _count_ops(ops: list) -> int:
+    n = 0
+
+    def walk(lst: list) -> None:
+        nonlocal n
+        for op in lst:
+            n += 1
+            if isinstance(op, dict) and isinstance(op.get("ops"), list):
+                walk(op["ops"])
+
+    walk(list(ops or []))
+    return n

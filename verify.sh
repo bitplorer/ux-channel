@@ -29,6 +29,9 @@ python3 "$ROOT/scripts/check_longevity.py"
 echo "== JSON vectors =="
 python3 conformance/harness/validate_json_vectors.py
 
+echo "== architecture vectors =="
+python3 conformance/harness/validate_arch_vectors.py
+
 echo "== CXB expected =="
 python3 conformance/harness/validate_cxb_expected.py
 

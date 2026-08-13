@@ -40,6 +40,7 @@ pub struct HostConfig {
     pub flow: String,
     pub demo_mode: bool,
     pub require_cap: bool,
+    pub max_nodes: usize,
 }
 
 impl Default for HostConfig {
@@ -50,6 +51,7 @@ impl Default for HostConfig {
             flow: "auto".into(),
             demo_mode: false,
             require_cap: true,
+            max_nodes: 256,
         }
     }
 }
@@ -187,6 +189,14 @@ impl HostRuntime {
         let hello = self.session(session_id).peer_hello.clone();
         let gen = self.session(session_id).gen;
         let ops = project(g, &hello, &self.config.effects).map_err(HostError::Config)?;
+        if count_ops(&ops) > self.config.max_nodes {
+            return Ok(json!({
+                "ok": false,
+                "ops": [],
+                "error": {"code": "budget", "message": "effect graph exceeds max_nodes"},
+                "meta": meta.unwrap_or_else(|| json!({})),
+            }));
+        }
         let mut result = json!({
             "ok": ok,
             "ops": ops,
@@ -256,6 +266,23 @@ impl HostRuntime {
         Ok(result)
     }
 
+    /// JSON bytes in → Result JSON out (HTTP adapter).
+    pub fn handle_json(&mut self, body: &[u8], session_id: &str) -> Result<Vec<u8>, HostError> {
+        let intent: Value = match serde_json::from_slice(body) {
+            Ok(v) => v,
+            Err(e) => {
+                return serde_json::to_vec(&json!({
+                    "ok": false,
+                    "ops": [],
+                    "error": {"code": "validation", "message": e.to_string()},
+                }))
+                .map_err(|e| HostError::Config(e.to_string()))
+            }
+        };
+        let result = self.handle_intent(&intent, session_id)?;
+        serde_json::to_vec(&result).map_err(|e| HostError::Config(e.to_string()))
+    }
+
     pub fn mint(&self, action: &str, args: &Value, once: bool) -> Result<String, CapError> {
         if once {
             self.caps.mint_once(action, args, None, None, None)
@@ -321,6 +348,20 @@ fn sanitize_hello(hello: &Value) -> Value {
     Value::Object(out)
 }
 
+fn count_ops(ops: &[Value]) -> usize {
+    fn walk(list: &[Value]) -> usize {
+        let mut n = 0;
+        for op in list {
+            n += 1;
+            if let Some(Value::Array(kids)) = op.get("ops") {
+                n += walk(kids);
+            }
+        }
+        n
+    }
+    walk(ops)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -383,6 +424,7 @@ mod tests {
             flow: "auto".into(),
             demo_mode: true,
             require_cap: false,
+            ..HostConfig::default()
         });
         h.set_hello("s1", json!({"profiles": ["web.v1"], "features": ["seq"]}));
         let g = graph([seq([toast("a"), toast("b")])]);
@@ -444,6 +486,7 @@ mod tests {
             flow: "off".into(),
             demo_mode: true,
             require_cap: false,
+            ..HostConfig::default()
         });
         h.set_hello("s1", json!({"profiles": ["web.v1"], "features": ["seq"]}));
         h.register("Demo.hi", |_| ActionOut::Graph(graph([seq([toast("a"), toast("b")])])));

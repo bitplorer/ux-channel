@@ -15,7 +15,12 @@ Classic IR 0.1 clients stay on the floor: without a peer hello advertising
 ``seq`` / ``invoke`` / ``web.v1`` / ``agent.v1``, project emits classic ops.
 """
 
-from ux_channel.arch.drivers import make_agent_drivers, make_web_drivers
+from ux_channel.arch.drivers import (
+    make_agent_drivers,
+    make_trace_drivers,
+    make_web_drivers,
+    make_wire_drivers,
+)
 from ux_channel.arch.effects import after, dispatch_event, graph, invoke, morph, navigate, seq, toast
 from ux_channel.arch.flow_store import FlowError, FlowStore, attach_flow_meta, new_flow_id
 from ux_channel.arch.host_runtime import HostConfig, HostRuntime
@@ -53,4 +58,6 @@ __all__ = [
     "invoke",
     "make_web_drivers",
     "make_agent_drivers",
+    "make_trace_drivers",
+    "make_wire_drivers",
 ]

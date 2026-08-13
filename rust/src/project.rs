@@ -14,9 +14,11 @@ pub fn project(graph: &EffectGraph, peer_hello: &Value, effects: &str) -> Result
         && (features.iter().any(|f| f == "seq" || f == "invoke")
             || profiles.iter().any(|p| p == "web.v1" || p == "agent.v1"));
     let classic_only = effects == "classic" || !allow_rich;
+    let drop_chrome = profiles.iter().any(|p| p == "agent.v1")
+        && !profiles.iter().any(|p| p == "web.v1");
     let mut out = Vec::new();
     for node in graph {
-        out.extend(lower(node, classic_only));
+        out.extend(lower(node, classic_only, drop_chrome));
     }
     Ok(out)
 }
@@ -31,19 +33,19 @@ fn string_set(v: Option<&Value>) -> Vec<String> {
     }
 }
 
-fn lower(node: &Node, classic_only: bool) -> Vec<Value> {
+fn lower(node: &Node, classic_only: bool, drop_chrome: bool) -> Vec<Value> {
     match node.kind.as_str() {
         "seq" => {
             if classic_only {
                 node.children
                     .iter()
-                    .flat_map(|ch| lower(ch, true))
+                    .flat_map(|ch| lower(ch, true, drop_chrome))
                     .collect()
             } else {
                 let kids: Vec<Value> = node
                     .children
                     .iter()
-                    .flat_map(|ch| lower(ch, false))
+                    .flat_map(|ch| lower(ch, false, drop_chrome))
                     .collect();
                 vec![json!({"op": "seq", "ops": kids})]
             }
@@ -62,7 +64,7 @@ fn lower(node: &Node, classic_only: bool) -> Vec<Value> {
             let body: Vec<Value> = node
                 .children
                 .iter()
-                .flat_map(|ch| lower(ch, classic_only))
+                .flat_map(|ch| lower(ch, classic_only, drop_chrome))
                 .collect();
             if classic_only {
                 if ms <= 0 {
@@ -79,7 +81,7 @@ fn lower(node: &Node, classic_only: bool) -> Vec<Value> {
                 return node
                     .children
                     .iter()
-                    .flat_map(|ch| lower(ch, true))
+                    .flat_map(|ch| lower(ch, true, drop_chrome))
                     .collect();
             }
             let mut op = json!({
@@ -92,12 +94,13 @@ fn lower(node: &Node, classic_only: bool) -> Vec<Value> {
                 let kids: Vec<Value> = node
                     .children
                     .iter()
-                    .flat_map(|ch| lower(ch, false))
+                    .flat_map(|ch| lower(ch, false, drop_chrome))
                     .collect();
                 op["ops"] = json!(kids);
             }
             vec![op]
         }
+        "morph" | "navigate" if drop_chrome => vec![],
         "morph" => vec![json!({
             "op": "morph",
             "target": node.data.get("target").cloned().unwrap_or(Value::Null),
@@ -166,5 +169,17 @@ mod tests {
         let ops = project(&g, &hello, "classic").unwrap();
         assert_eq!(ops.len(), 2);
         assert_eq!(ops[0]["op"], "toast");
+    }
+
+    #[test]
+    fn agent_only_drops_morph() {
+        use crate::effects::morph;
+        let g = graph([seq([toast("ok"), morph("#x", "<b>no</b>")])]);
+        let hello = json!({"profiles": ["agent.v1"], "features": ["seq"]});
+        let ops = project(&g, &hello, "auto").unwrap();
+        assert_eq!(ops[0]["op"], "seq");
+        let kids = ops[0]["ops"].as_array().unwrap();
+        assert_eq!(kids.len(), 1);
+        assert_eq!(kids[0]["op"], "toast");
     }
 }

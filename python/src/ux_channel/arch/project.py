@@ -25,36 +25,50 @@ def project(
         or "agent.v1" in profiles
     )
     classic_only = effects == "classic" or not allow_rich
+    # agent.v1 without web.v1: no chrome-only morph/navigate (profiles/agent.v1.md)
+    drop_chrome = "agent.v1" in profiles and "web.v1" not in profiles
     out: List[dict] = []
     for node in graph:
-        out.extend(_lower(node, classic_only=classic_only))
+        out.extend(_lower(node, classic_only=classic_only, drop_chrome=drop_chrome))
     return out
 
 
-def _lower(node: Node, *, classic_only: bool) -> List[dict]:
+def _lower(node: Node, *, classic_only: bool, drop_chrome: bool = False) -> List[dict]:
     k = node.kind
     if k == "seq":
         if classic_only:
             ops: List[dict] = []
             for ch in node.children:
-                ops.extend(_lower(ch, classic_only=True))
+                ops.extend(_lower(ch, classic_only=True, drop_chrome=drop_chrome))
             return ops
         return [
             {
                 "op": "seq",
-                "ops": [o for ch in node.children for o in _lower(ch, classic_only=False)],
+                "ops": [
+                    o
+                    for ch in node.children
+                    for o in _lower(ch, classic_only=False, drop_chrome=drop_chrome)
+                ],
             }
         ]
     if k == "after":
         ms = int(node.data.get("ms") or 0)
         tid = str(node.data.get("id") or "t")
-        body = [o for ch in node.children for o in _lower(ch, classic_only=classic_only)]
+        body = [
+            o
+            for ch in node.children
+            for o in _lower(ch, classic_only=classic_only, drop_chrome=drop_chrome)
+        ]
         if classic_only:
             return body if ms <= 0 else []
         return [{"op": "timer.set", "id": tid, "ms": ms, "ops": body}]
     if k == "invoke":
         if classic_only:
-            return [o for ch in node.children for o in _lower(ch, classic_only=True)]
+            return [
+                o
+                for ch in node.children
+                for o in _lower(ch, classic_only=True, drop_chrome=drop_chrome)
+            ]
         op: dict[str, Any] = {
             "op": "invoke",
             "ref": node.data["ref"],
@@ -62,8 +76,14 @@ def _lower(node: Node, *, classic_only: bool) -> List[dict]:
             "args": node.data.get("args") or {},
         }
         if node.children:
-            op["ops"] = [o for ch in node.children for o in _lower(ch, classic_only=False)]
+            op["ops"] = [
+                o
+                for ch in node.children
+                for o in _lower(ch, classic_only=False, drop_chrome=drop_chrome)
+            ]
         return [op]
+    if drop_chrome and k in ("morph", "navigate"):
+        return []
     if k == "morph":
         return [{"op": "morph", "target": node.data["target"], "html": node.data["html"]}]
     if k == "toast":

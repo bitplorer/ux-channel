@@ -1,0 +1,24 @@
+{
+  "id": "project/auto-web",
+  "kind": "project",
+  "hello": {"profiles": ["web.v1"], "features": ["seq"]},
+  "effects": "auto",
+  "nodes": [
+    {
+      "kind": "seq",
+      "children": [
+        {"kind": "toast", "data": {"message": "a", "level": "info"}},
+        {"kind": "toast", "data": {"message": "b", "level": "info"}}
+      ]
+    }
+  ],
+  "expect_ops": [
+    {
+      "op": "seq",
+      "ops": [
+        {"op": "toast", "message": "a", "level": "info"},
+        {"op": "toast", "message": "b", "level": "info"}
+      ]
+    }
+  ]
+}

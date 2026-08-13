@@ -1,3 +1,14 @@
+## 2026-08-13 — Finish remaining architecture gaps
+
+- SPEC: budgets, concurrency, codecs, profiles, inventory, non-goals
+- CI vectors: `conformance/vectors/arch/*` + `validate_arch_vectors.py` (verify.sh)
+- web.v1 complete (push_url, reload, focus, set_text); trace.v1 + wire.v1 drivers
+- project() drops morph/navigate when only agent.v1 is claimed
+- Host emit rejects over-budget graphs; JS apply verifies effect proofs when configured
+- PeerApply single-flight tests; HostRuntime.handle_json adapter
+
+---
+
 ## 2026-08-13 — Rust host kernel + host runtime
 
 - `HostRuntime` (`rust/src/host.rs`): sessions, hello, `handle_intent`, project, proofs, flow correlation, health

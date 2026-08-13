@@ -43,6 +43,7 @@
     dedupeMs: 2500,
   };
   var recentToasts = Object.create(null);
+  var proofConfig = { required: false, secret: null, sessionId: "default", gen: 1 };
 
 
   function hydrateSignalsFromStorage() {
@@ -83,7 +84,11 @@
     if (typeof opts.fieldErrors === "boolean") errorConfig.fieldErrors = opts.fieldErrors;
     if (typeof opts.logSize === "number" && opts.logSize > 0) errorConfig.logSize = opts.logSize;
     if (typeof opts.dedupeMs === "number" && opts.dedupeMs >= 0) errorConfig.dedupeMs = opts.dedupeMs;
-    return Object.assign({}, errorConfig);
+    if (opts.proofsRequired != null) proofConfig.required = !!opts.proofsRequired;
+    if (opts.proofSecret !== undefined) proofConfig.secret = opts.proofSecret ? String(opts.proofSecret) : null;
+    if (opts.sessionId != null) proofConfig.sessionId = String(opts.sessionId);
+    if (opts.gen != null) proofConfig.gen = Number(opts.gen) || 1;
+    return Object.assign({}, errorConfig, { proofsRequired: proofConfig.required });
   }
 
   function pushErrorLog(entry) {
@@ -518,6 +523,54 @@
    *   channel:afterApply / channel:applied
    *   channel:push / channel:pushError / channel:wsError
    */
+  function canonicalJson(v) {
+    if (v === null || typeof v !== "object") return JSON.stringify(v);
+    if (Array.isArray(v)) return "[" + v.map(canonicalJson).join(",") + "]";
+    var keys = Object.keys(v).sort();
+    return "{" + keys.map(function (k) { return JSON.stringify(k) + ":" + canonicalJson(v[k]); }).join(",") + "}";
+  }
+
+  function b64urlEncode(buf) {
+    var bin = "";
+    var bytes = new Uint8Array(buf);
+    for (var i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+    return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+  }
+
+  function verifyEffectProof(result) {
+    if (!proofConfig.required) return Promise.resolve(true);
+    var eff = result && result.meta && result.meta.effect;
+    if (!eff || !proofConfig.secret || !global.crypto || !crypto.subtle) return Promise.resolve(false);
+    var core = { error: result.error == null ? null : result.error, ok: result.ok, ops: result.ops || [] };
+    var enc = new TextEncoder();
+    return crypto.subtle.digest("SHA-256", enc.encode(canonicalJson(core))).then(function (dig) {
+      var bh = Array.from(new Uint8Array(dig)).map(function (b) { return b.toString(16).padStart(2, "0"); }).join("");
+      if (eff.body_hash !== bh) return false;
+      if (String(eff.session_id) !== String(proofConfig.sessionId)) return false;
+      if (Number(eff.gen) !== Number(proofConfig.gen)) return false;
+      if ((Date.now() / 1000) > Number(eff.exp)) return false;
+      var payload = {
+        body_hash: eff.body_hash,
+        exp: Number(eff.exp),
+        gen: Number(eff.gen),
+        jti: eff.jti,
+        kid: eff.kid,
+        session_id: eff.session_id
+      };
+      return crypto.subtle.importKey(
+        "raw",
+        enc.encode(String(proofConfig.secret)),
+        { name: "HMAC", hash: "SHA-256" },
+        false,
+        ["sign"]
+      ).then(function (key) {
+        return crypto.subtle.sign("HMAC", key, enc.encode(canonicalJson(payload)));
+      }).then(function (sig) {
+        return b64urlEncode(sig) === String(eff.sig || "");
+      });
+    }).catch(function () { return false; });
+  }
+
   function applyResult(result, applyOpts) {
     applyOpts = applyOpts || {};
     if (!result) return Promise.resolve(result);
@@ -530,6 +583,17 @@
       emitChannel("channel:applyCancelled", cancelBox);
       return Promise.resolve(result);
     }
+
+    return verifyEffectProof(result).then(function (okp) {
+      if (!okp) {
+        emitChannel("channel:proofRejected", { result: result });
+        return result;
+      }
+      return applyResultOps(result, applyOpts);
+    });
+  }
+
+  function applyResultOps(result, applyOpts) {
 
     var errs = (result.meta && result.meta.refresh_errors) || null;
     if (errs && errs.length) {
@@ -875,7 +939,7 @@
       profiles: ["web.v1"],
       features: ["seq", "invoke"],
       ir: "1",
-      effect_proof: false,
+      effect_proof: !!proofConfig.required,
     };
   }
 

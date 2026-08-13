@@ -117,6 +117,13 @@ def attach_arch(ch: Any) -> Any:
         if result.meta and "_graph" in result.meta:
             g = result.meta.pop("_graph")
             result.ops = project(g, hello, effects=effects)
+            max_ops = int(_cfg(ch, "max_ops", 256) or 256)
+            if _count_ops(result.ops) > max_ops:
+                result.ops = []
+                result.ok = False
+                result.error = ErrorObject(
+                    code="budget", message="effect graph exceeds max_ops"
+                )
 
         if flow_mode == "auto":
             args = getattr(intent, "args", None) or {}
@@ -171,6 +178,14 @@ def attach_arch(ch: Any) -> Any:
     ) -> Result:
         hello = sessions.get_hello(session_id)
         ops = project(g, hello, effects=effects)
+        max_ops = int(_cfg(ch, "max_ops", 256) or 256)
+        if _count_ops(ops) > max_ops:
+            return Result(
+                ok=False,
+                ops=[],
+                error=ErrorObject(code="budget", message="effect graph exceeds max_ops"),
+                meta=dict(meta or {}),
+            )
         m = dict(meta or {})
         if flow_id and flow_mode == "auto":
             m["flow_id"] = flow_id
@@ -197,3 +212,17 @@ def attach_arch(ch: Any) -> Any:
     ch.emit_graph = emit_graph
     ch.revoke_session = revoke_session
     return ch
+
+
+def _count_ops(ops: list) -> int:
+    n = 0
+
+    def walk(lst: list) -> None:
+        nonlocal n
+        for op in lst:
+            n += 1
+            if isinstance(op, dict) and isinstance(op.get("ops"), list):
+                walk(op["ops"])
+
+    walk(list(ops or []))
+    return n

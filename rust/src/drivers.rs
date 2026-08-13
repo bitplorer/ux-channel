@@ -73,6 +73,49 @@ pub fn make_web_drivers() -> HashMap<String, DriverFn> {
         }),
     );
     m.insert(
+        "push_url".into(),
+        Box::new(|op, ctx: &mut ApplyCtx| {
+            let href = op.get("href").and_then(|v| v.as_str());
+            let Some(h) = safe_href(href) else {
+                return;
+            };
+            ctx.log.push(json!([
+                "push_url",
+                h,
+                op.get("replace").and_then(|v| v.as_bool()).unwrap_or(false),
+            ]));
+        }),
+    );
+    m.insert(
+        "reload".into(),
+        Box::new(|_op, ctx: &mut ApplyCtx| {
+            if ctx.result_ok == Some(false) {
+                return;
+            }
+            ctx.log.push(json!(["reload"]));
+        }),
+    );
+    m.insert(
+        "focus".into(),
+        Box::new(|op, ctx: &mut ApplyCtx| {
+            ctx.log.push(json!([
+                "focus",
+                op.get("target").cloned().unwrap_or(Value::Null),
+                op.get("select").and_then(|v| v.as_bool()).unwrap_or(false),
+            ]));
+        }),
+    );
+    m.insert(
+        "set_text".into(),
+        Box::new(|op, ctx: &mut ApplyCtx| {
+            ctx.log.push(json!([
+                "set_text",
+                op.get("target").cloned().unwrap_or(Value::Null),
+                op.get("text").cloned().unwrap_or(Value::Null),
+            ]));
+        }),
+    );
+    m.insert(
         "dispatch".into(),
         Box::new(|op, ctx: &mut ApplyCtx| {
             ctx.log.push(json!([

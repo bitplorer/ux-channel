@@ -30,6 +30,13 @@
     ],
     "handshake": [
       {"file": "handshake/01-surface-hello.json", "kind": "positive", "optional": true, "notes": "Phase 1.5/3 surface capability advertisement"}
+    ],
+    "arch": [
+      {"file": "arch/project-classic-only.json", "kind": "project"},
+      {"file": "arch/project-auto-web.json", "kind": "project"},
+      {"file": "arch/project-agent-only.json", "kind": "project"},
+      {"file": "arch/apply-budget.json", "kind": "budget"},
+      {"file": "arch/flow-meta-ignored.json", "kind": "apply"}
     ]
   },
   "cxb_expected": {

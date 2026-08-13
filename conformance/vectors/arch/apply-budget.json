@@ -1,0 +1,12 @@
+{
+  "id": "apply/budget",
+  "kind": "budget",
+  "max_nodes": 2,
+  "ops": [
+    {"op": "toast", "message": "1"},
+    {"op": "toast", "message": "2"},
+    {"op": "toast", "message": "3"}
+  ],
+  "expect_log": [],
+  "expect_reject": "budget"
+}
