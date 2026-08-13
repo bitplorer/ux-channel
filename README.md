@@ -1,35 +1,46 @@
-# ux-channel — Wire-Native Peers (Intent → Action → Result / ops)
+# ux-channel
 
-**Start:** [START_HERE.md](START_HERE.md) · [MENTAL_MODEL.md](MENTAL_MODEL.md) · [DOCS.md](DOCS.md) · [AUTOMATION.md](AUTOMATION.md) · [python/STABILITY.md](python/STABILITY.md)
-
-**Default:** automate ceremonial inventories (`make regen` / `make sync-map`); hand-code only features, law, and public API — see [AUTOMATION.md](AUTOMATION.md).
-
-**IR version:** `"v": "1"`  
-**Date:** 2026-08-11 (automation-default + freshness + package design overviews)
-
-This folder is the living design + conformance + second-implementation surface for turning **ux-channel** from a strong Python library into a **wire-native peer platform**.
-
-**Layout:** [ARCHITECTURE.md](ARCHITECTURE.md) · **Docs map:** [DOCS.md](DOCS.md) · **Naming:** [NAMING.md](NAMING.md) · **Python map:** [python/LAYOUT.md](python/LAYOUT.md) · [python/ONTOLOGY.md](python/ONTOLOGY.md) — monorepo with `python/` + `rust/` + shared law.
-
-**New here?** (read in order)
-1. **[START_HERE.md](START_HERE.md)** — full first-time path (mental model, caps, first app, mistakes)
-2. **[TERMINOLOGY.md](TERMINOLOGY.md)** — what every word means, does, and is **not**
-3. **[HOW_IT_WORKS.md](HOW_IT_WORKS.md)** — flows, algorithms, order of steps
-4. **[REFERENCE.md](REFERENCE.md)** — HTTP API, curl recipes, module map
-5. **[FAQ.md](FAQ.md)** — short answers
-Do not assume prior knowledge of IR / caps / CXB.
-
----
-
-## What this is
+A click is not a form post. It is a signed **Intent**.
 
 ```text
 Any peer  ── Intent { action, args, cap } ──▶  Any peer
 Any peer  ◀── Result { ok, ops[], error } ──  Any peer
 ```
 
-One IR, one trust story (capabilities), many surfaces (DOM, WASM, hardware, agents).  
-JSON is the floor; CXB is the dense upgrade; caps travel with the Intent.
+The browser (or an agent, or a Rust process) says *do this action with these args*, and proves it with a **capability**. The host runs the action and answers with **ops** — morph this region, toast that, navigate there. One IR. Many surfaces.
+
+JSON is the floor. CXB is the dense upgrade. Caps travel with the Intent. Classic IR 0.1 clients stay valid forever.
+
+**IR:** `"v": "1"` · **Tree:** 2026-08-13 (architecture host/peer + classic floor)
+
+---
+
+**Start:** [START_HERE.md](START_HERE.md) · [MENTAL_MODEL.md](MENTAL_MODEL.md) · [DOCS.md](DOCS.md) · [AUTOMATION.md](AUTOMATION.md) · [python/STABILITY.md](python/STABILITY.md)
+
+**Default:** automate ceremonial inventories (`make regen` / `make sync-map`); hand-code only features, law, and public API — see [AUTOMATION.md](AUTOMATION.md).
+
+**Maps:** [ARCHITECTURE.md](ARCHITECTURE.md) · [DOCS.md](DOCS.md) · [NAMING.md](NAMING.md) · [python/LAYOUT.md](python/LAYOUT.md) · [python/ONTOLOGY.md](python/ONTOLOGY.md) — monorepo: `python/` + `rust/` + shared law.
+
+**New here?** Read in order. Do not assume prior knowledge of IR / caps / CXB.
+
+1. **[START_HERE.md](START_HERE.md)** — mental model, caps, first app, mistakes
+2. **[TERMINOLOGY.md](TERMINOLOGY.md)** — what every word means, does, and is **not**
+3. **[HOW_IT_WORKS.md](HOW_IT_WORKS.md)** — flows, algorithms, order of steps
+4. **[REFERENCE.md](REFERENCE.md)** — HTTP API, curl recipes, module map
+5. **[FAQ.md](FAQ.md)** — short answers
+
+This tree is the living design + conformance + second-implementation surface: a Python host library, a Rust kernel/runtime, and the law both must obey.
+
+---
+
+## The four boxes
+
+| | Kernel | Runtime |
+|---|---|---|
+| **Host** | Cap, nonce, registry, `project()` | `HostRuntime` / Python `Channel` |
+| **Peer** | `PeerApply` — apply ops, **no DOM** | `PeerRuntime` — hello, submit, revoke |
+
+Classic **`Peer`** (`uxc_peer`) is the demo Intent gate, not the kernel. `flow_id` is correlation, never authority. Cap key ≠ proof key.
 
 ---
 
@@ -57,7 +68,8 @@ Read top → bottom if you are new. Layers do not mix “law” with “demo.”
 | Path | Role |
 |------|------|
 | [SPEC/](SPEC/) | IR, capability, invariants, breaking-change policy |
-| [conformance/](conformance/) | Golden JSON vectors + CXB expected blobs + harnesses |
+| [SPEC/architecture/](SPEC/architecture/) | Host/peer kernel, project, proofs, flow (classic floor stays) |
+| [conformance/](conformance/) | Golden JSON vectors + CXB expected blobs + `vectors/arch/` + harnesses |
 | [PUBLIC_API_FREEZE.md](PUBLIC_API_FREEZE.md) | Application public names (host package alignment) |
 
 ### C. Product packages + demos
@@ -128,7 +140,9 @@ python3 demos/python_forward/forward_to_rust.py --base http://127.0.0.1:8787 --m
 |-------|--------|
 | SPEC + freeze + invariants + breaking policy | Drafted and consistent |
 | Conformance JSON vectors + harness | **Green** |
+| Architecture vectors (`vectors/arch/`) | **Green** |
 | Python host interop (`python/tests`) | **Green** (same law as Rust) |
+| HostRuntime + PeerApply (Python + Rust) | **Green** (classic floor preserved) |
 | Optional trace + surface-hello | Present (additive) |
 | Rust types + JSON round-trip | **Green** |
 | Cap verify in Rust | **Green** (oracle + mint/verify) |
@@ -157,13 +171,13 @@ python3 demos/python_forward/forward_to_rust.py --base http://127.0.0.1:8787 --m
 
 ## Principles (non-negotiable)
 
-1. One IR — Intent / Result / ops; no parallel RPC style  
-2. JSON floor — browsers & application always work  
-3. Caps travel on the Intent  
-4. Peers over FFI  
-5. Optional envelopes never required for basic interop  
-6. Breaking changes require a new major (`SPEC/BREAKING_CHANGE_POLICY.md`)  
-7. Permanent core vs moving demos (`STRUCTURE.md`) — no long-term confusions  
+1. One IR — Intent / Result / ops; no parallel RPC style
+2. JSON floor — browsers & application always work
+3. Caps travel on the Intent
+4. Peers over FFI
+5. Optional envelopes never required for basic interop
+6. Breaking changes require a new major (`SPEC/BREAKING_CHANGE_POLICY.md`)
+7. Permanent core vs moving demos (`STRUCTURE.md`) — no long-term confusions
 
 ---
 

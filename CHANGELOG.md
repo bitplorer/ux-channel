@@ -1,3 +1,10 @@
+## 2026-08-13 — README rewrite
+
+- Lead with the Intent story; keep every map, command, status row, and policy
+- Add the four-box host/peer table; date the tree honestly
+
+---
+
 ## 2026-08-13 — Artifact map cleanup
 
 - One home per artifact: `SPEC/architecture/`, `conformance/vectors/arch/`, `arch/`, `rust/src/{host,apply,project}`
