@@ -310,10 +310,11 @@ Permanence strata and anti-bloat doors: [LONGEVITY.md](LONGEVITY.md).
 ### Monorepo
 
 ```text
-SPEC/              normative IR / cap notes
-conformance/       golden JSON + CXB + harnesses
+SPEC/              IR / cap + SPEC/architecture/ (host/peer kernel)
+conformance/       golden JSON + CXB + vectors/arch
 python/src/ux_channel/   host library (you import this)
-rust/              peer + uxc_check
+  arch/            HostRuntime, PeerApply, project, proofs
+rust/              HostRuntime + PeerApply + classic Peer gate + uxc_check
 verify.sh          law + both products
 ```
 

@@ -32,12 +32,17 @@
     "verify": "verify",
     "hash_args": "hash_args",
     "CapError": "CapError",
-    "Intent": "Intent"
+    "Intent": "Intent",
+    "HostRuntime": "HostRuntime",
+    "PeerApply": "PeerApply",
+    "PeerRuntime": "PeerRuntime",
+    "project": "project",
+    "ProofService": "ProofService"
   },
   "package_docs": {
     "agent_runtime": "AgentRunner, policy, session, peer, tool_audit \u2014 non-human callers.",
     "api": "Curated application exports \u2014 same objects as package root.",
-    "arch": "EffectGraph, project, proofs, stamps, FlowStore, HostRuntime \u2014 L2 host-adjacent; classic floor.",
+    "arch": "EffectGraph, project, proofs, stamps, FlowStore, HostRuntime, PeerApply/PeerRuntime \u2014 L2 host-adjacent; classic floor.",
     "asgi": "FastAPI / Starlette mount_channel adapters.",
     "bridge": "Island contracts, scaffold, guest runtime (singular package).",
     "bridges": "npm / fx / ui preset data (plural). Prefer preset gen over hand copies.",

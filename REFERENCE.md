@@ -227,6 +227,7 @@ Caps still run in `peer` — **never** reimplement verify inside the handler.
 | Cap | `01-valid-notes.md`, `02-oracle-token.json` | Algorithm notes + concrete oracle token |
 | Trace | `01`–`03` | Optional causal spine; missing trace still valid |
 | Handshake | `01-surface-hello` | Optional surface advertisement (Phase 1.5+) |
+| Arch | `project-*`, `apply-budget`, `flow-meta-ignored` | Classic floor, auto seq, agent-only, budgets, flow is not authority |
 | CXB expected | `expected/cxb/*` (14 blobs) | Decode interop with Python oracle |
 
 Index: `conformance/manifest.json`.  

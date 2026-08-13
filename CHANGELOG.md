@@ -1,3 +1,10 @@
+## 2026-08-13 — Artifact map cleanup
+
+- One home per artifact: `SPEC/architecture/`, `conformance/vectors/arch/`, `arch/`, `rust/src/{host,apply,project}`
+- Maps updated: AGENTS, START_HERE, STRUCTURE, TERMINOLOGY, conformance README, PACKAGE_MAP rust_parity
+
+---
+
 ## 2026-08-13 — Architecture law alignment
 
 - `proofs=require` refuses peers that do not advertise `effect_proof` **before** the handler (Python HostRuntime + Channel before-hook + Rust)

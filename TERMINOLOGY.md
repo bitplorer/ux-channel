@@ -463,7 +463,11 @@ Clients still branch on **Result**, not status alone.
 | **`cap`** | Cap crypto | mint/verify | Not action handlers |
 | **`cxb`** | Binary codec | encode/decode CXB1/CXBZ | Not HTTP negotiation yet |
 | **`op_tags`** | Dense key table | Tag ↔ field name | Not op runtime |
-| **`peer`** | Gate | validate → cap → dispatch | Not transport |
+| **`peer`** | Classic demo gate | validate → cap → dispatch | Not PeerApply, not HostRuntime |
+| **`host`** | Host kernel + runtime | Cap → project → proof → Result | Not Python Channel / regions |
+| **`apply`** | Peer kernel | apply Result.ops; no DOM | Not a transport |
+| **`runtime`** | Peer process wrapper | hello, submit_intent, revoke | Not the apply machine |
+| **`project`** | Pure lower | EffectGraph + hello → ops | Not I/O, not Cap |
 | **`actions`** | Demo handlers | Cart / Counter | Not the product forever (moving) |
 | **`uxc_peer`** | HTTP binary | Serves action/health/mint/demo page | Not the only possible transport |
 | **`uxc_check`** | Conformance runner | Loads vectors, oracle, CXB, optional `--http` | Not a production server |

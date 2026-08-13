@@ -14,9 +14,11 @@ conformance/
     cap/                        ← capability notes + oracle token
     trace/                      ← optional causal spine (Phase 1.5)
     handshake/                  ← optional surface hello
+    arch/                       ← architecture law (project / budget / flow)
   expected/cxb/                 ← frozen CXB1 blobs + sha256 from pure-Python oracle
   harness/
     validate_json_vectors.py    ← structural JSON (no package deps)
+    validate_arch_vectors.py    ← project/budget/flow against production host kernel
     validate_cxb_expected.py    ← CXB sha/CRC (+ oracle re-encode when available)
     regenerate_cxb_expected.py  ← rebuild expected/cxb from oracle
     README.md                   ← second-language verification interface
@@ -39,6 +41,7 @@ conformance/
 | Cap      | notes + oracle token (`02-oracle-token.json`) |
 | Trace    | single-hop, multi-hop, missing-trace-still-valid |
 | Handshake | surface-hello (optional Phase 1.5+) |
+| Arch     | project classic/auto/agent-only, apply budget, flow meta ignored |
 | CXB      | 14 frozen blobs under `expected/cxb/` |
 
 ### Vector catalog (files)
@@ -61,6 +64,11 @@ conformance/
 | `vectors/trace/02-multi-hop.json` | Multi-hop trace |
 | `vectors/trace/03-missing-trace-still-valid.json` | No trace still valid |
 | `vectors/handshake/01-surface-hello.json` | Surface advertisement sketch |
+| `vectors/arch/project-classic-only.json` | No hello → flattened classic ops |
+| `vectors/arch/project-auto-web.json` | web.v1 + seq → rich seq |
+| `vectors/arch/project-agent-only.json` | agent.v1 drops morph |
+| `vectors/arch/apply-budget.json` | Over-budget Result applies nothing |
+| `vectors/arch/flow-meta-ignored.json` | flow_id is not authority |
 | `expected/cxb/*` (14) | CXB decode oracle freeze |
 
 Machine index: [`manifest.json`](manifest.json). Full HTTP recipes: [`../REFERENCE.md`](../REFERENCE.md).
@@ -74,12 +82,14 @@ Machine index: [`manifest.json`](manifest.json). Full HTTP recipes: [`../REFEREN
 - [x] Manifest + harness interface described
 - [x] Concrete cap oracle token
 - [x] CXB expected blobs under `expected/cxb/`
+- [x] Architecture vectors (`vectors/arch/` + `validate_arch_vectors.py`)
 - [x] Second-language peer loads the suite (`rust` `uxc_check`)
 
 ## How to run
 
 ```bash
 python3 conformance/harness/validate_json_vectors.py
+python3 conformance/harness/validate_arch_vectors.py   # PYTHONPATH=python/src
 python3 conformance/harness/validate_cxb_expected.py   # oracle if PYTHONPATH set
 cd rust && cargo run --bin uxc_check -- ../conformance
 ```
@@ -93,5 +103,5 @@ cd rust && cargo run --bin uxc_check -- ../conformance
 - [`../SPEC/intent-result-ops.md`](../SPEC/intent-result-ops.md)
 - [`../SPEC/capability.md`](../SPEC/capability.md)
 - [`../SPEC/INVARIANTS.md`](../SPEC/INVARIANTS.md)
-- [`../SPEC/BREAKING_CHANGE_POLICY.md`](../SPEC/BREAKING_CHANGE_POLICY.md)
+- [`../SPEC/architecture/`](../SPEC/architecture/) — host/peer kernel, project, proofs, flow
 - Package `docs/core/CXB.md` (inside 0.1.0 zip)

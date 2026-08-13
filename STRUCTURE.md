@@ -2,8 +2,8 @@
 
 ```text
 ux-channel/
-  SPEC/                 Wire law (Intent / Result / ops / cap)
-  conformance/          Golden vectors + harnesses + CXB expected
+  SPEC/                 IR / cap + SPEC/architecture/
+  conformance/          Golden vectors + CXB + vectors/arch
   rust/                 HostRuntime + PeerApply + classic Peer gate + CXB
   python/src/ux_channel Host library (application runtime)
   python/tests/gate     Interop + layout freeze (CI)
