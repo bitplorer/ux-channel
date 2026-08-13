@@ -34,12 +34,13 @@ Golden vectors + manifest + harness notes live under `../conformance/`.
 They are the executable source of truth for interop.
 
 - JSON structural: `conformance/harness/validate_json_vectors.py`
+- Architecture: `conformance/harness/validate_arch_vectors.py` + `vectors/arch/`
 - CXB expected: `conformance/expected/cxb/` + `validate_cxb_expected.py`
-- Second implementation: `../rust` (`uxc_check` loads `manifest.json`, verifies JSON + cap oracle + CXB)
+- Second implementation: `../rust` (`uxc_check` + `HostRuntime` / `PeerApply`)
 
 ## Cap wire (Cap 0.1)
 
-Portable encoding used by Python `CapService` and the Rust peer:
+Portable encoding used by Python `CapService` and the Rust crate:
 
 - `itsdangerous.URLSafeTimedSerializer` with salt `ux-channel-cap`
 - django-concat key derivation + HMAC-SHA1
@@ -49,12 +50,11 @@ Portable encoding used by Python `CapService` and the Rust peer:
 
 ## CXB
 
-CXB encode/decode is implemented in the Rust peer and frozen under `conformance/expected/cxb/` (14 blobs).  
+CXB encode/decode is implemented in the Rust crate and frozen under `conformance/expected/cxb/` (14 blobs).  
 HTTP Accept negotiation for `application/ux-channel+cxb` is **not** on the wire yet (library codec only).
 
 ## Current next work
 
-- HTTP Accept negotiation for `application/ux-channel+cxb` on the Rust peer
+- HTTP Accept negotiation for `application/ux-channel+cxb` (codec exists; not on `/action`)
 - Byte-identical freeform encode alignment (msgpack key order)
-- Integrate ASGI forward into the full 0.1.0 package host
-- P3: surface hello runtime + UDS
+- Rust Channel / regions / ASGI is **out of scope** (Python `Channel` stays the product host)

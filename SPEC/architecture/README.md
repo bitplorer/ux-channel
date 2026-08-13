@@ -48,5 +48,10 @@ Classic clients that do not send `meta.hello` receive classic ops only.
 
 ## Tests
 
-`python/tests/gate/test_arch_e2e.py` — 10+ vectors on production `CapService`.
-`rust` — `mint_verify_once_replay`, `PeerApply` / `PeerRuntime` / `Loopback` (peer + runtime).
+| Suite | What |
+|-------|------|
+| `python/tests/gate/test_arch_e2e.py` | HostRuntime + PeerApply + Channel attach on production CapService |
+| `conformance/vectors/arch/` | Golden project/budget/flow fixtures (`validate_arch_vectors.py`) |
+| `rust` `cargo test --lib --tests` | HostRuntime, PeerApply, PeerRuntime, `tests/arch_vectors.rs` |
+
+Classic clients that omit `meta.hello` stay on flattened classic ops.

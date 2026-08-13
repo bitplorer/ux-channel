@@ -191,7 +191,7 @@ repo root
 │   ├── ux_channel/                  ← wire, caps, ASGI, CXB oracle, …
 │   ├── ux_dom/
 │   └── docs/core/                   ← WIRE.md, CXB.md
-├── rust/                            ← PRODUCT: peer crate
+├── rust/                            ← PRODUCT: host+peer kernel/runtime + classic gate
 │   └── src/
 │       ├── types.rs / wire_json.rs / cap.rs / cxb.rs / op_tags.rs
 │       ├── peer.rs                  ← gate: validate → cap → dispatch

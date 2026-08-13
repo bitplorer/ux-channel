@@ -71,7 +71,7 @@ Related maps: [DOCS.md](DOCS.md) · [MENTAL_MODEL.md](MENTAL_MODEL.md) · [LONGE
 | Artifact | Path | You need it if… |
 |----------|------|------------------|
 | **Python host** | `python/` | Building a real app (almost everyone) |
-| **Rust peer** | `rust/` | Second implementation, `uxc_check`, interop, embedded peers |
+| **Rust crate** | `rust/` | Host+peer kernel/runtime, classic gate, `uxc_check`, interop |
 
 **Law** (both must obey): `SPEC/` + `conformance/` golden vectors.  
 If Python and Rust disagree, **vectors win**.

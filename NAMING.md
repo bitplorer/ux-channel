@@ -47,8 +47,14 @@ No second guess, no dual product speech.
 | `Intent` | `Intent` | Request IR |
 | `ResultDoc` | `Result` | Response IR (same wire shape) |
 | `encode_cxb` / `decode_cxb` | `wire` / `cxb` codecs | CXB |
+| `HostRuntime` | `arch.HostRuntime` | Host kernel + runtime |
+| `PeerApply` | `arch.PeerApply` | Peer kernel (apply Result, no DOM) |
+| `PeerRuntime` | `arch.PeerRuntime` | Peer process wrapper |
+| `Peer` | (not a twin — demo gate) | Classic Intent → cap → demo actions |
+| `project` | `arch.project` | EffectGraph → ops |
 
 Host-only types (no Rust twin) keep Python names: `Region`, `RegionBook`, `Channel`, …
+`Peer` is the **classic HTTP demo gate**, not the peer kernel. Say **PeerApply** when you mean apply.
 
 ```python
 from ux_channel import CapService, CapError, Intent, Result, Region, RegionBook

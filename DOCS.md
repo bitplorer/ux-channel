@@ -14,7 +14,7 @@
 | [python/README.md](python/README.md) | Python host |
 | [python/STABILITY.md](python/STABILITY.md) | Layout + identity law |
 | [NAMING.md](NAMING.md) | Intent ↔ name (Rust-parity caps) |
-| [rust/README.md](rust/README.md) | Rust peer |
+| [rust/README.md](rust/README.md) | Rust kernel + runtime |
 
 ## Concepts
 

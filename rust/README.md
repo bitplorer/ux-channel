@@ -1,9 +1,19 @@
-# ux_channel_rs — Rust peer (Phase 2)
+# ux_channel_rs — Rust kernel + runtime
 
-**Status:** host kernel+runtime + peer kernel+runtime + cap/once/jti + CXB + HTTP demo gate + `uxc_check`.
+**Status:** host kernel+runtime + peer kernel+runtime + classic IR 0.1 gate + cap/once/jti + CXB + `uxc_check`.
+
+The crate is still the **Rust product package**. It is not “just a demo peer.”
+
+| Role | Type | File |
+|------|------|------|
+| Host kernel + runtime | `HostRuntime` | `src/host.rs` |
+| Peer kernel (no DOM) | `PeerApply` | `src/apply.rs` |
+| Peer runtime | `PeerRuntime` | `src/runtime.rs` |
+| Classic demo gate | `Peer` | `src/peer.rs` → `uxc_peer` |
 
 Operators: read repo-root [`OPERATIONAL.md`](../OPERATIONAL.md) before running `uxc_peer`.
 Humans: [`TERMINOLOGY.md`](../TERMINOLOGY.md) → [`HOW_IT_WORKS.md`](../HOW_IT_WORKS.md) → [`REFERENCE.md`](../REFERENCE.md) / [`FAQ.md`](../FAQ.md).
+Law: [`SPEC/architecture/`](../SPEC/architecture/).
 
 ## What works
 
@@ -53,10 +63,11 @@ rust/
 │       ├── uxc_check.rs # conformance runner
 │       └── uxc_peer.rs  # HTTP demo peer
 └── tests/
-    └── integration_peer.rs
+    ├── integration_peer.rs
+    └── arch_vectors.rs   # SPEC project fixtures
 ```
 
-**Permanent vs moving:** types/wire/cap/cxb/peer gate/apply/runtime/proof/drivers are permanent; `actions` + `uxc_peer` UI are demo/moving.
+**Permanent vs moving:** types/wire/cap/cxb/host/project/apply/runtime/proof/drivers/peer-gate are permanent; `actions` + `uxc_peer` UI are demo/moving.
 
 
 ## Tests
@@ -64,7 +75,7 @@ rust/
 | Kind | Command | What |
 |------|---------|------|
 | Unit + property | `cargo test --lib` | cap, wire, peer, apply, runtime, CXB + proptest |
-| Integration | `cargo test --tests` | Peer cap gate end-to-end |
+| Integration | `cargo test --tests` | Classic gate + `arch_vectors` (project fixtures) |
 | Conformance | `cargo run --bin uxc_check -- ../conformance` | golden vectors |
 
 Property invariants (proptest):

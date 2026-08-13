@@ -92,7 +92,7 @@ stale catalog is a hard fail.
 | `packages` in PACKAGE_MAP (until `--sync-map`) | Intentional module placement | New modules (or `make sync-map`) |
 | `strata`, `public_entry`, `package_docs` | Architecture labels | Renames / new packages |
 | Application examples under `python/examples/` | Teaching intent | Demos |
-| Rust peer logic | Second implementation of law | Peer features / bugfixes |
+| Rust crate logic | Second implementation of law | Kernel/runtime features / bugfixes |
 
 Private helpers named `_*.py` are **not** auto-listed in the map (keep them private).
 

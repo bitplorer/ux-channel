@@ -22,7 +22,7 @@ Do **not** split into multiple repos until release volume forces it — protocol
 | Artifact | Path | Release channel (target) |
 |----------|------|---------------------------|
 | Python host library | `python/` | PyPI (`ux-channel`) |
-| Rust peer crate | `rust/` | crates.io (`ux_channel_rs`) |
+| Rust crate | `rust/` | crates.io (`ux_channel_rs`) |
 | Law + vectors | `SPEC/` + `conformance/` | Versioned with IR major (`v: "1"`) |
 
 Crate/package versions may differ; **IR major must match**.
@@ -37,7 +37,7 @@ repo root
 ├── conformance/          LAW — golden JSON + CXB blobs + harnesses
 ├── python/               PRODUCT — full host library (ASGI, wire, caps, …)
 │   └── ux_channel/
-├── rust/                 PRODUCT — second peer (types, wire, cap, CXB, HTTP bins)
+├── rust/                 PRODUCT — host+peer kernel/runtime + classic gate + CXB
 │   └── src/ + bins uxc_peer, uxc_check
 ├── demos/                MOVING — examples only, not production deps
 │   └── python_forward/   thin Intent POST to Rust peer
@@ -86,7 +86,7 @@ flowchart TB
 |-------|-------------------------|----------------------|
 | Law | SPEC text, golden JSON vectors | CXB expected blobs from oracle |
 | Python core | Action handlers, cap logic, package `__init__` exports | `modules` / `module_count` / catalog |
-| Rust peer | Types, cap, CXB, HTTP bins | (n/a — rustc is the check) |
+| Rust crate | Host/peer kernel+runtime, cap, CXB, HTTP bins | (n/a — rustc is the check) |
 | Tooling L5 | CLI UX, dashboard copy | Preset/codegen outputs |
 
 Package one-liners: `python/src/ux_channel/PACKAGE_MAP.json` → `package_docs`.  

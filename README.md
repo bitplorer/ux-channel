@@ -65,7 +65,7 @@ Read top → bottom if you are new. Layers do not mix “law” with “demo.”
 | Path | Role |
 |------|------|
 | **[python/](python/)** | **Full Python host package** (`ux_channel/`, wire, caps, ASGI, CXB oracle) |
-| **[rust/](rust/)** | **Rust peer crate** (types, wire, cap, CXB, HTTP bins) |
+| **[rust/](rust/)** | **Rust crate** — host+peer kernel/runtime, classic gate, cap, CXB |
 | [demos/python_forward/](demos/python_forward/) | Minimal Python → Rust forward (1 script, not the full library) |
 | [conformance/harness/](conformance/harness/) | Stdlib Python vector validators |
 | [startup-peer.sh](startup-peer.sh) | Idempotent local demo peer helper (oracle allow-listed) |

@@ -1,3 +1,11 @@
+## 2026-08-13 — Docs polish (names + maps)
+
+- One speech: `HostRuntime` / `PeerApply` / `PeerRuntime` / classic `Peer` gate
+- README, ARCHITECTURE, NAMING, REFERENCE, rust crate blurb updated
+- Inventory + arch vectors already in `verify.sh`
+
+---
+
 ## 2026-08-13 — Finish remaining architecture gaps
 
 - SPEC: budgets, concurrency, codecs, profiles, inventory, non-goals

@@ -40,8 +40,7 @@ In-tree patch: [`patches/0001-production-hardening-authz-seal.patch`](patches/00
 - present-cap-must-verify on ActionRegistry and ArchRegistry
 - proofs fail closed (`proofs=require` without a key emits zero ops)
 - Architecture inventory vectors in `conformance/vectors/arch/` run from `verify.sh`
-- Rust host kernel+runtime (`HostRuntime`) and peer kernel+runtime (`PeerApply` / `PeerRuntime`); classic `Peer` gate unchanged
-- Rust peer kernel + runtime: `apply.rs` / `runtime.rs` / `proof.rs` / `drivers.rs` (no DOM; `Loopback` joins gate + apply)
+- Rust: `HostRuntime` + `PeerApply` / `PeerRuntime`; classic `Peer` gate unchanged
 - Gate suite: [`python/tests/gate/test_arch_e2e.py`](python/tests/gate/test_arch_e2e.py)
 
 ## Verify after any restore

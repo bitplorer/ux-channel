@@ -1,4 +1,4 @@
-# Testing — Python host + Rust peer
+# Testing — Python host + Rust crate
 
 **Goal:** unit, property, and integration coverage without folklore.  
 **CI entry:** `./verify.sh` (layout, longevity, vectors, gate, `cargo test`, `uxc_check`).
@@ -34,10 +34,10 @@ cd rust && cargo run --bin uxc_check -- ../conformance && cd ..
 
 | Layer | Python | Rust |
 |-------|--------|------|
-| **Unit** | `tests/core`, `tests/gate`, package tests | `#[cfg(test)]` in `cap`, `wire_json`, `peer`, `cxb`, `actions` |
+| **Unit** | `tests/core`, `tests/gate` (incl. `test_arch_e2e.py`) | `cap`, `host`, `apply`, `project`, `peer`, `cxb` |
 | **Property** | Hypothesis: `tests/gate/test_cap_properties.py`, `tests/core/test_wire_properties.py`, `tests/foundations/test_properties.py` | proptest: `cap::prop_tests`, `wire_json::prop_tests` |
 | **Integration** | `tests/integration/test_channel_dispatch.py` | `tests/integration_peer.rs` |
-| **Conformance** | harness under `conformance/harness/` | `uxc_check` + vectors |
+| **Conformance** | `conformance/harness/` + `vectors/arch/` | `uxc_check` + `tests/arch_vectors.rs` |
 
 ---
 
