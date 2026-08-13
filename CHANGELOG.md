@@ -1,3 +1,11 @@
+## 2026-08-13 — Property + coverage for architecture
+
+- Hypothesis: project floor, proofs, budgets, once, request_id, flow-not-authority
+- Rust proptest: project / proof / apply
+- `./verify.sh` fails under 80% coverage of `ux_channel.arch`
+
+---
+
 ## 2026-08-13 — README: what this can actually do
 
 - Concrete capabilities (once checkout, one action for human+agent, classic floor, proofs, fail-closed)

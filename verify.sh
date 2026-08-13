@@ -39,7 +39,8 @@ echo "== Python host interop (sync with law) =="
 if ! python3 -c "import itsdangerous, pytest" 2>/dev/null; then
   python3 -m pip install -q -r "$ROOT/requirements-dev.txt"
 fi
-PYTHONPATH="$ROOT/python/src${PYTHONPATH:+:$PYTHONPATH}" python3 -m pytest "$ROOT/python/tests/gate" -q --tb=line
+PYTHONPATH="$ROOT/python/src${PYTHONPATH:+:$PYTHONPATH}" python3 -m pytest "$ROOT/python/tests/gate" -q --tb=line \
+  --cov=ux_channel.arch --cov-fail-under=80 --cov-report=term-missing:skip-covered
 
 echo "== Rust unit tests =="
 cd rust

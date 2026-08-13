@@ -183,3 +183,44 @@ mod tests {
         assert_eq!(kids[0]["op"], "toast");
     }
 }
+
+#[cfg(test)]
+mod prop_tests {
+    use super::*;
+    use crate::effects::{graph, seq, toast};
+    use proptest::prelude::*;
+
+    fn kinds(ops: &[Value]) -> Vec<String> {
+        let mut out = Vec::new();
+        fn walk(list: &[Value], out: &mut Vec<String>) {
+            for op in list {
+                if let Some(k) = op.get("op").and_then(|v| v.as_str()) {
+                    out.push(k.to_string());
+                }
+                if let Some(Value::Array(kids)) = op.get("ops") {
+                    walk(kids, out);
+                }
+            }
+        }
+        walk(ops, &mut out);
+        out
+    }
+
+    proptest! {
+        #[test]
+        fn classic_never_emits_seq(msg in ".{1,16}") {
+            let g = graph([seq([toast(&msg)])]);
+            let hello = json!({"profiles": ["web.v1"], "features": ["seq"]});
+            let ops = project(&g, &hello, "classic").unwrap();
+            prop_assert!(!kinds(&ops).iter().any(|k| k == "seq"));
+            prop_assert!(kinds(&ops).iter().any(|k| k == "toast"));
+        }
+
+        #[test]
+        fn empty_hello_is_floor(msg in ".{1,16}") {
+            let g = graph([seq([toast(&msg)])]);
+            let ops = project(&g, &json!({}), "auto").unwrap();
+            prop_assert!(!kinds(&ops).iter().any(|k| k == "seq"));
+        }
+    }
+}

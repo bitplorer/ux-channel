@@ -435,3 +435,37 @@ mod tests {
         assert_eq!(err, ApplyError::SingleFlight);
     }
 }
+
+#[cfg(test)]
+mod prop_tests {
+    use super::*;
+    use crate::drivers::make_web_drivers;
+    use proptest::prelude::*;
+
+    proptest! {
+        #[test]
+        fn budget_rejects_over_limit(n in 1usize..16) {
+            let mut apply = PeerApply::new(make_web_drivers()).with_limits(n, 16);
+            let ops: Vec<Value> = (0..=n)
+                .map(|i| json!({"op": "toast", "message": i.to_string()}))
+                .collect();
+            apply.apply_result(&json!({"ok": true, "ops": ops})).unwrap();
+            prop_assert_eq!(apply.ctx.reject.as_deref(), Some("budget"));
+            prop_assert!(apply.ctx.log.is_empty());
+        }
+
+        #[test]
+        fn flow_meta_never_blocks(msg in ".{1,16}") {
+            let mut apply = PeerApply::new(make_web_drivers());
+            apply
+                .apply_result(&json!({
+                    "ok": true,
+                    "ops": [{"op": "toast", "message": msg}],
+                    "meta": {"flow_id": "flow_x", "not_a_cap": true}
+                }))
+                .unwrap();
+            prop_assert!(apply.ctx.reject.is_none());
+            prop_assert!(!apply.ctx.log.is_empty());
+        }
+    }
+}

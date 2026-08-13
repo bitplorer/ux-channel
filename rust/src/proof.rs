@@ -276,3 +276,25 @@ mod tests {
         assert!(ProofService::new(b"short").is_err());
     }
 }
+
+#[cfg(test)]
+mod prop_tests {
+    use super::*;
+    use proptest::prelude::*;
+
+    proptest! {
+        #[test]
+        fn sign_verify_then_tamper(msg in ".{1,24}", gen in 1i64..40i64) {
+            let p = ProofService::new(b"proof-secret-16b!").unwrap();
+            let mut result = json!({
+                "ok": true,
+                "ops": [{"op": "toast", "message": msg.clone()}],
+                "error": null
+            });
+            p.sign_value(&mut result, "s1", gen).unwrap();
+            prop_assert!(p.verify_value(&result, "s1", gen));
+            result["ops"] = json!([{"op": "toast", "message": format!("{msg}x")}]);
+            prop_assert!(!p.verify_value(&result, "s1", gen));
+        }
+    }
+}

@@ -85,6 +85,9 @@ Property invariants (proptest):
 * tampered args → `ArgsMismatch`  
 * wrong action → `ActionMismatch`  
 * intent JSON encode/decode roundtrip  
+* `project(classic)` never emits `seq`; empty hello stays on the floor  
+* proof sign → verify; tampered ops fail  
+* apply budget rejects; `flow_id` never blocks apply  
 
 ## Build & check
 
