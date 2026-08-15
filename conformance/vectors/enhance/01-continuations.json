@@ -1,0 +1,22 @@
+{
+  "name": "continuations-envelope",
+  "result": {
+    "v": "1",
+    "ok": true,
+    "ops": [{"op": "toast", "message": "search armed", "level": "info"}],
+    "continuations": [
+      {
+        "event": "timer.fired",
+        "action": "search.commit",
+        "cap": "test-cap-token",
+        "args_from": {"q": "event.q"},
+        "once": true
+      }
+    ]
+  },
+  "classic_projection": {
+    "v": "1",
+    "ok": true,
+    "ops": [{"op": "toast", "message": "search armed", "level": "info"}]
+  }
+}
