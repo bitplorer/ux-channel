@@ -1,0 +1,9 @@
+{
+  "name": "peer-hello-surfaces",
+  "hello": {
+    "ir_version": "1",
+    "formats": ["json"],
+    "surfaces": ["dom.morph", "dom.toast", "delta.patch"],
+    "features": ["perception.v1", "continuations", "seq", "invoke"]
+  }
+}
