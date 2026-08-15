@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>ux-channel enhance demo \u2014 search + continuations + perception</title>
+  <style>
+    body { font: 15px/1.45 system-ui, sans-serif; max-width: 640px; margin: 40px auto; padding: 0 16px; color: #0f172a; }
+    h1 { font-size: 1.25rem; }
+    input { width: 100%; padding: 10px 12px; font-size: 16px; border: 1px solid #cbd5e1; border-radius: 8px; }
+    #results { margin-top: 12px; min-height: 120px; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; }
+    #results.uxc-pending { outline: 2px dashed #94a3b8; }
+    #results[data-uxc-shadow="1"] { opacity: 0.55; }
+    .meta { color: #64748b; font-size: 13px; margin-top: 8px; }
+    code { background: #f1f5f9; padding: 1px 4px; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <h1>Enhance plane demo</h1>
+  <p>Type to search. Intents coalesce (perception). Host returns morph + continuation; timer fires \u2192 commit.</p>
+  <input id="q" type="search" placeholder="Search products\u2026" autocomplete="off" />
+  <div id="results"><em>Start typing\u2026</em></div>
+  <p class="meta">Load order: kernel \u2192 perception \u2192 continuations \u2192 dom-drivers. Session: <code id="sid">\u2014</code></p>
+
+  <script src="../../python/src/ux_channel/static/ux-peer-kernel.js"></script>
+  <script src="../../python/src/ux_channel/static/ux-peer-perception.js"></script>
+  <script src="../../python/src/ux_channel/static/ux-peer-continuations.js"></script>
+  <script src="../../python/src/ux_channel/static/ux-peer-dom-drivers.js"></script>
+  <script>
+    (function () {
+      var sessionId = "demo-" + Math.random().toString(36).slice(2, 10);
+      document.getElementById("sid").textContent = sessionId;
+
+      var drivers = uxcPeer.makeWebDrivers();
+      var realMorph = drivers.morph;
+      drivers.morph = function (op, ctx) {
+        realMorph(op, ctx);
+        uxcPeerDom.applyDomOps([op]);
+      };
+      var realToast = drivers.toast;
+      drivers.toast = function (op, ctx) {
+        realToast(op, ctx);
+        uxcPeerDom.applyDomOps([op]);
+      };
+      drivers.set_text = function (op, ctx) {
+        ctx.log.push(["set_text", op.target, op.text]);
+        uxcPeerDom.applyDomOps([op]);
+      };
+
+      var kernel = uxcPeer.createPeerKernel({ drivers: drivers, sessionId: sessionId });
+      var perc = uxcPerception.attach(kernel, uxcPeerDom.perceptionOptions({ coalesceMs: 180 }));
+
+      var HOST_ITEMS = [
+        "Aurora ring", "Nexus watch", "Pulse desk", "Sarrafa market",
+        "Quantum lamp", "Solid-state cell", "Green hydrogen kit"
+      ];
+      var armedCap = "demo-cap-" + sessionId;
+
+      function hostHandle(intent) {
+        var action = intent.action || "";
+        var args = intent.args || {};
+        if (action === "search.preview") {
+          var q = String(args.q || "").toLowerCase();
+          var hits = HOST_ITEMS.filter(function (x) { return !q || x.toLowerCase().indexOf(q) >= 0; });
+          var html = hits.length
+            ? "<ul>" + hits.map(function (h) { return "<li>" + h + "</li>"; }).join("") + "</ul>"
+            : "<em>No matches</em>";
+          return {
+            v: "1", ok: true,
+            ops: [
+              { op: "morph", target: "#results", html: html },
+              { op: "toast", message: "Preview: " + hits.length + " hit(s)", level: "info", duration_ms: 1600 }
+            ],
+            continuations: [{
+              event: "timer.fired",
+              action: "search.commit",
+              cap: armedCap,
+              args_from: { q: "event.q" },
+              once: true
+            }]
+          };
+        }
+        if (action === "search.commit") {
+          return {
+            v: "1", ok: true,
+            ops: [
+              { op: "toast", message: "Committed: " + (args.q || ""), level: "success", duration_ms: 2200 },
+              { op: "set_text", target: "#results", text: "Committed search for \u201c" + (args.q || "") + "\u201d" }
+            ]
+          };
+        }
+        return { v: "1", ok: false, ops: [{ op: "toast", message: "unknown action", level: "error" }] };
+      }
+
+      function submitIntent(intent) {
+        intent.v = intent.v || "1";
+        var result = hostHandle(intent);
+        cont.armFromResult(result);
+        kernel.applyResult(result);
+      }
+
+      var cont = uxcContinuations.create({ submitIntent: submitIntent });
+
+      var hello = kernel.hello ? kernel.hello() : {};
+      console.log("PeerHello", hello);
+
+      var input = document.getElementById("q");
+      var debounceTimer = null;
+      input.addEventListener("input", function () {
+        var q = input.value;
+        perc.setPending("#results", true);
+        perc.shadowMorph("#results", "<em>Searching \u201c" + q.replace(/</g, "") + "\u201d\u2026</em>");
+        perc.coalesceIntent("search", {
+          v: "1",
+          action: "search.preview",
+          args: { q: q },
+          cap: armedCap
+        }, submitIntent);
+
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(function () {
+          cont.handleEvent({ type: "timer.fired", q: q });
+        }, 900);
+      });
+    })();
+  </script>
+</body>
+</html>
