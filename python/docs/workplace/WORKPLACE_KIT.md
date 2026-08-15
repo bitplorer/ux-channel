@@ -1,3 +1,6 @@
+<!-- pyramid -->
+Read [../../../START_HERE.md](../../../START_HERE.md) first if you are new. This is Layer 2 (encyclopedia), not the intro.
+
 # Workplace starter kit
 
 Copy-paste deploy target: [`examples/workplace_kit/`](../../examples/workplace_kit/).

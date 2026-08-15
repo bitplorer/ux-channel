@@ -11,6 +11,7 @@ from typing import Any, Mapping, Optional
 __all__ = ["explain", "explain_code", "TEACH", "HINTS_BY_CODE"]
 
 # code → short teach line (also used as Result.message suffix or details)
+# Top-20 first-week failures (G2). Every entry names the one fix + CLI/recipe.
 TEACH: dict[str, str] = {
     "unauthorized": (
         "Sign the control: place ch.control(action, trust_…).as_dict() on the "
@@ -21,11 +22,20 @@ TEACH: dict[str, str] = {
         "See: Channel.help('ux-dom-control')"
     ),
     "capability_expired": (
-        "Cap TTL elapsed — re-render the control (SSR/morph) to mint a fresh cap."
+        "Cap TTL elapsed — re-render the control (SSR/morph) to mint a fresh cap. "
+        "Production default max_cap_age is 900s."
     ),
     "invalid_capability": (
         "Cap signature failed — wrong secret, tampered args, or stale HTML. "
         "Do not hand-build data-channel-cap; use ch.control(...)."
+    ),
+    "cap_mismatch": (
+        "Action or sealed args do not match the cap. Re-mint with ch.control(action, "
+        "trust_…). Client cannot override server-sealed fields."
+    ),
+    "unsigned_args": (
+        "Business args were not sealed. Put money/sku/qty in trust_* on ch.control "
+        "so hash_args binds them. Hidden HTML fields are not authority."
     ),
     "validation": (
         "Fix field errors (error.fields) and re-submit. Recipe: form"
@@ -33,6 +43,10 @@ TEACH: dict[str, str] = {
     "not_found": (
         "Action name not registered — @ch.on def name or registry.action. "
         "Check ch.diagnose()['actions']."
+    ),
+    "missing_scripts": (
+        "Client runtime JS was not loaded. Call demo_scripts(ch) / ch.runtime().scripts "
+        "in <head>, or ux_channel.render.kit.script_tags. Dead buttons are this."
     ),
     "rate_limited": (
         "Slow down or raise bulkhead/rate limits. Retryable; honor Retry-After."
@@ -46,16 +60,37 @@ TEACH: dict[str, str] = {
     "unavailable": (
         "Dependency down (Redis/store). Check REDIS_URL and multi-worker stores."
     ),
+    "memory_stores": (
+        "production + memory stores: once/rate/state are process-local. "
+        "Set REDIS_URL or ChannelConfig.production(...).with_redis(). "
+        "allow_memory_stores=True is single-worker only. uxchannel doctor --fail"
+    ),
+    "short_secret": (
+        "Secret shorter than 32 bytes (or a known placeholder). "
+        "Generate with secrets.token_urlsafe(48) and set UX_CHANNEL_SECRET."
+    ),
+    "require_cap_false": (
+        "require_cap=False is not a production config. Keep True; mint via "
+        "ch.control. uxchannel upgrade-check . --fail"
+    ),
+    "open_sfu_token": (
+        "Open POST /sfu/token mints rooms for anyone. Use ch.media.plugin(mode='sfu') "
+        "after your auth. Recipe: media-sfu"
+    ),
     "sfu_not_configured": (
         "Set LIVEKIT_URL + LIVEKIT_API_KEY + LIVEKIT_API_SECRET "
         "(sfu_provider='livekit') or use mode='mesh'. Recipe: media-sfu | media-mesh"
     ),
     "rtc_ticket": (
-        "Mint ch.webrtc.sign_ticket(room, sub=user) / media plugin ticket; "
+        "Mint ch.media.plugin ticket / sign_ticket(room, sub=user); "
         "enable webrtc_require_ticket in production."
     ),
     "origin": (
         "Set ChannelConfig allowed_origins / same-origin; send Origin header."
+    ),
+    "cek_missing": (
+        "ChannelConfig.cek is adapt|require but extra [cek] is not installed. "
+        "pip install 'ux-channel[cek]' or set cek='off'."
     ),
 }
 
@@ -72,6 +107,17 @@ def explain_code(code: str, *, message: str = "") -> dict[str, Any]:
         "authentication required": "unauthorized",
         "invalid capability": "invalid_capability",
         "capability expired": "capability_expired",
+        "args_hash": "cap_mismatch",
+        "sealed-args": "cap_mismatch",
+        "sealed_args": "unsigned_args",
+        "scripts": "missing_scripts",
+        "memory store": "memory_stores",
+        "allow_memory_stores": "memory_stores",
+        "short secret": "short_secret",
+        "secret too short": "short_secret",
+        "require_cap": "require_cap_false",
+        "sfu/token": "open_sfu_token",
+        "cek": "cek_missing",
     }
     c = aliases.get(c, c)
     if c not in TEACH and message:
@@ -88,6 +134,20 @@ def explain_code(code: str, *, message: str = "") -> dict[str, Any]:
             c = "rtc_ticket"
         elif "origin" in ml:
             c = "origin"
+        elif "script" in ml:
+            c = "missing_scripts"
+        elif "memory" in ml and "store" in ml:
+            c = "memory_stores"
+        elif "secret" in ml and ("short" in ml or "weak" in ml):
+            c = "short_secret"
+        elif "require_cap" in ml:
+            c = "require_cap_false"
+        elif "sfu" in ml and "token" in ml:
+            c = "open_sfu_token"
+        elif "unsigned" in ml or "sealed" in ml:
+            c = "unsigned_args"
+        elif "cek" in ml:
+            c = "cek_missing"
     teach = TEACH.get(c) or TEACH.get("unauthorized") if c == "unauthorized" else TEACH.get(c)
     if teach is None:
         teach = (
@@ -111,10 +171,18 @@ def _recipe_for(code: str) -> str | None:
         "missing_capability": "ux-dom-control",
         "capability_expired": "ux-dom-control",
         "invalid_capability": "ux-dom-control",
+        "cap_mismatch": "ux-dom-control",
+        "unsigned_args": "form",
         "validation": "form",
         "sfu_not_configured": "media-sfu",
+        "open_sfu_token": "media-sfu",
         "rtc_ticket": "media-mesh",
         "not_found": "counter",
+        "missing_scripts": "ux-dom-control",
+        "memory_stores": "production",
+        "short_secret": "production",
+        "require_cap_false": "production",
+        "cek_missing": "production",
     }.get(code)
 
 

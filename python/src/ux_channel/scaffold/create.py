@@ -383,9 +383,14 @@ Browser peers      →  WebRTC data + A/V (never via your server body)
 ## Commands
 
 ```bash
+uxchannel doctor --fail
+uxchannel upgrade-check . --fail
+export UX_CHANNEL_STRICT_DX=1
 uxchannel check --env development
 uxchannel info
 ```
+
+`ch.doctor()` is the go/no-go. Production: `UX_CHANNEL_ENV=production` + `UX_CHANNEL_SECRET` (≥32) + `REDIS_URL`. Never `require_cap=False`.
 """
 
 

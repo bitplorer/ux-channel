@@ -1,3 +1,6 @@
+<!-- pyramid -->
+Read [../../../START_HERE.md](../../../START_HERE.md) first if you are new. This is Layer 2 (encyclopedia), not the intro.
+
 # Waves 1–5 — what is real in 0.1
 
 This page is **honest about implementation depth**. Prefer this over older

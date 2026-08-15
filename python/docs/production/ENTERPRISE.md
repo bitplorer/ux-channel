@@ -1,3 +1,6 @@
+<!-- pyramid -->
+Read [../../../START_HERE.md](../../../START_HERE.md) first if you are new. This is Layer 2 (encyclopedia), not the intro.
+
 # Enterprise notes — uxchannel 0.1
 
 - Always derive **tenant / user** from server session / `Principal`, never from client-only args without membership checks.

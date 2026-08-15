@@ -35,6 +35,7 @@
     "static",
     "api",
     "catalog",
+    "cek",
     "arch"
   ],
   "packages": {
@@ -62,6 +63,7 @@
     ],
     "asgi": [
       "core",
+      "enhance_routes",
       "fastapi",
       "pipeline",
       "starlette"
@@ -97,6 +99,12 @@
       "swiper"
     ],
     "catalog": [],
+    "cek": [
+      "config",
+      "host_adapter",
+      "layer_honesty",
+      "surface_adapter"
+    ],
     "components": [
       "badge",
       "base",
@@ -119,6 +127,7 @@
       "cli",
       "codegen",
       "dashboard",
+      "doctor",
       "enterprise",
       "errors",
       "explain",
@@ -212,6 +221,7 @@
       "html_safe",
       "kit",
       "morph_ir",
+      "morph_policy",
       "placement",
       "projections",
       "renderers",
@@ -280,6 +290,7 @@
     "arch.proof": "arch",
     "arch.stamps": "arch",
     "asgi.core": "asgi",
+    "asgi.enhance_routes": "asgi",
     "asgi.fastapi": "asgi",
     "asgi.pipeline": "asgi",
     "asgi.starlette": "asgi",
@@ -309,6 +320,10 @@
     "bridges.sortable": "bridges",
     "bridges.spotlight": "bridges",
     "bridges.swiper": "bridges",
+    "cek.config": "cek",
+    "cek.host_adapter": "cek",
+    "cek.layer_honesty": "cek",
+    "cek.surface_adapter": "cek",
     "components.badge": "components",
     "components.base": "components",
     "components.compose": "components",
@@ -328,6 +343,7 @@
     "devtools.cli": "devtools",
     "devtools.codegen": "devtools",
     "devtools.dashboard": "devtools",
+    "devtools.doctor": "devtools",
     "devtools.enterprise": "devtools",
     "devtools.errors": "devtools",
     "devtools.explain": "devtools",
@@ -405,6 +421,7 @@
     "render.html_safe": "render",
     "render.kit": "render",
     "render.morph_ir": "render",
+    "render.morph_policy": "render",
     "render.placement": "render",
     "render.projections": "render",
     "render.renderers": "render",
@@ -487,6 +504,7 @@
     "bridge": "Island contracts, scaffold, guest runtime (singular package).",
     "bridges": "npm / fx / ui preset data (plural). Prefer preset gen over hand copies.",
     "catalog": "Generated package navigator (do not hand-edit catalog.json).",
+    "cek": "Optional CEK drop-in adapter (ChannelConfig.cek=off|adapt|require). Not a second Cap machine on off.",
     "components": "Optional Channel component kit (not default UI path).",
     "devtools": "Audit, CLI, observability, codegen \u2014 L5 free to churn.",
     "foundations": "Quantity, provenance, io_channel \u2014 shared non-UI primitives.",
@@ -540,6 +558,7 @@
     "devtools": "L5",
     "scaffold": "L5",
     "catalog": "L5",
+    "cek": "L3",
     "static": "L5"
   },
   "strata_legend": {
@@ -577,5 +596,5 @@
       "extension_doors_A_to_G"
     ]
   },
-  "module_count": 179
+  "module_count": 186
 }

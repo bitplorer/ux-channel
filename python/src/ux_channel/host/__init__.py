@@ -39,3 +39,20 @@ __all__ = [
     "ActionRegistry",
     "create_channel",
 ]
+
+
+def _install_doctor_go_nogo() -> None:
+    """Fold SECURITY_AUDIT go/no-go into Channel.doctor() without editing the façade blob."""
+    orig = Channel.doctor
+
+    def doctor(self):  # type: ignore[no-untyped-def]
+        report = orig(self)
+        from ux_channel.devtools.doctor import merge_go_nogo
+
+        return merge_go_nogo(report, getattr(self, "config", None))
+
+    Channel.doctor = doctor  # type: ignore[method-assign]
+
+
+_install_doctor_go_nogo()
+

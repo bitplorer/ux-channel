@@ -1,5 +1,7 @@
 # How ux-channel works — human walkthrough
 
+Read [START_HERE.md](START_HERE.md) first if you are new. This is Layer 2 (encyclopedia), not the intro.
+
 **Audience:** anyone who is *not* expected to already know this codebase.  
 **Goal:** after this document you can answer: *what happens, where, why, in what order, until when, and what you get at the end.*
 

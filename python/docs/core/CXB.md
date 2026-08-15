@@ -1,3 +1,6 @@
+<!-- pyramid -->
+Read [../../../START_HERE.md](../../../START_HERE.md) first if you are new. This is Layer 2 (encyclopedia), not the intro.
+
 # CXB — Channel eXchange Binary
 
 **Status:** normative for ux-channel **0.1**  

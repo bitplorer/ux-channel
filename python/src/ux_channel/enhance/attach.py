@@ -111,6 +111,14 @@ class EnhanceFacade:
     ) -> Continuation:
         """Mint a real host Cap for a peer continuation slot."""
         sealed = dict(args or {})
+        cfg = getattr(self.channel, "config", None)
+        # cek=require: compose Continuation via cek_surface; Cap still from host.
+        try:
+            from ux_channel.cek.surface_adapter import uses_cek_surface
+
+            use_cek = uses_cek_surface(cfg)
+        except Exception:
+            use_cek = False
         reg = getattr(self.channel, "registry", None)
         if reg is None:
             raise RuntimeError("Channel has no registry — cannot mint continuation Cap")
@@ -121,6 +129,26 @@ class EnhanceFacade:
             once=once,
             scopes=list(scopes) if scopes else None,
         )
+        if use_cek:
+            from ux_channel.cek.surface_adapter import continuation_namespace
+
+            ns = continuation_namespace(cfg)
+            # cek Continuation uses store:/event: sources.
+            mapped = {}
+            for k, v in dict(args_from or {}).items():
+                s = str(v)
+                if s.startswith("store."):
+                    s = "store:" + s[6:]
+                elif s.startswith("event."):
+                    s = "event:" + s[6:]
+                mapped[str(k)] = s
+            return ns.Continuation(
+                event=event,
+                action=action,
+                cap=cap,
+                args_from=mapped or None,
+                static_args=dict(sealed) if sealed else None,
+            )
         return Continuation(
             event=event,
             action=action,

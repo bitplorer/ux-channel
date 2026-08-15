@@ -1,3 +1,6 @@
+<!-- pyramid -->
+Read [../../../START_HERE.md](../../../START_HERE.md) first if you are new. This is Layer 2 (encyclopedia), not the intro.
+
 # Standards & RFC alignment
 
 uxchannel is **not** a SIP stack, SFU, or browser. It implements a small

@@ -1,3 +1,6 @@
+<!-- pyramid -->
+Read [../../../START_HERE.md](../../../START_HERE.md) first if you are new. This is Layer 2 (encyclopedia), not the intro.
+
 # Security audit summary — uxchannel 0.1
 
 **Scope:** server-driven UI channel (Intent → Action → Result/ops), caps, ASGI hosts, hooks, drafts/state, regions, agent/MCP surfaces.  
@@ -76,7 +79,7 @@
 
 | Sev | Risk | Owner | Mitigation |
 |-----|------|-------|------------|
-| **HIGH** | **Morph / toast XSS** if user strings embedded raw | App | Escape with `html_safe` / framework escaper; never trust client HTML |
+| **HIGH** | **Morph / toast XSS** if user strings embedded raw | App + lib | **Mitigated (opt-in)** — `morph_html_policy="strict"` strips script/on*/javascript: hrefs. Default **off** so ux-dom is not broken. `doctor()` warns when off in production. Tests: `tests/security/test_morph_policy.py`. |
 | **MED** | **Open redirect** via `https://evil.example` navigate | App | Allowlist hosts before `navigate()` / encode `Go` |
 | **MED** | **Stolen `data-channel-cap`** until expiry | App + lib | Short TTL, HTTPS, `bind_cap_to_principal`, `once` for money actions |
 | **MED** | **Multi-worker** once/idempotency/rate/state | Deploy | Redis (or equivalent); do not use memory stores in multi-worker prod |
@@ -146,18 +149,18 @@ Client apply ops ── morph / toast / navigate (dangerous schemes already stri
 | `tests/stress/test_chaos_audit.py` | multi-instance, form sealed args, prod leak |
 | `tests/security/test_extreme_hardening.py` | once-cap, sanitize, Go/javascript |
 
-CI expectation: **full `pytest` green** (currently 332+).
+CI expectation: **gate green** (`make verify`). Security residuals: **`make verify-sec`** (not inside the default gate). Full suite remains available as `pytest tests -o testpaths=tests`.
 
 ---
 
 ## Recommended next hardening (post-0.1)
 
-1. Optional **HTML sanitizer policy** for morph (strict mode) without breaking ux-dom.  
+1. ~~Optional **HTML sanitizer policy** for morph (strict mode) without breaking ux-dom.~~ **Done (opt-in)** — `ChannelConfig.morph_html_policy = "strict"`. Default off; doctor warns.  
 2. ~~**Navigate host allowlist** config.~~ **Done** — `navigate_allowed_hosts` + production derives from `allowed_origins`.  
 3. Cap **binding to session cookie** / CSRF double-submit beyond custom header.  
-4. First-class **Redis** rate limit + nonce in default production factory.  
+4. ~~First-class **Redis** rate limit + nonce in default production factory.~~ **Done** — `REDIS_URL` auto-wires nonce/rate/idempotency/push; `production()` default TTL 900s; `doctor --fail` refuses silent memory stores.  
 5. ~~Structured **security event** log stream~~ **Done** — bus + emitters for cap/origin/CSRF/rate/role claim/agent confirm/WS.  
-6. Cap session binding (`bind_cap_to_principal=True` as production default when auth is always on).
+6. Cap session binding (`bind_cap_to_principal=True` as production default when auth is always on). Recipe: `bind_cap_to_principal=True` on production config.
 
 ---
 

@@ -2,24 +2,74 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>ux-channel enhance demo \u2014 search + continuations + perception</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Search — ux-channel</title>
   <style>
-    body { font: 15px/1.45 system-ui, sans-serif; max-width: 640px; margin: 40px auto; padding: 0 16px; color: #0f172a; }
-    h1 { font-size: 1.25rem; }
-    input { width: 100%; padding: 10px 12px; font-size: 16px; border: 1px solid #cbd5e1; border-radius: 8px; }
-    #results { margin-top: 12px; min-height: 120px; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; }
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { margin: 0; overflow-x: hidden; }
+    body {
+      font: 16px/1.45 system-ui, sans-serif;
+      max-width: 640px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 20px 16px 48px;
+      color: #0f172a;
+      background: #f8fafc;
+    }
+    h1 { font-size: 1.2rem; margin: 0 0 8px; letter-spacing: -0.02em; }
+    .lede { color: #475569; margin: 0 0 16px; }
+    label { display: block; font-weight: 600; margin-bottom: 6px; }
+    input[type="search"] {
+      width: 100%;
+      min-height: 44px;
+      padding: 12px 14px;
+      font-size: 16px;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      background: #fff;
+    }
+    #results {
+      margin-top: 12px;
+      min-height: 140px;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 14px;
+      background: #fff;
+    }
     #results.uxc-pending { outline: 2px dashed #94a3b8; }
     #results[data-uxc-shadow="1"] { opacity: 0.55; }
-    .meta { color: #64748b; font-size: 13px; margin-top: 8px; }
-    code { background: #f1f5f9; padding: 1px 4px; border-radius: 4px; }
+    #results.is-empty { color: #64748b; }
+    #results.is-error { border-color: #fca5a5; background: #fef2f2; color: #991b1b; }
+    #commit {
+      margin-top: 12px;
+      min-height: 44px;
+      width: 100%;
+      padding: 12px 16px;
+      font-size: 16px;
+      font-weight: 600;
+      border: 0;
+      border-radius: 10px;
+      background: #0f172a;
+      color: #fff;
+    }
+    #commit[disabled] { background: #94a3b8; color: #f8fafc; }
+    .meta { color: #64748b; font-size: 13px; margin-top: 12px; }
+    code { background: #e2e8f0; padding: 1px 5px; border-radius: 4px; }
+    ul { margin: 0; padding-left: 1.1em; }
+    @media (max-width: 390px) {
+      body { padding: 16px 12px 40px; }
+      h1 { font-size: 1.1rem; }
+    }
   </style>
 </head>
 <body>
-  <h1>Enhance plane demo</h1>
-  <p>Type to search. Intents coalesce (perception). Host returns morph + continuation; timer fires \u2192 commit.</p>
-  <input id="q" type="search" placeholder="Search products\u2026" autocomplete="off" />
-  <div id="results"><em>Start typing\u2026</em></div>
-  <p class="meta">Load order: kernel \u2192 perception \u2192 continuations \u2192 dom-drivers. Session: <code id="sid">\u2014</code></p>
+  <h1>Product search</h1>
+  <p class="lede">Type a name. Results update as you type. Commit uses a once-cap — the button disables after one use.</p>
+  <label for="q">Find a product</label>
+  <input id="q" type="search" placeholder="Search products…" autocomplete="off" enterkeyhint="search" />
+  <div id="results" class="is-empty" data-state="empty"><em>Nothing yet — start typing.</em></div>
+  <button id="commit" type="button" disabled>Commit search</button>
+  <p class="meta">Session <code id="sid">—</code> · once-cap <code id="capstate">armed</code></p>
 
   <script src="../../python/src/ux_channel/static/ux-peer-kernel.js"></script>
   <script src="../../python/src/ux_channel/static/ux-peer-perception.js"></script>
@@ -54,23 +104,53 @@
         "Quantum lamp", "Solid-state cell", "Green hydrogen kit"
       ];
       var armedCap = "demo-cap-" + sessionId;
+      var onceUsed = false;
+      var lastQuery = "";
+
+      function setState(name) {
+        var el = document.getElementById("results");
+        el.classList.remove("is-empty", "is-error", "uxc-pending");
+        if (name === "empty") el.classList.add("is-empty");
+        if (name === "error") el.classList.add("is-error");
+        if (name === "pending") el.classList.add("uxc-pending");
+        el.setAttribute("data-state", name);
+      }
+
+      function markOnceUsed() {
+        onceUsed = true;
+        var btn = document.getElementById("commit");
+        btn.disabled = true;
+        btn.textContent = "Committed — once-cap used";
+        document.getElementById("capstate").textContent = "used";
+      }
 
       function hostHandle(intent) {
         var action = intent.action || "";
         var args = intent.args || {};
         if (action === "search.preview") {
-          var q = String(args.q || "").toLowerCase();
-          var hits = HOST_ITEMS.filter(function (x) { return !q || x.toLowerCase().indexOf(q) >= 0; });
+          var q = String(args.q || "");
+          lastQuery = q;
+          if (!q.trim()) {
+            setState("empty");
+            return {
+              v: "1", ok: true,
+              ops: [{ op: "morph", target: "#results", html: "<em>Nothing yet — start typing.</em>" }]
+            };
+          }
+          var hits = HOST_ITEMS.filter(function (x) {
+            return x.toLowerCase().indexOf(q.toLowerCase()) >= 0;
+          });
           var html = hits.length
             ? "<ul>" + hits.map(function (h) { return "<li>" + h + "</li>"; }).join("") + "</ul>"
-            : "<em>No matches</em>";
+            : "<em>No matches for “" + q.replace(/</g, "") + "”</em>";
+          setState(hits.length ? "ok" : "empty");
           return {
             v: "1", ok: true,
             ops: [
               { op: "morph", target: "#results", html: html },
-              { op: "toast", message: "Preview: " + hits.length + " hit(s)", level: "info", duration_ms: 1600 }
+              { op: "toast", message: hits.length + " hit(s)", level: "info", duration_ms: 1200 }
             ],
-            continuations: [{
+            continuations: onceUsed ? [] : [{
               event: "timer.fired",
               action: "search.commit",
               cap: armedCap,
@@ -80,15 +160,30 @@
           };
         }
         if (action === "search.commit") {
+          if (onceUsed) {
+            setState("error");
+            return {
+              v: "1", ok: false,
+              error: { code: "unauthorized", message: "once cap already used" },
+              ops: [{ op: "morph", target: "#results", html: "<strong>That search was already committed.</strong>" }]
+            };
+          }
+          markOnceUsed();
+          setState("ok");
           return {
             v: "1", ok: true,
             ops: [
-              { op: "toast", message: "Committed: " + (args.q || ""), level: "success", duration_ms: 2200 },
-              { op: "set_text", target: "#results", text: "Committed search for \u201c" + (args.q || "") + "\u201d" }
+              { op: "toast", message: "Committed: " + (args.q || ""), level: "success", duration_ms: 1800 },
+              { op: "set_text", target: "#results", text: "Committed search for “" + (args.q || "") + "”" }
             ]
           };
         }
-        return { v: "1", ok: false, ops: [{ op: "toast", message: "unknown action", level: "error" }] };
+        setState("error");
+        return {
+          v: "1", ok: false,
+          error: { code: "not_found", message: "unknown action" },
+          ops: [{ op: "morph", target: "#results", html: "<strong>Something went wrong.</strong> Unknown action." }]
+        };
       }
 
       function submitIntent(intent) {
@@ -100,26 +195,35 @@
 
       var cont = uxcContinuations.create({ submitIntent: submitIntent });
 
-      var hello = kernel.hello ? kernel.hello() : {};
-      console.log("PeerHello", hello);
-
       var input = document.getElementById("q");
       var debounceTimer = null;
       input.addEventListener("input", function () {
         var q = input.value;
+        setState("pending");
         perc.setPending("#results", true);
-        perc.shadowMorph("#results", "<em>Searching \u201c" + q.replace(/</g, "") + "\u201d\u2026</em>");
+        perc.shadowMorph("#results", "<em>Searching…</em>");
         perc.coalesceIntent("search", {
           v: "1",
           action: "search.preview",
           args: { q: q },
           cap: armedCap
         }, submitIntent);
-
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(function () {
-          cont.handleEvent({ type: "timer.fired", q: q });
-        }, 900);
+          if (!onceUsed && q.trim()) {
+            document.getElementById("commit").disabled = false;
+          }
+        }, 200);
+      });
+
+      document.getElementById("commit").addEventListener("click", function () {
+        if (onceUsed) return;
+        submitIntent({
+          v: "1",
+          action: "search.commit",
+          args: { q: lastQuery || input.value },
+          cap: armedCap
+        });
       });
     })();
   </script>

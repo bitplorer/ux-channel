@@ -1,3 +1,6 @@
+<!-- pyramid -->
+Read [../../../START_HERE.md](../../../START_HERE.md) first if you are new. This is Layer 2 (encyclopedia), not the intro.
+
 # Intent outbox
 
 **Power module:** `from ux_channel.transport.outbox import MemoryIntentOutbox, drain_outbox, attach_outbox`

@@ -753,6 +753,14 @@ class ActionRegistry:
         if cfg is not None:
             hosts = tuple(getattr(cfg, "navigate_allowed_hosts", ()) or ())
         result.ops = sanitize_op_hrefs(list(result.ops), allowed_hosts=hosts)
+        # Opt-in morph HTML policy (SECURITY_AUDIT HIGH residual). Default off.
+        policy = "off"
+        if cfg is not None:
+            policy = str(getattr(cfg, "morph_html_policy", "off") or "off")
+        if policy == "strict":
+            from ux_channel.render.morph_policy import apply_morph_policy
+
+            result.ops = apply_morph_policy(list(result.ops), policy=policy)
 
         tr = _trace_api().get_tracer()
         if tr.enabled:

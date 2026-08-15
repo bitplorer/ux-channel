@@ -199,6 +199,13 @@ class ChannelConfig:
     proofs: str = "auto"  # auto | require | off
     flow: str = "auto"  # auto | off  (meta.flow_id = correlation only)
     proof_secret: Optional[str] = None
+    # CEK drop-in (Phase 1). off = today's path (zero new imports).
+    # adapt = extra [cek] live, Channel Cap remains authority.
+    # require = Cap + enhance compose go through cek-host / cek-surface.
+    cek: str = "off"
+    # Morph / toast HTML policy: off (default, ux-dom safe) | strict (strip script/on*).
+    # Production factory leaves this off so ux-dom is not broken; doctor warns.
+    morph_html_policy: str = "off"
 
     def validate(self) -> "ChannelConfig":
         """Raise ValueError if config is unsafe for declared environment."""
@@ -211,6 +218,13 @@ class ChannelConfig:
             raise ValueError('proofs must be "auto", "require", or "off"')
         if self.flow not in ("auto", "off"):
             raise ValueError('flow must be "auto" or "off"')
+        from ux_channel.cek.config import parse_cek
+
+        object.__setattr__(self, "cek", parse_cek(self.cek))
+        policy = (self.morph_html_policy or "off").lower()
+        if policy not in ("off", "strict"):
+            raise ValueError('morph_html_policy must be "off" or "strict"')
+        object.__setattr__(self, "morph_html_policy", policy)
         if self.proof_secret is not None:
             if self.proof_secret == self.secret:
                 raise ValueError("proof_secret must differ from cap secret")
@@ -327,6 +341,8 @@ class ChannelConfig:
             if hosts:
                 kwargs["navigate_allowed_hosts"] = tuple(hosts)
         # observe defaults off; allow_memory_stores must be explicit
+        # Stolen-cap residual: shorter default TTL (15 min) unless caller set one.
+        kwargs.setdefault("max_cap_age", 900)
         return cls(secret=secret, environment="production", **kwargs).validate()
 
     @classmethod
@@ -477,6 +493,8 @@ class ChannelConfig:
             "proofs": os.environ.get(f"{prefix}PROOFS", "auto"),
             "flow": os.environ.get(f"{prefix}FLOW", "auto"),
             "proof_secret": os.environ.get(f"{prefix}PROOF_SECRET") or None,
+            "cek": os.environ.get(f"{prefix}CEK", "off"),
+            "morph_html_policy": os.environ.get(f"{prefix}MORPH_HTML_POLICY", "off"),
         }
         if base["environment"] == "development":
             base.setdefault("allow_memory_stores", True)

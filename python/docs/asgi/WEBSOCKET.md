@@ -1,3 +1,6 @@
+<!-- pyramid -->
+Read [../../../START_HERE.md](../../../START_HERE.md) first if you are new. This is Layer 2 (encyclopedia), not the intro.
+
 # WebSocket — uxchannel 0.1
 
 Duplex channel for **live Results** (same bus as SSE) and optional **Intent** dispatch.

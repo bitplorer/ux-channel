@@ -47,6 +47,7 @@
     "bridge": "Island contracts, scaffold, guest runtime (singular package).",
     "bridges": "npm / fx / ui preset data (plural). Prefer preset gen over hand copies.",
     "catalog": "Generated package navigator (do not hand-edit catalog.json).",
+    "cek": "Optional CEK drop-in adapter (ChannelConfig.cek=off|adapt|require). Not a second Cap machine on off.",
     "components": "Optional Channel component kit (not default UI path).",
     "devtools": "Audit, CLI, observability, codegen \u2014 L5 free to churn.",
     "foundations": "Quantity, provenance, io_channel \u2014 shared non-UI primitives.",
@@ -87,6 +88,7 @@
     "devtools": "L5",
     "scaffold": "L5",
     "catalog": "L5",
+    "cek": "L3",
     "static": "L5"
   },
   "packages": {
@@ -114,6 +116,7 @@
     },
     "asgi": {
       "core": "ux_channel.asgi.core",
+      "enhance_routes": "ux_channel.asgi.enhance_routes",
       "fastapi": "ux_channel.asgi.fastapi",
       "pipeline": "ux_channel.asgi.pipeline",
       "starlette": "ux_channel.asgi.starlette"
@@ -149,6 +152,12 @@
       "swiper": "ux_channel.bridges.swiper"
     },
     "catalog": {},
+    "cek": {
+      "config": "ux_channel.cek.config",
+      "host_adapter": "ux_channel.cek.host_adapter",
+      "layer_honesty": "ux_channel.cek.layer_honesty",
+      "surface_adapter": "ux_channel.cek.surface_adapter"
+    },
     "components": {
       "badge": "ux_channel.components.badge",
       "base": "ux_channel.components.base",
@@ -171,6 +180,7 @@
       "cli": "ux_channel.devtools.cli",
       "codegen": "ux_channel.devtools.codegen",
       "dashboard": "ux_channel.devtools.dashboard",
+      "doctor": "ux_channel.devtools.doctor",
       "enterprise": "ux_channel.devtools.enterprise",
       "errors": "ux_channel.devtools.errors",
       "explain": "ux_channel.devtools.explain",
@@ -264,6 +274,7 @@
       "html_safe": "ux_channel.render.html_safe",
       "kit": "ux_channel.render.kit",
       "morph_ir": "ux_channel.render.morph_ir",
+      "morph_policy": "ux_channel.render.morph_policy",
       "placement": "ux_channel.render.placement",
       "projections": "ux_channel.render.projections",
       "renderers": "ux_channel.render.renderers",

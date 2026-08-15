@@ -1,3 +1,6 @@
+<!-- pyramid -->
+Read [../../../START_HERE.md](../../../START_HERE.md) first if you are new. This is Layer 2 (encyclopedia), not the intro.
+
 # WebRTC (P2P) — data + audio/video
 
 uxchannel ships a **WebRTC plane** out of the box:

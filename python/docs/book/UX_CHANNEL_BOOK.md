@@ -1,3 +1,6 @@
+<!-- pyramid -->
+Read [../../../START_HERE.md](../../../START_HERE.md) first if you are new. This is Layer 2 (encyclopedia), not the intro.
+
 # The ux-channel Book (0.1)
 
 > Library version **0.1.0**. Canonical API: region · on · done · control · draft.edit.

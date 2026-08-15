@@ -1,3 +1,6 @@
+<!-- pyramid -->
+Read [../../../START_HERE.md](../../../START_HERE.md) first if you are new. This is Layer 2 (encyclopedia), not the intro.
+
 # Enterprise live + suite pass (0.1)
 
 Recorded verification after multi-JS / multi-region hardening.

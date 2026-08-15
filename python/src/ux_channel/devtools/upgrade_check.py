@@ -79,6 +79,12 @@ _RULES: list[tuple[str, re.Pattern[str], str, str]] = [
         "open HTTP mint is easy to misuse",
         "ch.media.plugin(mode='sfu') after your auth",
     ),
+    (
+        "prod-memory-stores",
+        re.compile(r"""ChannelConfig\.production\([^)]*allow_memory_stores\s*=\s*True"""),
+        "production factory + memory stores is a multi-worker no-go",
+        "REDIS_URL / .with_redis() or keep allow_memory_stores only for single-worker",
+    ),
 ]
 
 
