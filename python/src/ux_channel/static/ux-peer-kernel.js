@@ -2,6 +2,24 @@
  * ux-channel peer kernel — no DOM.
  * Drivers (web.v1 / agent.v1) hold surface behavior.
  * SPEC: peer-kernel, seq, timer, invoke, queue, safeHref.
+ *
+ * ─────────────────────────────────────────────────────────────
+ * EXTENSION (Wave C+) — perception is NOT in this file.
+ *
+ * Perception-only IR (coalesce, shadow, pending, filter_cached,
+ * toast_fade) lives in **ux-peer-perception.js** and attaches via:
+ *
+ *   var kernel = uxcPeer.createPeerKernel({ drivers: ... });
+ *   var perc   = uxcPerception.attach(kernel, { coalesceMs: 120 });
+ *
+ * Continuations (slot-fill) live in **ux-peer-continuations.js**:
+ *
+ *   var cont = uxcContinuations.create({ submitIntent: ... });
+ *   cont.armFromResult(result);
+ *   cont.handleEvent({ type: "timer.fired", detail: {...} });
+ *
+ * Do not merge perception into this kernel. Authority apply stays here.
+ * ─────────────────────────────────────────────────────────────
  */
 (function (global) {
   "use strict";
@@ -41,6 +59,7 @@
       session_id: sessionId,
       reject: null,
     };
+    var hooks = { beforeApply: null, afterApply: null };
 
     function withinBudget(ops) {
       var count = 0;
@@ -84,6 +103,14 @@
 
     function applyResult(result) {
       ctx.reject = null;
+      if (hooks.beforeApply) {
+        try {
+          var maybe = hooks.beforeApply(result);
+          if (maybe && typeof maybe === "object") result = maybe;
+        } catch (e) {
+          ctx.log.push(["hook_before_err", String(e)]);
+        }
+      }
       if (proofsRequired) {
         if (!proofVerify || !proofVerify(result, sessionId, gen)) {
           ctx.reject = "proof";
@@ -101,6 +128,11 @@
         (result.ops || []).forEach(applyOp);
       } finally {
         lock = false;
+      }
+      if (hooks.afterApply) {
+        try { hooks.afterApply(result); } catch (e) {
+          ctx.log.push(["hook_after_err", String(e)]);
+        }
       }
     }
 
@@ -137,23 +169,17 @@
       onResult: onResult,
       bumpGen: bumpGen,
       hello: hello,
-      get ctx() {
-        return ctx;
-      },
-      get gen() {
-        return gen;
-      },
+      hooks: hooks,
+      get ctx() { return ctx; },
+      get gen() { return gen; },
     };
   }
 
   function makeWebDrivers(applyOps) {
     return {
-      toast: function (op, ctx) {
-        ctx.log.push(["toast", op.message, op.level || "info"]);
-      },
-      morph: function (op, ctx) {
-        ctx.log.push(["morph", op.target, op.html]);
-      },
+      toast: function (op, ctx) { ctx.log.push(["toast", op.message, op.level || "info"]); },
+      morph: function (op, ctx) { ctx.log.push(["morph", op.target, op.html]); },
+      swap: function (op, ctx) { ctx.log.push(["swap", op.target, op.html, op.swap]); },
       navigate: function (op, ctx) {
         if (ctx.result_ok === false) return;
         var h = safeHref(op.href);
@@ -169,15 +195,12 @@
         if (ctx.result_ok === false) return;
         ctx.log.push(["reload"]);
       },
-      focus: function (op, ctx) {
-        ctx.log.push(["focus", op.target]);
-      },
-      set_text: function (op, ctx) {
-        ctx.log.push(["set_text", op.target, op.text]);
-      },
-      dispatch: function (op, ctx) {
-        ctx.log.push(["dispatch", op.name]);
-      },
+      focus: function (op, ctx) { ctx.log.push(["focus", op.target]); },
+      set_text: function (op, ctx) { ctx.log.push(["set_text", op.target, op.text]); },
+      set_attr: function (op, ctx) { ctx.log.push(["set_attr", op.target, op.attrs]); },
+      remove: function (op, ctx) { ctx.log.push(["remove", op.target]); },
+      dispatch: function (op, ctx) { ctx.log.push(["dispatch", op.name]); },
+      "signal.set": function (op, ctx) { ctx.log.push(["signal.set", op.path, op.value]); },
       "timer.set": function (op, ctx) {
         var ms = Math.max(0, Math.min(Number(op.ms) || 0, 600000));
         var id = String(op.id || "t");
@@ -192,16 +215,23 @@
         ctx.timers[id] = { ms: ms, fire: fire, gen: g };
         if (ms === 0) fire();
       },
-      "timer.clear": function (op, ctx) {
-        delete ctx.timers[String(op.id || "")];
-      },
-      invoke: function (op, ctx) {
-        ctx.log.push(["invoke", op.ref, op.method, op.args]);
-      },
+      "timer.clear": function (op, ctx) { delete ctx.timers[String(op.id || "")]; },
+      "delta.patch": function (op, ctx) { ctx.log.push(["delta.patch", op.target, op.base_hash]); },
+      "delta.signal": function (op, ctx) { ctx.log.push(["delta.signal", op.path, op.value]); },
+      invoke: function (op, ctx) { ctx.log.push(["invoke", op.ref, op.method, op.args]); },
+      noop: function (op, ctx) { ctx.log.push(["noop"]); },
     };
   }
 
-  var api = { createPeerKernel: createPeerKernel, makeWebDrivers: makeWebDrivers, safeHref: safeHref };
+  var api = {
+    createPeerKernel: createPeerKernel,
+    makeWebDrivers: makeWebDrivers,
+    safeHref: safeHref,
+    companions: {
+      perception: "ux-peer-perception.js",
+      continuations: "ux-peer-continuations.js",
+    },
+  };
   if (typeof global !== "undefined") global.uxcPeer = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;
 })(typeof globalThis !== "undefined" ? globalThis : this);
