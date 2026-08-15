@@ -171,6 +171,12 @@ def create_channel(
 
         reg.before(rate_limit_hook(redis_limiter))  # type: ignore[arg-type]
 
+    # CEK Phase 1: Cap adapter (off = no import of cek_host).
+    if mount_config is not None and getattr(mount_config, "cek", "off") != "off":
+        from ux_channel.cek.host_adapter import apply_host_adapter
+
+        apply_host_adapter(reg, mount_config)
+
     # Wave 1: WS rate limits + Redis ticket revocation
     if mount_config is not None:
         try:
