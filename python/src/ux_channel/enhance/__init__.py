@@ -8,6 +8,7 @@ Load order for peer companions (browser)::
     ux-peer-kernel.js        # authority apply only
     ux-peer-perception.js    # SEPARATE perception IR
     ux-peer-continuations.js # SEPARATE slot-fill
+    ux-peer-dom-drivers.js   # optional real DOM bindings
 """
 from __future__ import annotations
 
@@ -22,6 +23,7 @@ from ux_channel.enhance.negotiation import PeerHello, SurfaceSet, negotiate_ops
 from ux_channel.enhance.causal import Trace, Hop, attach_trace, new_trace
 from ux_channel.enhance.delta import region_hash, prefer_delta, peer_wants_deltas
 from ux_channel.enhance.recorder import SessionRecorder, SessionEvent
+from ux_channel.enhance.handshake import PeerSession, HandshakeRegistry
 
 __all__ = [
     "Continuation",
@@ -42,4 +44,6 @@ __all__ = [
     "peer_wants_deltas",
     "SessionRecorder",
     "SessionEvent",
+    "PeerSession",
+    "HandshakeRegistry",
 ]
