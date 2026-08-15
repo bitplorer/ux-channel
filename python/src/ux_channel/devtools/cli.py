@@ -201,21 +201,60 @@ def cmd_scaffold_check(args: argparse.Namespace) -> int:
 
 
 def cmd_doctor(args: argparse.Namespace) -> int:
-    """Print Channel.doctor() for a throwaway boot (DX health)."""
+    """Print Channel.doctor() — go/no-go matches SECURITY_AUDIT deploy list."""
     from fastapi import FastAPI
 
     from ux_channel import Channel, ChannelConfig
+    from ux_channel.devtools.doctor import production_go_nogo
 
     secret = args.secret or "doctor-dev-secret-key-32chars-min!!"
-    cfg = ChannelConfig.development(
-        secret=secret,
-        allow_memory_stores=True,
-        webrtc_enabled=True,
-    )
+    env = (getattr(args, "env", None) or "development").lower()
+    if env == "production":
+        kwargs = {}
+        if getattr(args, "allow_memory", False):
+            kwargs["allow_memory_stores"] = True
+        try:
+            cfg = ChannelConfig.production(secret, **kwargs)
+        except ValueError as exc:
+            import json
+
+            report = {
+                "ok": False,
+                "go": False,
+                "no_go": [str(exc)],
+                "hints": [str(exc), "uxchannel explain short_secret"],
+            }
+            print(json.dumps(report, indent=2, default=str))
+            return 1 if getattr(args, "fail", False) else 0
+    else:
+        cfg = ChannelConfig.development(
+            secret=secret,
+            allow_memory_stores=True,
+            webrtc_enabled=True,
+        )
     ch = Channel.boot(FastAPI(), config=cfg)
     import json
 
-    print(json.dumps(ch.doctor(), indent=2, default=str))
+    report = ch.doctor()
+    # Always include the standalone checklist (works even if façade patch missed).
+    gn = production_go_nogo(cfg)
+    report.setdefault("go", gn["go"])
+    report.setdefault("no_go", gn["no_go"])
+    print(json.dumps(report, indent=2, default=str))
+    if getattr(args, "fail", False) and not report.get("ok", True):
+        print("doctor: NO-GO", file=sys.stderr)
+        return 1
+    return 0
+
+
+def cmd_explain(args: argparse.Namespace) -> int:
+    """Never silent — print the teachable fix for a first-week failure."""
+    from ux_channel.devtools.explain import explain_code
+
+    report = explain_code(str(args.code))
+    import json
+
+    print(json.dumps(report, indent=2, default=str))
     return 0
 
 
@@ -731,9 +770,29 @@ def main(argv: Optional[list[str]] = None) -> int:
     p.add_argument("--template", default=None)
     p.set_defaults(func=cmd_scaffold_check)
 
-    p = sub.add_parser("doctor", help="DX health snapshot (diagnose + hints)")
-    p.add_argument("--secret", default="", help="dev secret for throwaway boot")
+    p = sub.add_parser("doctor", help="DX health snapshot — go/no-go ≡ SECURITY_AUDIT")
+    p.add_argument("--secret", default="", help="secret for throwaway boot")
+    p.add_argument(
+        "--env",
+        default="development",
+        choices=("development", "production"),
+        help="which factory to doctor (production exercises the deploy checklist)",
+    )
+    p.add_argument(
+        "--allow-memory",
+        action="store_true",
+        help="pass allow_memory_stores=True (single-worker prod opt-in)",
+    )
+    p.add_argument(
+        "--fail",
+        action="store_true",
+        help="exit 1 when the checklist is NO-GO (CI)",
+    )
     p.set_defaults(func=cmd_doctor)
+
+    p = sub.add_parser("explain", help="teach a failure code (what / why / the one fix)")
+    p.add_argument("code", help="error code or message, e.g. missing_scripts")
+    p.set_defaults(func=cmd_explain)
 
     p = sub.add_parser(
         "profile",
