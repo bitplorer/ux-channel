@@ -1,6 +1,6 @@
-# Enhancement Waves A–G — implementation map
+# Enhancement Waves A\u2013G \u2014 implementation map
 
-Branch: `enhance/waves-a-g-peer-ir`
+Branch: `enhance/waves-a-g-peer-ir` \u00b7 PR: https://github.com/bitplorer/ux-channel/pull/3
 
 | Wave | Package / file | Status |
 |------|----------------|--------|
@@ -15,12 +15,26 @@ Branch: `enhance/waves-a-g-peer-ir`
 ## Separation invariant (Wave C)
 
 ```
-ux-peer-kernel.js          → authority apply only
-ux-peer-perception.js      → perception attach() wrapper
-ux-peer-continuations.js   → slot-fill only
+ux-peer-kernel.js          \u2192 authority apply only
+ux-peer-perception.js      \u2192 perception attach() wrapper  (SEPARATE file)
+ux-peer-continuations.js   \u2192 slot-fill only               (SEPARATE file)
 ```
 
-Kernel documents companions; perception never inlined.
+Kernel documents companions via `uxcPeer.companions`; perception never inlined.
+
+## Client load order
+
+```html
+<script src="/ux-channel/static/ux-peer-kernel.js"></script>
+<script src="/ux-channel/static/ux-peer-perception.js"></script>
+<script src="/ux-channel/static/ux-peer-continuations.js"></script>
+```
+
+```js
+var kernel = uxcPeer.createPeerKernel({ drivers: uxcPeer.makeWebDrivers() });
+var perc  = uxcPerception.attach(kernel, { coalesceMs: 120 });
+var cont  = uxcContinuations.create({ submitIntent: postIntent });
+```
 
 ## Tests
 
@@ -28,7 +42,7 @@ Kernel documents companions; perception never inlined.
 cd python && PYTHONPATH=src python -m pytest tests/gate/test_enhance_waves.py -q
 ```
 
-## Non-goals in this branch
+## Non-goals
 
 - No hard dependency on cek-surface
 - No root `__all__` growth
