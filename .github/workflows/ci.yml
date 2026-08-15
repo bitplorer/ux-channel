@@ -41,3 +41,20 @@ jobs:
       # Live HTTP is flaky in some runners if port binds fail; still run when possible
       - name: Live HTTP smoke
         run: ./verify.sh --http
+
+  verify-sec:
+    name: security residuals (not the default gate)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install Python host test deps
+        run: python3 -m pip install -q -r requirements-dev.txt
+      - name: make verify-sec
+        env:
+          PYTHONPATH: ${{ github.workspace }}/python/src
+        run: make verify-sec

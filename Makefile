@@ -1,6 +1,6 @@
 # Convenience targets — prefer these over remembering commands.
 # Policy: AUTOMATION.md — ceremonial outputs are regenerated, not hand-edited.
-.PHONY: help health layout longevity regen sync-map verify verify-http peer-demo peer-stop \
+.PHONY: help health layout longevity regen sync-map verify verify-http verify-sec peer-demo peer-stop \
 	test-rust test-python test-python-gate test-python-host python-path cxb-regen
 
 help:
@@ -11,6 +11,7 @@ help:
 	@echo "  make sync-map          - packages ← disk, then regen (opt-in inventory)"
 	@echo "  make longevity         - strata + no eager L4 in core"
 	@echo "  make verify            - health + law + Python gate + Rust (CI)"
+	@echo "  make verify-sec        - pentest + extreme_hardening (CI on main; NOT the default gate)"
 	@echo "  make verify-http       - verify + live peer + demo forward"
 	@echo "  make cxb-regen         - rebuild conformance/expected/cxb from oracle"
 	@echo "  make test-rust         - cargo test --lib --tests"
@@ -42,6 +43,9 @@ verify: health layout longevity
 
 verify-http: health layout
 	./verify.sh --http
+
+verify-sec:
+	cd python && PYTHONPATH=src python3 -m pytest tests/security/test_security_pentest.py tests/security/test_extreme_hardening.py tests/security/test_morph_policy.py tests/security/test_production_memory_stores.py -q
 
 test-rust:
 	cd rust && cargo test --lib --tests
