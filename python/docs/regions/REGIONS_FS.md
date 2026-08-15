@@ -1,3 +1,6 @@
+<!-- pyramid -->
+Read [../../../START_HERE.md](../../../START_HERE.md) first if you are new. This is Layer 2 (encyclopedia), not the intro.
+
 # File-based regions (opt-in shell)
 
 **Core unchanged:** Intent door, `@ch.on`, hand-mounted `Region`, bridges.

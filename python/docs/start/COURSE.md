@@ -1,3 +1,6 @@
+<!-- pyramid -->
+Read [../../../START_HERE.md](../../../START_HERE.md) first if you are new. This is Layer 2 (encyclopedia), not the intro.
+
 **First-time users:** [START_HERE.md](../../../START_HERE.md) (mental model, caps, mistakes, checklist).
 
 # Course correction — long-term architecture (0.1)

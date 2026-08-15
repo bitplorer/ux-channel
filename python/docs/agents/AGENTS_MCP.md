@@ -1,3 +1,6 @@
+<!-- pyramid -->
+Read [../../../START_HERE.md](../../../START_HERE.md) first if you are new. This is Layer 2 (encyclopedia), not the intro.
+
 # Agents + MCP (full surface)
 
 AX application remains **`agents(ch)`**. MCP is an optional **HTTP/JSON-RPC viewport**

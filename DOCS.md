@@ -1,5 +1,10 @@
 # Documentation map
 
+Layer 0: [README.md](README.md) (one screen) + **[START_HERE.md](START_HERE.md)** (the only intro).  
+Layer 1: [MENTAL_MODEL.md](MENTAL_MODEL.md) · [PUBLIC_API_FREEZE.md](PUBLIC_API_FREEZE.md) · [GOLDEN_PATH](python/docs/start/GOLDEN_PATH.md) · [SECURITY_AUDIT](python/docs/security/SECURITY_AUDIT.md).  
+Layer 2: everything below — encyclopedia. Read START_HERE first if you are new.  
+Scorecard: [docs/S_TIER_SCORECARD.md](docs/S_TIER_SCORECARD.md).
+
 ## Start
 
 | Doc | Topic |

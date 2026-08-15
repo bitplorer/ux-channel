@@ -1,3 +1,6 @@
+<!-- pyramid -->
+Read [../../../START_HERE.md](../../../START_HERE.md) first if you are new. This is Layer 2 (encyclopedia), not the intro.
+
 # Channel components — uxchannel 0.1
 
 Optional widgets under `ux_channel.components` (Counter, Flash, forms, …).

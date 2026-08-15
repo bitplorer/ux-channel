@@ -1,3 +1,6 @@
+<!-- pyramid -->
+Read [../../../START_HERE.md](../../../START_HERE.md) first if you are new. This is Layer 2 (encyclopedia), not the intro.
+
 # Three surfaces · one ceiling
 
 **Button ≡ Agent ≡ Adapter event** — same `@ch.on` action, same caps/scopes.

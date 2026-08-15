@@ -1,3 +1,6 @@
+<!-- pyramid -->
+Read [../../../START_HERE.md](../../../START_HERE.md) first if you are new. This is Layer 2 (encyclopedia), not the intro.
+
 # WebRTC security (ux-channel)
 
 Practical checklist + answers to **DTLS certificate pinning**, **simulcast**, and

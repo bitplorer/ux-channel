@@ -1,3 +1,6 @@
+<!-- pyramid -->
+Read [../../../START_HERE.md](../../../START_HERE.md) first if you are new. This is Layer 2 (encyclopedia), not the intro.
+
 # Principles — uxchannel 0.1
 
 These principles match the implementation (see `docs/start/COURSE.md`).

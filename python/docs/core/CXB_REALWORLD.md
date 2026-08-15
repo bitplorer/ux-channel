@@ -1,3 +1,6 @@
+<!-- pyramid -->
+Read [../../../START_HERE.md](../../../START_HERE.md) first if you are new. This is Layer 2 (encyclopedia), not the intro.
+
 # CXB real-world benchmarks
 
 > **Normative wire format:** see **[CXB.md](./CXB.md)** for complete layout, backends, and use cases.

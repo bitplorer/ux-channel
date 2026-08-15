@@ -1,3 +1,6 @@
+<!-- pyramid -->
+Read [../../../START_HERE.md](../../../START_HERE.md) first if you are new. This is Layer 2 (encyclopedia), not the intro.
+
 # ssr_state
 
 Server UI locals → region re-paint. Simple by default; **namespace** when you have many.

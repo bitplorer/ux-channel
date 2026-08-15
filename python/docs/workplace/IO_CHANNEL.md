@@ -1,3 +1,6 @@
+<!-- pyramid -->
+Read [../../../START_HERE.md](../../../START_HERE.md) first if you are new. This is Layer 2 (encyclopedia), not the intro.
+
 # I/O channel (not a driver)
 
 **Constitution:** *uxchannel is the capability-shaped I/O channel for multi-actor mesh workplaces; drivers and protocols live in adapters.*

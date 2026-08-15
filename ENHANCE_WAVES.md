@@ -63,7 +63,7 @@ cd python && PYTHONPATH=src python -m pytest tests/gate/test_enhance_waves.py te
 
 ## Non-goals
 
-- No hard dependency on cek-surface
+- Optional extra `[cek]` (`ChannelConfig.cek = off \| adapt \| require`). Default remains **off** — today's path, zero `cek_host` / `cek_surface` imports. Native enhance code still exists behind off (Phase 1). Phase 2 deletes the clone only after the adapter critic SHIPs.
 - No root `__all__` growth
 - No Cap mint on Peer
 - No breaking classic IR 0.1

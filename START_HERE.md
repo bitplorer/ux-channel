@@ -2,7 +2,18 @@
 
 **Audience:** engineers who have never used this library.  
 **Promise:** every non-obvious assumption is written down.  
-**Time:** ~20–40 minutes for sections 1–8; skim the rest as needed.
+**Time:** 5 minutes to a running morph (`uxchannel create-app`); ~20–40 minutes for sections 1–8.
+
+**In 5 minutes**
+
+```bash
+pip install "ux-channel[asgi]"
+uxchannel create-app myapp
+cd myapp && pip install -r requirements.txt
+uvicorn app.main:app --reload
+```
+
+Click **+1**. That is Intent → Result → morph. Then come back here for why.
 
 | You want… | Jump to |
 |-----------|---------|

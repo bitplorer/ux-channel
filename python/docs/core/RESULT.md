@@ -1,3 +1,6 @@
+<!-- pyramid -->
+Read [../../../START_HERE.md](../../../START_HERE.md) first if you are new. This is Layer 2 (encyclopedia), not the intro.
+
 # Intent & Result — uxchannel 0.1
 
 Wire protocol version field: **`"v": "1"`**.

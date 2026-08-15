@@ -1,3 +1,6 @@
+<!-- pyramid -->
+Read [START_HERE.md](START_HERE.md) first if you are new. This is Layer 2 (encyclopedia), not the intro.
+
 # Terminology — what each word means, does, and is not
 
 **Purpose:** Stop ambiguous language. Every term below has a plain definition, what it **does**, what it is **not**, and where it lives in this package.

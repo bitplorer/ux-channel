@@ -1,3 +1,6 @@
+<!-- pyramid -->
+Read [../../../START_HERE.md](../../../START_HERE.md) first if you are new. This is Layer 2 (encyclopedia), not the intro.
+
 # ux-dom performance techniques (glue layer)
 
 **Rule:** optimizations live in `ux_channel_ux_dom` — not inside `uxchannel` core.

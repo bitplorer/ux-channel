@@ -1,3 +1,6 @@
+<!-- pyramid -->
+Read [../../../START_HERE.md](../../../START_HERE.md) first if you are new. This is Layer 2 (encyclopedia), not the intro.
+
 # Intent sync (cross-worker)
 
 **Foundations** (`ux_channel.intent_sync`). Product audit trail is still

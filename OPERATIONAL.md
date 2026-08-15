@@ -1,3 +1,6 @@
+<!-- pyramid -->
+Read [START_HERE.md](START_HERE.md) first if you are new. This is Layer 2 (encyclopedia), not the intro.
+
 # Operational notes — not tribal knowledge
 
 Glossary: [`TERMINOLOGY.md`](TERMINOLOGY.md). Recipes: [`REFERENCE.md`](REFERENCE.md). FAQ: [`FAQ.md`](FAQ.md).  

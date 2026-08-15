@@ -1,3 +1,6 @@
+<!-- pyramid -->
+Read [../../../START_HERE.md](../../../START_HERE.md) first if you are new. This is Layer 2 (encyclopedia), not the intro.
+
 # Workplace — policy-shaped rooms
 
 **Product form of the I/O channel course:** one room’s membership claim, sealed

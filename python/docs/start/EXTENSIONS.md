@@ -1,3 +1,6 @@
+<!-- pyramid -->
+Read [../../../START_HERE.md](../../../START_HERE.md) first if you are new. This is Layer 2 (encyclopedia), not the intro.
+
 # Extension author guide
 
 How to add features **without bloating** core. Policy: [LONGEVITY.md](../../../LONGEVITY.md).

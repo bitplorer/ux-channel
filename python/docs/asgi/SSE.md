@@ -1,3 +1,6 @@
+<!-- pyramid -->
+Read [../../../START_HERE.md](../../../START_HERE.md) first if you are new. This is Layer 2 (encyclopedia), not the intro.
+
 # Live SSE push — uxchannel 0.1
 
 Server-initiated **Result** delivery for live tickers and boards **without user clicks**.
