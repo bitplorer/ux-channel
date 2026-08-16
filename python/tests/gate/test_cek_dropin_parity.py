@@ -1,7 +1,6 @@
 """A (cek=off) ≡ B (cek=require) — same Intent → same Result ops.
 
 Skipped when extra [cek] is not installed so main CI stays green.
-Invariant 5–7 + once/jti + sealed-args. Ignore trace/hello metadata.
 """
 
 from __future__ import annotations
@@ -11,11 +10,11 @@ from pathlib import Path
 
 import pytest
 
-# Local workspace pin (cek-python @ e3a129a) so we can prove A≡B without PyPI.
-_CEK = Path("/workspace/cek-python")
-if _CEK.is_dir():
-    sys.path.insert(0, str(_CEK / "cek-host" / "src"))
-    sys.path.insert(0, str(_CEK / "cek-surface" / "src"))
+for _root in (Path("/workspace/cek/cek-python"), Path("/workspace/cek-python")):
+    if _root.is_dir():
+        sys.path.insert(0, str(_root / "cek-host" / "src"))
+        sys.path.insert(0, str(_root / "cek-surface" / "src"))
+        break
 
 from ux_channel.cek.config import cek_available
 from ux_channel.cek.host_adapter import ORACLE_ARGS, ORACLE_HASH, CekHostCapService
@@ -45,6 +44,15 @@ def _ops(result) -> list[dict]:
 def test_oracle_hash_agrees():
     assert CapService.hash_args(ORACLE_ARGS) == ORACLE_HASH
     assert CekHostCapService(SECRET).hash_args(ORACLE_ARGS) == ORACLE_HASH
+
+
+def test_cek_host_is_012():
+    import cek_host
+
+    parts = tuple(int(x) for x in cek_host.__version__.split(".")[:3])
+    assert parts >= (0, 1, 2)
+    b = CekHostCapService(SECRET)
+    assert type(b.host).__name__ == "Host"
 
 
 def test_mint_verify_roundtrip_both_machines():
@@ -100,7 +108,6 @@ def test_bogus_present_cap_fails_closed_both():
 
 
 def test_dispatch_ops_parity_off_vs_require():
-    """Same handler → same ops. Caps minted on each path (token format differs)."""
     from fastapi import FastAPI
 
     from ux_channel import Channel, ChannelConfig
@@ -129,3 +136,21 @@ def test_dispatch_ops_parity_off_vs_require():
     rb = b.registry.dispatch(ib)
     assert ra.ok and rb.ok
     assert _ops(ra) == _ops(rb)
+
+
+def test_classic_channel_ops_are_not_s():
+    """toast/navigate stay Channel wire. Only morph maps into S."""
+    from cek_host.legal import is_legal
+    from ux_channel.cek.project import to_s
+
+    classic = [
+        {"op": "morph", "target": "shell", "html": "<b>hi</b>"},
+        {"op": "toast", "text": "ok"},
+        {"op": "navigate", "path": "/x"},
+    ]
+    s = to_s(classic)
+    assert len(s) == 1
+    assert s[0]["ns"] == "ui.dom" and s[0]["name"] == "morph"
+    assert is_legal("ui.dom", "morph")
+    assert not is_legal("nav", "navigate")
+    assert not is_legal("ui", "toast")

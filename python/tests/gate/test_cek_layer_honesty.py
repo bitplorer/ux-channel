@@ -40,7 +40,9 @@ def test_require_swaps_one_cap_machine():
 
     if not cek_available():
         # Local workspace pin
-        cek = Path("/workspace/cek-python")
+        cek = Path("/workspace/cek/cek-python")
+        if not cek.is_dir():
+            cek = Path("/workspace/cek-python")
         if cek.is_dir():
             sys.path.insert(0, str(cek / "cek-host" / "src"))
             sys.path.insert(0, str(cek / "cek-surface" / "src"))

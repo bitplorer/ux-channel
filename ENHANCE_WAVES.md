@@ -63,7 +63,7 @@ cd python && PYTHONPATH=src python -m pytest tests/gate/test_enhance_waves.py te
 
 ## Non-goals
 
-- Optional extra `[cek]` (`ChannelConfig.cek = off \| adapt \| require`). Default remains **off** — today's path, zero `cek_host` / `cek_surface` imports. Native enhance code still exists behind off (Phase 1). Phase 2 deletes the clone only after the adapter critic SHIPs.
+- Optional extra `[cek]` (`ChannelConfig.cek = off \| adapt \| require`). Default remains **off**. `require` wraps **cek-host 0.1.2+ `Host`** (not a second CapService). Classic IR 0.1 stays the Channel floor; S is only `cek.project`. Native enhance remains behind off until a later delete.
 - No root `__all__` growth
 - No Cap mint on Peer
 - No breaking classic IR 0.1

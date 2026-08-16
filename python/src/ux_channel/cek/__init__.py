@@ -1,17 +1,16 @@
-"""CEK drop-in adapter (Phase 1).
+"""CEK adapter — Channel product over cek-host 0.1.2 + cek-surface 0.1.2.
 
-Channel consumes cek-host + cek-surface via this package. It does **not**
-vendor-copy them. Default ``ChannelConfig.cek = "off"`` imports nothing.
+Channel stays the product (regions, classic IR, FastAPI). cek-host is the
+Cap/decide machine when ``ChannelConfig.cek = require``. cek-surface is
+Continuation compose only. Nothing is vendored.
 
-Modes
------
-off      today's path. Zero new imports. CI main.
-adapt    extra ``[cek]`` installed; adapter live; Channel Cap remains authority.
-require  Cap mint/verify/once/sealed-args + enhance compose go through cek.
+off      today's path. Zero cek imports.
+adapt    extra ``[cek]``; Host on the side; Channel Cap remains authority.
+require  mint/verify/once/sealed-args go through ``cek_host.Host``.
 
-Invariant 11 (D4): cek-surface never imports ux_channel.
-Invariant 13: ux_channel.CapService is still the off-path machine.
-The require path wraps the same registry slot; it does not grow root ``__all__``.
+Classic Result.ops (morph/toast/navigate) stay Channel wire. S pairs
+(``kv.*`` ``log.append`` ``ui.dom.morph|restore``) are the only thing
+``Host.project_wire`` will accept — see ``cek.project``.
 """
 
 from __future__ import annotations

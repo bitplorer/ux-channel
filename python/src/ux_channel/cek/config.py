@@ -21,7 +21,7 @@ def parse_cek(value: Any) -> str:
     if v not in CEK_MODES:
         raise ValueError(
             f"ChannelConfig.cek must be one of {CEK_MODES}, got {value!r}. "
-            "off = today's path; adapt = compare; require = cek-host is the Cap machine."
+            "off = today's path; adapt = compare; require = cek-host.Host is the Cap machine."
         )
     return v
 
@@ -34,6 +34,16 @@ def cek_available() -> bool:
     except ImportError:
         return False
     return True
+
+
+def min_cek() -> str:
+    """Installed cek-host version, or empty if missing."""
+    try:
+        import cek_host
+
+        return str(getattr(cek_host, "__version__", ""))
+    except ImportError:
+        return ""
 
 
 def require_cek_installed(mode: str) -> None:

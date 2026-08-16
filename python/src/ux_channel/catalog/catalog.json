@@ -156,6 +156,7 @@
       "config": "ux_channel.cek.config",
       "host_adapter": "ux_channel.cek.host_adapter",
       "layer_honesty": "ux_channel.cek.layer_honesty",
+      "project": "ux_channel.cek.project",
       "surface_adapter": "ux_channel.cek.surface_adapter"
     },
     "components": {

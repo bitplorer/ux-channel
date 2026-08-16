@@ -1,10 +1,8 @@
 """enhance façade → cek_surface when ChannelConfig.cek=require.
 
-Phase 1: native enhance code still exists behind off.
-Handshake /hello is adapt-or-require only — classic IR 0.1 never needs it.
-
-KEEP in Channel (no cek twin): PeerHello, causal Trace, delta, recorder, ASGI.
-REPLACE (behind require): Continuation type + match/resolve.
+Handshake /hello, causal, delta, recorder stay Channel-native.
+Continuation type + match/resolve come from cek_surface on require.
+``Surface.arm`` is available via ``arm()``; Channel still mints the Cap.
 """
 
 from __future__ import annotations
@@ -23,11 +21,7 @@ def uses_cek_surface(config: Any) -> bool:
 
 
 def continuation_namespace(config: Any) -> Any:
-    """Return the Continuation module to use for this config.
-
-    require → cek_surface.continuation (after extra check)
-    off/adapt → ux_channel.enhance.continuations (native clone)
-    """
+    """require → cek_surface.continuation; else Channel native."""
     mode = parse_cek(getattr(config, "cek", "off") if config is not None else "off")
     if mode != "require":
         from ux_channel.enhance import continuations as native
@@ -39,18 +33,36 @@ def continuation_namespace(config: Any) -> Any:
     return cek_cont
 
 
-def to_channel_continuation(raw: Any) -> dict[str, Any]:
-    """Normalize a cek or native Continuation to the Channel envelope dict.
+def arm(
+    host: Any,
+    event: str,
+    action: str,
+    *,
+    once: bool = True,
+    args_from: Mapping[str, str] | None = None,
+    static_args: Mapping[str, Any] | None = None,
+) -> Any:
+    """Mint a continuation Cap the way Surface.arm does. Host still verifies."""
+    from cek_surface.surface import Surface
 
-    Classic clients ignore unknown keys. ``once`` / ``meta`` stay Channel-only.
-    """
+    s = Surface(kernel=host, carrier_kind="memory")
+    return s.arm(
+        event,
+        action,
+        once=once,
+        args_from=dict(args_from) if args_from else None,
+        static_args=dict(static_args) if static_args else None,
+    )
+
+
+def to_channel_continuation(raw: Any) -> dict[str, Any]:
+    """Normalize a cek or native Continuation to the Channel envelope dict."""
     if hasattr(raw, "to_dict"):
         body = dict(raw.to_dict())
     elif isinstance(raw, Mapping):
         body = dict(raw)
     else:
         raise TypeError(f"not a continuation: {type(raw)!r}")
-    # Accept both store:KEY (cek) and store.KEY (Channel native).
     args_from = dict(body.get("args_from") or {})
     norm: dict[str, str] = {}
     for k, v in args_from.items():
