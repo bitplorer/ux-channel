@@ -77,7 +77,7 @@ async def test_action_timeout():
         await asyncio.sleep(1.0)
         return Result.success(toast("nope"))
 
-    r = await reg.dispatch_async(Intent(action="slow"))
+    r = await reg.async_dispatch(Intent(action="slow"))
     assert not r.ok
     assert r.error.code == "timeout"
 
@@ -116,7 +116,7 @@ async def test_dispatch_from_async_raises():
     def t():
         return Result.success()
 
-    with pytest.raises(RuntimeError, match="dispatch_async"):
+    with pytest.raises(RuntimeError, match="async_dispatch"):
         reg.dispatch(Intent(action="t"))
 
 

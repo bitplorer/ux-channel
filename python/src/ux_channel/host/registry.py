@@ -75,6 +75,11 @@ from ux_channel.security.limits import (
 from ux_channel.host.nonce import NonceStore
 from ux_channel.security.security import sanitize_op_hrefs, validate_action_name
 
+
+class AsyncDispatchRequired(TypeError):
+    """Raised when sync dispatch meets an async handler or hook."""
+
+
 def _sec(kind: str, **kw) -> None:
     try:
         from ux_channel.security.security_events import emit_security
@@ -115,7 +120,7 @@ class ActionRegistry:
     --------------
     action / register:
         Register handlers; pass ``idempotent=True`` for safe auto-retry.
-    dispatch / dispatch_async:
+    dispatch / async_dispatch:
         Run one Intent to a Result.
     sign:
         Mint capability tokens for ``ch.control``.
@@ -415,31 +420,33 @@ class ActionRegistry:
                 return self._dispatch_sync(intent)
             raise RuntimeError(
                 "ActionRegistry.dispatch() called from a running event loop; "
-                "use await registry.dispatch_async(intent) instead"
+                "use await registry.async_dispatch(intent) instead"
             )
         finally:
             if token is not None:
                 _principal_override.reset(token)
         raise RuntimeError(
             "ActionRegistry.dispatch() called from a running event loop; "
-            "use await registry.dispatch_async(intent) instead"
+            "use await registry.async_dispatch(intent) instead"
         )
 
-    async def dispatch_async(
+    async def async_dispatch(
         self,
         intent: Intent | Mapping[str, Any],
         *,
         principal: Optional[Principal] = None,
     ) -> Result:
-        """Async dispatch. Same ``principal=`` override as sync ``dispatch``."""
+        """Awaitable dispatch. Same law as dispatch. Runs sync and async handlers."""
         token = None
         if principal is not None:
             token = _principal_override.set(principal)
         try:
-            return await self._dispatch_async(intent)
+            return await self._async_dispatch(intent)
         finally:
             if token is not None:
                 _principal_override.reset(token)
+
+    dispatch_async = async_dispatch
 
     def _resolve_principal(self) -> Optional[Principal]:
         override = _principal_override.get()
@@ -669,7 +676,7 @@ class ActionRegistry:
                     None,
                 )
 
-        # before-hooks run in _dispatch_sync / _dispatch_async (sync vs await)
+        # before-hooks run in _dispatch_sync / _async_dispatch (sync vs await)
         return intent, args, None, principal, cap_data
 
     def _finalize(self, intent: Intent, result: Result, t0: float) -> Result:
@@ -684,18 +691,13 @@ class ActionRegistry:
         for hook in self.hooks.after:
             out = hook(intent, result)
             if inspect.isawaitable(out):
-                try:
-                    asyncio.get_running_loop()
-                except RuntimeError:
-                    out = asyncio.run(out)  # type: ignore[arg-type]
-                else:
-                    close = getattr(out, "close", None)
-                    if callable(close):
-                        close()
-                    raise RuntimeError(
-                        "async after-hook requires dispatch_async "
-                        f"({getattr(hook, '__name__', type(hook).__name__)})"
-                    )
+                close = getattr(out, "close", None)
+                if callable(close):
+                    close()
+                raise AsyncDispatchRequired(
+                    "async after-hook requires await registry.async_dispatch "
+                    f"({getattr(hook, '__name__', type(hook).__name__)})"
+                )
             # After-hooks must return a Result. None / wrong type used to
             # replace the real Result and crash in enforce_result_limits
             # ("NoneType has no attribute ops"). Keep prior Result instead.
@@ -921,20 +923,13 @@ class ActionRegistry:
         for hook in self.hooks.before:
             early = hook(intent, args)
             if inspect.isawaitable(early):
-                # Prefer dispatch_async under a running loop; otherwise run here
-                # so sync TestClient / scripts don't crash on async before-hooks.
-                try:
-                    asyncio.get_running_loop()
-                except RuntimeError:
-                    early = asyncio.run(early)  # type: ignore[arg-type]
-                else:
-                    close = getattr(early, "close", None)
-                    if callable(close):
-                        close()
-                    raise RuntimeError(
-                        "async before-hook requires dispatch_async "
-                        f"({getattr(hook, '__name__', type(hook).__name__)})"
-                    )
+                close = getattr(early, "close", None)
+                if callable(close):
+                    close()
+                raise AsyncDispatchRequired(
+                    "async before-hook requires await registry.async_dispatch "
+                    f"({getattr(hook, '__name__', type(hook).__name__)})"
+                )
             if early is not None:
                 if not isinstance(early, Result):
                     raise TypeError(
@@ -1002,8 +997,10 @@ class ActionRegistry:
         else:
             value = handler(**bound)
         if inspect.isawaitable(value):
-            # Mis-registered async handler as sync — still honor timeout
-            return asyncio.run(self._await_with_timeout(value))
+            raise AsyncDispatchRequired(
+                "handler returned an awaitable; use await registry.async_dispatch(...) "
+                "(sync dispatch does not run an event loop)"
+            )
         return value
 
     async def _await_with_timeout(self, value: Any) -> Any:
@@ -1034,12 +1031,16 @@ class ActionRegistry:
             try:
                 bound = self._bind_args(handler, args, ctx)
                 if inspect.iscoroutinefunction(handler):
-                    value = asyncio.run(self._run_with_timeout(handler, bound))
-                else:
-                    value = self._call_sync_handler(handler, bound)
+                    raise AsyncDispatchRequired(
+                        f"action {intent.action!r} is async; use await registry.async_dispatch(...) "
+                        "(sync dispatch does not run an event loop)"
+                    )
+                value = self._call_sync_handler(handler, bound)
             except ActionError as exc:
                 result = _call_encode_result(exc, renderer=self._renderer, meta=meta)
                 return self._finalize(intent, result, t0)
+            except AsyncDispatchRequired:
+                raise
             except TypeError as exc:
                 return self._finalize(
                     intent,
@@ -1097,7 +1098,7 @@ class ActionRegistry:
             return await asyncio.wait_for(handler(**bound), timeout=self.action_timeout_s)
         return await handler(**bound)
 
-    async def _dispatch_async(self, intent_in: Intent | Mapping[str, Any]) -> Result:
+    async def _async_dispatch(self, intent_in: Intent | Mapping[str, Any]) -> Result:
         t0 = time.perf_counter()
         intent, args, early, principal, _cap = self._prepare(intent_in)
         if early is not None:

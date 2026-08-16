@@ -74,5 +74,5 @@ def dispatch_peer(
             cap = mint_fn(action, args_d, sub=sub)
     intent = Intent(action=action, args=dict(args_d), cap=cap)
     if async_:
-        return reg.dispatch_async(intent, principal=principal)
+        return reg.async_dispatch(intent, principal=principal)
     return reg.dispatch(intent, principal=principal)

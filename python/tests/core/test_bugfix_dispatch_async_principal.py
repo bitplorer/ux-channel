@@ -31,11 +31,11 @@ def test_dispatch_async_accepts_principal():
     cap = ch.registry.mint("Auth.async", {})
 
     async def run():
-        denied = await ch.registry.dispatch_async(
+        denied = await ch.registry.async_dispatch(
             {"v": "1", "action": "Auth.async", "args": {}, "cap": cap}
         )
         assert not denied.ok
-        ok = await ch.registry.dispatch_async(
+        ok = await ch.registry.async_dispatch(
             {"v": "1", "action": "Auth.async", "args": {}, "cap": cap},
             principal=Principal.of("u1"),
         )

@@ -220,7 +220,7 @@ async def dispatch_parallel_async(
 
     async def one(raw: IntentLike) -> Result:
         try:
-            return await registry.dispatch_async(raw, principal=principal)
+            return await registry.async_dispatch(raw, principal=principal)
         except Exception as exc:  # pragma: no cover
             return Result.failure(
                 "internal",

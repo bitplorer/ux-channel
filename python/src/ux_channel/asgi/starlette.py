@@ -109,7 +109,7 @@ def channel_routes(
             action=intent.action,
         )
         registry.bind_request(request)
-        result = await registry.dispatch_async(intent)
+        result = await registry.async_dispatch(intent)
         accept = (request.headers.get("accept") or "").lower()
         if "text/event-stream" in accept or intent.accept_stream:
             stream = ResultStream()

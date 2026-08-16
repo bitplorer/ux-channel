@@ -187,7 +187,9 @@ def test_action_return_variants():
 
 
 def test_async_action():
-    """Registry runs async handlers via asyncio.run under sync dispatch."""
+    """Sync dispatch refuses async handlers. async_dispatch runs them."""
+    import asyncio
+
     _, ch, st = _boot()
     n = st.session("n", 0, refresh="y")
 
@@ -199,7 +201,14 @@ def test_async_action():
     async def ainc():
         n.add(1)
 
-    r = ch.registry.dispatch(Intent(action="ainc", args={}, cap=ch.mint("ainc", {})))
+    cap = ch.mint("ainc", {})
+    try:
+        ch.registry.dispatch(Intent(action="ainc", args={}, cap=cap))
+        raise AssertionError("sync dispatch must not run async handlers")
+    except TypeError as e:
+        assert "async_dispatch" in str(e)
+
+    r = asyncio.run(ch.registry.async_dispatch(Intent(action="ainc", args={}, cap=cap)))
     assert r.ok
     assert n.peek() == 1
 

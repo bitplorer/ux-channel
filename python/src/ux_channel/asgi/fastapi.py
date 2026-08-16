@@ -211,7 +211,7 @@ def mount_channel(
             detail={"path": str(request.url.path), "client": request.client.host if request.client else None},
         )
         registry.bind_request(request)
-        result = await registry.dispatch_async(intent)
+        result = await registry.async_dispatch(intent)
         if result.meta is not None and intent.request_id:
             result.meta.setdefault("request_id", intent.request_id)
 
@@ -691,8 +691,8 @@ def mount_channel(
                         await websocket.send_json(error_message("bad_intent", "action required"))
                         continue
                     try:
-                        if hasattr(registry, "dispatch_async"):
-                            result = await registry.dispatch_async(intent)
+                        if hasattr(registry, "async_dispatch"):
+                            result = await registry.async_dispatch(intent)
                         else:
                             result = await asyncio.to_thread(registry.dispatch, intent)
                     except Exception as exc:
@@ -725,7 +725,7 @@ def mount_channel(
     @router.get("/ready")
     async def ready() -> Response:
         """Readiness — registry importable; light package diagnostics."""
-        ok = registry is not None and hasattr(registry, "dispatch_async")
+        ok = registry is not None and hasattr(registry, "async_dispatch")
         from ux_channel.devtools.info import package_info
         payload = package_info(registry if ok else None)
         payload["ok"] = ok

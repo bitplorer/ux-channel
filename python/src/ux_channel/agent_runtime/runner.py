@@ -148,7 +148,7 @@ class AgentRunner:
 
         self.registry.auth_resolver = _resolve
         try:
-            result = await self.registry.dispatch_async(intent)
+            result = await self.registry.async_dispatch(intent)
         finally:
             self.registry.auth_resolver = prev
 

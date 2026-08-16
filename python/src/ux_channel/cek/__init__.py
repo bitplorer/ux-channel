@@ -1,4 +1,4 @@
-"""CEK adapter — Channel product over cek-host 0.1.2 + cek-surface 0.1.2.
+"""CEK adapter — Channel product over cek-host 0.1.3 + cek-surface 0.1.3.
 
 Channel stays the product (regions, classic IR, FastAPI). cek-host is the
 Cap/decide machine when ``ChannelConfig.cek = require``. cek-surface is

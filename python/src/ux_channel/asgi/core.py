@@ -123,7 +123,7 @@ async def handle_action_asgi(
     want_stream = "text/event-stream" in accept or intent.accept_stream
     want_html = "text/html" in accept and CHANNEL_JSON not in accept and not want_stream
 
-    result = await registry.dispatch_async(intent)
+    result = await registry.async_dispatch(intent)
 
     if want_stream:
         stream = ResultStream()

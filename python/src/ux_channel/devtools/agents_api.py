@@ -260,7 +260,7 @@ class Agents:
             self.ch, action, args, peer=p, principal=principal, async_=False
         )
 
-    async def dispatch_async(
+    async def async_dispatch(
         self,
         action: str,
         args: Optional[Mapping[str, Any]] = None,
@@ -276,6 +276,8 @@ class Agents:
         return await dispatch_peer(
             self.ch, action, args, peer=p, principal=principal, async_=True
         )
+
+    dispatch_async = async_dispatch
 
     def effects(self, result: Result, *, next_tools: Sequence[str] = ()) -> EffectReport:
         notices: list[str] = []

@@ -523,7 +523,7 @@ async def _dispatch_item_with_retry_async(
     retry_after_mode: str = "max",
     require_idempotent: bool = True,
 ) -> tuple[Result, int, bool, bool, bool, list[float], list[dict]]:
-    r = await registry.dispatch_async(intent)
+    r = await registry.async_dispatch(intent)
     attempts = 1
     did_retry = False
     recovered = False
@@ -551,7 +551,7 @@ async def _dispatch_item_with_retry_async(
         details.append(decision)
         if wait_ms > 0:
             await asyncio.sleep(wait_ms / 1000.0)
-        r = await registry.dispatch_async(intent)
+        r = await registry.async_dispatch(intent)
         attempts += 1
         if r.ok:
             recovered = True

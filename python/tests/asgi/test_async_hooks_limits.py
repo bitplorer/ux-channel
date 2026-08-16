@@ -17,7 +17,7 @@ async def test_async_action(reg):
     async def ping(x: int = 1):
         return Result.success(toast(f"x={x}"))
 
-    r = await reg.dispatch_async(Intent(action="Async.ping", args={"x": 2}))
+    r = await reg.async_dispatch(Intent(action="Async.ping", args={"x": 2}))
     assert r.ok
     assert r.ops[0]["message"] == "x=2"
 

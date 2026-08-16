@@ -53,24 +53,21 @@ def test_malformed_intent_returns_result_not_raise():
     assert r.error and r.error.code == "bad_request"
 
 
-def test_async_before_hook_runs_on_sync_dispatch_without_loop():
-    """No running event loop → async before-hooks are awaited via asyncio.run."""
+def test_async_before_hook_refused_on_sync_dispatch():
+    """Sync dispatch does not nest an event loop for async hooks."""
     reg = ActionRegistry(secret=SECRET, require_cap=False)
     reg.register("A", lambda: Result.success(toast("a")))
-    seen = []
 
     async def bhook(intent, args):
-        seen.append(1)
         return None
 
     reg.before(bhook)
-    r = reg.dispatch(Intent(action="A", args={}))
-    assert r.ok
-    assert seen == [1]
+    with pytest.raises(TypeError, match="async_dispatch"):
+        reg.dispatch(Intent(action="A", args={}))
 
 
 @pytest.mark.asyncio
-async def test_async_before_hook_works_on_dispatch_async():
+async def test_async_before_hook_works_on_async_dispatch():
     reg = ActionRegistry(secret=SECRET, require_cap=False)
     reg.register("A", lambda: Result.success(toast("a")))
     seen = []
@@ -80,7 +77,7 @@ async def test_async_before_hook_works_on_dispatch_async():
         return None
 
     reg.before(bhook)
-    r = await reg.dispatch_async(Intent(action="A", args={}))
+    r = await reg.async_dispatch(Intent(action="A", args={}))
     assert r.ok
     assert seen == [1]
 

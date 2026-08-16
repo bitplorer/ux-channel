@@ -30,7 +30,10 @@ from ux_channel.api import Channel, Region, CapService, state
 | API | Role |
 |-----|------|
 | `Channel.boot` | Attach channel to app |
-| `@ch.region` / `@ch.on` | Region paint + action |
+| `@ch.region` / `@ch.on` | Region paint + action (`def` or `async def`) |
+| `ch.control(...)` | Control attrs (+ cap mint) |
+| `ch.done` / `ch.fail` | Result verbs |
+| `registry.dispatch` / `async_dispatch` | Sync / async Intent → Result (same law) |
 | `ch.control(...)` | Control attrs (+ cap mint) |
 | `ch.done` / `ch.fail` | Result verbs |
 | `ch.runtime` | Placement data (not HTML ownership) |

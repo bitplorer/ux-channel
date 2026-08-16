@@ -267,7 +267,7 @@ class Workplace:
         p = peer if peer is not None else self.peer()
         return self._agents().dispatch(action, args or {}, peer=p, **kwargs)
 
-    async def dispatch_async(
+    async def async_dispatch(
         self,
         action: str,
         args: Optional[Mapping[str, Any]] = None,
@@ -277,9 +277,11 @@ class Workplace:
     ) -> Result:
         self.ensure_action(action)
         p = peer if peer is not None else self.peer()
-        return await self._agents().dispatch_async(
+        return await self._agents().async_dispatch(
             action, args or {}, peer=p, **kwargs
         )
+
+    dispatch_async = async_dispatch
 
     def control(
         self,

@@ -22,7 +22,7 @@ log = logging.getLogger("ux_channel.cek.host_adapter")
 
 ORACLE_ARGS = {"sku": "abc-123", "qty": 2}
 ORACLE_HASH = "96e4f83e3793b646323a67f314b51044"
-MIN_CEK = (0, 1, 2)
+MIN_CEK = (0, 1, 3)
 
 
 def _cek_version_tuple() -> tuple[int, int, int]:
@@ -44,8 +44,8 @@ def require_cek_012() -> None:
     ver = _cek_version_tuple()
     if ver < MIN_CEK:
         raise RuntimeError(
-            f"ux-channel[cek] needs cek-host>=0.1.2 (got {ver[0]}.{ver[1]}.{ver[2]}). "
-            "pip install -U 'cek-host>=0.1.2' 'cek-surface>=0.1.2'"
+            f"ux-channel[cek] needs cek-host>=0.1.3 (got {ver[0]}.{ver[1]}.{ver[2]}). "
+            "pip install -U 'cek-host>=0.1.3' 'cek-surface>=0.1.3'"
         )
 
 
@@ -156,6 +156,18 @@ class CekHostCapService:
                 raise CapError("once cap already used")
         return claims
 
+    async def async_verify(
+        self,
+        token: str,
+        action: str,
+        args: Mapping[str, Any] | None = None,
+        **kw: Any,
+    ) -> dict[str, Any]:
+        """Same law as verify. Does not occupy the event loop."""
+        import asyncio
+
+        return await asyncio.to_thread(self.verify, token, action, args, **kw)
+
 
 def apply_host_adapter(registry: Any, config: Any) -> str:
     """Swap ``registry._caps`` when cek is adapt|require."""
@@ -178,7 +190,7 @@ def apply_host_adapter(registry: Any, config: Any) -> str:
     )
     if mode == "require":
         registry._caps = adapted
-        log.info("cek=require: CapService → cek_host.Host 0.1.2+")
+        log.info("cek=require: CapService → cek_host.Host 0.1.3+")
     else:
         registry._cek_caps = adapted
         log.info("cek=adapt: Host adapter live; Channel CapService remains authority")

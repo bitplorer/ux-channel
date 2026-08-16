@@ -50,7 +50,7 @@ def test_cek_host_is_012():
     import cek_host
 
     parts = tuple(int(x) for x in cek_host.__version__.split(".")[:3])
-    assert parts >= (0, 1, 2)
+    assert parts >= (0, 1, 3)
     b = CekHostCapService(SECRET)
     assert type(b.host).__name__ == "Host"
 
