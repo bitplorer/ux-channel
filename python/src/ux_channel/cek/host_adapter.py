@@ -1,12 +1,10 @@
-"""CapService façade → cek_host.Host (0.1.2+).
+"""CapService façade → cek_host.Host (0.1.3+).
 
 off     — this module is not imported.
-adapt   — Host lives on registry._cek_caps; Channel CapService stays authority.
+adapt   — Host on registry._cek_caps; Channel CapService stays authority.
 require — registry._caps is this façade. One Cap machine.
 
-Channel Result.ops stay classic IR 0.1 (morph/toast/navigate). Those names
-are Channel wire, not S. Host.project_wire is used only for pairs that are
-in S — see ``ux_channel.cek.project``.
+Channel ops stay classic IR 0.1. S pairs only go through cek.project.
 """
 
 from __future__ import annotations
@@ -40,7 +38,7 @@ def _cek_version_tuple() -> tuple[int, int, int]:
     return parts[0], parts[1], parts[2]
 
 
-def require_cek_012() -> None:
+def require_cek_min() -> None:
     ver = _cek_version_tuple()
     if ver < MIN_CEK:
         raise RuntimeError(
@@ -175,7 +173,7 @@ def apply_host_adapter(registry: Any, config: Any) -> str:
     if mode == "off":
         return mode
     require_cek_installed(mode)
-    require_cek_012()
+    require_cek_min()
     secret = getattr(config, "secret", None) or getattr(registry, "_secret", None)
     if not secret:
         caps = getattr(registry, "_caps", None)

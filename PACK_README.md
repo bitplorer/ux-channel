@@ -38,4 +38,4 @@ bash scripts/apply-hardening.sh
 curl -sL https://raw.githubusercontent.com/bitplorer/ux-channel/main/patches/0001-production-hardening-authz-seal.patch | git am
 ```
 
-See [RECOVERY.md](RECOVERY.md), [HARDENING_STATUS.md](HARDENING_STATUS.md), [AUTOMATION.md](AUTOMATION.md).
+See [RECOVERY.md](RECOVERY.md), [docs/archive/HARDENING_STATUS.md](docs/archive/HARDENING_STATUS.md), [AUTOMATION.md](AUTOMATION.md).

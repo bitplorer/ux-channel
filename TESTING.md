@@ -14,7 +14,7 @@ Read [START_HERE.md](START_HERE.md) first if you are new.
 | `make verify` | health + layout + longevity + law vectors + **gate** + rust + `uxc_check` | not the full 332+ pytest suite; not soak |
 | `make verify-sec` | pentest + extreme_hardening (CI on main, **separate job**) | not inside the default gate |
 | `make verify-http` | verify + live peer + demo forward | flaky ports; RC only |
-| `pytest python/tests/gate` | freeze, cap oracle, enhance, cek honesty (cek tests skip without extra) | not ASGI/stress |
+| `pytest python/tests/gate` | freeze, cap oracle, enhance, **async_dispatch**, cek honesty (cek tests skip without extra) | not ASGI/stress |
 | `pytest python/tests/security` | residuals (morph policy, memory stores, href) | not soak |
 | `uxchannel doctor --fail` | SECURITY_AUDIT deploy checklist is GO | a pretty JSON dump |
 | `uxchannel upgrade-check . --fail` | no `require_cap=False` / open `/sfu/token` / raw `ChannelConfig(` | a suggestion |
@@ -41,7 +41,7 @@ python3 -m pytest python/tests/gate -q
 python3 -m pytest python/tests/security -q
 
 # CEK Phase 1 (optional extra)
-python3 -m pytest python/tests/gate/test_cek_dropin_parity.py python/tests/gate/test_cek_layer_honesty.py -q
+python3 -m pytest python/tests/gate/test_async_dispatch.py python/tests/gate/test_cek_dropin_parity.py python/tests/gate/test_cek_layer_honesty.py -q
 
 # Python — integration (Channel mint → dispatch)
 python3 -m pytest python/tests/integration -q
@@ -67,7 +67,7 @@ cd rust && cargo run --bin uxc_check -- ../conformance && cd ..
 | **Coverage** | `pytest --cov=ux_channel.arch --cov-fail-under=80` (in `./verify.sh`) | `cargo test --lib` exercises kernel/runtime modules |
 | **Integration** | `tests/integration/test_channel_dispatch.py` | `tests/integration_peer.rs` |
 | **Conformance** | `conformance/harness/` + `vectors/arch/` | `uxc_check` + `tests/arch_vectors.rs` |
-| **CEK drop-in** | `tests/gate/test_cek_dropin_parity.py`, `test_cek_layer_honesty.py` (skip without extra) | — |
+| **CEK drop-in** | `test_cek_dropin_parity.py`, `test_cek_layer_honesty.py`, `test_async_dispatch.py` | — |
 | **Security** | `tests/security/` via `make verify-sec` | — |
 
 ---

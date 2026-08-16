@@ -141,7 +141,7 @@ Hop {
 
 - Binary encoding → package `docs/core/CXB.md`
 - Capability tokens → [capability.md](capability.md)
-- Causal / surface / delta design rationale → `../ux-channel-design-causal-surface.md`
+- Causal / surface / delta design rationale → `../docs/archive/ux-channel-design-causal-surface.md`
 - Wire multi-format surface → package `docs/core/WIRE.md`
 
 ---

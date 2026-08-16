@@ -1,38 +1,9 @@
-"""
-ActionRegistry — the dispatch kernel of ux-channel.
+"""ActionRegistry — Intent → handler → Result.
 
-First principles
-----------------
-Everything a browser can *do* is a named **action**. The registry is the
-only path from wire ``Intent`` to Python handler to wire ``Result``:
+    Intent → cap + hooks → handler (sync or async) → Result
 
-    Intent  →  prepare (cap, principal, idempotency)
-            →  before hooks (rate limit, policy, bulkhead)
-            →  call handler (sync or async, with timeout)
-            →  encode return value → Result
-            →  after hooks / finalize (meta, size limits, idempotency store)
-
-Why a registry (not free functions)
------------------------------------
-1. **Capability binding** — signs/verifies action name + args hash here.
-2. **Uniform error mapping** — ActionError, timeouts, encode failures.
-3. **Hooks** — production concerns without cluttering every handler.
-4. **Idempotent metadata** — ``idempotent=True`` gates safe batch retry.
-
-Intended usage
---------------
-Prefer ``@ch.on`` (façade). Direct registry use for tests / advanced hosts::
-
-    reg = ActionRegistry.from_config(config)
-    @reg.action("Cart.add", idempotent=False)
-    def add(product_id: str):
-        ...
-    result = reg.dispatch(Intent(action="Cart.add", args={...}, cap=...))
-
-``idempotent=True`` means "safe to auto-retry on retryable errors".
-Default False — mutations must opt in.
-
-See: docs/COURSE.md, docs/ERRORS.md, docs/RESULT.md.
+``dispatch`` refuses ``async def``. ``async_dispatch`` runs both.
+``dispatch_async`` is an alias of ``async_dispatch``.
 """
 
 

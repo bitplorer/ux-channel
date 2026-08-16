@@ -155,7 +155,7 @@ After adding a module under `ux_channel/<pkg>/`:
 
 Do **not** leave recovery docs pointing at dead agent sandbox paths — GitHub `main`
 + `patches/` are the durable source ([RECOVERY.md](RECOVERY.md),
-[HARDENING_STATUS.md](HARDENING_STATUS.md)).
+[docs/archive/HARDENING_STATUS.md](docs/archive/HARDENING_STATUS.md)).
 
 Historical merge notes must not reintroduce forbidden names (`zones`, `day1`,
 `paint`, shims) as if they still ship — see [python/MERGE.md](python/MERGE.md).

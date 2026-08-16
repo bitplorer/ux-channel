@@ -146,7 +146,7 @@ Terms are grouped: **big picture → messages → security → wire → HTTP →
 | **Is** | Optional audit chain (`intent_id`, hops, signatures) for multi-peer causality. |
 | **Does** | Answers “why did this op fire?” across peers (Phase 1.5 design). |
 | **Not** | Not required for basic interop. JSON floor may omit it entirely. |
-| **Where** | Vectors under `conformance/vectors/trace/`; design note `ux-channel-design-causal-surface.md`. |
+| **Where** | Vectors under `conformance/vectors/trace/`; design note `docs/archive/ux-channel-design-causal-surface.md`. |
 
 ### Error object / error codes
 

@@ -63,3 +63,14 @@ def test_async_dispatch_runs_sync_handler():
 
 def test_dispatch_async_is_alias():
     assert ActionRegistry.dispatch_async is ActionRegistry.async_dispatch
+
+
+def test_channel_module_is_source():
+    from pathlib import Path
+
+    import ux_channel.host.channel as ch
+
+    text = Path(ch.__file__).read_text(encoding="utf-8")
+    assert "class Channel" in text
+    assert "base64.b64decode" not in text
+    assert "gzip.decompress" not in text

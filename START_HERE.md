@@ -15,6 +15,12 @@ uvicorn app.main:app --reload
 
 Click **+1**. That is Intent → Result → morph. Then come back here for why.
 
+**Async:** `@ch.on async def …` is legal. Call `await ch.registry.async_dispatch(intent)`.  
+`dispatch()` refuses async handlers — it will not nest an event loop.
+
+**CEK (optional):** `pip install "ux-channel[cek]"` then `ChannelConfig.development(..., cek="require")`.  
+Default remains `cek=off`. Channel stays the product; cek-host 0.1.3 is the Cap machine.
+
 | You want… | Jump to |
 |-----------|---------|
 | The one idea | §1 |

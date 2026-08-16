@@ -39,7 +39,7 @@ Patch lives in-repo: [`patches/0001-production-hardening-authz-seal.patch`](patc
 | Production `ws_require_origin` + navigate host derive | on `main` |
 | Security events (role claim / rate / agent confirm) | on `main` |
 
-Details: [HARDENING_STATUS.md](HARDENING_STATUS.md) · policy: [AUTOMATION.md](AUTOMATION.md).
+Details: [docs/archive/HARDENING_STATUS.md](docs/archive/HARDENING_STATUS.md) · policy: [AUTOMATION.md](AUTOMATION.md).
 
 ## Do not rely on
 

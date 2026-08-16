@@ -103,6 +103,7 @@
       "config",
       "host_adapter",
       "layer_honesty",
+      "project",
       "surface_adapter"
     ],
     "components": [
@@ -323,6 +324,7 @@
     "cek.config": "cek",
     "cek.host_adapter": "cek",
     "cek.layer_honesty": "cek",
+    "cek.project": "cek",
     "cek.surface_adapter": "cek",
     "components.badge": "components",
     "components.base": "components",
@@ -596,5 +598,5 @@
       "extension_doors_A_to_G"
     ]
   },
-  "module_count": 186
+  "module_count": 187
 }

@@ -37,7 +37,7 @@ REQUIRED = [
     "scripts/sync_python_layout.py",
     "scripts/check_longevity.py",
     "scripts/repo_health.py",
-    "HARDENING_STATUS.md",
+    "docs/archive/HARDENING_STATUS.md",
     "RECOVERY.md",
 ]
 
@@ -186,6 +186,8 @@ def main() -> int:
                     issues.append(f"DEAD path in {rel}: {hint} (matched {pat!r})")
 
         if p.suffix == ".md":
+            if rel.startswith("docs/archive/"):
+                continue
             for m in LINK_RE.finditer(text):
                 href = m.group(2).strip()
                 if href.startswith(("http://", "https://", "mailto:", "#")):

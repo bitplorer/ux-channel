@@ -95,7 +95,7 @@ CI runs the same on every push (`.github/workflows/ci.yml`).
 | FAQ | `FAQ.md` |
 | Operators | `OPERATIONAL.md` |
 | Automation policy | `AUTOMATION.md` |
-| Roadmap next steps | `ux-channel-roadmap.md` |
+| Roadmap (archive) | `docs/archive/ux-channel-roadmap.md` |
 | Full Python host library | `python/src/ux_channel/` (see `python/README.md`) |
 | Python concept map (regions, …) | `python/ONTOLOGY.md` |
 | Python host permanence | `python/STRUCTURE.md` |

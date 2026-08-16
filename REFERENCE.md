@@ -25,7 +25,7 @@ Read [START_HERE.md](START_HERE.md) first if you are new. This is Layer 2 (encyc
 | [SPEC/](SPEC/) | Law | Normative field rules |
 | [conformance/](conformance/) | Law | Golden vectors + harnesses |
 | [PUBLIC_API_FREEZE.md](PUBLIC_API_FREEZE.md) | Law | Host package public names |
-| [ux-channel-*.md](ux-channel-roadmap.md) | Planning | Thesis / causal / roadmap (not law) |
+| [docs/archive/](docs/archive/) | Planning | Historical thesis / causal / roadmap (not law) |
 | [rust/README.md](rust/README.md) | Peer | Rust build + HTTP notes |
 | [demos/python_forward/README.md](demos/python_forward/README.md) | Peer | Tiny Python → Rust forward |
 | [python/README.md](python/README.md) | Host | **Full Python library** (`ux_channel/`) |

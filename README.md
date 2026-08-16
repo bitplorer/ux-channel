@@ -6,12 +6,14 @@ A click is not a form post. It is a signed **Intent**.
 Intent {action, args, cap}  →  verify  →  action  →  Result {ok, ops[]}
 ```
 
-JSON is the floor. Caps authorize. Classic IR 0.1 clients stay valid forever.
+JSON is the floor. Caps authorize. Classic IR 0.1 stays valid.  
+Channel is the product. **cek-host 0.1.3** is the optional Cap machine (`cek=require`).
 
 ## Install
 
 ```bash
 pip install "ux-channel[asgi]"
+pip install "ux-channel[cek]"    # optional: cek-host + cek-surface ≥ 0.1.3
 ```
 
 ## Eight lines
@@ -28,6 +30,9 @@ def ping():
     return ch.done()
 ```
 
+`async def` handlers use `await ch.registry.async_dispatch(...)`.  
+`dispatch()` refuses them — it does not start an event loop.
+
 ## First 5 minutes
 
 ```bash
@@ -42,10 +47,7 @@ uvicorn app.main:app --reload   # click +1 — that is the first morph
 |------|------|
 | [MENTAL_MODEL.md](MENTAL_MODEL.md) | one-page model |
 | [PUBLIC_API_FREEZE.md](PUBLIC_API_FREEZE.md) | frozen names |
-| [GOLDEN_PATH](python/docs/start/GOLDEN_PATH.md) | copy-paste cart |
-| [SECURITY_AUDIT](python/docs/security/SECURITY_AUDIT.md) | ship checklist |
 | [TESTING.md](TESTING.md) | what green means |
-| [DOCS.md](DOCS.md) | pyramid index |
 
 ```bash
 export UX_CHANNEL_STRICT_DX=1
