@@ -1,16 +1,21 @@
 # Documentation map
 
-Layer 0: [README.md](README.md) (one screen) + **[START_HERE.md](START_HERE.md)** (the only intro).  
-Layer 1: [MENTAL_MODEL.md](MENTAL_MODEL.md) · [PUBLIC_API_FREEZE.md](PUBLIC_API_FREEZE.md) · [GOLDEN_PATH](python/docs/start/GOLDEN_PATH.md) · [SECURITY_AUDIT](python/docs/security/SECURITY_AUDIT.md).  
-Layer 2: everything below — encyclopedia. Read START_HERE first if you are new.  
-Stale history: [docs/archive/](docs/archive/).  
+Layer 0: [README.md](README.md) (one screen) + **[START_HERE.md](START_HERE.md)** (the only intro).
+Layer 1: [MENTAL_MODEL.md](MENTAL_MODEL.md) · [PUBLIC_API_FREEZE.md](PUBLIC_API_FREEZE.md) · [GOLDEN_PATH](python/docs/start/GOLDEN_PATH.md) · [SECURITY_AUDIT](python/docs/security/SECURITY_AUDIT.md).
+Layer 2: everything below — encyclopedia. Read START_HERE first if you are new.
+**Audience + Diátaxis routing:** [docs/INDEX.md](docs/INDEX.md).
+Stale history: [docs/archive/](docs/archive/). **Do not cite archive as current law.**
 Scorecard: [docs/S_TIER_SCORECARD.md](docs/S_TIER_SCORECARD.md).
+
+Contributor contract: [CONTRIBUTING.md](CONTRIBUTING.md) · Python host: [python/CONTRIBUTING.md](python/CONTRIBUTING.md).
+Agent contract: [AGENTS.md](AGENTS.md).
 
 ## Start
 
 | Doc | Topic |
 |-----|--------|
 | **[START_HERE.md](START_HERE.md)** | **First-time users (read this first)** |
+| [docs/INDEX.md](docs/INDEX.md) | Audience + Diátaxis map |
 | [README.md](README.md) | Repo overview |
 | [STRUCTURE.md](STRUCTURE.md) | Monorepo map |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | System shape / monorepo rules |

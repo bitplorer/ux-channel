@@ -3,8 +3,24 @@
 Orientation for agents continuing this package.
 
 Read [MENTAL_MODEL.md](MENTAL_MODEL.md) then [python/STABILITY.md](python/STABILITY.md) then **[AUTOMATION.md](AUTOMATION.md)**.
+First-time humans: [START_HERE.md](START_HERE.md). Map: [docs/INDEX.md](docs/INDEX.md).
 
 **Humans reading the tree:** [`TERMINOLOGY.md`](TERMINOLOGY.md) → [`HOW_IT_WORKS.md`](HOW_IT_WORKS.md) → [`REFERENCE.md`](REFERENCE.md) → [`FAQ.md`](FAQ.md). Do not assume IR/cap/CXB vocabulary is known.
+
+## Layer ownership (hard cut)
+
+The UX stack is a **layered system of specialists**, not a monolith.
+
+| Layer | Owns | Must **not** own |
+|-------|------|------------------|
+| **ux-dom** | HTML/CSS/JS trees, Document, serialize, pure discovery | Intent, Cap, Result, product behavior, motion IR |
+| **ux-channel** (this repo) | Intent / Result / Capability / wire / peers / host runtime / CXB / conformance | HTML trees, CSS, Document construction, author composition |
+| **ux-behavior** | Product behavior, Morph/Ref state, `@action` | Raw HTML construction, wire codecs |
+| **ux-motion** | Presence / transition plans as data | Product behavior, DOM construction |
+| **ux-compose** | Author composition + `uxcompose` CLI | Re-implementing this protocol |
+
+Do not invent a parallel RPC style. Do not invent a sixth product. Do not
+reimplement Document here. Regions return HTML the **caller** supplied.
 
 ## North star
 
@@ -27,10 +43,10 @@ or designing public API / trust. Everything boring stays regenerated.
 | Full green | `make verify` |
 | CXB expected blobs | `make cxb-regen` |
 
-Never hand-edit `catalog/catalog.json` or `PACKAGE_MAP.json` → `modules` / `module_count`.  
-Package `__init__.py` export lists **are** hand design (public API).  
-Short **Design / Architecture / Implementation** overviews live on package `__init__.py`  
-(and one-liners in `package_docs`); deep encyclopedia stays in `python/docs/`.  
+Never hand-edit `catalog/catalog.json` or `PACKAGE_MAP.json` → `modules` / `module_count`.
+Package `__init__.py` export lists **are** hand design (public API).
+Short **Design / Architecture / Implementation** overviews live on package `__init__.py`
+(and one-liners in `package_docs`); deep encyclopedia stays in `python/docs/`.
 Policy details: [AUTOMATION.md](AUTOMATION.md).
 
 ## Non-negotiables
@@ -45,6 +61,7 @@ Policy details: [AUTOMATION.md](AUTOMATION.md).
 7. Read `OPERATIONAL.md` before suggesting `cargo run --bin uxc_peer`.
 8. Do not leave recovery docs pointing at dead sandbox paths — GitHub `main` is truth.
 9. Do not reintroduce forbidden packages (`zones`, `day1`, `paint`, shims).
+10. Do not own HTML/CSS in this repo. Do not teach Channel `transition.*` (motion stays droppable).
 
 ## Verify before claiming green
 
@@ -102,3 +119,4 @@ CI runs the same on every push (`.github/workflows/ci.yml`).
 | Python application imports | `ux_channel.api` |
 | Thin Python→Rust forward | `demos/python_forward/` |
 | Design / arch overviews | package `__init__.py` + `PACKAGE_MAP` `package_docs` + `ARCHITECTURE.md` |
+| Docs routing | `docs/INDEX.md` · `DOCS.md` |
