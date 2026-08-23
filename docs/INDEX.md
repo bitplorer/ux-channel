@@ -1,0 +1,104 @@
+# ux-channel documentation index
+
+**Start:** [../START_HERE.md](../START_HERE.md) (the only intro).
+**Encyclopedia map (unchanged):** [../DOCS.md](../DOCS.md).
+This file routes by **audience** and **Diátaxis mode**. It does not replace DOCS.md.
+
+This layer owns Intent / Result / Cap / wire / peers / host runtime.
+It does **not** own HTML trees or CSS.
+
+Stale history: [archive/](archive/) — **do not cite as current law**.
+
+---
+
+## Audience
+
+| You are… | Start (≤ 2 clicks from repo root) |
+|----------|-----------------------------------|
+| **New** | [../START_HERE.md](../START_HERE.md) |
+| **Python app builder** | [../python/docs/start/GOLDEN_PATH.md](../python/docs/start/GOLDEN_PATH.md) · [../python/docs/start/HOW_TO.md](../python/docs/start/HOW_TO.md) |
+| **Need the one idea** | [../MENTAL_MODEL.md](../MENTAL_MODEL.md) |
+| **Need frozen names** | [../PUBLIC_API_FREEZE.md](../PUBLIC_API_FREEZE.md) |
+| **Operator / CI** | [../OPERATIONAL.md](../OPERATIONAL.md) · [../TESTING.md](../TESTING.md) |
+| **Rust / peer** | [../rust/README.md](../rust/README.md) · [../ARCHITECTURE.md](../ARCHITECTURE.md) |
+| **Maintainer / agent** | [../AGENTS.md](../AGENTS.md) · [../CONTRIBUTING.md](../CONTRIBUTING.md) · [../AUTOMATION.md](../AUTOMATION.md) |
+
+---
+
+## By Diátaxis mode
+
+### Tutorial
+
+| Doc | Topic |
+|-----|--------|
+| [../START_HERE.md](../START_HERE.md) | First-time users (5-min morph + §§1–13) |
+| [../python/docs/start/GOLDEN_PATH.md](../python/docs/start/GOLDEN_PATH.md) | Golden path app |
+| [../python/docs/start/](../python/docs/start/) | Application encyclopedia (start here after START_HERE) |
+
+### How-to
+
+| Doc | Topic |
+|-----|--------|
+| [../python/docs/start/HOW_TO.md](../python/docs/start/HOW_TO.md) | How-to encyclopedia |
+| [../python/docs/start/ERROR_HANDLING.md](../python/docs/start/ERROR_HANDLING.md) | Errors |
+| [../python/docs/start/EXTENSIONS.md](../python/docs/start/EXTENSIONS.md) | Extend without bloat |
+| [../OPERATIONAL.md](../OPERATIONAL.md) | Verify / CI / secrets |
+| [../TESTING.md](../TESTING.md) | What green means |
+| [../RECOVERY.md](../RECOVERY.md) | Hardening restore (GitHub-first) |
+| [../python/CONTRIBUTING.md](../python/CONTRIBUTING.md) | Python host workflow |
+| [../CONTRIBUTING.md](../CONTRIBUTING.md) | Root contributor contract |
+
+### Reference
+
+| Doc | Topic |
+|-----|--------|
+| [../REFERENCE.md](../REFERENCE.md) | HTTP / recipes |
+| [../PUBLIC_API_FREEZE.md](../PUBLIC_API_FREEZE.md) | Frozen names |
+| [../FAQ.md](../FAQ.md) | Common questions |
+| [../TERMINOLOGY.md](../TERMINOLOGY.md) | Glossary |
+| [../NAMING.md](../NAMING.md) | Intent ↔ name (Rust-parity caps) |
+| [../SPEC/](../SPEC/) | Wire law |
+| [../conformance/](../conformance/) | Golden vectors |
+| [../python/STABILITY.md](../python/STABILITY.md) | Layout + identity law |
+| [../python/ONTOLOGY.md](../python/ONTOLOGY.md) | Region / Bridge / Action |
+| [../python/docs/](../python/docs/) | MkDocs encyclopedia (core, asgi, security, state, …) |
+| [../CHANGELOG.md](../CHANGELOG.md) | History (not current teaching) |
+
+### Explanation
+
+| Doc | Topic |
+|-----|--------|
+| [../MENTAL_MODEL.md](../MENTAL_MODEL.md) | Intent → Result |
+| [../HOW_IT_WORKS.md](../HOW_IT_WORKS.md) | Flows & algorithms |
+| [../ARCHITECTURE.md](../ARCHITECTURE.md) | System shape / monorepo rules |
+| [../STRUCTURE.md](../STRUCTURE.md) | Monorepo map |
+| [../LONGEVITY.md](../LONGEVITY.md) | Stable vs moving + anti-bloat doors |
+| [../AUTOMATION.md](../AUTOMATION.md) | Ceremonial vs hand-coded |
+| [../PACK_README.md](../PACK_README.md) | Pack notes |
+| [../python/README.md](../python/README.md) | Python host |
+| [../python/STRUCTURE.md](../python/STRUCTURE.md) | Python permanence |
+| [../python/LAYOUT.md](../python/LAYOUT.md) | Layout |
+| [S_TIER_SCORECARD.md](S_TIER_SCORECARD.md) | Scorecard |
+
+---
+
+## Layer 0 / 1 / 2 (existing pyramid)
+
+Unchanged from [../DOCS.md](../DOCS.md):
+
+- Layer 0: README (gate) + START_HERE (only intro)
+- Layer 1: MENTAL_MODEL, PUBLIC_API_FREEZE, GOLDEN_PATH, SECURITY_AUDIT
+- Layer 2: encyclopedia (`python/docs/`, SPEC, root essays)
+
+---
+
+## Sister layers
+
+| Package | Role |
+|---------|------|
+| [ux-dom](https://github.com/bitplorer/ux-dom) | Render / Document |
+| [ux-behavior](https://github.com/bitplorer/ux-behavior) | Product behavior → Ops |
+| [ux-motion](https://github.com/bitplorer/ux-motion) | Presence / transition plans |
+| [ux-compose](https://github.com/bitplorer/ux-compose) | Composition + product CLI |
+
+Do not flatten these layers into this repo.
