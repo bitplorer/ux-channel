@@ -16,6 +16,15 @@ It does **not** own HTML trees or CSS. Markup is the caller's (ux-dom, Jinja, or
 > **Map:** [docs/INDEX.md](docs/INDEX.md) · encyclopedia: [DOCS.md](DOCS.md)
 > **Contributor / agent:** [CONTRIBUTING.md](CONTRIBUTING.md) · [AGENTS.md](AGENTS.md)
 
+### Brand lines
+
+| Layer | Name |
+|-------|------|
+| **PyPI / pip** | `ux-channel` |
+| **Import** | `ux_channel` |
+| **CLI** | **`uxchannel`** |
+| **Version** | `0.1.0` |
+
 ## Install
 
 ```bash

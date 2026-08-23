@@ -1,9 +1,10 @@
-# AGENTS.md — ux-channel wire-native
+# AGENTS.md — ux-channel
 
-Orientation for agents continuing this package.
+Orientation for humans and agents continuing this package.
 
-Read [MENTAL_MODEL.md](MENTAL_MODEL.md) then [python/STABILITY.md](python/STABILITY.md) then **[AUTOMATION.md](AUTOMATION.md)**.
-First-time humans: [START_HERE.md](START_HERE.md). Map: [docs/INDEX.md](docs/INDEX.md).
+**First-time:** [START_HERE.md](START_HERE.md). **Map:** [docs/INDEX.md](docs/INDEX.md).
+
+Then: [MENTAL_MODEL.md](MENTAL_MODEL.md) · [python/STABILITY.md](python/STABILITY.md) · **[AUTOMATION.md](AUTOMATION.md)**.
 
 **Humans reading the tree:** [`TERMINOLOGY.md`](TERMINOLOGY.md) → [`HOW_IT_WORKS.md`](HOW_IT_WORKS.md) → [`REFERENCE.md`](REFERENCE.md) → [`FAQ.md`](FAQ.md). Do not assume IR/cap/CXB vocabulary is known.
 
@@ -13,11 +14,11 @@ The UX stack is a **layered system of specialists**, not a monolith.
 
 | Layer | Owns | Must **not** own |
 |-------|------|------------------|
-| **ux-dom** | HTML/CSS/JS trees, Document, serialize, pure discovery | Intent, Cap, Result, product behavior, motion IR |
-| **ux-channel** (this repo) | Intent / Result / Capability / wire / peers / host runtime / CXB / conformance | HTML trees, CSS, Document construction, author composition |
-| **ux-behavior** | Product behavior, Morph/Ref state, `@action` | Raw HTML construction, wire codecs |
-| **ux-motion** | Presence / transition plans as data | Product behavior, DOM construction |
-| **ux-compose** | Author composition + `uxcompose` CLI | Re-implementing this protocol |
+| **ux-dom** | HTML/CSS/JS trees, `Document`, serialize, pure discovery, `uxdom` | Intent, Cap, Result ops, MorphState, motion IR, product CLI |
+| **ux-channel** (this repo) | Intent / Result / Cap / wire / peers / host runtime | HTML trees, CSS |
+| **ux-behavior** | Product behavior, Morph/Ref, `@action`, validation | Raw HTML construction, wire codecs |
+| **ux-motion** | Presence / transition plans as data (IR v1) | Product behavior, DOM construction |
+| **ux-compose** | Author composition + product CLI (`uxcompose`) | Re-implementing any specialist |
 
 Do not invent a parallel RPC style. Do not invent a sixth product. Do not
 reimplement Document here. Regions return HTML the **caller** supplied.

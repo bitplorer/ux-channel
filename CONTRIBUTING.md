@@ -1,5 +1,7 @@
 # Contributing
 
+**First-time:** [START_HERE.md](START_HERE.md). **Map:** [docs/INDEX.md](docs/INDEX.md). **Agent contract:** [AGENTS.md](AGENTS.md).
+
 ux-channel is a **polyglot monorepo**: Python host (`python/`), Rust kernel (`rust/`),
 SPEC + conformance vectors, JS static. Law is `SPEC/` + `conformance/`. If Python
 and Rust disagree, **vectors win**.
