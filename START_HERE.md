@@ -1,8 +1,10 @@
-# Start here — first-time users of ux-channel
+# Start here — ux-channel
 
-**Audience:** engineers who have never used this library.  
-**Promise:** every non-obvious assumption is written down.  
-**Time:** 5 minutes to a running morph (`uxchannel create-app`); ~20–40 minutes for sections 1–8.
+**Audience:** first-time users of this package.
+**Promise:** a running morph in five minutes; every non-obvious assumption is written down below.
+**Time:** ~5 minutes (`uxchannel create-app`); ~20–40 minutes for §§1–8.
+
+**Map:** [docs/INDEX.md](docs/INDEX.md).
 
 **In 5 minutes**
 
