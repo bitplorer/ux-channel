@@ -36,7 +36,7 @@ Default remains `cek=off`. Channel stays the product; cek-host 0.1.3 is the Cap 
 | Mistakes we see | §11 |
 | Deeper reading | §12 |
 
-Related maps: [DOCS.md](DOCS.md) · [MENTAL_MODEL.md](MENTAL_MODEL.md) · [LONGEVITY.md](LONGEVITY.md) · [TERMINOLOGY.md](TERMINOLOGY.md)
+Related maps: [docs/INDEX.md](docs/INDEX.md) · [CONTRIBUTING.md](CONTRIBUTING.md) · [DOCS.md](DOCS.md) · [MENTAL_MODEL.md](MENTAL_MODEL.md) · [LONGEVITY.md](LONGEVITY.md) · [TERMINOLOGY.md](TERMINOLOGY.md)
 
 ---
 
