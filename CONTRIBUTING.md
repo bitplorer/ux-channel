@@ -67,8 +67,13 @@ make test-rust
 | File | May contain | Must not contain |
 |------|-------------|------------------|
 | `README.md` | Gate only | Full API, ADR bodies |
-| `START_HERE.md` | First success + vocabulary | Exhaustive encyclopedia (that is `python/docs/`) |
+| `START_HERE.md` | 5-minute first success | Exhaustive encyclopedia (that is `docs/` + `python/docs/`) |
 | `docs/INDEX.md` | Audience + Diátaxis routing | Duplicate of DOCS.md encyclopedia |
+| `docs/guides/` | Goal-oriented recipes | Conceptual essays as primary form |
+| `docs/reference/` | Facts, signatures, tables | Learning narrative as primary form |
+| `docs/internals/` | Why / architecture / C4 | Step lists as primary form |
+| `docs/examples/` | Worked recipes / pointers | Law |
+| `docs/adr/` | Architecture decisions | Mixed how-to |
 | `REFERENCE.md` / `SPEC/` | Facts | Learning narrative as primary form |
 | `docs/archive/` | History | Current law |
 
