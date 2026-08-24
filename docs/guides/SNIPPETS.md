@@ -7,11 +7,11 @@ A click is a signed Intent. Caps authorize. Result carries ops.
 
 Every block is meant to run (or to be the exact fragment you drop into a running app). Names are public exports. If code and this page disagree, **code wins**.
 
-**13 snippets** covering install, core usage, fail-closed errors, live/async, CLI, and the usage patterns that keep layers from leaking.
+**17 snippets** covering install, core usage, fail-closed errors, live/async, CLI, and the usage patterns that keep layers from leaking.
 
 ### Public names in this cookbook
 
-`FastAPI`, `HTMLResponse`, `Channel`, `ChannelConfig`, `morph`, `toast`, `navigate`, `swap`, `remove`, `set_text`, `set_attr`, `focus`, `scroll`, `http_status_for`, `Intent`, `Result`, `CapService`, `CapError`, `esc`, `mark_safe`, `user_content`, `SafeHtml`, `sel`, `uid_attr`
+`FastAPI`, `HTMLResponse`, `Channel`, `ChannelConfig`, `morph`, `toast`, `navigate`, `swap`, `remove`, `set_text`, `set_attr`, `focus`, `scroll`, `http_status_for`, `Intent`, `Result`, `CapService`, `CapError`, `esc`, `mark_safe`, `user_content`, `SafeHtml`, `sel`, `uid_attr`, `create_channel`, `state`, `ERROR_HTTP_STATUS`
 
 ## Contents
 
@@ -25,7 +25,11 @@ Every block is meant to run (or to be the exact fragment you drop into a running
 - [control() → ControlAttrs](#ch-control-attrs)
 - [Result ops catalog](#ch-ops-full)
 - [sel() / uid_attr() region helpers](#ch-sel)
+- [create_channel factory](#ch-create)
+- [state(ch) session / client / db](#ch-state)
 - [ch.fail and error mapping](#ch-fail)
+- [user_content / mark_safe / SafeHtml](#ch-user-content)
+- [http_status_for + ERROR_HTTP_STATUS](#ch-http-status)
 - [Async handlers](#ch-async)
 - [Pattern: a click is a signed Intent](#ch-pattern-intent)
 
@@ -249,6 +253,43 @@ print(sel("Cart:badge"))     # [data-channel-id="Cart:badge"]
 print(uid_attr("Cart:badge"))
 ```
 
+### create_channel factory
+
+<a id="ch-create"></a>
+
+Returns (ActionRegistry, PluginHub). Prefer Channel.boot on day 1. Production: ChannelConfig.from_env(), never development(secret=) in prod.
+
+```python
+from fastapi import FastAPI
+from ux_channel import create_channel, ChannelConfig
+
+app = FastAPI()
+registry, hub = create_channel(
+    config=ChannelConfig.development(secret="dev-" + "x" * 32),
+    app=app,
+    host="fastapi",
+)
+print(type(registry).__name__)
+# Day-1 still prefers Channel.boot. create_channel is the factory when you
+# already have a host and want ActionRegistry + PluginHub explicitly.
+```
+
+### state(ch) session / client / db
+
+<a id="ch-state"></a>
+
+state(ch) attaches ChannelState as ch.st. Not a database. Client persist is allowlist-only.
+
+```python
+from ux_channel import state
+
+# After Channel.boot(...):
+st = state(ch, allow=["ui.theme"])
+n = st.session("n", 0)
+# st.client  — client plane (strict by default; persist only allowlisted paths)
+# st.db      — host-provided durable store facade, not a database
+```
+
 
 ## Fail closed
 
@@ -268,6 +309,38 @@ def place(order_id: str = ""):
     return ch.done()
 
 # http_status_for(error) maps protocol errors to HTTP for ASGI adapters
+```
+
+### user_content / mark_safe / SafeHtml
+
+<a id="ch-user-content"></a>
+
+Morph html= is caller-owned. esc / user_content for untrusted strings. mark_safe is an explicit trust boundary.
+
+```python
+from ux_channel import esc, user_content, mark_safe, SafeHtml
+
+print(esc("<script>alert(1)</script>"))     # escaped
+print(user_content("<b>raw</b>"))            # wrapped + escaped
+trusted = mark_safe("<em>host-owned</em>")
+assert isinstance(trusted, SafeHtml)
+```
+
+### http_status_for + ERROR_HTTP_STATUS
+
+<a id="ch-http-status"></a>
+
+Result body is the source of truth. HTTP status is a cache/proxy convenience. One mapping table for FastAPI / Starlette / batch.
+
+```python
+from ux_channel import Result, http_status_for, ERROR_HTTP_STATUS
+
+ok = Result.success()
+print(http_status_for(ok))                 # 200 even if ops are empty
+bad = Result.failure("validation", "sku required")
+print(http_status_for(bad))                # 422
+print(ERROR_HTTP_STATUS["unauthorized"])   # 401
+print(ERROR_HTTP_STATUS["rate_limited"])   # 429
 ```
 
 
