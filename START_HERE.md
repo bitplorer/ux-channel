@@ -17,6 +17,40 @@ uvicorn app.main:app --reload
 
 Click **+1**. That is Intent → Result → morph. Then come back here for why.
 
+**Cookbook:** [docs/guides/SNIPPETS.md](docs/guides/SNIPPETS.md) — boot, Caps, Intent/Result, ops, fail-closed, usage patterns.
+
+**Hand-written (same loop, no scaffold):**
+
+```python
+from fastapi import FastAPI
+from ux_channel import Channel, ChannelConfig, morph, toast
+
+app = FastAPI()
+ch = Channel.boot(app, config=ChannelConfig.development(secret="dev-" + "x" * 32))
+
+@ch.on
+def ping():
+    return ch.done()
+
+@ch.on
+def add(sku: str = "tee"):
+    return ch.done()  # handlers return Result; prefer ch.done() / ch.fail()
+
+# Caps: minted into button attrs
+attrs = ch.control(add, trust_sku="tee").as_dict()
+```
+
+Wire types you will actually import:
+
+```python
+from ux_channel import Intent, Result, CapService, morph, toast
+
+intent = Intent(action="cart.add", args={"sku": "tee"})
+ok = Result.success(morph("#cart", "<div id='cart'>1</div>"), toast("Added"))
+caps = CapService(secret="dev-" + "x" * 32)
+token = caps.mint("cart.add", {"sku": "tee"})
+```
+
 **Async:** `@ch.on async def …` is legal. Call `await ch.registry.async_dispatch(intent)`.  
 `dispatch()` refuses async handlers — it will not nest an event loop.
 
