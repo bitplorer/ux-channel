@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation map
+    url: https://github.com/bitplorer/ux-channel/blob/main/docs/INDEX.md
+    about: Start at docs/INDEX.md.
+  - name: Support
+    url: https://github.com/bitplorer/ux-channel/blob/main/SUPPORT.md
+    about: Questions.
+  - name: Security
+    url: https://github.com/bitplorer/ux-channel/blob/main/SECURITY.md
+    about: Private vulnerability reports.
