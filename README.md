@@ -1,22 +1,18 @@
 # ux-channel
 
+[![CI](https://github.com/bitplorer/ux-channel/actions/workflows/ci.yml/badge.svg)](https://github.com/bitplorer/ux-channel/actions/workflows/ci.yml)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+
 A click is not a form post. It is a signed **Intent**.
 
 ```text
 Intent {action, args, cap}  →  verify  →  action  →  Result {ok, ops[]}
 ```
 
-JSON is the floor. Caps authorize. Classic IR 0.1 stays valid.
-Channel is the product. **cek-host 0.1.3** is the optional Cap machine (`cek=require`).
+JSON is the floor. Caps authorize. Classic IR 0.1 stays valid. Channel is the product. **cek-host 0.1.3** is the optional Cap machine (`cek=require`).
 
-This layer **owns the wire**: Intent, Result, Capability, codecs, peers, host runtime.
-It does **not** own HTML trees or CSS. Markup is the caller's (ux-dom, Jinja, or other).
-
-> **New here?** [START_HERE.md](START_HERE.md) is the only intro.
-> **Map:** [docs/INDEX.md](docs/INDEX.md) · encyclopedia: [DOCS.md](DOCS.md)
-> **Contributor / agent:** [CONTRIBUTING.md](CONTRIBUTING.md) · [AGENTS.md](AGENTS.md)
-
-### Brand lines
+This layer **owns the wire**: Intent, Result, Capability, codecs, peers, host runtime. It does **not** own HTML trees or CSS.
 
 | Layer | Name |
 |-------|------|
@@ -24,6 +20,21 @@ It does **not** own HTML trees or CSS. Markup is the caller's (ux-dom, Jinja, or
 | **Import** | `ux_channel` |
 | **CLI** | **`uxchannel`** |
 | **Version** | `0.1.0` |
+| **Python** | ≥ 3.10 |
+| **License** | [MIT](LICENSE) |
+
+## Table of Contents
+
+- [Install](#install)
+- [Usage](#usage)
+- [Ownership](#ownership)
+- [Audience](#audience)
+- [Documentation](#documentation)
+- [API](#api)
+- [Verify](#verify)
+- [Security](#security)
+- [Contributing](#contributing)
+- [License](#license)
 
 ## Install
 
@@ -32,7 +43,9 @@ pip install "ux-channel[asgi]"
 pip install "ux-channel[cek]"    # optional: cek-host + cek-surface ≥ 0.1.3
 ```
 
-## Eight lines
+Extras: `asgi` / `fastapi` / `starlette`, `redis`, `speed`/`serde` (`orjson`), `cek`, `otel`/`devtools`, `full`.
+
+## Usage
 
 ```python
 from fastapi import FastAPI
@@ -46,10 +59,7 @@ def ping():
     return ch.done()
 ```
 
-`async def` handlers use `await ch.registry.async_dispatch(...)`.
-`dispatch()` refuses them — it does not start an event loop.
-
-## First 5 minutes
+`async def` handlers use `await ch.registry.async_dispatch(...)`. `dispatch()` refuses them — it does not start an event loop.
 
 ```bash
 uxchannel create-app myapp
@@ -57,29 +67,60 @@ cd myapp && pip install -r requirements.txt
 uvicorn app.main:app --reload   # click +1 — that is the first morph
 ```
 
-### Ownership
+Do **not** ship `development(secret=…)` in production. Five-minute path: [START_HERE.md](START_HERE.md) is the only intro.
+
+## Ownership
 
 | Owns | Does **not** own |
 |------|------------------|
-| Intent / Result / Cap / args_hash | HTML trees, CSS, Document shell (`ux-dom`) |
-| Wire codecs (JSON floor, CXB upgrade) | Product MorphState / `@action` (`ux-behavior`) |
+| Intent / Result / Cap / args_hash | HTML trees, CSS, Document (`ux-dom`) |
+| Wire codecs (JSON floor, CXB upgrade) | MorphState / `@action` (`ux-behavior`) |
 | Host runtime, peers, regions protocol | Motion IR (`ux-motion`) |
-| `uxchannel` CLI + conformance vectors | Author composition / product serve (`ux-compose`) |
+| `uxchannel` CLI + conformance vectors | Product serve (`ux-compose`) |
 
-### Audience
+## Audience
 
 | You are… | Start |
 |----------|--------|
 | **New** | [START_HERE.md](START_HERE.md) |
 | **Python host builder** | [python/docs/start/GOLDEN_PATH.md](python/docs/start/GOLDEN_PATH.md) |
 | **Need frozen names** | [PUBLIC_API_FREEZE.md](PUBLIC_API_FREEZE.md) |
-| **Operator** | [OPERATIONAL.md](OPERATIONAL.md) · [TESTING.md](TESTING.md) |
-| **Contributor / agent** | [CONTRIBUTING.md](CONTRIBUTING.md) · [AGENTS.md](AGENTS.md) |
-| **Need a map** | [docs/INDEX.md](docs/INDEX.md) |
+| **Operator** | [OPERATIONAL.md](OPERATIONAL.md) |
+| **Map** | [docs/INDEX.md](docs/INDEX.md) |
+| **Security** | [SECURITY.md](SECURITY.md) |
+| **Questions** | [SUPPORT.md](SUPPORT.md) |
+
+## Documentation
+
+Family contract: [docs/DOCUMENTATION.md](docs/DOCUMENTATION.md). Map: [docs/INDEX.md](docs/INDEX.md).
+
+| Diátaxis | Canonical |
+|----------|-----------|
+| Tutorial | [START_HERE.md](START_HERE.md) |
+| How-to | [docs/guides/first-app.md](docs/guides/first-app.md) |
+| Reference | [PUBLIC_API_FREEZE.md](PUBLIC_API_FREEZE.md) |
+| Explanation | [MENTAL_MODEL.md](MENTAL_MODEL.md) · [HOW_IT_WORKS.md](HOW_IT_WORKS.md) |
+
+## API
+
+Root `ux_channel.__all__`: `Channel`, `ChannelConfig`, `create_channel`, `Intent`, `Result`, `Op`, `CapService`, `morph`, `toast`, `navigate`, `ActionRegistry`, `Region`, `action_attrs`, `esc`, and the rest of the freeze. CLI: `uxchannel`. Frozen names: [PUBLIC_API_FREEZE.md](PUBLIC_API_FREEZE.md).
+
+## Verify
 
 ```bash
 export UX_CHANNEL_STRICT_DX=1
-uxchannel upgrade-check . --fail
 uxchannel doctor --fail
 make verify
 ```
+
+## Security
+
+Caps, `args_hash`, JTI/once, fail-closed unknown actions. Morph HTML escaping is the caller’s. [SECURITY.md](SECURITY.md).
+
+## Contributing
+
+PRs welcome. [CONTRIBUTING.md](CONTRIBUTING.md) · [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) · [SUPPORT.md](SUPPORT.md) · [GOVERNANCE.md](GOVERNANCE.md).
+
+## License
+
+MIT — see [LICENSE](LICENSE).
