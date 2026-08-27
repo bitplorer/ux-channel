@@ -976,7 +976,8 @@
   // --- Signal → Intent ----------------------------------------------------
   // Triad: data-channel-action (WHAT) · data-channel-on (WHEN) · data-channel-target (WHERE)
   // Grammar: "signal [mod:value]…"  e.g. "input delay:200" · "swipe.horizontal threshold:48"
-  // Values: closest form → Intent.form; named field → args. No client dual-bind store.
+  // Values: closest form → Intent.form; named control value → form too.
+  // Cap hashes data-channel-args only. Live field values must not join args.
   var signalState = null;
   var signalSuppressClick = false;
   var signalInFlight = Object.create(null);
@@ -1194,8 +1195,8 @@
     var formObj = collectForm(ctrl);
     var tag = (ctrl.tagName || "").toLowerCase();
     if ((tag === "input" || tag === "textarea" || tag === "select") && ctrl.name) {
-      args = Object.assign({}, args);
-      if (args[ctrl.name] == null) args[ctrl.name] = ctrl.value;
+      formObj = Object.assign({}, formObj || {});
+      if (formObj[ctrl.name] == null) formObj[ctrl.name] = ctrl.value;
     }
     signalInFlight[key] = true;
     if (opts.once) signalThrottleAt[key + "|once"] = 1;

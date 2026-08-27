@@ -104,7 +104,9 @@ Defaults when a modifier is omitted: `input`/`change` → `delay:180`;
 ### Value path
 
 1. Typing lives in the DOM.
-2. On signal, closest form → `Intent.form`; field `name` → args.
+2. On signal, closest form → `Intent.form`. A named control (input/textarea/select)
+   writes its live value into `Intent.form` too — never into `Intent.args`.
+   Cap hashes `data-channel-args` only.
 3. Server state is authority; **morph** writes canonical HTML.
 
 Implements: `static/ux-channel.js`

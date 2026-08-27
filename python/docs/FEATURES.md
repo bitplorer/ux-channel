@@ -114,7 +114,7 @@ dense keys for common fields are fixed in [CXB.md](core/CXB.md).
 | **Use when** | Click is not enough — swipe, longpress, live field `input`/`change` |
 | **Triad** | `data-channel-action` (WHAT) · `data-channel-on` (WHEN) · `data-channel-target` (WHERE, optional) |
 | **Grammar** | `signal [delay:|threshold:|throttle:|once]…` — see [JS_RUNTIME](client/JS_RUNTIME.md) |
-| **Values** | Closest form → `Intent.form`; field `name` → args; morph is canonical UI |
+| **Values** | Closest form + named control → `Intent.form`; Cap hashes `data-channel-args` only; morph is canonical UI |
 | **Implements** | `static/ux-channel.js` |
 | **Docs** | [JS_RUNTIME — Signal → Intent](client/JS_RUNTIME.md) |
 | **Law** | No per-gesture attrs. No client dual-bind store. Caps on controls. |
