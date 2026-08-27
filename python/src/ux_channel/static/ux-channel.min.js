@@ -957,6 +957,7 @@
       v: "1",
       action: action,
       args: args || {},
+      form: opts.form,
       cap: cap || undefined,
       target: target || undefined,
       request_id: requestId(),
@@ -972,26 +973,496 @@
     return enqueue(function () { return postIntent(intent); });
   }
 
-  function onClick(ev) {
-    var el = ev.target.closest("[data-channel-action]");
-    if (!el || el.tagName === "FORM") return;
-    ev.preventDefault();
-    var action = el.getAttribute("data-channel-action");
-    var args = parseJSON(el.getAttribute("data-channel-args"), {});
-    var cap = el.getAttribute("data-channel-cap") || undefined;
-    var target = el.getAttribute("data-channel-target") || undefined;
-    var idem = el.getAttribute("data-channel-idempotency") || undefined;
-    el.setAttribute("aria-busy", "true");
-    el.classList.add("ux-busy");
-    runAction(action, args, cap, target, { idempotency_key: idem })
+  // --- Signal → Intent ----------------------------------------------------
+  // Triad: data-channel-action (WHAT) · data-channel-on (WHEN) · data-channel-target (WHERE)
+  // Grammar: "signal [mod:value]…"  e.g. "input delay:200" · "swipe.horizontal threshold:48"
+  // Values: closest form → Intent.form; named field → args. No client dual-bind store.
+  var signalState = null;
+  var signalSuppressClick = false;
+  var signalInFlight = Object.create(null);
+  var signalDebounceTimers = Object.create(null);
+  var signalThrottleAt = Object.create(null);
+  var SIGNAL_SWIPE_THRESHOLD = 48;
+  var SIGNAL_AXIS_LOCK = 10;
+  var SIGNAL_MIN_VELOCITY = 0.35;
+  var SIGNAL_COOLDOWN_MS = 280;
+  var SIGNAL_LONGPRESS_MS = 520;
+  var SIGNAL_DEBOUNCE_MS = 180;
+  var SIGNAL_LEAF = {
+    "click": 1, "change": 1, "input": 1, "blur": 1, "longpress": 1,
+    "swipe.left": 1, "swipe.right": 1, "swipe.up": 1, "swipe.down": 1
+  };
+
+  function parseDuration(v) {
+    if (v == null || v === "") return null;
+    var s = String(v).toLowerCase().replace(/\s+/g, "");
+    var m = s.match(/^(\d+(?:\.\d+)?)(ms|s)?$/);
+    if (!m) {
+      var n0 = parseInt(s, 10);
+      return isFinite(n0) ? n0 : null;
+    }
+    var num = parseFloat(m[1]);
+    if (m[2] === "s") num *= 1000;
+    return isFinite(num) ? Math.round(num) : null;
+  }
+
+  function parseOnSpec(raw) {
+    var spec = { signals: {}, order: [], off: false };
+    if (raw == null || raw === "") return null;
+    var parts = String(raw).split(/\s+/);
+    var current = null;
+    for (var i = 0; i < parts.length; i++) {
+      var p = parts[i].replace(/^\s+|\s+$/g, "").toLowerCase();
+      if (!p) continue;
+      if (p === "none" || p === "off") { spec.off = true; continue; }
+      var colon = p.indexOf(":");
+      if (colon > 0) {
+        var key = p.slice(0, colon);
+        var val = p.slice(colon + 1);
+        if (!current) continue;
+        if (!spec.signals[current]) { spec.signals[current] = {}; spec.order.push(current); }
+        if (key === "delay" || key === "debounce") {
+          var d = parseDuration(val);
+          if (d != null) spec.signals[current].delay = d;
+        } else if (key === "threshold") {
+          var th = parseDuration(val);
+          if (th != null) spec.signals[current].threshold = th;
+        } else if (key === "throttle") {
+          var th2 = parseDuration(val);
+          if (th2 != null) spec.signals[current].throttle = th2;
+        } else if (key === "once" && (val === "1" || val === "true" || val === "yes")) {
+          spec.signals[current].once = true;
+        }
+        continue;
+      }
+      if (p === "once" && current) {
+        if (!spec.signals[current]) { spec.signals[current] = {}; spec.order.push(current); }
+        spec.signals[current].once = true;
+        continue;
+      }
+      current = p;
+      if (!spec.signals[current]) { spec.signals[current] = {}; spec.order.push(current); }
+    }
+    return spec;
+  }
+
+  function ownOnSpec(el) {
+    return el && el.getAttribute ? parseOnSpec(el.getAttribute("data-channel-on")) : null;
+  }
+
+  function effectiveOnSpec(el) {
+    var own = ownOnSpec(el);
+    if (own && own.off) return { signals: {}, order: [], off: true };
+    var inherited = null;
+    var a = el.parentElement;
+    while (a && a !== document.body && a !== document.documentElement) {
+      var s = ownOnSpec(a);
+      if (s) {
+        if (s.off) break;
+        var leafOnly = { signals: {}, order: [], off: false };
+        for (var i = 0; i < s.order.length; i++) {
+          var n = s.order[i];
+          if (SIGNAL_LEAF[n]) {
+            leafOnly.signals[n] = Object.assign({}, s.signals[n]);
+            leafOnly.order.push(n);
+          }
+        }
+        if (leafOnly.order.length) { inherited = leafOnly; break; }
+      }
+      a = a.parentElement;
+    }
+    var merged = own || inherited;
+    if (own && inherited) {
+      merged = { signals: {}, order: own.order.slice(), off: own.off };
+      var k;
+      for (k in own.signals) merged.signals[k] = Object.assign({}, own.signals[k]);
+      if (!own.off) {
+        for (k in inherited.signals) {
+          if (!merged.signals[k]) {
+            merged.signals[k] = Object.assign({}, inherited.signals[k]);
+            merged.order.push(k);
+          }
+        }
+      }
+    }
+    if (!merged || (!merged.order.length && !merged.off)) {
+      return { signals: { click: {} }, order: ["click"], off: false };
+    }
+    if (own && el.getAttribute && el.getAttribute("data-channel-action")) {
+      var onlySynth = true;
+      for (var j = 0; j < own.order.length; j++) {
+        if (SIGNAL_LEAF[own.order[j]]) { onlySynth = false; break; }
+      }
+      if (onlySynth && !merged.signals.click) {
+        merged.signals.click = {};
+        merged.order.push("click");
+      }
+    }
+    return merged;
+  }
+
+  function acceptsSignal(el, signal) {
+    if (!el) return false;
+    var spec = effectiveOnSpec(el);
+    if (spec.off) return false;
+    return !!spec.signals[signal];
+  }
+
+  function signalOpts(el, signal) {
+    var spec = effectiveOnSpec(el);
+    return (spec.signals && spec.signals[signal]) || {};
+  }
+
+  function effectiveTarget(el) {
+    var a = el, t;
+    while (a && a !== document.documentElement) {
+      if (a.getAttribute) {
+        t = a.getAttribute("data-channel-target");
+        if (t) return t;
+      }
+      a = a.parentElement;
+    }
+    return undefined;
+  }
+
+  function isTypingSurface(el) {
+    if (!el || el === document.body) return false;
+    var tag = (el.tagName || "").toLowerCase();
+    if (tag === "input" || tag === "textarea" || tag === "select") return true;
+    return !!el.isContentEditable;
+  }
+
+  function isControlDisabled(el) {
+    if (!el) return true;
+    if (el.disabled) return true;
+    if (el.getAttribute && el.getAttribute("aria-disabled") === "true") return true;
+    if (el.closest) {
+      var fs = el.closest("fieldset");
+      if (fs && fs.disabled) return true;
+    }
+    return false;
+  }
+
+  function hostKey(el) {
+    if (!el) return "anon";
+    if (el.id) return "#" + el.id;
+    return "el:" + (el.getAttribute && el.getAttribute("data-channel-id") || "");
+  }
+
+  function controlFromEl(el) {
+    if (!el) return null;
+    if (el.getAttribute && el.getAttribute("data-channel-action")) return el;
+    if (el.querySelector) {
+      var inner = el.querySelector("[data-channel-action]");
+      if (inner) return inner;
+    }
+    return null;
+  }
+
+  function collectForm(el) {
+    if (!el || !el.closest) return undefined;
+    var form = el.tagName === "FORM" ? el : el.closest("form");
+    if (!form) return undefined;
+    try {
+      var fd = new FormData(form);
+      var formObj = {};
+      fd.forEach(function (v, k) {
+        if (Object.prototype.hasOwnProperty.call(formObj, k)) {
+          if (!Array.isArray(formObj[k])) formObj[k] = [formObj[k]];
+          formObj[k].push(v);
+        } else formObj[k] = v;
+      });
+      return formObj;
+    } catch (eF) {
+      return undefined;
+    }
+  }
+
+  function fireControl(el, signal) {
+    var ctrl = controlFromEl(el);
+    if (!ctrl || isControlDisabled(ctrl)) return Promise.resolve();
+    var action = ctrl.getAttribute("data-channel-action");
+    if (!action) return Promise.resolve();
+    var opts = signalOpts(ctrl, signal);
+    var key = hostKey(ctrl) + "|" + action + "|" + (signal || "");
+    if (opts.once && signalThrottleAt[key + "|once"]) return Promise.resolve();
+    if (signalInFlight[key]) return Promise.resolve();
+    var args = parseJSON(ctrl.getAttribute("data-channel-args"), {});
+    var cap = ctrl.getAttribute("data-channel-cap") || undefined;
+    var target = ctrl.getAttribute("data-channel-target") || effectiveTarget(ctrl) || undefined;
+    var idem = ctrl.getAttribute("data-channel-idempotency") || undefined;
+    var formObj = collectForm(ctrl);
+    var tag = (ctrl.tagName || "").toLowerCase();
+    if ((tag === "input" || tag === "textarea" || tag === "select") && ctrl.name) {
+      args = Object.assign({}, args);
+      if (args[ctrl.name] == null) args[ctrl.name] = ctrl.value;
+    }
+    signalInFlight[key] = true;
+    if (opts.once) signalThrottleAt[key + "|once"] = 1;
+    ctrl.setAttribute("aria-busy", "true");
+    ctrl.classList.add("ux-busy");
+    return runAction(action, args, cap, target, {
+      idempotency_key: idem,
+      form: formObj,
+    })
       .catch(function (err) {
-        console.error("[ux-channel]", err);
+        console.error("[ux-channel] signal", signal, err);
         if (!err || !err.handled) safeToast(String(err.message || err), "error");
       })
       .finally(function () {
-        el.removeAttribute("aria-busy");
-        el.classList.remove("ux-busy");
+        ctrl.removeAttribute("aria-busy");
+        ctrl.classList.remove("ux-busy");
+        setTimeout(function () { delete signalInFlight[key]; }, SIGNAL_COOLDOWN_MS);
       });
+  }
+
+  function scheduleSignal(el, signal) {
+    var ctrl = controlFromEl(el);
+    if (!ctrl) return;
+    var opts = signalOpts(ctrl, signal);
+    var key = hostKey(ctrl) + "|" + signal;
+    var now = typeof performance !== "undefined" ? performance.now() : Date.now();
+    if (opts.throttle != null) {
+      var last = signalThrottleAt[key] || 0;
+      if (now - last < opts.throttle) return;
+      signalThrottleAt[key] = now;
+      fireControl(ctrl, signal);
+      return;
+    }
+    var delay = opts.delay;
+    if (delay == null && (signal === "input" || signal === "change")) delay = SIGNAL_DEBOUNCE_MS;
+    if (delay == null || delay <= 0) {
+      fireControl(ctrl, signal);
+      return;
+    }
+    if (signalDebounceTimers[key]) clearTimeout(signalDebounceTimers[key]);
+    signalDebounceTimers[key] = setTimeout(function () {
+      delete signalDebounceTimers[key];
+      fireControl(ctrl, signal);
+    }, delay);
+  }
+
+  function conventionSuffix(signal) {
+    if (signal === "swipe.left" || signal === "swipe.up") return "next";
+    if (signal === "swipe.right" || signal === "swipe.down") return "prev";
+    return null;
+  }
+
+  function matchConvention(root, signal) {
+    var suffix = conventionSuffix(signal);
+    if (!suffix || !root || !root.querySelectorAll) return null;
+    var nodes = root.querySelectorAll("[data-channel-action]");
+    var end = "." + suffix;
+    for (var i = 0; i < nodes.length; i++) {
+      if (isControlDisabled(nodes[i])) continue;
+      var a = nodes[i].getAttribute("data-channel-action") || "";
+      if (a === suffix || a.slice(-end.length) === end) return nodes[i];
+    }
+    return null;
+  }
+
+  function resolveSignalTarget(host, signal, clientX, clientY) {
+    var i, el, ctrl, stack = [];
+    if (typeof document.elementsFromPoint === "function" && clientX != null && clientY != null) {
+      try { stack = document.elementsFromPoint(clientX, clientY) || []; }
+      catch (ePt) { stack = []; }
+    }
+    for (i = 0; i < stack.length; i++) {
+      el = stack[i];
+      ctrl = el.closest ? el.closest("[data-channel-action]") : null;
+      if (ctrl && !isControlDisabled(ctrl) && acceptsSignal(ctrl, signal)) return ctrl;
+    }
+    if (host && host.querySelectorAll) {
+      var nodes = host.querySelectorAll("[data-channel-action]");
+      for (i = 0; i < nodes.length; i++) {
+        if (isControlDisabled(nodes[i])) continue;
+        var own = ownOnSpec(nodes[i]);
+        if (own && own.signals[signal] && SIGNAL_LEAF[signal]) return nodes[i];
+      }
+      for (i = 0; i < nodes.length; i++) {
+        if (!isControlDisabled(nodes[i]) && acceptsSignal(nodes[i], signal)) return nodes[i];
+      }
+      ctrl = matchConvention(host, signal);
+      if (ctrl) return ctrl;
+      var root = host.id ? host : (host.closest && host.closest("[id]"));
+      if (root && root !== host) {
+        ctrl = matchConvention(root, signal);
+        if (ctrl) return ctrl;
+      }
+    }
+    return null;
+  }
+
+  function emitSignal(host, signal, clientX, clientY) {
+    var target = resolveSignalTarget(host, signal, clientX, clientY);
+    if (!target) return Promise.resolve();
+    return fireControl(target, signal);
+  }
+
+  function synthThreshold(host, axisToken) {
+    var a = host;
+    while (a && a !== document.documentElement) {
+      var spec = ownOnSpec(a);
+      if (spec) {
+        for (var i = 0; i < spec.order.length; i++) {
+          var n = spec.order[i];
+          if (axisToken === "horizontal" && (n === "swipe.horizontal" || n === "swipe.x") &&
+              spec.signals[n] && spec.signals[n].threshold != null)
+            return spec.signals[n].threshold;
+          if (axisToken === "vertical" && (n === "swipe.vertical" || n === "swipe.y") &&
+              spec.signals[n] && spec.signals[n].threshold != null)
+            return spec.signals[n].threshold;
+        }
+      }
+      a = a.parentElement;
+    }
+    return SIGNAL_SWIPE_THRESHOLD;
+  }
+
+  function findSwipeHost(start) {
+    var el = start;
+    while (el && el !== document.body && el !== document.documentElement) {
+      var spec = ownOnSpec(el);
+      if (spec) {
+        for (var i = 0; i < spec.order.length; i++) {
+          var n = spec.order[i];
+          if (n === "swipe.horizontal" || n === "swipe.x")
+            return { host: el, axis: "horizontal" };
+          if (n === "swipe.vertical" || n === "swipe.y")
+            return { host: el, axis: "vertical" };
+        }
+      }
+      el = el.parentElement;
+    }
+    return null;
+  }
+
+  function clearLongTimer(st) {
+    if (st && st.longTimer) { clearTimeout(st.longTimer); st.longTimer = null; }
+  }
+
+  function onPointerDown(ev) {
+    if (ev.isPrimary === false) return;
+    if (ev.pointerType === "mouse" && ev.button !== 0) return;
+    if (isTypingSurface(ev.target)) return;
+    var found = findSwipeHost(ev.target);
+    var longEl = ev.target.closest && ev.target.closest("[data-channel-action]");
+    if (longEl && (isControlDisabled(longEl) || !acceptsSignal(longEl, "longpress"))) longEl = null;
+    if (!found && !longEl) return;
+    var axis = found ? found.axis : null;
+    var host = found ? found.host : longEl;
+    if (axis) {
+      try {
+        if (host.style && !host.style.touchAction)
+          host.style.touchAction = axis === "vertical" ? "pan-x" : "pan-y";
+      } catch (eTA) {}
+    }
+    signalState = {
+      host: host, axis: axis, id: ev.pointerId,
+      x0: ev.clientX, y0: ev.clientY,
+      t0: typeof performance !== "undefined" ? performance.now() : Date.now(),
+      thr: found ? synthThreshold(host, axis) : SIGNAL_SWIPE_THRESHOLD,
+      locked: null, dead: false, longEl: longEl, longTimer: null
+    };
+    if (longEl) {
+      var lp = signalOpts(longEl, "longpress").delay;
+      if (lp == null) lp = SIGNAL_LONGPRESS_MS;
+      signalState.longTimer = setTimeout(function () {
+        if (!signalState || signalState.id !== ev.pointerId || signalState.dead) return;
+        signalState.dead = true;
+        signalSuppressClick = true;
+        setTimeout(function () { signalSuppressClick = false; }, 360);
+        var el = signalState.longEl;
+        signalState = null;
+        fireControl(el, "longpress");
+      }, lp);
+    }
+    try { if (host && host.setPointerCapture) host.setPointerCapture(ev.pointerId); } catch (eCap) {}
+  }
+
+  function onPointerMove(ev) {
+    if (!signalState || signalState.id !== ev.pointerId || signalState.dead) return;
+    var st = signalState;
+    var dx = ev.clientX - st.x0, dy = ev.clientY - st.y0;
+    if (Math.abs(dx) > 6 || Math.abs(dy) > 6) clearLongTimer(st);
+    if (!st.axis) return;
+    if (!st.locked) {
+      if (Math.abs(dx) < SIGNAL_AXIS_LOCK && Math.abs(dy) < SIGNAL_AXIS_LOCK) return;
+      st.locked = Math.abs(dx) >= Math.abs(dy) ? "horizontal" : "vertical";
+      if (st.locked !== st.axis) {
+        st.dead = true;
+        clearLongTimer(st);
+        try { st.host && st.host.releasePointerCapture && st.host.releasePointerCapture(ev.pointerId); } catch (eRel) {}
+        if (st.host && st.host.classList) st.host.classList.remove("ux-signal-active");
+        signalState = null;
+        return;
+      }
+      if (st.host && st.host.classList) st.host.classList.add("ux-signal-active");
+    }
+  }
+
+  function commitSwipeSignal(st, dx, dy, dt) {
+    var primary = st.axis === "vertical" ? dy : dx;
+    var abs = Math.abs(primary);
+    var velocity = dt > 0 ? abs / dt : 0;
+    if (abs < st.thr && velocity < SIGNAL_MIN_VELOCITY) return null;
+    if (st.axis === "vertical") return primary < 0 ? "swipe.up" : "swipe.down";
+    return primary < 0 ? "swipe.left" : "swipe.right";
+  }
+
+  function onPointerUp(ev) {
+    if (!signalState || signalState.id !== ev.pointerId) return;
+    var st = signalState;
+    signalState = null;
+    clearLongTimer(st);
+    if (st.host && st.host.classList) st.host.classList.remove("ux-signal-active");
+    if (st.dead || !st.axis) return;
+    var dx = ev.clientX - st.x0, dy = ev.clientY - st.y0;
+    if (!st.locked) {
+      if (Math.abs(dx) < 2 && Math.abs(dy) < 2) return;
+      st.locked = Math.abs(dx) >= Math.abs(dy) ? "horizontal" : "vertical";
+      if (st.locked !== st.axis) return;
+    }
+    var t1 = typeof performance !== "undefined" ? performance.now() : Date.now();
+    var signal = commitSwipeSignal(st, dx, dy, Math.max(1, t1 - st.t0));
+    if (!signal) return;
+    signalSuppressClick = true;
+    setTimeout(function () { signalSuppressClick = false; }, 360);
+    emitSignal(st.host, signal, ev.clientX, ev.clientY);
+  }
+
+  function onPointerCancel(ev) {
+    if (!signalState || signalState.id !== ev.pointerId) return;
+    clearLongTimer(signalState);
+    if (signalState.host && signalState.host.classList)
+      signalState.host.classList.remove("ux-signal-active");
+    signalState = null;
+  }
+
+  function onFieldSignal(ev, signal) {
+    var el = ev.target;
+    if (!el || !el.closest) return;
+    var ctrl = el.closest("[data-channel-action]");
+    if (!ctrl || isControlDisabled(ctrl)) return;
+    if (!acceptsSignal(ctrl, signal)) return;
+    scheduleSignal(ctrl, signal);
+  }
+  function onInput(ev) { onFieldSignal(ev, "input"); }
+  function onChange(ev) { onFieldSignal(ev, "change"); }
+  function onBlur(ev) { onFieldSignal(ev, "blur"); }
+
+  function onClick(ev) {
+    if (signalSuppressClick) {
+      ev.preventDefault();
+      ev.stopPropagation();
+      return;
+    }
+    var el = ev.target.closest("[data-channel-action]");
+    if (!el || el.tagName === "FORM") return;
+    if (isControlDisabled(el)) return;
+    if (!acceptsSignal(el, "click")) return;
+    ev.preventDefault();
+    fireControl(el, "click");
   }
 
   function onSubmit(ev) {
@@ -1002,7 +1473,7 @@
     ev.preventDefault();
     var args = parseJSON(form.getAttribute("data-channel-args"), {});
     var cap = form.getAttribute("data-channel-cap") || undefined;
-    var target = form.getAttribute("data-channel-target") || undefined;
+    var target = form.getAttribute("data-channel-target") || effectiveTarget(form) || undefined;
     var fd = new FormData(form);
     var formObj = {};
     fd.forEach(function (v, k) {
@@ -1396,6 +1867,13 @@
   function init() {
     document.addEventListener("click", onClick);
     document.addEventListener("submit", onSubmit);
+    document.addEventListener("pointerdown", onPointerDown, { passive: true });
+    document.addEventListener("pointermove", onPointerMove, { passive: true });
+    document.addEventListener("pointerup", onPointerUp, { passive: true });
+    document.addEventListener("pointercancel", onPointerCancel, { passive: true });
+    document.addEventListener("input", onInput, true);
+    document.addEventListener("change", onChange, true);
+    document.addEventListener("blur", onBlur, true);
     // Adapters (ux-fx / ux-ui) often load *after* this file (defer order).
     // Scan now + after microtasks/ticks so late register() still mounts hosts.
     scanBridges();

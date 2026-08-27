@@ -7,7 +7,7 @@ Read [../../../START_HERE.md](../../../START_HERE.md) first if you are new. This
 
 | Script | Global | Role |
 |--------|--------|------|
-| `ux-channel.js` | `uxChannel` | Intent POST, morph, CSRF header, click/submit |
+| `ux-channel.js` | `uxChannel` | Intent POST, morph, CSRF header, Signal→Intent (`data-channel-on`) |
 | `ux-bridge.js` | `uxBridge` | Island registry (`register` / `apply` / `scan`) |
 | `adapters/ux-fx.js` | (registers packages) | confetti, particles, countup, … |
 | `adapters/ux-ui.js` | (registers packages) | leaflet, codemirror, quill, … |
@@ -52,6 +52,63 @@ ux-channel.js → ux-bridge.js → ux-inspector? → ux-webrtc?
    Fix: channel rescan on microtask/0ms/50ms; adapters call `scan` after register.
 4. **Raw `as_dict()` in HTML** broke `data-channel-args` → 401.  
    Use `str(control)` / escaped attrs.
+
+
+
+## Signal → Intent
+
+Human signals become the same sealed Intent path as a click. There is **no**
+client dual-bind store and **no** per-gesture attribute family.
+
+### Interaction triad
+
+| Attr | Role | Default |
+|------|------|---------|
+| `data-channel-action` | **WHAT** Intent (required on controls) | — |
+| `data-channel-on` | **WHEN** (space-separated grammar) | `click`; inherits leaf signals from ancestors |
+| `data-channel-target` | **WHERE** client morph hint | optional; inherits; server `morph` ops win |
+
+Seal surface (not majors): `data-channel-args`, `data-channel-cap`,
+`data-channel-idempotency`.
+
+### `data-channel-on` grammar
+
+```
+entry     := signal | modifier
+signal    := click | change | input | blur | longpress
+           | swipe.left | swipe.right | swipe.up | swipe.down
+           | swipe.horizontal | swipe.vertical   (synthesizers)
+modifier  := delay:ms | threshold:px | throttle:ms | once
+opt-out   := none | off
+```
+
+Modifiers bind to the **preceding** signal:
+
+```html
+<button data-channel-action="save">Save</button>
+<!-- default on = click -->
+
+<input name="q"
+       data-channel-action="search.query"
+       data-channel-on="input delay:200">
+
+<div data-channel-on="swipe.horizontal threshold:48">
+  <button data-channel-action="carousel.next"
+          data-channel-on="click swipe.left">Next</button>
+</div>
+```
+
+Defaults when a modifier is omitted: `input`/`change` → `delay:180`;
+`longpress` → `delay:520`; swipe synthesizer → `threshold:48`.
+
+### Value path
+
+1. Typing lives in the DOM.
+2. On signal, closest form → `Intent.form`; field `name` → args.
+3. Server state is authority; **morph** writes canonical HTML.
+
+Implements: `static/ux-channel.js`
+
 
 ## Live checks
 

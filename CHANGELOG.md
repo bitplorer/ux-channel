@@ -1,3 +1,13 @@
+## 2026-08-27 — Signal → Intent
+
+- Client: `data-channel-on` grammar (`delay:`, `threshold:`, `throttle:`, `once`).
+- Signals: click, change, input, blur, longpress, swipe.*; synth horizontal|vertical.
+- Form attach on control signals; inherit on/target.
+- No `data-channel-swipe*` / `on-debounce` / `on-threshold` attribute families.
+- Docs: `python/docs/client/JS_RUNTIME.md`, `python/docs/FEATURES.md` §1.3b.
+
+---
+
 ## 2026-08-15 — Enhance runtime wiring
 
 - `enhance/attach.py` — HandshakeRegistry + SessionRecorder façade on Channel
