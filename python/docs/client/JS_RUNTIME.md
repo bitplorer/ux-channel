@@ -1,64 +1,24 @@
-<!-- pyramid -->
-Read [../../../START_HERE.md](../../../START_HERE.md) first if you are new. This is Layer 2 (encyclopedia), not the intro.
+# JS runtime
 
-# JS runtime load order & multi-script behaviour
+| Asset | Global | Role |
+|-------|--------|------|
+| `ux-channel.js` | `uxChannel` | Intent POST, morph, CSRF header, Signal→Intent (`data-channel-on`) |
 
-## Scripts (stock)
+## Signal → Intent
 
-| Script | Global | Role |
-|--------|--------|------|
-| `ux-channel.js` | `uxChannel` | Intent POST, morph, CSRF header, click/submit |
-| `ux-bridge.js` | `uxBridge` | Island registry (`register` / `apply` / `scan`) |
-| `adapters/ux-fx.js` | (registers packages) | confetti, particles, countup, … |
-| `adapters/ux-ui.js` | (registers packages) | leaflet, codemirror, quill, … |
-| `ux-inspector.js` | `uidInspector` | Dev dock (optional) |
-| `ux-webrtc.js` | `UxWebRTC` | RTC join helpers |
-| `ux-sfu-livekit.js` | `UidMedia` | Optional SFU |
+Triad: `data-channel-action` (WHAT) · `data-channel-on` (WHEN) · `data-channel-target` (WHERE).
 
-Recommended order (as in `demo_scripts` + adapters)::
+Grammar examples:
 
-```text
-ux-channel.js → ux-bridge.js → ux-inspector? → ux-webrtc?
-              → adapters/ux-fx.js → adapters/ux-ui.js
+```
+data-channel-on="input delay:200"
+data-channel-on="swipe.horizontal threshold:48"
+data-channel-on="click swipe.left"
+data-channel-on="longpress delay:500"
 ```
 
-## Intended multi-load behaviour
+Modifiers bind to the preceding signal. Values: closest form → Intent.form. No client dual-bind store.
 
-| Situation | Intended | Notes |
-|-----------|----------|-------|
-| All scripts once, correct order | Mount islands, single click handler | Happy path |
-| Second `ux-channel.js` | **No-op** (warn) | Avoids double Intent posts |
-| Second `ux-bridge.js` | **No-op** (warn) | Preserves adapters + instances |
-| Re-include `ux-fx` / `ux-ui` | Re-register packages + `scan` | Safe overwrite by name |
-| `ux-fx` **before** `ux-bridge` | Warn + return; page stays up | Load bridge first, then fx again |
-| Multiple bridge hosts | Independent `instances[id]` | Different `data-channel-bridge-id` |
-| Morph / remove host | `reaperBridges()` destroys orphans | Does **not** wipe unrelated DOM |
-| Static siblings next to morph targets | Untouched | Only `data-channel-id` / bridge hosts change |
+Catalog: click, change, input, blur, longpress, swipe.left/right/up/down; synthesizers swipe.horizontal/vertical; opt-out none.
 
-## Side effects that are **not** bugs
-
-* Inspector wraps `postIntent` / bridge apply for the dock.
-* WebRTC `bootAuto` only runs if `data-channel-webrtc-auto` is on `<body>`.
-* ux-ui may pull CDN CSS/JS **on first mount** of that package (leaflet, quill, …) — network errors there do not break the channel.
-* Confetti/particles append canvases **inside** their host only.
-
-## Side effects that **were** bugs (fixed in 0.1)
-
-1. **Double `<script ux-channel>`** bound click twice → 2× actions.  
-   Guard: `__UX_CHANNEL_RUNTIME_LOADED__`.
-2. **Double `ux-bridge`** wiped the adapter registry.  
-   Guard: skip re-init if `uxBridge.register` exists.
-3. **Defer order race**: channel `scan()` ran before ux-fx registered → empty instances.  
-   Fix: channel rescan on microtask/0ms/50ms; adapters call `scan` after register.
-4. **Raw `as_dict()` in HTML** broke `data-channel-args` → 401.  
-   Use `str(control)` / escaped attrs.
-
-## Live checks
-
-```bash
-PYTHONPATH=src python scripts/js_multi_live_chaos_server.py   # :8767
-node scripts/js_multi_live_chaos.mjs http://127.0.0.1:8767
-node scripts/js_live_chaos.mjs http://127.0.0.1:8766/         # single-script path
-```
-
-See also [CSRF_CHANNEL_HEADER.md](CSRF_CHANNEL_HEADER.md) · `BRIDGES.md` if present.
+Implements: `static/ux-channel.js`
