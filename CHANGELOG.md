@@ -1,3 +1,13 @@
+## 2026-08-28 — Live field latest-wins
+
+- `input` / `change` on the same control abort the in-flight Intent
+  (AbortController already on `postIntent`). Replaced Results do not
+  morph and do not toast timeout. Click / swipe / longpress still drop
+  while in-flight.
+- Docs: JS_RUNTIME live fields. Test: `test_js_live_field_last_wins.py`.
+
+---
+
 ## 2026-08-27 — Signal → Intent
 
 - Client: `data-channel-on` grammar (`delay:`, `threshold:`, `throttle:`, `once`).

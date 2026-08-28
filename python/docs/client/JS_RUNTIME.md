@@ -111,6 +111,15 @@ Defaults when a modifier is omitted: `input`/`change` → `delay:180`;
 
 Implements: `static/ux-channel.js`
 
+### Live fields
+
+`input` / `change` on the same control are latest-wins: a later signal
+aborts the in-flight fetch (the `AbortController` already on
+`postIntent`). The replaced Result does not morph and does not toast.
+Click, swipe, and longpress still drop while in-flight (no double submit).
+`delay:` is still the debounce before the first fire.
+
+
 
 ## Live checks
 
