@@ -295,92 +295,6 @@
     });
   }
 
-  // Layout driver — identity-preserving motion across morph.
-  // Kit stamps data-channel-layout on a stable id (same grammar as data-channel-on).
-  // Channel snapshots rects, morphs, inverts, plays. No per-widget JS.
-  var LAYOUT_ATTR = "data-channel-layout";
-  var LAYOUT_MS = 300;
-
-  function prefersReducedMotion() {
-    try {
-      return !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
-    } catch (e) {
-      return false;
-    }
-  }
-
-  function parseLayoutSpec(raw) {
-    var spec = { duration: LAYOUT_MS, easing: "ease-out" };
-    if (raw == null || raw === "") return spec;
-    var parts = String(raw).split(/\s+/);
-    for (var i = 0; i < parts.length; i++) {
-      var p = parts[i];
-      if (!p || p === "layout" || p === "on") continue;
-      var colon = p.indexOf(":");
-      if (colon < 1) continue;
-      var k = p.slice(0, colon).toLowerCase();
-      var v = p.slice(colon + 1);
-      if (k === "duration" || k === "ms") {
-        var d = parseDuration(v);
-        if (d != null) spec.duration = d;
-      } else if (k === "easing" || k === "ease") {
-        spec.easing = v;
-      }
-    }
-    return spec;
-  }
-
-  function snapshotLayout(root) {
-    if (!root || prefersReducedMotion()) return [];
-    var nodes = qsa("[" + LAYOUT_ATTR + "]", root);
-    var out = [];
-    for (var i = 0; i < nodes.length; i++) {
-      var el = nodes[i];
-      if (!el.id) continue;
-      var r = el.getBoundingClientRect();
-      out.push({
-        id: el.id,
-        x: r.x,
-        y: r.y,
-        w: r.width,
-        h: r.height,
-        spec: parseLayoutSpec(el.getAttribute(LAYOUT_ATTR)),
-      });
-    }
-    return out;
-  }
-
-  function playLayout(snaps) {
-    if (!snaps || !snaps.length) return;
-    for (var i = 0; i < snaps.length; i++) {
-      var s = snaps[i];
-      var el = document.getElementById(s.id);
-      if (!el || typeof el.animate !== "function") continue;
-      var r = el.getBoundingClientRect();
-      var dx = s.x - r.x;
-      var dy = s.y - r.y;
-      var sx = r.width ? s.w / r.width : 1;
-      var sy = r.height ? s.h / r.height : 1;
-      if (Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5 && Math.abs(sx - 1) < 0.02 && Math.abs(sy - 1) < 0.02) {
-        continue;
-      }
-      var anim = el.animate(
-        [
-          { transform: "translate(" + dx + "px," + dy + "px) scale(" + sx + "," + sy + ")", transformOrigin: "0 0" },
-          { transform: "none", transformOrigin: "0 0" },
-        ],
-        { duration: s.spec.duration, easing: s.spec.easing }
-      );
-      (function (elAnim) {
-        if (elAnim && elAnim.addEventListener) {
-          elAnim.addEventListener("finish", function () {
-            try { elAnim.cancel(); } catch (eF) {}
-          });
-        }
-      })(anim);
-    }
-  }
-
   function applyMorph(targetSel, html) {
     var target = qs(targetSel);
     if (!target) {
@@ -389,7 +303,6 @@
     }
     var focusSnap = snapshotFocus();
     var scrollSnap = snapshotScroll(targetSel);
-    var layoutSnap = snapshotLayout(target);
     var tpl = document.createElement("template");
     tpl.innerHTML = String(html).trim();
     var next = tpl.content.firstElementChild;
@@ -412,7 +325,6 @@
     }
     restoreFocus(focusSnap);
     restoreScroll(scrollSnap);
-    playLayout(layoutSnap);
     reaperBridges();
     return qs(targetSel) || next;
   }
