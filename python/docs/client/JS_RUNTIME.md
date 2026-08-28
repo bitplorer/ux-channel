@@ -113,11 +113,17 @@ Implements: `static/ux-channel.js`
 
 ### Live fields
 
-`input` / `change` on the same control are latest-wins: a later signal
-aborts the in-flight fetch (the `AbortController` already on
-`postIntent`). The replaced Result does not morph and does not toast.
-Click, swipe, and longpress still drop while in-flight (no double submit).
-`delay:` is still the debounce before the first fire.
+`input` / `change` on the same control are latest-wins.
+
+- A later keystroke aborts the in-flight fetch immediately (the
+  `AbortController` already on `postIntent`) — not only when the
+  debounced `fireControl` runs. The replaced Result does not morph
+  and does not toast. Last applied listing stays until the settled
+  query returns.
+- Empty value fires now (`delay` 0) so a clear does not sit on a
+  stale “no match” for `delay:` ms.
+- Click, swipe, and longpress still drop while in-flight (no double
+  submit). `delay:` is still the settle window before a non-empty fire.
 
 
 
@@ -125,7 +131,6 @@ Click, swipe, and longpress still drop while in-flight (no double submit).
 
 ```bash
 PYTHONPATH=src python scripts/js_multi_live_chaos_server.py   # :8767
-node scripts/js_multi_live_chaos.mjs http://127.0.0.1:8767
 node scripts/js_live_chaos.mjs http://127.0.0.1:8766/         # single-script path
 ```
 
