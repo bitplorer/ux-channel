@@ -295,6 +295,92 @@
     });
   }
 
+  // Layout driver — identity-preserving motion across morph.
+  // Kit stamps data-channel-layout on a stable id (same grammar as data-channel-on).
+  // Channel snapshots rects, morphs, inverts, plays. No per-widget JS.
+  var LAYOUT_ATTR = "data-channel-layout";
+  var LAYOUT_MS = 300;
+
+  function prefersReducedMotion() {
+    try {
+      return !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function parseLayoutSpec(raw) {
+    var spec = { duration: LAYOUT_MS, easing: "ease-out" };
+    if (raw == null || raw === "") return spec;
+    var parts = String(raw).split(/\s+/);
+    for (var i = 0; i < parts.length; i++) {
+      var p = parts[i];
+      if (!p || p === "layout" || p === "on") continue;
+      var colon = p.indexOf(":");
+      if (colon < 1) continue;
+      var k = p.slice(0, colon).toLowerCase();
+      var v = p.slice(colon + 1);
+      if (k === "duration" || k === "ms") {
+        var d = parseDuration(v);
+        if (d != null) spec.duration = d;
+      } else if (k === "easing" || k === "ease") {
+        spec.easing = v;
+      }
+    }
+    return spec;
+  }
+
+  function snapshotLayout(root) {
+    if (!root || prefersReducedMotion()) return [];
+    var nodes = qsa("[" + LAYOUT_ATTR + "]", root);
+    var out = [];
+    for (var i = 0; i < nodes.length; i++) {
+      var el = nodes[i];
+      if (!el.id) continue;
+      var r = el.getBoundingClientRect();
+      out.push({
+        id: el.id,
+        x: r.x,
+        y: r.y,
+        w: r.width,
+        h: r.height,
+        spec: parseLayoutSpec(el.getAttribute(LAYOUT_ATTR)),
+      });
+    }
+    return out;
+  }
+
+  function playLayout(snaps) {
+    if (!snaps || !snaps.length) return;
+    for (var i = 0; i < snaps.length; i++) {
+      var s = snaps[i];
+      var el = document.getElementById(s.id);
+      if (!el || typeof el.animate !== "function") continue;
+      var r = el.getBoundingClientRect();
+      var dx = s.x - r.x;
+      var dy = s.y - r.y;
+      var sx = r.width ? s.w / r.width : 1;
+      var sy = r.height ? s.h / r.height : 1;
+      if (Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5 && Math.abs(sx - 1) < 0.02 && Math.abs(sy - 1) < 0.02) {
+        continue;
+      }
+      var anim = el.animate(
+        [
+          { transform: "translate(" + dx + "px," + dy + "px) scale(" + sx + "," + sy + ")", transformOrigin: "0 0" },
+          { transform: "none", transformOrigin: "0 0" },
+        ],
+        { duration: s.spec.duration, easing: s.spec.easing }
+      );
+      (function (elAnim) {
+        if (elAnim && elAnim.addEventListener) {
+          elAnim.addEventListener("finish", function () {
+            try { elAnim.cancel(); } catch (eF) {}
+          });
+        }
+      })(anim);
+    }
+  }
+
   function applyMorph(targetSel, html) {
     var target = qs(targetSel);
     if (!target) {
@@ -303,6 +389,7 @@
     }
     var focusSnap = snapshotFocus();
     var scrollSnap = snapshotScroll(targetSel);
+    var layoutSnap = snapshotLayout(target);
     var tpl = document.createElement("template");
     tpl.innerHTML = String(html).trim();
     var next = tpl.content.firstElementChild;
@@ -325,6 +412,7 @@
     }
     restoreFocus(focusSnap);
     restoreScroll(scrollSnap);
+    playLayout(layoutSnap);
     reaperBridges();
     return qs(targetSel) || next;
   }
@@ -820,9 +908,17 @@
   }
 
 
-  function postIntent(intent, attempt) {
+  function postIntent(intent, attempt, holder) {
     attempt = attempt || 0;
+    holder = holder || {};
     var ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
+    holder.abort = function () {
+      holder.replaced = true;
+      try { if (ctrl) ctrl.abort(); } catch (e) {}
+    };
+    if (holder.replaced) {
+      return Promise.resolve({ ok: true, ops: [], meta: { replaced: true } });
+    }
     var timer = null;
     var ms = fetchTimeoutMs();
     if (ctrl) timer = setTimeout(function () { try { ctrl.abort(); } catch (e) {} }, ms);
@@ -841,24 +937,30 @@
     })
       .then(function (res) {
         if (timer) clearTimeout(timer);
+        if (holder.replaced) return { ok: true, ops: [], meta: { replaced: true } };
         if ((res.status === 502 || res.status === 503 || res.status === 504) && attempt < 1) {
           return new Promise(function (r) { setTimeout(r, 400); }).then(function () {
-            return postIntent(intent, attempt + 1);
+            return postIntent(intent, attempt + 1, holder);
           });
         }
         var ct = res.headers.get("content-type") || "";
         if (ct.indexOf("event-stream") !== -1) {
           return res.text().then(function (text) {
+            if (holder.replaced) return { ok: true, ops: [], meta: { replaced: true } };
             var parts = parseSSE(text);
             var chain = Promise.resolve();
             parts.forEach(function (body) {
-              chain = chain.then(function () { return applyResult(body, { source: "sse-response" }); });
+              chain = chain.then(function () {
+                if (holder.replaced) return { ok: true, ops: [], meta: { replaced: true } };
+                return applyResult(body, { source: "sse-response" });
+              });
             });
             return chain.then(function () { return parts[parts.length - 1] || { ok: true, ops: [] }; });
           });
         }
         if (ct.indexOf("json") === -1) {
           return res.text().then(function (t) {
+            if (holder.replaced) return { ok: true, ops: [], meta: { replaced: true } };
             var body = syntheticFailure(
               res.status === 429 ? "rate_limited" : "http_error",
               "non-JSON response (" + res.status + "): " + String(t).slice(0, 120),
@@ -869,6 +971,7 @@
           });
         }
         return res.json().then(function (body) {
+          if (holder.replaced) return { ok: true, ops: [], meta: { replaced: true } };
           if (body && body.ok === undefined && res.status >= 400) {
             body = syntheticFailure(
               (body.error && body.error.code) || ("http_" + res.status),
@@ -891,6 +994,7 @@
       })
       .catch(function (err) {
         if (timer) clearTimeout(timer);
+        if (holder.replaced) return { ok: true, ops: [], meta: { replaced: true } };
         var msg = err && err.name === "AbortError"
           ? ("Request timed out after " + ms + "ms")
           : String((err && err.message) || err || "Network error");
@@ -970,7 +1074,7 @@
       if (el) optimisticStack.push({ target: target, html: el.outerHTML });
       if (opts.optimisticHtml) applyMorph(target, opts.optimisticHtml);
     }
-    return enqueue(function () { return postIntent(intent); });
+    return enqueue(function () { return postIntent(intent, 0, opts.abortHolder); });
   }
 
   // --- Signal → Intent ----------------------------------------------------
@@ -1187,7 +1291,18 @@
     var opts = signalOpts(ctrl, signal);
     var key = hostKey(ctrl) + "|" + action + "|" + (signal || "");
     if (opts.once && signalThrottleAt[key + "|once"]) return Promise.resolve();
-    if (signalInFlight[key]) return Promise.resolve();
+    // Live fields: later input/change of the same control aborts the in-flight
+    // Intent (AbortController already on postIntent). Clicks still drop.
+    var replace = (signal === "input" || signal === "change");
+    var inflight = signalInFlight[key];
+    if (inflight && !replace) return Promise.resolve();
+    if (inflight && inflight.abort) {
+      try { inflight.abort(); } catch (eAb) {}
+    }
+    var holder = {
+      replaced: false,
+      abort: function () { holder.replaced = true; }
+    };
     var args = parseJSON(ctrl.getAttribute("data-channel-args"), {});
     var cap = ctrl.getAttribute("data-channel-cap") || undefined;
     var target = ctrl.getAttribute("data-channel-target") || effectiveTarget(ctrl) || undefined;
@@ -1198,22 +1313,30 @@
       formObj = Object.assign({}, formObj || {});
       if (formObj[ctrl.name] == null) formObj[ctrl.name] = ctrl.value;
     }
-    signalInFlight[key] = true;
+    signalInFlight[key] = holder;
     if (opts.once) signalThrottleAt[key + "|once"] = 1;
     ctrl.setAttribute("aria-busy", "true");
     ctrl.classList.add("ux-busy");
     return runAction(action, args, cap, target, {
       idempotency_key: idem,
       form: formObj,
+      abortHolder: holder,
     })
       .catch(function (err) {
         console.error("[ux-channel] signal", signal, err);
         if (!err || !err.handled) safeToast(String(err.message || err), "error");
       })
       .finally(function () {
+        if (signalInFlight[key] !== holder) return;
         ctrl.removeAttribute("aria-busy");
         ctrl.classList.remove("ux-busy");
-        setTimeout(function () { delete signalInFlight[key]; }, SIGNAL_COOLDOWN_MS);
+        if (replace) {
+          delete signalInFlight[key];
+          return;
+        }
+        setTimeout(function () {
+          if (signalInFlight[key] === holder) delete signalInFlight[key];
+        }, SIGNAL_COOLDOWN_MS);
       });
   }
 
