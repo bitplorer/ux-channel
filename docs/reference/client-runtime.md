@@ -23,8 +23,12 @@ operations. Do not put `if (count > 3)` or routing rules in the handler.
 |------|------|
 | Apply a non-core op the server already minted | `uxChannel.registerOp(name, fn)` |
 | Cross-cutting observer | `uxChannel.on("channel:beforeApply" \| "channel:beforeOp" \| "channel:afterOp" \| "channel:afterApply", fn)` |
-| Intended side effects | `uxChannel.configure({ autoToast, restoreFocus, hydrateSignals, … })` |
+| Existing intended side effects | `uxChannel.configure({ autoToast, … })` |
 | Islands / fx | `uxBridge.register(pkg, impl)` |
+
+`configure` keeps the error-plane knobs that already existed on main
+(`autoToast`, `toastRefreshErrors`, `fieldErrors`, `logSize`, `dedupeMs`,
+proofs). It does not grow a hydrate or restore-focus knob.
 
 `registerOp` returns `false` for **exact** core case names (`morph`, `swap`,
 `navigate`, `signal.set`, `bridge.mount`, `timer.set`, …). It is not a prefix
@@ -48,14 +52,26 @@ The bag is a generic path tree. Any allow-listed path the server mints can
 live there — theme, chrome, wizard step, whatever the product needs. The
 runtime does not special-case a use.
 
-## Body attrs (same defaults as today)
+## Persist and boot hydrate (Python mints, JS applies)
 
-`data-channel-auto-toast="0"` · `data-channel-restore-focus="0"` ·
-`data-channel-hydrate-signals="0"` · existing error-log / field-errors attrs.
+```python
+st = state(ch, allow=["ui.theme"])
+st.client("ui.theme", "dark", persist=True)
+```
 
-Defaults keep current behaviour: toast on error, restore focus **and scroll**
-on morph, hydrate `uxChannel.signals` from `localStorage` at boot.
+JS writes `uxChannel.signals` and, when the op carries `persist: true`, the
+matching `localStorage` key (`channel:sig:` + path). Next boot re-reads those
+keys silently via `hydrateSignalsFromStorage`. No body attribute and no
+`configure` knob gates that read.
 
-`hydrateSignals` only controls that boot read. A server `signal.set` with
-`persist: true` still writes. `restoreFocus: false` skips both focus and
-scroll snapshot on morph.
+Focus and scroll restore on morph stay as they were on main — always on,
+not a second public switch.
+
+## Body attrs (same as main)
+
+`data-channel-auto-toast="0"` · `data-channel-toast-refresh-errors` ·
+`data-channel-field-errors="0"` · `data-channel-error-log="32"` · existing
+endpoint / concurrency / timeout / push / ws attrs.
+
+Cap hashes `data-channel-args`. The cap does not embed argument values, so
+the sealed Intent payload stays on `data-channel-args`.

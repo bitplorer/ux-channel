@@ -89,11 +89,17 @@ def test_client_runtime_doors():
     assert "channel:afterOp" in ch
     assert "channel:unknownOp" in ch
     assert "registerOp refused core op" in ch
-    assert "data-channel-restore-focus" in ch
-    assert "data-channel-hydrate-signals" in ch
+    # persist + silent boot hydrate are apply of Python st.client(..., persist=True).
+    # No extra body attr / configure knob — those were invented drift.
+    assert "function hydrateSignalsFromStorage" in ch
+    assert "SIG_PREFIX" in ch
+    assert "op.persist === true" in ch
+    assert "data-channel-hydrate-signals" not in ch
     assert "data-channel-hydrate-store" not in ch
-    assert "hydrateSignals" in ch
+    assert "data-channel-restore-focus" not in ch
     assert "hydrateStore" not in ch
+    assert "hydrateSignals:" not in ch
+    assert "restoreFocus:" not in ch
     # existing core cases stay in the switch — doors do not delete them
     assert 'case "morph":' in ch
     assert 'case "signal.set":' in ch

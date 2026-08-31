@@ -57,10 +57,22 @@ The browser runtime is a closed core. Ops stay minted in Python / the driver.
 ```js
 uxChannel.registerOp("transition.play", function (op) { /* motion runtime */ });
 uxChannel.on("channel:afterApply", function (result) { /* measure */ });
-uxChannel.configure({ autoToast: true, restoreFocus: true, hydrateSignals: true });
+uxChannel.configure({ autoToast: true });
 ```
 
 `registerOp` refuses core op names (`morph`, `navigate`, …). Unknown ops fire
 `channel:unknownOp` and do nothing. The client bag is `uxChannel.signals`
-(written only by `signal.set`). Persist is `signal.set` + `persist: true`,
-not a second object.
+(written only by `signal.set`).
+
+Persist is decided in Python and applied in JS — not a second bag, not a new
+body attribute:
+
+```python
+st = state(ch, allow=["ui.theme"])
+st.client("ui.theme", "dark", persist=True)
+```
+
+JS writes `uxChannel.signals` and, when the op carries `persist: true`, the
+matching `localStorage` key. Next boot re-reads those keys silently.
+`configure` does not grow a hydrate/persist knob. `data-channel-args` stays
+the sealed Intent payload; the cap hashes it and does not embed the values.
