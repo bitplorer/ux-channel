@@ -16,6 +16,7 @@ How to add features **without bloating** core. Policy: [LONGEVITY.md](../../../L
 | Non-human caller | **E Plane** | `agent_runtime` / `mcp` / new package under L4 |
 | New web framework | **F Adapter** | New package or extra — not root |
 | Heavy dependency | **G Extra** | `pyproject` optional extra |
+| Browser effect / listener | **H Client doors** | `uxChannel.registerOp` / `on` / `configure` / `uxBridge.register` |
 
 ## Never
 
@@ -47,3 +48,18 @@ register_wire_format(MyFormat())
 python3 scripts/check_longevity.py
 make verify
 ```
+
+## Client doors (Door H)
+
+The browser runtime is a closed core. Do not add `applyOp` cases for product
+effects. Use:
+
+```js
+uxChannel.registerOp("transition.play", function (op) { /* motion runtime */ });
+uxChannel.on("channel:afterApply", function (result) { /* measure */ });
+uxChannel.configure({ autoToast: true, restoreFocus: true, hydrateStore: true });
+```
+
+`registerOp` refuses core op names (`morph`, `navigate`, …). Unknown ops fire
+`channel:unknownOp` and do nothing. `uxChannel.store` is the client bag;
+`uxChannel.signals` stays an alias.

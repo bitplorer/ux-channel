@@ -74,3 +74,20 @@ def test_demo_scripts_order_mentions_bridge_before_adapters():
     assert 0 <= i_ch < i_br or i_br < 0  # channel before bridge when both present
     if i_br >= 0 and i_fx >= 0:
         assert i_br < i_fx
+
+
+def test_client_runtime_doors():
+    ch = (STATIC / "ux-channel.js").read_text()
+    assert "function registerOp" in ch
+    assert "registerOp: registerOp" in ch
+    assert "store: signals" in ch
+    assert "CORE_OPS" in ch
+    assert "channel:beforeOp" in ch
+    assert "channel:afterOp" in ch
+    assert "channel:unknownOp" in ch
+    assert "registerOp refused core op" in ch
+    assert "data-channel-restore-focus" in ch
+    assert "data-channel-hydrate-store" in ch
+    # existing core cases stay in the switch — doors do not delete them
+    assert 'case "morph":' in ch
+    assert 'case "signal.set":' in ch
