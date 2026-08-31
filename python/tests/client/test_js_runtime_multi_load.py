@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 STATIC = Path("src/ux_channel/static")
@@ -79,6 +80,7 @@ def test_demo_scripts_order_mentions_bridge_before_adapters():
 def test_client_runtime_doors():
     ch = (STATIC / "ux-channel.js").read_text()
     assert "function registerOp" in ch
+    assert "function applyRegisteredOp" in ch
     assert "registerOp: registerOp" in ch
     assert "store: signals" in ch
     assert "CORE_OPS" in ch
@@ -91,3 +93,11 @@ def test_client_runtime_doors():
     # existing core cases stay in the switch — doors do not delete them
     assert 'case "morph":' in ch
     assert 'case "signal.set":' in ch
+    # exact-name freeze, not a prefix — registerOp("bridge.chart") is allowed
+    assert "bridge.*" not in ch
+    assert "timer.*" not in ch
+
+    cases = set(re.findall(r'case "([^"]+)":', ch))
+    block = ch[ch.find("var CORE_OPS") : ch.find("};", ch.find("var CORE_OPS"))]
+    keys = {a or b for a, b in re.findall(r'(?:^|[\{,]\s*)(?:"([^"]+)"|([A-Za-z_.]+))\s*:', block)}
+    assert cases == keys, (cases - keys, keys - cases)
