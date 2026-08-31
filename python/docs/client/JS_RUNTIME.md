@@ -121,6 +121,56 @@ Click, swipe, and longpress still drop while in-flight (no double submit).
 
 
 
+## Client persist vs morph restore-focus
+
+These are two different facilities. Do not merge them. Closed-core doors:
+[client-runtime.md](../../../docs/reference/client-runtime.md).
+
+### Persist — optional flag on `signal.set`
+
+Python mints. JS only applies. There is no second client store.
+
+```python
+st = state(ch, allow=["ui.theme"])          # allowlist for persist
+st.client("ui.theme", "dark", persist=True) # mints signal.set + persist
+```
+
+| Step | What happens |
+|------|----------------|
+| Mint | `{op: "signal.set", path, value, persist: true}` after allowlist + `path_is_risky` + no `Quantity` |
+| Apply | write `uxChannel.signals` path tree; if persist, write `localStorage["channel:sig:"+path]` |
+| Live observe | `channel:signal` fires on apply only |
+| Reload | `hydrateSignalsFromStorage` copies `channel:sig:*` back into the bag. Silent — no event, no DOM paint |
+
+The bag survives reload. The HTML document does not come from the bag.
+Paint after GET is server HTML (session/db) or product JS that *reads*
+`uxChannel.signals`. Channel does not GET client values.
+
+`st.session("n", 0)` is the counter. That is server draft + morph. It does
+not use localStorage.
+
+### Morph restore-focus — always on, not persist
+
+On `morph` / outer `swap`, JS snapshots `document.activeElement` and
+selection, then restores after the patch so a live field keeps the caret.
+No body attribute. No `configure` knob. Not written to localStorage.
+
+### Security (chrome only)
+
+`localStorage` is origin-visible plaintext. XSS on the page can read and
+write `channel:sig:*`. Persist is UI chrome (theme, locale, sidebar). It
+is not a vault.
+
+Python already refuses risky segments (`amount`, `token`, `secret`,
+`password`, `balance`, …) and the `Quantity` type. An allowlist cannot
+override that. Later modules that import channel must not treat
+`uxChannel.signals` as a ledger.
+
+Do not invent `data-channel-hydrate-signals` / `data-channel-restore-focus`
+/ `uxChannel.store`.
+
+
+
 ## Live checks
 
 ```bash
@@ -129,4 +179,5 @@ node scripts/js_multi_live_chaos.mjs http://127.0.0.1:8767
 node scripts/js_live_chaos.mjs http://127.0.0.1:8766/         # single-script path
 ```
 
-See also [CSRF_CHANNEL_HEADER.md](CSRF_CHANNEL_HEADER.md) · `BRIDGES.md` if present.
+See also [CSRF_CHANNEL_HEADER.md](CSRF_CHANNEL_HEADER.md) · `BRIDGES.md` if present ·
+[client-runtime.md](../../../docs/reference/client-runtime.md).

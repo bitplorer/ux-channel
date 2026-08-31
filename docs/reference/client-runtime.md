@@ -64,8 +64,40 @@ matching `localStorage` key (`channel:sig:` + path). Next boot re-reads those
 keys silently via `hydrateSignalsFromStorage`. No body attribute and no
 `configure` knob gates that read.
 
+The bag is not paint. After reload the document is a fresh HTML GET.
+Session/db re-enter through the server. Product JS that needs a chrome
+class from the bag reads `uxChannel.signals` after this file has booted.
+`channel:signal` fires on live `signal.set` apply, not on silent hydrate.
+
 Focus and scroll restore on morph stay as they were on main — always on,
-not a second public switch.
+not a second public switch, not written to `localStorage`.
+
+### What persist is not
+
+| Want | Use |
+|------|-----|
+| Counter / wizard draft | `st.session(...)` then morph |
+| Money, stock, dose, roles | your DB + `Quantity.from_store` |
+| Secret / token / cap | never the client bag |
+| Caret after morph | already on — `restoreFocus` inside applyMorph |
+
+### Client-storage threat model
+
+`localStorage` is origin-scoped plaintext. Any script on the page (XSS)
+can read and write `channel:sig:*`. Persist is therefore **chrome only**.
+
+Write gate is Python, not the browser:
+
+- `state(ch, allow=[...])` — persist requires exact path membership
+- `path_is_risky` — `amount` / `token` / `secret` / `password` / `balance` / …
+  cannot be persisted; allowlist cannot override
+- `Quantity` values rejected
+- default `strict=True` also blocks risky paths without persist
+
+Hydrate trusts keys already under `channel:sig:`. Channel does not send
+the bag back as authority. Later modules must not treat
+`uxChannel.signals` as a ledger. Quota / private-mode failures are
+swallowed on write so a full disk cannot kill apply.
 
 ## Body attrs (same as main)
 
