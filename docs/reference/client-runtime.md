@@ -26,9 +26,10 @@ operations. Do not put `if (count > 3)` or routing rules in the handler.
 | Intended side effects | `uxChannel.configure({ autoToast, restoreFocus, hydrateStore, … })` |
 | Islands / fx | `uxBridge.register(pkg, impl)` |
 
-`registerOp` returns `false` and refuses names in the frozen core set
-(`morph`, `swap`, `navigate`, `signal.set`, `bridge.*`, `timer.*`, …).
-Unknown ops emit `channel:unknownOp` and no-op. No `eval`.
+`registerOp` returns `false` for **exact** core case names (`morph`, `swap`,
+`navigate`, `signal.set`, `bridge.mount`, `timer.set`, …). It is not a prefix
+freeze — `registerOp("bridge.chart")` is allowed. Unknown ops emit
+`channel:unknownOp` and no-op. No `eval`. Last register for a name wins.
 
 ## Names
 
@@ -44,5 +45,9 @@ Unknown ops emit `channel:unknownOp` and no-op. No `eval`.
 `data-channel-auto-toast="0"` · `data-channel-restore-focus="0"` ·
 `data-channel-hydrate-store="0"` · existing error-log / field-errors attrs.
 
-Defaults keep current behaviour: toast on error, restore focus/scroll on morph,
-hydrate store from `localStorage`.
+Defaults keep current behaviour: toast on error, restore focus **and scroll**
+on morph, hydrate store from `localStorage` at boot.
+
+`hydrateStore` only controls that boot read. A server `signal.set` with
+`persist: true` still writes. `restoreFocus: false` skips both focus and
+scroll snapshot on morph.
