@@ -23,7 +23,7 @@ operations. Do not put `if (count > 3)` or routing rules in the handler.
 |------|------|
 | Apply a non-core op the server already minted | `uxChannel.registerOp(name, fn)` |
 | Cross-cutting observer | `uxChannel.on("channel:beforeApply" \| "channel:beforeOp" \| "channel:afterOp" \| "channel:afterApply", fn)` |
-| Intended side effects | `uxChannel.configure({ autoToast, restoreFocus, hydrateStore, … })` |
+| Intended side effects | `uxChannel.configure({ autoToast, restoreFocus, hydrateSignals, … })` |
 | Islands / fx | `uxBridge.register(pkg, impl)` |
 
 `registerOp` returns `false` for **exact** core case names (`morph`, `swap`,
@@ -36,18 +36,26 @@ freeze — `registerOp("bridge.chart")` is allowed. Unknown ops emit
 | Name | Role |
 |------|------|
 | When | `data-channel-on` — DOM event → Intent |
-| Store | `uxChannel.store` — client bag (`signal.set`). `signals` is an alias |
+| Signals | `uxChannel.signals` — client bag written only by `signal.set` |
 | Morph | core op — server HTML patch |
 | Play | registered apply adapter — motion runtime plays the plan Python minted |
+
+Do not call the bag `store`. That word already means host / session stores
+(`MemoryStateStore`, `Quantity.from_store`). Persist is an optional flag on
+`signal.set`, not a second public object.
+
+The bag is a generic path tree. Any allow-listed path the server mints can
+live there — theme, chrome, wizard step, whatever the product needs. The
+runtime does not special-case a use.
 
 ## Body attrs (same defaults as today)
 
 `data-channel-auto-toast="0"` · `data-channel-restore-focus="0"` ·
-`data-channel-hydrate-store="0"` · existing error-log / field-errors attrs.
+`data-channel-hydrate-signals="0"` · existing error-log / field-errors attrs.
 
 Defaults keep current behaviour: toast on error, restore focus **and scroll**
-on morph, hydrate store from `localStorage` at boot.
+on morph, hydrate `uxChannel.signals` from `localStorage` at boot.
 
-`hydrateStore` only controls that boot read. A server `signal.set` with
+`hydrateSignals` only controls that boot read. A server `signal.set` with
 `persist: true` still writes. `restoreFocus: false` skips both focus and
 scroll snapshot on morph.

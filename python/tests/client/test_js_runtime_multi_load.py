@@ -82,14 +82,18 @@ def test_client_runtime_doors():
     assert "function registerOp" in ch
     assert "function applyRegisteredOp" in ch
     assert "registerOp: registerOp" in ch
-    assert "store: signals" in ch
+    assert "signals: signals" in ch
+    assert "store: signals" not in ch
     assert "CORE_OPS" in ch
     assert "channel:beforeOp" in ch
     assert "channel:afterOp" in ch
     assert "channel:unknownOp" in ch
     assert "registerOp refused core op" in ch
     assert "data-channel-restore-focus" in ch
-    assert "data-channel-hydrate-store" in ch
+    assert "data-channel-hydrate-signals" in ch
+    assert "data-channel-hydrate-store" not in ch
+    assert "hydrateSignals" in ch
+    assert "hydrateStore" not in ch
     # existing core cases stay in the switch — doors do not delete them
     assert 'case "morph":' in ch
     assert 'case "signal.set":' in ch

@@ -57,9 +57,10 @@ The browser runtime is a closed core. Ops stay minted in Python / the driver.
 ```js
 uxChannel.registerOp("transition.play", function (op) { /* motion runtime */ });
 uxChannel.on("channel:afterApply", function (result) { /* measure */ });
-uxChannel.configure({ autoToast: true, restoreFocus: true, hydrateStore: true });
+uxChannel.configure({ autoToast: true, restoreFocus: true, hydrateSignals: true });
 ```
 
 `registerOp` refuses core op names (`morph`, `navigate`, …). Unknown ops fire
-`channel:unknownOp` and do nothing. `uxChannel.store` is the client bag;
-`uxChannel.signals` stays an alias.
+`channel:unknownOp` and do nothing. The client bag is `uxChannel.signals`
+(written only by `signal.set`). Persist is `signal.set` + `persist: true`,
+not a second object.
