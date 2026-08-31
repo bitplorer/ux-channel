@@ -3,20 +3,26 @@
 > **Diátaxis:** reference · **Layer:** ux-channel client
 > Policy: [../../LONGEVITY.md](../../LONGEVITY.md). Host doors: [../../python/docs/start/EXTENSIONS.md](../../python/docs/start/EXTENSIONS.md).
 
-The browser never invents business truth. It sends an **Intent** and applies
-a **Result** of ordered **ops**.
+The browser never invents business truth. **Python (or a driver) mints the op.**
+This file only applies the payload the server already sent.
 
 ```text
+Python action / driver
+  → Result.ops[]          name, target, html, play id, …
+       ↓
 When (data-channel-on) → Intent → Result.ops[] → apply
 apply = beforeApply → each op (beforeOp / applyOp / afterOp) → afterApply
 ```
+
+`registerOp` is an **apply adapter**, not a second place to define product
+operations. Do not put `if (count > 3)` or routing rules in the handler.
 
 ## Doors (use these; do not edit the core switch)
 
 | Need | Door |
 |------|------|
-| New effect (`transition.play`, product op) | `uxChannel.registerOp(name, fn)` |
-| Cross-cutting | `uxChannel.on("channel:beforeApply" \| "channel:beforeOp" \| "channel:afterOp" \| "channel:afterApply", fn)` |
+| Apply a non-core op the server already minted | `uxChannel.registerOp(name, fn)` |
+| Cross-cutting observer | `uxChannel.on("channel:beforeApply" \| "channel:beforeOp" \| "channel:afterOp" \| "channel:afterApply", fn)` |
 | Intended side effects | `uxChannel.configure({ autoToast, restoreFocus, hydrateStore, … })` |
 | Islands / fx | `uxBridge.register(pkg, impl)` |
 
@@ -31,7 +37,7 @@ Unknown ops emit `channel:unknownOp` and no-op. No `eval`.
 | When | `data-channel-on` — DOM event → Intent |
 | Store | `uxChannel.store` — client bag (`signal.set`). `signals` is an alias |
 | Morph | core op — server HTML patch |
-| Play | registered op — motion runtime, after morph in the same `ops[]` |
+| Play | registered apply adapter — motion runtime plays the plan Python minted |
 
 ## Body attrs (same defaults as today)
 

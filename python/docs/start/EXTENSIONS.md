@@ -51,8 +51,8 @@ make verify
 
 ## Client doors (Door H)
 
-The browser runtime is a closed core. Do not add `applyOp` cases for product
-effects. Use:
+The browser runtime is a closed core. Ops stay minted in Python / the driver.
+`registerOp` only applies the payload. Do not add `applyOp` cases. Use:
 
 ```js
 uxChannel.registerOp("transition.play", function (op) { /* motion runtime */ });
