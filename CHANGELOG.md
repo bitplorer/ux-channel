@@ -12,7 +12,9 @@
   `slice(8)`). No hydrate / restore-focus body attrs or configure knobs.
 - Morph focus/scroll restore stays always-on. It is not persist.
 - Docs: `docs/reference/client-runtime.md`, EXTENSIONS Door H, LONGEVITY
-  Door H, `python/docs/client/JS_RUNTIME.md`.
+  Door H, `python/docs/client/JS_RUNTIME.md`, FEATURES §4.1 / §6,
+  `python/docs/state/STATE.md` (dead `PLANES.md` link → state-planes),
+  `python/docs/ts-client.stub.d.ts` (`registerOp`, `signals`).
 - Test: `test_js_runtime_multi_load.py::test_client_runtime_doors`.
 - Python `ClientPlane` / persist minting unchanged.
 
