@@ -38,6 +38,8 @@ export interface UxChannel {
   applyResult(result: Result, opts?: object): Promise<void>;
   postIntent(intent: Intent): Promise<Result>;
   on(eventName: string, fn: (detail: unknown, ev: Event) => void): () => void;
+  registerOp(name: string, fn: (op: Op) => unknown): boolean;
+  signals: Record<string, unknown>;
   version: string;
   reportError(kind: string, payload?: object): unknown;
   configure(opts?: object): object;

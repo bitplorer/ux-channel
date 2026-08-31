@@ -16,6 +16,7 @@ How to add features **without bloating** core. Policy: [LONGEVITY.md](../../../L
 | Non-human caller | **E Plane** | `agent_runtime` / `mcp` / new package under L4 |
 | New web framework | **F Adapter** | New package or extra — not root |
 | Heavy dependency | **G Extra** | `pyproject` optional extra |
+| Browser effect / listener | **H Client doors** | `uxChannel.registerOp` / `on` / `configure` / `uxBridge.register` |
 
 ## Never
 
@@ -47,3 +48,31 @@ register_wire_format(MyFormat())
 python3 scripts/check_longevity.py
 make verify
 ```
+
+## Client doors (Door H)
+
+The browser runtime is a closed core. Ops stay minted in Python / the driver.
+`registerOp` only applies the payload. Do not add `applyOp` cases. Use:
+
+```js
+uxChannel.registerOp("transition.play", function (op) { /* motion runtime */ });
+uxChannel.on("channel:afterApply", function (result) { /* measure */ });
+uxChannel.configure({ autoToast: true });
+```
+
+`registerOp` refuses core op names (`morph`, `navigate`, …). Unknown ops fire
+`channel:unknownOp` and do nothing. The client bag is `uxChannel.signals`
+(written only by `signal.set`).
+
+Persist is decided in Python and applied in JS — not a second bag, not a new
+body attribute:
+
+```python
+st = state(ch, allow=["ui.theme"])
+st.client("ui.theme", "dark", persist=True)
+```
+
+JS writes `uxChannel.signals` and, when the op carries `persist: true`, the
+matching `localStorage` key. Next boot re-reads those keys silently.
+`configure` does not grow a hydrate/persist knob. `data-channel-args` stays
+the sealed Intent payload; the cap hashes it and does not embed the values.

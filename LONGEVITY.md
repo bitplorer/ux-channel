@@ -10,6 +10,12 @@
 **Law is eternal; the host is durable; product planes are optional; demos are disposable.**  
 Bloat dies when new features must enter through **extension doors**, not root `__all__`.
 
+The browser runtime (`static/ux-channel.js`) follows the same rule:
+new client apply adapters enter through **client doors** (`registerOp`, `on`,
+`configure`, `uxBridge.register`), not new `applyOp` cases. Product ops stay
+minted in Python. See
+[docs/reference/client-runtime.md](docs/reference/client-runtime.md).
+
 ---
 
 ## 2. Permanence strata (what may change)
@@ -133,6 +139,19 @@ ux-channel[all]             # batteries
 
 **Rule:** if a feature needs heavy deps (aiortc, redis, openai), it is an **extra** or a **sibling package**, never a hard core import.
 
+### Door H — Client apply adapters
+
+Python mints `Result.ops[]`. The browser only applies the payload.
+
+| Need | Door |
+|------|------|
+| Apply a non-core op name | `uxChannel.registerOp(name, fn)` |
+| Observe apply phases | `uxChannel.on(...)` |
+| Intended side effects | `uxChannel.configure({...})` |
+| Islands / fx | `uxBridge.register` |
+
+Do not add `applyOp` cases for product effects. Do not put product rules in the JS handler.
+
 ---
 
 ## 5. Forever anti-bloat policy (checklist)
@@ -140,7 +159,7 @@ ux-channel[all]             # batteries
 Before merging a feature, answer:
 
 1. **Which stratum?** If L4–L6, it cannot touch L0–L2 public names without deprecation.  
-2. **Which door?** Hooks / stores / wire plugin / bridge plugin / caller plane / adapter / extra.  
+2. **Which door?** Hooks / stores / wire plugin / bridge plugin / caller plane / adapter / extra / client apply.  
    If “none — just add to root”, **reject**.  
 3. **Root `__all__`?** Default **no**. Application façade only (`PUBLIC_API_FREEZE`).  
 4. **New package name?** Prefer subpackage under an existing plane (`agent_runtime.*`, `bridge.*`) over a new top-level word.  
@@ -158,6 +177,7 @@ Before merging a feature, answer:
 | Op tag space for CXB | Append-only |
 | Channel verbs: boot, on, region, control, done/fail, mint | Speech of the product |
 | Hook pipeline order: before → handler → after | Documented semantics |
+| Client core op switch | New product effects use `registerOp`, not a new `case` |
 
 ### Free to move
 
@@ -177,16 +197,16 @@ Before merging a feature, answer:
 ```text
                     ┌──────────── L0 LAW ────────────┐
                     │  SPEC  ·  conformance vectors  │
-                    └───────────────┬────────────────┘
+                    └────────────────┬────────────────┘
                                     │
-              ┌─────────────────────┼─────────────────────┐
+              ┌────────────────────┬─────────────────────┐
               ▼                     ▼                     ▼
         L1 Python protocol    L1 Rust peer           (future peers)
               │                     │
               ▼                     │
         L2 Channel + Registry + Hooks ◄── Door A (before/after)
               │
-       ┌──────┼──────────┬────────────┬────────────┐
+       ┌──────┬──────────┬────────────┬────────────┐
        ▼      ▼          ▼            ▼            ▼
      L3     L3         L4           L4           L5
     asgi   wire      agent_runtime  bridge     devtools
@@ -206,6 +226,7 @@ Before merging a feature, answer:
 | New vertical (e.g. payments agents) | Package under `agent_runtime` or `workplace`, not root |
 | New HTTP framework | Sibling package via Door F + entry points |
 | Optional heavy deps | `pyproject` extras (Door G) |
+| New browser effect | Door H `registerOp` — Python still mints the op |
 | Feature flags in core | Prefer before-hook feature gates over `if config` forests |
 | Duplicate “audit” concepts | Keep names distinct (`devtools.audit` vs `agent_runtime.tool_audit`) |
 | Docs sprawl | Day-to-day: MENTAL_MODEL + STABILITY; essays stay background |
@@ -219,6 +240,7 @@ Before merging a feature, answer:
 - **No** putting MCP/WebRTC/Redis imports in root `__init__`  
 - **No** umbrella `runtimes/` package without a new principal class  
 - **No** magic comments as API (`MANUAL_PUBLIC_API` removed)  
+- **No** product rules in `registerOp` handlers (Python mints ops)  
 
 ---
 
@@ -235,6 +257,7 @@ Before merging a feature, answer:
 | New caller class | caller plane package | E |
 | New web framework | adapter package / extra | F |
 | Heavy optional feature | extra or L4 plane | G |
+| Browser apply adapter | `uxChannel.registerOp` | H |
 | Tutorial app | examples/ | L6 |
 
 **Longevity formula:** *stable grammar (Intent/Result/cap/hooks) + replaceable bodies (stores, adapters, planes) + empty root for everything else.*

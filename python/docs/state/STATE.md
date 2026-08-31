@@ -44,4 +44,4 @@ st.db.require(amount=float(q.magnitude))
 | `Quantity.from_store` after load | client `signal.set` of amounts |
 | `st.db.guard` / `require` | trusting client-supplied magnitudes |
 
-See `PLANES.md` · [FOUNDATIONS.md](../foundations/FOUNDATIONS.md).
+See [state-planes](../../../docs/reference/state-planes.md) · [FOUNDATIONS.md](../foundations/FOUNDATIONS.md).

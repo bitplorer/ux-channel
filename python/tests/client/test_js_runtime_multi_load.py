@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 STATIC = Path("src/ux_channel/static")
@@ -74,3 +75,39 @@ def test_demo_scripts_order_mentions_bridge_before_adapters():
     assert 0 <= i_ch < i_br or i_br < 0  # channel before bridge when both present
     if i_br >= 0 and i_fx >= 0:
         assert i_br < i_fx
+
+
+def test_client_runtime_doors():
+    ch = (STATIC / "ux-channel.js").read_text()
+    assert "function registerOp" in ch
+    assert "function applyRegisteredOp" in ch
+    assert "registerOp: registerOp" in ch
+    assert "signals: signals" in ch
+    assert "store: signals" not in ch
+    assert "CORE_OPS" in ch
+    assert "channel:beforeOp" in ch
+    assert "channel:afterOp" in ch
+    assert "channel:unknownOp" in ch
+    assert "registerOp refused core op" in ch
+    # persist + silent boot hydrate are apply of Python st.client(..., persist=True).
+    # No extra body attr / configure knob — those were invented drift.
+    assert "function hydrateSignalsFromStorage" in ch
+    assert "SIG_PREFIX" in ch
+    assert "op.persist === true" in ch
+    assert "data-channel-hydrate-signals" not in ch
+    assert "data-channel-hydrate-store" not in ch
+    assert "data-channel-restore-focus" not in ch
+    assert "hydrateStore" not in ch
+    assert "hydrateSignals:" not in ch
+    assert "restoreFocus:" not in ch
+    # existing core cases stay in the switch — doors do not delete them
+    assert 'case "morph":' in ch
+    assert 'case "signal.set":' in ch
+    # exact-name freeze, not a prefix — registerOp("bridge.chart") is allowed
+    assert "bridge.*" not in ch
+    assert "timer.*" not in ch
+
+    cases = set(re.findall(r'case "([^"]+)":', ch))
+    block = ch[ch.find("var CORE_OPS") : ch.find("};", ch.find("var CORE_OPS"))]
+    keys = {a or b for a, b in re.findall(r'(?:^|[\{,]\s*)(?:"([^"]+)"|([A-Za-z_.]+))\s*:', block)}
+    assert cases == keys, (cases - keys, keys - cases)
