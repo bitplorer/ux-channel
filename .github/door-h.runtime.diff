@@ -1,0 +1,137 @@
+--- a/python/src/ux_channel/static/ux-channel.js
++++ b/python/src/ux_channel/static/ux-channel.js
+@@ -1,6 +1,16 @@
+ /**
+  * uxchannel client runtime v0.1.0
+  * Intent → POST/SSE → apply Result.ops
++ *
++ * Closed core. Ops are minted in Python (or a driver). This file only applies
++ * the payload. New behaviour uses a door — do not add applyOp cases.
++ *   uxChannel.on(phase, fn)           beforeApply | beforeOp | afterOp | afterApply
++ *   uxChannel.registerOp(name, fn)    apply adapter for a non-core op name
++ *   uxChannel.configure({…})          intended side effects, visible
++ *   uxBridge.register(pkg, impl)      islands / fx (separate file)
++ * Unknown op → registerOp handler or channel:unknownOp + no-op.
++ * Client bag is uxChannel.signals — written only by signal.set.
++ *
+  * - focus/scroll restore, concurrency, version check
+  * - bridge orphan reaper, optimistic hooks, SSE apply
+  * - EventSource push: data-channel-push-topic / subscribePush
+@@ -24,6 +34,14 @@
+   var maxConcurrent = 3;
+   var queue = [];
+   var signals = Object.create(null);
++  var opHandlers = Object.create(null);
++  var CORE_OPS = {
++    morph: 1, swap: 1, remove: 1, set_text: 1, set_attr: 1, clear_errors: 1,
++    toast: 1, navigate: 1, reload: 1, push_url: 1, focus: 1, scroll: 1,
++    dispatch: 1, "signal.set": 1, noop: 1,
++    "bridge.mount": 1, "bridge.update": 1, "bridge.call": 1, "bridge.destroy": 1,
++    seq: 1, "timer.set": 1, "timer.clear": 1, invoke: 1
++  };
+   var optimisticStack = [];
+   var effectTimers = Object.create(null);
+   var effectTimerGen = 1;
+@@ -44,15 +62,15 @@
+   };
+   var recentToasts = Object.create(null);
+   var proofConfig = { required: false, secret: null, sessionId: "default", gen: 1 };
+-
++  var SIG_PREFIX = "channel:sig:";
+ 
+   function hydrateSignalsFromStorage() {
+     try {
+       if (typeof localStorage === "undefined") return;
+       for (var i = 0; i < localStorage.length; i++) {
+         var k = localStorage.key(i);
+-        if (!k || k.indexOf("channel:sig:") !== 0) continue;
+-        var path = k.slice(8);
++        if (!k || k.indexOf(SIG_PREFIX) !== 0) continue;
++        var path = k.slice(SIG_PREFIX.length);
+         try {
+           var raw = localStorage.getItem(k);
+           if (raw == null) continue;
+@@ -437,11 +455,11 @@
+         break;
+       case "signal.set":
+         setByPath(signals, op.path, op.value);
+-        // Optional chrome persist (server allowlisted only — never money/secrets)
++        // Optional persist of this path (server allowlisted — never money/secrets)
+         var doPersist = op.persist === true || (op.meta && op.meta.persist === true);
+         if (doPersist && op.path && typeof localStorage !== "undefined") {
+           try {
+-            localStorage.setItem("channel:sig:" + String(op.path), JSON.stringify(op.value));
++            localStorage.setItem(SIG_PREFIX + String(op.path), JSON.stringify(op.value));
+           } catch (e) {}
+         }
+         document.dispatchEvent(new CustomEvent("channel:signal", {
+@@ -493,8 +511,26 @@
+         (op.ops || []).forEach(applyOp);
+         break;
+       default:
+-        console.warn("[ux-channel] unknown op:", op.op);
+-    }
++        return applyRegisteredOp(op);
++    }
++  }
++
++  function applyRegisteredOp(op) {
++    var fn = opHandlers[op.op];
++    if (typeof fn === "function") return fn(op);
++    emitChannel("channel:unknownOp", { op: op });
++    if (isDev()) console.warn("[ux-channel] unknown op:", op.op);
++  }
++
++  // Apply adapter only. Product rules stay in Python / the driver that minted the op.
++  function registerOp(name, fn) {
++    if (typeof name !== "string" || !name || typeof fn !== "function") return false;
++    if (CORE_OPS[name]) {
++      if (isDev()) console.warn("[ux-channel] registerOp refused core op:", name);
++      return false;
++    }
++    opHandlers[name] = fn;
++    return true;
+   }
+ 
+   function checkRuntime(result) {
+@@ -515,6 +551,9 @@
+   /**
+    * Client hooks — document CustomEvents + uxChannel.on / reportError.
+    *   channel:beforeApply   { result, preventApply, source } — set preventApply to cancel
++   *   channel:beforeOp      { op, index, result, source }
++   *   channel:afterOp       { op, index, result, source }
++   *   channel:unknownOp     { op } — no handler, no core case
+    *   channel:error         all reported failures (kind, entry, ...)
+    *   channel:fieldErrors   validation fields painted
+    *   channel:refreshErrors meta.refresh_errors
+@@ -644,9 +683,13 @@
+               if (isDev()) console.warn("[ux-channel] skip navigate on failed result");
+               return;
+             }
++            emitChannel("channel:beforeOp", { op: op, index: idx, result: result, source: applyOpts.source || null });
+             var r = applyOp(op);
+             if (r && typeof r.then === "function") {
+-              return Promise.resolve(r).catch(function (e) {
++              return Promise.resolve(r).then(function (v) {
++                emitChannel("channel:afterOp", { op: op, index: idx, result: result, source: applyOpts.source || null });
++                return v;
++              }).catch(function (e) {
+                 reportError("op", {
+                   message: "Op failed: " + (op.op || "?") + " — " + ((e && e.message) || e),
+                   op: op,
+@@ -657,6 +700,7 @@
+                 emitChannel("channel:opError", { op: op, index: idx, error: e, result: result });
+               });
+             }
++            emitChannel("channel:afterOp", { op: op, index: idx, result: result, source: applyOpts.source || null });
+             if (op.op === "navigate" || op.op === "reload") return new Promise(function () {});
+           } catch (e) {
+             reportError("op", {
+@@ -1943,6 +1987,7 @@
+     subscribeWs: subscribeWs,
+     onWsMessage: onWsMessage,
+     on: on,
++    registerOp: registerOp,
+     reportError: reportError,
+     configure: configureErrors,
+     lastErrors: lastErrors,

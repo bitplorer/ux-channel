@@ -1,0 +1,50 @@
+name: land-door-h
+
+on:
+  push:
+    paths:
+      - .github/workflows/land-door-h.yml
+      - .github/door-h.runtime.diff
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  land:
+    if: github.ref == 'refs/heads/client/closed-core-doors'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: client/closed-core-doors
+          fetch-depth: 0
+
+      - name: Apply Door H delta onto main runtime and drop this lander
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          git show origin/main:python/src/ux_channel/static/ux-channel.js > python/src/ux_channel/static/ux-channel.js
+          patch -p1 < .github/door-h.runtime.diff
+          cp python/src/ux_channel/static/ux-channel.js python/src/ux_channel/static/ux-channel.min.js
+          python3 - <<'CHK'
+          from pathlib import Path
+          ch = Path("python/src/ux_channel/static/ux-channel.js").read_text()
+          mn = Path("python/src/ux_channel/static/ux-channel.min.js").read_text()
+          assert ch == mn
+          assert "PLACEHOLDER_WILL_REPLACE" not in ch
+          assert "function registerOp" in ch
+          assert "function hydrateSignalsFromStorage" in ch
+          assert "SIG_PREFIX" in ch
+          assert "k.slice(SIG_PREFIX.length)" in ch
+          assert "store: signals" not in ch
+          assert "data-channel-hydrate-signals" not in ch
+          print("land-ok", len(ch.encode()), "bytes")
+          CHK
+          rm -f .github/workflows/land-door-h.yml .github/door-h.runtime.diff
+          git config user.name "bitplorer"
+          git config user.email "89827197+bitplorer@users.noreply.github.com"
+          git add python/src/ux_channel/static/ux-channel.js python/src/ux_channel/static/ux-channel.min.js
+          git add -u .github/workflows/land-door-h.yml .github/door-h.runtime.diff
+          git commit -m "client: land Door H runtime (closed core, persist+silent hydrate)"
+          git push origin HEAD:client/closed-core-doors
