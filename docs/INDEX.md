@@ -71,6 +71,7 @@ Stale history: [archive/](archive/) — **do not cite as current law**.
 | Doc | Topic |
 |-----|--------|
 | [reference/vocabulary.md](reference/vocabulary.md) | Day-1 terms |
+| [reference/client-runtime.md](reference/client-runtime.md) | Browser runtime doors |
 | [reference/capabilities.md](reference/capabilities.md) | Caps / args_hash |
 | [reference/state-planes.md](reference/state-planes.md) | session / client / db |
 | [reference/import-rules.md](reference/import-rules.md) | Root vs package imports |
