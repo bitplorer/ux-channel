@@ -1,5 +1,5 @@
 """
-Bridge **presets** — data + ops for npm / ux-fx / ux-ui adapters.
+Bridge **presets** — data + ops for stock scenes / vendor widgets.
 
 Markup belongs in **ux-dom** (or templates). Bridges only provide Placement + ops.
 
@@ -7,7 +7,7 @@ Charts & effects::
 
     from ux_channel.bridges import ChartBridge, ConfettiBridge, AuroraBridge
 
-High-value UI islands for ux-dom::
+Vendor widget islands::
 
     from ux_channel.bridges import (
         LeafletBridge, CodeMirrorBridge, SelectBridge, DatePickerBridge,
@@ -46,14 +46,14 @@ __all__ = [
     # charts
     "ChartBridge",
     "ChartSeries",
-    # fx
+    # scenes (stock visual islands)
     "ConfettiBridge",
     "ParticlesBridge",
     "AuroraBridge",
     "CountUpBridge",
     "SpotlightBridge",
     "LottieBridge",
-    # high-value UI
+    # widgets (vendor islands)
     "LeafletBridge",
     "CodeMirrorBridge",
     "SelectBridge",
@@ -64,8 +64,13 @@ __all__ = [
     "QuillBridge",
     "GenericBridge",
     # script paths
+    "SCENES_SCRIPT",
+    "WIDGETS_SCRIPT",
     "FX_SCRIPT",
-    "UI_SCRIPT"]
+    "UI_SCRIPT",
+]
 
-FX_SCRIPT = "/ux-channel/static/adapters/ux-fx.js"
-UI_SCRIPT = "/ux-channel/static/adapters/ux-ui.js"
+SCENES_SCRIPT = "/ux-channel/static/adapters/scenes.js"
+WIDGETS_SCRIPT = "/ux-channel/static/adapters/widgets.js"
+FX_SCRIPT = SCENES_SCRIPT  # old name
+UI_SCRIPT = WIDGETS_SCRIPT  # old name
