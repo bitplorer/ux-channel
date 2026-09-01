@@ -1,3 +1,16 @@
+## 2026-09-01 — Adapter residuals
+
+- `ux-bridge.js`: drop the unused first `scan()` + late `hostFor` patch.
+  One `scan` remains; it still passes the host as `op._el`. Public surface
+  unchanged (`register` / `apply` / `scan` / `instances` / `version`).
+- `ux-fx/confetti`: `destroy` removes the resize listener; `rain` ticks
+  honor `raining` so `stop`/`destroy` halt the timeout chain.
+- `lottie-web`: `bridge.update` remounts on the real host (`handle.el`)
+  instead of a detached dummy `<div>`. Same handle object is reused so
+  `instances[id].handle` stays valid. Public methods unchanged.
+- Docs teaching keys follow the running package `chart.js`
+  (`CHART_PACKAGE`, example adapter). Folder / CLI slugs (`chartjs`) stay.
+
 ## 2026-08-31 — Door H: closed core, four doors
 
 - Browser runtime is a closed core. Python (or a driver) mints `Result.ops[]`.

@@ -18,7 +18,7 @@ See [docs/bridges/NPM.md](../docs/bridges/NPM.md).
 
 1. `npm i chart.js @ux-channel/bridge-core`
 2. Register adapter in your bundle
-3. Python: `ch.bridge.register("chartjs", methods=("update",))`
+3. Python: `ch.bridge.register("chart.js", methods=("update",))`
 4. Place host: `ch.bridge.mount_spec(...)` → your HTML
 5. Ops: `ch.bridge.mount_ops(...)`
 

@@ -3,6 +3,9 @@
  * ux-bridge — island mount registry for ux-channel.
  * Load once. A second include is a no-op (keeps adapters + instances).
  * Load adapters (ux-fx / ux-ui) *after* this file.
+ *
+ * Public surface: register / apply / scan / instances / version.
+ * Scan passes the host element as op._el so mount does not re-query.
  */
 (function (global) {
   "use strict";
@@ -25,13 +28,15 @@
   }
 
   function hostFor(op) {
-    if (op.target) {
+    if (op && op._el) return op._el;
+    if (op && op.target) {
       try {
         return document.querySelector(op.target);
       } catch (e) {
         return null;
       }
     }
+    if (!op || !op.id) return null;
     return document.querySelector('[data-channel-bridge-id="' + op.id + '"]');
   }
 
@@ -51,7 +56,6 @@
       }
       return Promise.resolve()
         .then(function () {
-          // destroy previous
           if (instances[id] && instances[id].dispose) {
             return instances[id].dispose();
           }
@@ -86,7 +90,6 @@
       if (inst.adapter.update) {
         return Promise.resolve(inst.adapter.update(inst.handle, op.props, op.replace));
       }
-      // remount fallback
       return apply({
         op: "bridge.mount",
         id: id,
@@ -139,33 +142,6 @@
           props = JSON.parse(raw);
         } catch (e) {}
       }
-      apply({ op: "bridge.mount", id: id, package: pkg, props: props, target: null });
-      // fix target: mount uses id selector — set el as implicit by temporarily
-    });
-  }
-
-  // Fix scan mount to pass element via synthetic target lookup
-  var _hostFor = hostFor;
-  hostFor = function (op) {
-    if (op._el) return op._el;
-    return _hostFor(op);
-  };
-
-  function scanFixed(root) {
-    var nodes = (root || document).querySelectorAll(
-      "[data-channel-bridge-id][data-channel-bridge-package]"
-    );
-    Array.prototype.forEach.call(nodes, function (el) {
-      var id = el.getAttribute("data-channel-bridge-id");
-      var pkg = el.getAttribute("data-channel-bridge-package");
-      if (!id || !pkg || instances[id]) return;
-      var props = {};
-      var raw = el.getAttribute("data-channel-bridge-props");
-      if (raw) {
-        try {
-          props = JSON.parse(raw);
-        } catch (e) {}
-      }
       apply({
         op: "bridge.mount",
         id: id,
@@ -179,7 +155,7 @@
   global.uxBridge = {
     register: register,
     apply: apply,
-    scan: scanFixed,
+    scan: scan,
     instances: instances,
     version: "0.1.0",
   };
