@@ -2,27 +2,6 @@
 Bridge **presets** — data + ops for first-party builtins / vendor widgets.
 
 Markup belongs in **ux-dom** (or templates). Bridges only provide Placement + ops.
-
-First-party islands (we implement them)::
-
-    from ux_channel.bridges import ChartBridge, ConfettiBridge, AuroraBridge
-
-Vendor widget islands (we wrap another library)::
-
-    from ux_channel.bridges import (
-        LeafletBridge, CodeMirrorBridge, SelectBridge, DatePickerBridge,
-        SortableBridge, SwiperBridge, MermaidBridge, QuillBridge,
-        LottieBridge, GenericBridge,
-    )
-
-    maps = LeafletBridge(ch)
-    m = maps("hq", center=[28.6, 77.2], zoom=11)
-    # host: Div(**m.mount_attrs(class_name="h-80 rounded-xl"))
-
-Any package without a preset::
-
-    widgets = GenericBridge(ch, package="my-lib", methods=("update", "destroy"))
-    w = widgets("w1", theme="dark")
 """
 
 from ux_channel.bridges.aurora import AuroraBridge
@@ -62,13 +41,7 @@ __all__ = [
     "GenericBridge",
     "BUILTINS_SCRIPT",
     "WIDGETS_SCRIPT",
-    "SCENES_SCRIPT",
-    "FX_SCRIPT",
-    "UI_SCRIPT",
 ]
 
 BUILTINS_SCRIPT = "/ux-channel/static/adapters/builtins.js"
 WIDGETS_SCRIPT = "/ux-channel/static/adapters/widgets.js"
-SCENES_SCRIPT = BUILTINS_SCRIPT  # old name
-FX_SCRIPT = BUILTINS_SCRIPT  # old name
-UI_SCRIPT = WIDGETS_SCRIPT  # old name
