@@ -2,7 +2,7 @@
 /**
  * ux-bridge — island mount registry for ux-channel.
  * Load once. A second include is a no-op (keeps adapters + instances).
- * Load adapters (ux-fx / ux-ui) *after* this file.
+ * Load adapters (builtins.js / widgets.js) *after* this file.
  *
  * Public surface: register / apply / scan / instances / version.
  * Scan passes the host element as op._el so mount does not re-query.
