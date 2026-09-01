@@ -1,18 +1,17 @@
 ## 2026-09-01 — Adapter residuals + island kernel
 
-- `ux-bridge.js`: drop the unused first `scan()` + late `hostFor` patch.
-  One `scan` remains; it still passes the host as `op._el`.
-- `bridge.update` resolution is now complete and generic:
-  `adapter.update` → `handle.update` → remount. Same idea as `bridge.call`
-  (`adapter.call` → `handle[method]`). No new public names.
-- Stock packs (`ux-fx`, `ux-ui`, sparkline) no longer re-wrap `update`/`call`.
-  Methods stay on the handle. Package keys unchanged.
-- `ux-fx/confetti`: `destroy` removes the resize listener; `rain` ticks
-  honor `raining` so `stop`/`destroy` halt the timeout chain.
-- `lottie-web`: `handle.update` rebuilds on the real host. Dummy `<div>`
-  remount path is gone. Public methods unchanged.
-- Docs teaching keys follow the running package `chart.js`
-  (`CHART_PACKAGE`). Folder / CLI slugs (`chartjs`) stay.
+- `ux-bridge.js`: one `scan`; `hostFor` reads `op._el` first.
+- `bridge.update` is generic: `adapter.update` → `handle.update` → remount.
+  Same idea as `bridge.call` (`adapter.call` → `handle[method]`).
+- Stock packs no longer re-wrap `update`/`call`. Methods live on the handle.
+- Pack files: `adapters/builtins.js` (`builtin/*`) and `adapters/widgets.js`
+  (vendor names). Shims `ux-fx.js` / `ux-ui.js` removed.
+- `builtin/confetti`: `destroy` drops the resize listener; `rain` honors `raining`.
+- `lottie-web` lives in widgets.js; `handle.update` remounts on the real host.
+- Spotlight overlay is pack-private class `.ux-spotlight`.
+- Kit: `builtins_script_tags()` / `widgets_script_tags()`.
+- Docs teaching keys follow the running package `chart.js` (`CHART_PACKAGE`).
+  Folder / CLI slugs (`chartjs`) stay.
 - Public surface unchanged: `register` / `apply` / `scan` / `instances` / `version`.
 
 ## 2026-08-31 — Door H: closed core, four doors
