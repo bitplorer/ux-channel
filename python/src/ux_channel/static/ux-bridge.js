@@ -6,6 +6,10 @@
  *
  * Public surface: register / apply / scan / instances / version.
  * Scan passes the host element as op._el so mount does not re-query.
+ *
+ * Update: adapter.update(handle, props) → handle.update(props) → remount.
+ * Call:   adapter.call(handle, method, args) → handle[method](...args).
+ * Adapters put methods on the handle; they should not re-wrap these verbs.
  */
 (function (global) {
   "use strict";
@@ -89,6 +93,10 @@
       }
       if (inst.adapter.update) {
         return Promise.resolve(inst.adapter.update(inst.handle, op.props, op.replace));
+      }
+      var handle = inst.handle;
+      if (handle && typeof handle.update === "function") {
+        return Promise.resolve(handle.update(op.props, op.replace));
       }
       return apply({
         op: "bridge.mount",
