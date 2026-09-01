@@ -80,3 +80,77 @@ def test_root_import_weight():
     )
     r = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True)
     assert r.returncode == 0, r.stderr or r.stdout
+
+
+def test_headless_boot_does_not_load_l4_planes():
+    """Channel.boot() without touching media/webrtc/bridge must not import L4.
+
+    Compose's wire/boot headless path depends on this staying cheap.
+    Accessing ch.webrtc / ch.media / ch.bridge still attaches (public API).
+    """
+    import subprocess
+    import sys
+    from textwrap import dedent
+
+    code = dedent(
+        """
+        import sys
+        from ux_channel import Channel, ChannelConfig, Intent
+
+        ch = Channel.boot(config=ChannelConfig.development(secret="dev-" + "x" * 32))
+
+        @ch.on
+        def ping():
+            return ch.done()
+
+        cap = ch.mint("ping", {})
+        result = ch.registry.dispatch(Intent(action="ping", args={}, cap=cap))
+        assert result.ok, result
+
+        heavy = (
+            "ux_channel.realtime",
+            "ux_channel.realtime.webrtc",
+            "ux_channel.realtime.media",
+            "ux_channel.bridge.bridge_plane",
+            "ux_channel.mcp",
+            "ux_channel.agent_runtime.runner",
+        )
+        bad = [m for m in heavy if m in sys.modules]
+        assert not bad, bad
+
+        # Public façade still works (lazy attach).
+        assert ch.webrtc is not None
+        assert "ux_channel.realtime.webrtc" in sys.modules
+        """
+    )
+    r = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True)
+    assert r.returncode == 0, r.stderr or r.stdout
+
+
+def test_lazy_planes_are_idempotent():
+    from ux_channel import Channel, ChannelConfig
+
+    ch = Channel.boot(config=ChannelConfig.development(secret="dev-" + "x" * 32))
+    a = ch.media
+    b = ch.media
+    assert a is b
+    c = ch.bridge
+    d = ch.bridge
+    assert c is d
+    e = ch.webrtc
+    f = ch.webrtc
+    assert e is f
+
+
+def test_compose_frozen_import_paths():
+    """ux-compose wire/ may only touch these paths. Do not rename them."""
+    from ux_channel import Channel, ChannelConfig
+    from ux_channel.cek.host_adapter import apply_host_adapter
+    from ux_channel.protocol.types import Intent
+
+    assert Channel is not None and ChannelConfig is not None
+    assert callable(apply_host_adapter)
+    assert Intent is not None
+    assert hasattr(Channel, "boot")
+    ch = Channel.boot(config=ChannelConfig.development(secret="dev-" + "x" * 32))
+    assert hasattr(ch, "mint") and hasattr(ch, "done") and hasattr(ch, "registry")
