@@ -15,7 +15,7 @@ from ux_channel.bridges._factory import BridgeFactoryMixin
 
 __all__ = ["ParticlesBridge", "PARTICLES_PACKAGE", "PARTICLE_THEMES"]
 
-PARTICLES_PACKAGE = "ux-fx/particles"
+PARTICLES_PACKAGE = "builtin/particles"
 PARTICLES_METHODS = ("update", "destroy", "pulse", "burst")
 
 PARTICLE_THEMES: dict[str, dict[str, Any]] = {
@@ -56,7 +56,7 @@ class _State:
 class ParticlesBridge(BridgeFactoryMixin):
     package = PARTICLES_PACKAGE
     methods = PARTICLES_METHODS
-    description = "Ambient particle field (ux-fx)"
+    description = "Ambient particle field"
 
     def __init__(
         self,
