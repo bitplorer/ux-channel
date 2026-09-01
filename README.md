@@ -47,6 +47,22 @@ Extras: `asgi` / `fastapi` / `starlette`, `redis`, `speed`/`serde` (`orjson`), `
 
 ## Usage
 
+The product is Intent → Result. HTTP is optional.
+
+```python
+from ux_channel import Channel, ChannelConfig, Intent
+
+ch = Channel.boot(config=ChannelConfig.development(secret="dev-" + "x" * 32))
+
+@ch.on
+def ping():
+    return ch.done()
+
+ch.registry.dispatch(Intent(action="ping", args={}, cap=ch.mint("ping", {})))
+```
+
+FastAPI is an L3 adapter (`asgi/`), not the core:
+
 ```python
 from fastapi import FastAPI
 from ux_channel import Channel, ChannelConfig
@@ -58,6 +74,8 @@ ch = Channel.boot(app, config=ChannelConfig.development(secret="dev-" + "x" * 32
 def ping():
     return ch.done()
 ```
+
+Package map: [python/src/ux_channel/LAYERS.md](python/src/ux_channel/LAYERS.md). L4 planes (`ch.webrtc`, `ch.media`, `ch.bridge`) attach on first use.
 
 `async def` handlers use `await ch.registry.async_dispatch(...)`. `dispatch()` refuses them — it does not start an event loop.
 

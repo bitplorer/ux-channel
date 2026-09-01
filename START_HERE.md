@@ -19,7 +19,22 @@ Click **+1**. That is Intent → Result → morph. Then come back here for why.
 
 **Cookbook:** [docs/guides/SNIPPETS.md](docs/guides/SNIPPETS.md) — boot, Caps, Intent/Result, ops, fail-closed, usage patterns.
 
-**Hand-written (same loop, no scaffold):**
+**The product is the protocol, not HTTP.** Headless first:
+
+```python
+from ux_channel import Channel, ChannelConfig, Intent
+
+ch = Channel.boot(config=ChannelConfig.development(secret="dev-" + "x" * 32))
+
+@ch.on
+def ping():
+    return ch.done()
+
+cap = ch.mint("ping", {})
+ch.registry.dispatch(Intent(action="ping", args={}, cap=cap))
+```
+
+FastAPI is an L3 adapter (Door F). HTTP when a browser must reach the host:
 
 ```python
 from fastapi import FastAPI
@@ -39,6 +54,8 @@ def add(sku: str = "tee"):
 # Caps: minted into button attrs
 attrs = ch.control(add, trust_sku="tee").as_dict()
 ```
+
+Folder map (3 minutes): [python/src/ux_channel/LAYERS.md](python/src/ux_channel/LAYERS.md).
 
 Wire types you will actually import:
 
