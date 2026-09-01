@@ -1,3 +1,19 @@
+## 2026-09-01 — Adapter residuals + island kernel
+
+- `ux-bridge.js`: one `scan`; `hostFor` reads `op._el` first.
+- `bridge.update` is generic: `adapter.update` → `handle.update` → remount.
+  Same idea as `bridge.call` (`adapter.call` → `handle[method]`).
+- Stock packs no longer re-wrap `update`/`call`. Methods live on the handle.
+- Pack files: `adapters/builtins.js` (`builtin/*`) and `adapters/widgets.js`
+  (vendor names). Shims `ux-fx.js` / `ux-ui.js` removed.
+- `builtin/confetti`: `destroy` drops the resize listener; `rain` honors `raining`.
+- `lottie-web` lives in widgets.js; `handle.update` remounts on the real host.
+- Spotlight overlay is pack-private class `.ux-spotlight`.
+- Kit: `builtins_script_tags()` / `widgets_script_tags()`.
+- Docs teaching keys follow the running package `chart.js` (`CHART_PACKAGE`).
+  Folder / CLI slugs (`chartjs`) stay.
+- Public surface unchanged: `register` / `apply` / `scan` / `instances` / `version`.
+
 ## 2026-08-31 — Door H: closed core, four doors
 
 - Browser runtime is a closed core. Python (or a driver) mints `Result.ops[]`.

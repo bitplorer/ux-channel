@@ -1,7 +1,7 @@
 /**
- * Official sparkline bridge adapter (sample adapter).
- * Register: include after ux-bridge.js
- *   <script src="/ux-channel/static/adapters/sparkline.js"></script>
+ * sparkline — sample adapter (teaching file, not a product widget).
+ * Load after ux-bridge.js.
+ * Methods live on the handle. ux-bridge.apply runs update/call.
  */
 (function (global) {
   if (!global.uxBridge) {
@@ -46,13 +46,6 @@
         },
         destroy: function () {},
       };
-    },
-    update: function (handle, props) {
-      if (handle && handle.update) handle.update(props);
-    },
-    call: function (handle, method, args) {
-      if (handle && typeof handle[method] === "function")
-        return handle[method].apply(handle, args || []);
     },
   });
   try { global.uxBridge && global.uxBridge.scan && global.uxBridge.scan(document); } catch (e) {}

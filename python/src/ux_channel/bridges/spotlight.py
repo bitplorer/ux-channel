@@ -15,7 +15,7 @@ from ux_channel.bridges._factory import BridgeFactoryMixin
 
 __all__ = ["SpotlightBridge", "SPOTLIGHT_PACKAGE", "SPOTLIGHT_THEMES"]
 
-SPOTLIGHT_PACKAGE = "ux-fx/spotlight"
+SPOTLIGHT_PACKAGE = "builtin/spotlight"
 SPOTLIGHT_METHODS = ("update", "destroy")
 
 SPOTLIGHT_THEMES: dict[str, str] = {
@@ -39,7 +39,7 @@ class _State:
 class SpotlightBridge(BridgeFactoryMixin):
     package = SPOTLIGHT_PACKAGE
     methods = SPOTLIGHT_METHODS
-    description = "Mouse spotlight glass glow (ux-fx)"
+    description = "Mouse spotlight glass glow"
 
     def __init__(
         self,

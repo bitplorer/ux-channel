@@ -25,8 +25,8 @@ __all__ = [
     "demo_submit",
     "mount_html",
     "demo_scripts",
-    "fx_script_tags",
-    "ui_script_tags",
+    "builtins_script_tags",
+    "widgets_script_tags",
     "bridge_script_tags",
 ]
 
@@ -325,36 +325,29 @@ def demo_page(
     )
 
 
-def fx_script_tags(*, bridge: bool = True) -> str:
-    """
-    Demo scripts for stunning ux-fx bridges.
-
-    After Channel runtime scripts, include::
-
-        from ux_channel.render.kit import fx_script_tags
-        # … + fx_script_tags()
-    """
+def builtins_script_tags(*, bridge: bool = True) -> str:
+    """Demo scripts for first-party builtin islands."""
     tags = []
     if bridge:
         tags.append('<script src="/ux-channel/static/ux-bridge.js" defer></script>')
-    tags.append('<script src="/ux-channel/static/adapters/ux-fx.js" defer></script>')
+    tags.append('<script src="/ux-channel/static/adapters/builtins.js" defer></script>')
     return "\n".join(tags)
 
 
-def ui_script_tags(*, bridge: bool = True) -> str:
-    """Scripts for high-value UI bridges (leaflet, select, quill, …)."""
+def widgets_script_tags(*, bridge: bool = True) -> str:
+    """Demo scripts for vendor-widget islands."""
     tags = []
     if bridge:
         tags.append('<script src="/ux-channel/static/ux-bridge.js" defer></script>')
-    tags.append('<script src="/ux-channel/static/adapters/ux-ui.js" defer></script>')
+    tags.append('<script src="/ux-channel/static/adapters/widgets.js" defer></script>')
     return "\n".join(tags)
 
 
-def bridge_script_tags(*, fx: bool = True, ui: bool = True) -> str:
-    """ux-bridge + optional ux-fx + ux-ui adapter packs."""
+def bridge_script_tags(*, builtins: bool = True, widgets: bool = True) -> str:
+    """ux-bridge + optional builtin / widget adapter packs."""
     tags = ['<script src="/ux-channel/static/ux-bridge.js" defer></script>']
-    if fx:
-        tags.append('<script src="/ux-channel/static/adapters/ux-fx.js" defer></script>')
-    if ui:
-        tags.append('<script src="/ux-channel/static/adapters/ux-ui.js" defer></script>')
+    if builtins:
+        tags.append('<script src="/ux-channel/static/adapters/builtins.js" defer></script>')
+    if widgets:
+        tags.append('<script src="/ux-channel/static/adapters/widgets.js" defer></script>')
     return "\n".join(tags)

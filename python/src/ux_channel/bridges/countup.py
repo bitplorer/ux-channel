@@ -15,7 +15,7 @@ from ux_channel.bridges._factory import BridgeFactoryMixin
 
 __all__ = ["CountUpBridge", "COUNTUP_PACKAGE", "COUNTUP_THEMES"]
 
-COUNTUP_PACKAGE = "ux-fx/countup"
+COUNTUP_PACKAGE = "builtin/countup"
 COUNTUP_METHODS = ("update", "destroy", "setValue", "replay")
 
 COUNTUP_THEMES: dict[str, dict[str, str]] = {
@@ -42,7 +42,7 @@ class _State:
 class CountUpBridge(BridgeFactoryMixin):
     package = COUNTUP_PACKAGE
     methods = COUNTUP_METHODS
-    description = "Animated metric / count-up (ux-fx)"
+    description = "Animated metric / count-up"
 
     def __init__(
         self,

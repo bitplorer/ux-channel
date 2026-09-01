@@ -1,31 +1,36 @@
 /**
- * ux-fx — stunning self-contained bridge adapters for ux-channel.
- * Include after ux-bridge.js:
- *   <script src="/ux-channel/static/adapters/ux-fx.js"></script>
+ * builtins — first-party islands shipped with ux-channel.
+ * We implement these (canvas / light DOM). Not a motion library.
+ * Vendor wraps live in widgets.js.
  *
- * Packages:
- *   ux-fx/confetti | ux-fx/particles | ux-fx/aurora
- *   ux-fx/countup  | ux-fx/spotlight | lottie-web (CDN)
+ * Python: builtins_script_tags() / bridge_script_tags(builtins=True)
+ * Load after ux-bridge.js.
+ *
+ * Keys: builtin/confetti | builtin/particles | builtin/aurora
+ *       builtin/countup  | builtin/spotlight
  */
 (function (global) {
   "use strict";
   if (!global.uxBridge) {
-    console.warn("[ux-fx] uxBridge missing — load ux-bridge.js first");
+    console.warn("[builtins] uxBridge missing — load ux-bridge.js first");
     return;
   }
   // Re-register on re-include is intentional (overwrites same package names).
-  if (global.__UX_FX_LOADED__) {
-    try { console.info("[ux-fx] re-registering adapters"); } catch (e0) {}
+  if (global.__UX_BUILTINS_LOADED__) {
+    try { console.info("[builtins] re-registering adapters"); } catch (e0) {}
   }
-  global.__UX_FX_LOADED__ = true;
+  global.__UX_BUILTINS_LOADED__ = true;
   var reg = global.uxBridge.register.bind(global.uxBridge);
+  function builtin(name, adapter) {
+    reg("builtin/" + name, adapter);
+  }
 
   function clamp(n, a, b) {
     return Math.max(a, Math.min(b, n));
   }
 
-  // ── confetti ─────────────────────────────────────────────────────────
-  reg("ux-fx/confetti", {
+  // ── confetti ─────────────────────────────────────────────
+  builtin("confetti", {
     mount: function (el, props) {
       el.style.pointerEvents = "none";
       el.style.position = el.style.position || "relative";
@@ -126,6 +131,7 @@
           raining = true;
           var end = Date.now() + (p.durationMs || 2500);
           function tick() {
+            if (!raining) return;
             if (Date.now() > end) {
               raining = false;
               return;
@@ -152,6 +158,7 @@
           handle.stop();
           if (raf) cancelAnimationFrame(raf);
           raf = 0;
+          window.removeEventListener("resize", size);
         },
         update: function (p) {
           handle.props = p || handle.props;
@@ -159,20 +166,12 @@
       };
       size();
       window.addEventListener("resize", size);
-      handle._onResize = size;
       return handle;
-    },
-    update: function (h, props) {
-      if (h && h.update) h.update(props);
-    },
-    call: function (h, method, args) {
-      if (!h) return;
-      if (typeof h[method] === "function") return h[method].apply(h, args || []);
     },
   });
 
-  // ── particles ────────────────────────────────────────────────────────
-  reg("ux-fx/particles", {
+  // ── particles ────────────────────────────────────────
+  builtin("particles", {
     mount: function (el, props) {
       el.style.position = el.style.position || "relative";
       el.style.overflow = "hidden";
@@ -301,16 +300,10 @@
         },
       };
     },
-    update: function (h, props) {
-      if (h && h.update) h.update(props);
-    },
-    call: function (h, method, args) {
-      if (h && typeof h[method] === "function") return h[method].apply(h, args || []);
-    },
   });
 
-  // ── aurora ───────────────────────────────────────────────────────────
-  reg("ux-fx/aurora", {
+  // ── aurora ───────────────────────────────────────────
+  builtin("aurora", {
     mount: function (el, props) {
       el.style.position = el.style.position || "relative";
       el.style.overflow = "hidden";
@@ -365,7 +358,6 @@
         ctx.fillStyle = (p.colors && p.colors[0]) || "#0f172a";
         ctx.fillRect(0, 0, w, h);
         ctx.globalCompositeOperation = "lighter";
-        var blur = p.blur != null ? p.blur : 48;
         for (var i = 0; i < blobs.length; i++) {
           var b = blobs[i];
           var x = (b.x + Math.sin(state.t * b.px + b.phase) * 0.15) * w;
@@ -382,7 +374,6 @@
         }
         ctx.globalAlpha = 1;
         ctx.globalCompositeOperation = "source-over";
-        // soft vignette
         var vg = ctx.createRadialGradient(w / 2, h / 2, Math.min(w, h) * 0.2, w / 2, h / 2, Math.max(w, h) * 0.7);
         vg.addColorStop(0, "transparent");
         vg.addColorStop(1, "rgba(0,0,0,0.35)");
@@ -410,15 +401,8 @@
         },
       };
     },
-    update: function (h, props) {
-      if (h && h.update) h.update(props);
-    },
-    call: function (h, method, args) {
-      if (h && typeof h[method] === "function") return h[method].apply(h, args || []);
-    },
   });
 
-  // ── countup ──────────────────────────────────────────────────────────
   function easeOutCubic(t) {
     return 1 - Math.pow(1 - t, 3);
   }
@@ -433,7 +417,7 @@
     return parts.join(".");
   }
 
-  reg("ux-fx/countup", {
+  builtin("countup", {
     mount: function (el, props) {
       el.style.fontVariantNumeric = "tabular-nums";
       el.style.fontWeight = el.style.fontWeight || "700";
@@ -501,23 +485,16 @@
         },
       };
     },
-    update: function (h, props) {
-      if (h && h.update) h.update(props);
-    },
-    call: function (h, method, args) {
-      if (h && typeof h[method] === "function") return h[method].apply(h, args || []);
-    },
   });
 
-  // ── spotlight ────────────────────────────────────────────────────────
-  reg("ux-fx/spotlight", {
+  builtin("spotlight", {
     mount: function (el, props) {
       el.style.position = el.style.position || "relative";
       el.style.overflow = el.style.overflow || "hidden";
       var overlay =
-        el.querySelector("[data-channel-fx-spot]") ||
+        el.querySelector(":scope > .ux-spotlight") ||
         el.appendChild(document.createElement("div"));
-      overlay.setAttribute("data-channel-fx-spot", "1");
+      overlay.className = "ux-spotlight";
       overlay.style.cssText =
         "pointer-events:none;position:absolute;inset:0;transition:opacity .2s ease;opacity:0;z-index:2";
       var state = { props: props || {} };
@@ -558,6 +535,7 @@
       el.addEventListener("pointerleave", leave);
 
       return {
+        overlay: overlay,
         update: function (props) {
           state.props = props || state.props;
         },
@@ -568,89 +546,8 @@
         },
       };
     },
-    update: function (h, props) {
-      if (h && h.update) h.update(props);
-    },
   });
 
-  // ── lottie-web (CDN) ─────────────────────────────────────────────────
-  function loadLottie() {
-    if (global.lottie) return Promise.resolve(global.lottie);
-    return new Promise(function (resolve, reject) {
-      var s = document.createElement("script");
-      s.src = "https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js";
-      s.onload = function () {
-        resolve(global.lottie);
-      };
-      s.onerror = reject;
-      document.head.appendChild(s);
-    });
-  }
-
-  reg("lottie-web", {
-    mount: function (el, props) {
-      props = props || {};
-      el.style.background = props.background || "transparent";
-      var anim = null;
-      var handle = {
-        ready: loadLottie().then(function (lottie) {
-          var opts = {
-            container: el,
-            renderer: props.renderer || "svg",
-            loop: props.loop !== false,
-            autoplay: props.autoplay !== false,
-          };
-          if (props.animationData) opts.animationData = props.animationData;
-          else if (props.src) opts.path = props.src;
-          else return null;
-          anim = lottie.loadAnimation(opts);
-          if (props.speed) anim.setSpeed(props.speed);
-          return anim;
-        }),
-        play: function () {
-          if (anim) anim.play();
-        },
-        pause: function () {
-          if (anim) anim.pause();
-        },
-        stop: function () {
-          if (anim) anim.stop();
-        },
-        setSpeed: function (s) {
-          if (anim) anim.setSpeed(s);
-        },
-        goToAndPlay: function (frame, isFrame) {
-          if (anim) anim.goToAndPlay(frame, isFrame !== false);
-        },
-        update: function (p) {
-          props = p || props;
-          if (anim) {
-            anim.destroy();
-            anim = null;
-          }
-          return handle.ready;
-        },
-        destroy: function () {
-          if (anim) anim.destroy();
-          anim = null;
-          el.innerHTML = "";
-        },
-      };
-      // remount on update via ready chain
-      handle.ready.then(function () {});
-      return handle;
-    },
-    update: function (h, props) {
-      if (!h) return;
-      h.destroy();
-      return this.mount(h.el || document.createElement("div"), props);
-    },
-    call: function (h, method, args) {
-      if (h && typeof h[method] === "function") return h[method].apply(h, args || []);
-    },
-  });
-
-  // Mount any hosts already in the DOM (channel may have scanned too early).
   try {
     if (global.uxBridge && typeof global.uxBridge.scan === "function") {
       global.uxBridge.scan(document);

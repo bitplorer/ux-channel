@@ -9,8 +9,8 @@ Read [../../../START_HERE.md](../../../START_HERE.md) first if you are new. This
 |--------|--------|------|
 | `ux-channel.js` | `uxChannel` | Intent POST, morph, CSRF header, Signal→Intent (`data-channel-on`) |
 | `ux-bridge.js` | `uxBridge` | Island registry (`register` / `apply` / `scan`) |
-| `adapters/ux-fx.js` | (registers packages) | confetti, particles, countup, … |
-| `adapters/ux-ui.js` | (registers packages) | leaflet, codemirror, quill, … |
+| `adapters/builtins.js` | (registers `builtin/*`) | first-party islands: confetti, particles, aurora, countup, spotlight |
+| `adapters/widgets.js` | (registers vendor names) | leaflet, codemirror, quill, lottie-web, … |
 | `ux-inspector.js` | `uidInspector` | Dev dock (optional) |
 | `ux-webrtc.js` | `UxWebRTC` | RTC join helpers |
 | `ux-sfu-livekit.js` | `UidMedia` | Optional SFU |
@@ -19,7 +19,7 @@ Recommended order (as in `demo_scripts` + adapters)::
 
 ```text
 ux-channel.js → ux-bridge.js → ux-inspector? → ux-webrtc?
-              → adapters/ux-fx.js → adapters/ux-ui.js
+              → adapters/builtins.js → adapters/widgets.js
 ```
 
 ## Intended multi-load behaviour
@@ -29,8 +29,8 @@ ux-channel.js → ux-bridge.js → ux-inspector? → ux-webrtc?
 | All scripts once, correct order | Mount islands, single click handler | Happy path |
 | Second `ux-channel.js` | **No-op** (warn) | Avoids double Intent posts |
 | Second `ux-bridge.js` | **No-op** (warn) | Preserves adapters + instances |
-| Re-include `ux-fx` / `ux-ui` | Re-register packages + `scan` | Safe overwrite by name |
-| `ux-fx` **before** `ux-bridge` | Warn + return; page stays up | Load bridge first, then fx again |
+| Re-include `builtins` / `widgets` | Re-register packages + `scan` | Safe overwrite by name |
+| Pack **before** `ux-bridge` | Warn + return; page stays up | Load bridge first, then the pack again |
 | Multiple bridge hosts | Independent `instances[id]` | Different `data-channel-bridge-id` |
 | Morph / remove host | `reaperBridges()` destroys orphans | Does **not** wipe unrelated DOM |
 | Static siblings next to morph targets | Untouched | Only `data-channel-id` / bridge hosts change |
@@ -39,18 +39,19 @@ ux-channel.js → ux-bridge.js → ux-inspector? → ux-webrtc?
 
 * Inspector wraps `postIntent` / bridge apply for the dock.
 * WebRTC `bootAuto` only runs if `data-channel-webrtc-auto` is on `<body>`.
-* ux-ui may pull CDN CSS/JS **on first mount** of that package (leaflet, quill, …) — network errors there do not break the channel.
+* widgets.js may pull CDN CSS/JS **on first mount** of that package (leaflet, quill, …) — network errors there do not break the channel.
 * Confetti/particles append canvases **inside** their host only.
+* Spotlight overlay is a pack-private `.ux-spotlight` child — not a `data-channel-*` attribute.
 
 ## Side effects that **were** bugs (fixed in 0.1)
 
-1. **Double `<script ux-channel>`** bound click twice → 2× actions.  
+1. **Double `<script ux-channel>`** bound click twice → 2× actions.
    Guard: `__UX_CHANNEL_RUNTIME_LOADED__`.
-2. **Double `ux-bridge`** wiped the adapter registry.  
+2. **Double `ux-bridge`** wiped the adapter registry.
    Guard: skip re-init if `uxBridge.register` exists.
-3. **Defer order race**: channel `scan()` ran before ux-fx registered → empty instances.  
+3. **Defer order race**: channel `scan()` ran before packs registered → empty instances.
    Fix: channel rescan on microtask/0ms/50ms; adapters call `scan` after register.
-4. **Raw `as_dict()` in HTML** broke `data-channel-args` → 401.  
+4. **Raw `as_dict()` in HTML** broke `data-channel-args` → 401.
    Use `str(control)` / escaped attrs.
 
 

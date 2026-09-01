@@ -21,13 +21,13 @@ Stability is a **named contract** (package key + method strings + wire version),
   ch.bridge.call(                       uxBridge.apply(op)
     "chart-1",                            → instances["chart-1"]
     "resetZoom",                          → adapter.call(handle, "resetZoom", args)
-    package="chartjs",                        or handle.resetZoom(...args)
+    package="chart.js",                       or handle.resetZoom(...args)
   )
        │
        │  Result.success / Result.ops  (JSON over HTTP/SSE/WS)
        ▼
   { op: "bridge.call", id: "chart-1",
-    package: "chartjs", method: "resetZoom", args: [] }
+    package: "chart.js", method: "resetZoom", args: [] }
 ```
 
 ---
@@ -36,17 +36,17 @@ Stability is a **named contract** (package key + method strings + wire version),
 
 ```text
 1. npm adapter registered in the browser (once)
-     uxBridge.register("chartjs", { mount, update, call?, destroy? })
+     uxBridge.register("chart.js", { mount, update, call?, destroy? })
 
 2. Python places host data (not a live object)
-     spec = ch.bridge.mount_spec("chart-1", package="chartjs", props={...})
+     spec = ch.bridge.mount_spec("chart-1", package="chart.js", props={...})
      # your UI renders <div data-channel-bridge-id data-channel-bridge-package …>
 
 3. Mount (idempotent-ish on client: destroy previous id then mount)
-     ch.bridge.mount_ops("chart-1", "chartjs", props=...)
+     ch.bridge.mount_ops("chart-1", "chart.js", props=...)
 
 4. Later calls (by string)
-     ch.bridge.call("chart-1", "resetZoom", package="chartjs")
+     ch.bridge.call("chart-1", "resetZoom", package="chart.js")
 
 5. Destroy
      ch.bridge.destroy_ops("chart-1")
@@ -60,7 +60,7 @@ Python **never** holds a Chart.js instance. It only holds **ids + JSON**.
 
 | Concern | Enforcer | How |
 |---------|----------|-----|
-| Method allowlist | **Python** `BridgeManifest` | `ch.bridge.register("chartjs", methods=("resetZoom",))` then `call(..., package="chartjs")` raises if method unknown |
+| Method allowlist | **Python** `BridgeManifest` | `ch.bridge.register("chart.js", methods=("resetZoom",))` then `call(..., package="chart.js")` raises if method unknown |
 | Adapter present | **JS** runtime | Missing adapter → console warn, no throw (page stays up) |
 | Method exists on instance | **JS** runtime | `adapter.call` or `handle[method]`; else warn |
 | Wire shape | **Protocol version** `uid: "1"` + op names | Additive ops only without major bump |
@@ -94,7 +94,7 @@ Python **never** holds a Chart.js instance. It only holds **ids + JSON**.
 
 ```python
 # startup — single source of method names (Python side)
-CHART = "chartjs"
+CHART = "chart.js"
 ch.bridge.register(CHART, methods=("resetZoom", "update", "destroy"))
 
 # action
@@ -105,15 +105,16 @@ def reset_chart():
 
 ```js
 // adapter — single source of method names (JS side)
-uxBridge.register("chartjs", {
+uxBridge.register("chart.js", {
   mount(el, props) { return new Chart(el, props); },
   update(chart, props) { /* ... */ },
   call(chart, method, args) {
     if (method === "resetZoom" && chart.resetZoom) return chart.resetZoom(...args);
-    if (typeof chart[method] === "function") return chart`method(...args)`;
+    if (typeof chart[method] === "function") return chart[method].apply(chart, args || []);
     throw new Error("unknown method " + method);
   },
-  destroy(chart) { chart.destroy(); },
+  destroy(chart) { chart.destroy();
+  },
 });
 ```
 

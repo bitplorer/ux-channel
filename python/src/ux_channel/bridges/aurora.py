@@ -15,7 +15,7 @@ from ux_channel.bridges._factory import BridgeFactoryMixin
 
 __all__ = ["AuroraBridge", "AURORA_PACKAGE", "AURORA_THEMES"]
 
-AURORA_PACKAGE = "ux-fx/aurora"
+AURORA_PACKAGE = "builtin/aurora"
 AURORA_METHODS = ("update", "destroy", "pause", "play")
 
 AURORA_THEMES: dict[str, list[str]] = {
@@ -41,7 +41,7 @@ class _State:
 class AuroraBridge(BridgeFactoryMixin):
     package = AURORA_PACKAGE
     methods = AURORA_METHODS
-    description = "Animated aurora / mesh gradient (ux-fx)"
+    description = "Animated aurora / mesh gradient"
 
     def __init__(
         self,

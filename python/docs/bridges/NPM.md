@@ -19,7 +19,7 @@ It did **not** remove npm bridging.
 
 ```text
 App template (ux-dom)          uxchannel Browser
-─────────────────          ──────────────                 ─────────
+───────────────          ──────────────                 ─────────
 host element attrs    ←──  ch.bridge.mount_spec
   data-channel-bridge-*
 scripts               ←──  ch.runtime()  (includes ux-bridge.js)
@@ -72,7 +72,7 @@ Register adapter in **your** bundle:
 import { defineAdapter } from '@ux-channel/bridge-core';
 import { Chart } from 'chart.js';
 
-defineAdapter('chartjs', {
+defineAdapter('chart.js', {
   mount(el, props) { /* new Chart(el, props) */ return instance; },
   update(inst, props) { /* ... */ },
   destroy(inst) { inst.destroy(); },
@@ -84,15 +84,15 @@ Server:
 ```python
 from ux_channel.bridge.bridge_api import register_simple_manifest
 
-register_simple_manifest("chartjs", methods=("update", "destroy"))
+register_simple_manifest("chart.js", methods=("update", "destroy"))
 
 @ch.on
 def show_chart(ctx):
-    spec = ch.bridge.mount_spec("sales", package="chartjs", props={"type": "bar", "data": ...})
+    spec = ch.bridge.mount_spec("sales", package="chart.js", props={"type": "bar", "data": ...})
     # ux-dom renders host from spec.attrs
     return ch.done(
         morph("#slot", host_html_from_spec(spec)),  # your markup
-        *ch.bridge.mount_ops("sales", "chartjs", props=spec.client.get("props")),
+        *ch.bridge.mount_ops("sales", "chart.js", props=spec.client.get("props")),
     )
 ```
 

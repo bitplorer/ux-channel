@@ -19,11 +19,11 @@ def test_channel_and_bridge_are_idempotent():
 
 
 def test_adapters_rescan_after_register():
-    fx = (STATIC / "adapters/ux-fx.js").read_text()
-    ui = (STATIC / "adapters/ux-ui.js").read_text()
-    assert "uxBridge.scan" in fx
-    assert "uxBridge.scan" in ui
-    assert "uxBridge missing" in fx
+    builtins = (STATIC / "adapters/builtins.js").read_text()
+    widgets = (STATIC / "adapters/widgets.js").read_text()
+    assert "uxBridge.scan" in builtins
+    assert "uxBridge.scan" in widgets
+    assert "uxBridge missing" in builtins
 
 
 def test_min_matches_channel():
@@ -68,13 +68,13 @@ def test_demo_scripts_order_mentions_bridge_before_adapters():
             allow_memory_stores=True,
         ),
     )
-    html = demo_scripts(ch) + bridge_script_tags(fx=True, ui=True)
+    html = demo_scripts(ch) + bridge_script_tags(builtins=True, widgets=True)
     i_ch = html.find("ux-channel.js")
     i_br = html.find("ux-bridge.js")
-    i_fx = html.find("ux-fx.js")
-    assert 0 <= i_ch < i_br or i_br < 0  # channel before bridge when both present
-    if i_br >= 0 and i_fx >= 0:
-        assert i_br < i_fx
+    i_pack = html.find("builtins.js")
+    assert 0 <= i_ch < i_br or i_br < 0
+    if i_br >= 0 and i_pack >= 0:
+        assert i_br < i_pack
 
 
 def test_client_runtime_doors():
@@ -89,8 +89,6 @@ def test_client_runtime_doors():
     assert "channel:afterOp" in ch
     assert "channel:unknownOp" in ch
     assert "registerOp refused core op" in ch
-    # persist + silent boot hydrate are apply of Python st.client(..., persist=True).
-    # No extra body attr / configure knob — those were invented drift.
     assert "function hydrateSignalsFromStorage" in ch
     assert "SIG_PREFIX" in ch
     assert "op.persist === true" in ch
@@ -100,10 +98,8 @@ def test_client_runtime_doors():
     assert "hydrateStore" not in ch
     assert "hydrateSignals:" not in ch
     assert "restoreFocus:" not in ch
-    # existing core cases stay in the switch — doors do not delete them
     assert 'case "morph":' in ch
     assert 'case "signal.set":' in ch
-    # exact-name freeze, not a prefix — registerOp("bridge.chart") is allowed
     assert "bridge.*" not in ch
     assert "timer.*" not in ch
 

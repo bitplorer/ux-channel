@@ -1,4 +1,4 @@
-"""Stunning ux-fx bridge presets — factory DX, ops, registration."""
+"""First-party builtin bridge presets — factory DX, ops, registration."""
 
 from __future__ import annotations
 
@@ -7,15 +7,15 @@ from fastapi import FastAPI
 from ux_channel import Channel, ChannelConfig
 from ux_channel.bridges import (
     AuroraBridge,
+    BUILTINS_SCRIPT,
     ConfettiBridge,
     CountUpBridge,
-    FX_SCRIPT,
     LottieBridge,
     ParticlesBridge,
     SpotlightBridge,
 )
 from ux_channel.bridge.bridge_preset_gen import list_known_presets
-from ux_channel.render.kit import fx_script_tags
+from ux_channel.render.kit import builtins_script_tags
 
 
 def _ch():
@@ -27,7 +27,7 @@ def _ch():
     )
 
 
-def test_catalog_includes_fx():
+def test_catalog_includes_builtins():
     keys = {p["key"] for p in list_known_presets()}
     for k in ("confetti", "particles", "aurora", "countup", "spotlight", "lottie"):
         assert k in keys, k
@@ -42,7 +42,7 @@ def test_confetti_factory_burst_ops():
     ops = r.ops
     assert any(o.get("op") == "bridge.call" and o.get("method") == "burst" for o in ops)
     spec = win.mount_spec()
-    assert spec.attrs["data-channel-bridge-package"] == "ux-fx/confetti"
+    assert spec.attrs["data-channel-bridge-package"] == "builtin/confetti"
     assert "gold" in str(win.props()["colors"]) or win.props()["theme"] == "gold"
 
 
@@ -89,10 +89,10 @@ def test_spotlight_and_lottie():
     assert any(o.get("method") == "play" for o in r2.ops)
 
 
-def test_fx_script_helper():
-    assert "ux-fx.js" in FX_SCRIPT
-    tags = fx_script_tags()
-    assert "ux-bridge.js" in tags and "ux-fx.js" in tags
+def test_builtins_script_helper():
+    assert "builtins.js" in BUILTINS_SCRIPT
+    tags = builtins_script_tags()
+    assert "ux-bridge.js" in tags and "builtins.js" in tags
 
 
 def test_factory_requires_island():
