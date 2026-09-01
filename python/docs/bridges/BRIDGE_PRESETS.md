@@ -91,22 +91,22 @@ return w.set_view([28.7, 77.1], 14)   # args from contract
 
 Generic escape: `w.call("setView", center, zoom)` / `w.commit_call(...)`.
 
-## Stunning UI effects (ux-fx)
+## First-party builtin islands
 
-Self-contained adapters in ``/ux-channel/static/adapters/ux-fx.js`` (after ``ux-bridge.js``).
+Self-contained adapters in ``/ux-channel/static/adapters/builtins.js`` (after ``ux-bridge.js``).
 
 | Bridge | Package | Effect |
 |--------|---------|--------|
-| `ConfettiBridge` | `ux-fx/confetti` | Celebration bursts / cannon / rain |
-| `ParticlesBridge` | `ux-fx/particles` | Interactive particle field |
-| `AuroraBridge` | `ux-fx/aurora` | Mesh gradient / aurora background |
-| `CountUpBridge` | `ux-fx/countup` | Animated metrics |
-| `SpotlightBridge` | `ux-fx/spotlight` | Pointer glass spotlight |
-| `LottieBridge` | `lottie-web` | Lottie JSON (CDN loader) |
+| `ConfettiBridge` | `builtin/confetti` | Celebration bursts / cannon / rain |
+| `ParticlesBridge` | `builtin/particles` | Interactive particle field |
+| `AuroraBridge` | `builtin/aurora` | Mesh gradient / aurora background |
+| `CountUpBridge` | `builtin/countup` | Animated metrics |
+| `SpotlightBridge` | `builtin/spotlight` | Pointer glass spotlight |
+| `LottieBridge` | `lottie-web` | Lottie JSON (widgets.js CDN fallback) |
 
 ```python
 from ux_channel.bridges import ConfettiBridge, CountUpBridge, ParticlesBridge, AuroraBridge
-from ux_channel.render.kit import fx_script_tags
+from ux_channel.render.kit import builtins_script_tags
 
 confetti = ConfettiBridge(ch)
 return confetti("win", theme="neon").burst()
@@ -115,22 +115,22 @@ metrics = CountUpBridge(ch)
 return metrics("mrr", value=12840, prefix="$").commit(value=14200)
 ```
 
-Demo host scripts: ``fx_script_tags()``. Example: ``examples/fx_showcase``.
+Demo host scripts: ``builtins_script_tags()``. Example: ``examples/fx_showcase``.
 
-## High-value UI libraries (host islands)
+## Vendor-widget islands
 
-Imperative islands only — **not** a ShadCN/design-system replacement. Host chrome stays in the host.
+Imperative islands only — **not** a design-system replacement. Host chrome stays in the host.
 
 | Bridge | Package | Adapter | Use |
 |--------|---------|---------|-----|
-| `LeafletBridge` | leaflet | ux-ui.js | Maps |
-| `CodeMirrorBridge` | codemirror | ux-ui.js | Code editors |
-| `SelectBridge` | tom-select | ux-ui.js | Searchable select |
-| `DatePickerBridge` | flatpickr | ux-ui.js | Dates |
-| `SortableBridge` | sortablejs | ux-ui.js | Drag-and-drop lists |
-| `SwiperBridge` | swiper | ux-ui.js | Carousels |
-| `MermaidBridge` | mermaid | ux-ui.js | Diagrams |
-| `QuillBridge` | quill | ux-ui.js | Rich text |
+| `LeafletBridge` | leaflet | widgets.js | Maps |
+| `CodeMirrorBridge` | codemirror | widgets.js | Code editors |
+| `SelectBridge` | tom-select | widgets.js | Searchable select |
+| `DatePickerBridge` | flatpickr | widgets.js | Dates |
+| `SortableBridge` | sortablejs | widgets.js | Drag-and-drop lists |
+| `SwiperBridge` | swiper | widgets.js | Carousels |
+| `MermaidBridge` | mermaid | widgets.js | Diagrams |
+| `QuillBridge` | quill | widgets.js | Rich text |
 | `GenericBridge` | *any* | your adapter | Escape hatch |
 
 ```python
@@ -145,4 +145,4 @@ widgets = GenericBridge(ch, package="my-lib", methods=("update", "destroy"))
 return widgets("x", theme="dark").commit(theme="light")
 ```
 
-Scripts: ``bridge_script_tags()`` (ux-bridge + fx + ui), or ``ui_script_tags()`` / ``fx_script_tags()``.
+Scripts: ``bridge_script_tags()`` (ux-bridge + builtins + widgets), or ``widgets_script_tags()`` / ``builtins_script_tags()``.
