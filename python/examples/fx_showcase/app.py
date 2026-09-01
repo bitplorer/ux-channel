@@ -1,5 +1,5 @@
 """
-Stunning UI effects via ux-fx bridges.
+First-party builtin islands — confetti, particles, aurora, count-up, spotlight.
 
 Run: uvicorn examples.fx_showcase.app:app --reload
 """
@@ -17,7 +17,7 @@ from ux_channel.bridges import (
     ParticlesBridge,
     SpotlightBridge,
 )
-from ux_channel.render.kit import attr_string, demo_button, fx_script_tags, script_tags
+from ux_channel.render.kit import attr_string, builtins_script_tags, demo_button, script_tags
 
 app = FastAPI()
 ch = Channel.boot(
@@ -76,9 +76,9 @@ def index():
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>ux-fx showcase</title>
+  <title>builtin islands showcase</title>
   {script_tags(rt)}
-  {fx_script_tags(bridge=True)}
+  {builtins_script_tags(bridge=True)}
   <style>
     :root {{ color-scheme: dark; }}
     body {{ margin:0; font-family: ui-sans-serif, system-ui, sans-serif;
@@ -101,8 +101,8 @@ def index():
   <div {attr_string(pb)}></div>
   <div {attr_string(cb)}></div>
   <div class="wrap">
-    <h1>ux-fx bridges</h1>
-    <p class="lead">Stunning effects as data + ops — confetti, particles, aurora,
+    <h1>builtin islands</h1>
+    <p class="lead">First-party packs as data + ops — confetti, particles, aurora,
     count-up, spotlight. Host styles stay in your markup; packages stay dumb.</p>
     <div class="row">
       {demo_button(ch, "Celebrate", celebrate)}

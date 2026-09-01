@@ -48,7 +48,6 @@ def panel_b(ctx) -> str:
 
 @ch.region("panel_c")
 def panel_c(ctx) -> str:
-    # nested: outer c hosts inner note
     return (
         f'<section id="panel_c" data-channel-id="panel_c" class="panel" data-panel="c">'
         f'<h2>C</h2><strong class="val">{S["c"]}</strong>'
@@ -126,10 +125,10 @@ def index() -> HTMLResponse:
     scripts = demo_scripts(ch)
     if "ux-bridge.js" not in scripts:
         scripts += '\n<script src="/ux-channel/static/ux-bridge.js" defer></script>'
-    if "ux-fx.js" not in scripts:
-        scripts += '\n<script src="/ux-channel/static/adapters/ux-fx.js" defer></script>'
-    if "ux-ui.js" not in scripts:
-        scripts += '\n<script src="/ux-channel/static/adapters/ux-ui.js" defer></script>'
+    if "builtins.js" not in scripts:
+        scripts += '\n<script src="/ux-channel/static/adapters/builtins.js" defer></script>'
+    if "widgets.js" not in scripts:
+        scripts += '\n<script src="/ux-channel/static/adapters/widgets.js" defer></script>'
     body = attr_string(ch.body_attrs())
     html = f"""<!doctype html>
 <html><head><meta charset="utf-8"/>

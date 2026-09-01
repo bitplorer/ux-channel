@@ -1,4 +1,4 @@
-"""High-value UI bridges for HTML hosts."""
+"""Vendor-widget bridges for HTML hosts."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ from fastapi import FastAPI
 
 from ux_channel import Channel, ChannelConfig
 from ux_channel.bridges import (
-    UI_SCRIPT,
+    WIDGETS_SCRIPT,
     CodeMirrorBridge,
     DatePickerBridge,
     GenericBridge,
@@ -18,7 +18,7 @@ from ux_channel.bridges import (
     SwiperBridge,
 )
 from ux_channel.bridge.bridge_preset_gen import list_known_presets
-from ux_channel.render.kit import bridge_script_tags, ui_script_tags
+from ux_channel.render.kit import bridge_script_tags, widgets_script_tags
 
 
 def _ch():
@@ -51,7 +51,6 @@ def test_leaflet_mount_attrs_and_ops():
     m = maps("hq", center=[28.6, 77.2], zoom=12, markers=[{"lat": 28.6, "lng": 77.2, "popup": "HQ"}])
     attrs = m.mount_attrs(class_name="h-80 rounded-xl")
     assert "data_channel_bridge_id" in attrs or "data-channel-bridge-id" in {k.replace("_", "-") for k in attrs}
-    # attrs_py uses underscores
     assert attrs.get("data_channel_bridge_package") == "leaflet" or attrs.get("data_channel_bridge_id") == "hq"
     assert m.props()["zoom"] == 12
     r = m.fly_to([28.7, 77.1], 14)
@@ -117,7 +116,7 @@ def test_generic_bridge_any_package():
 
 
 def test_script_helpers():
-    assert "ux-ui.js" in UI_SCRIPT
-    assert "ux-ui.js" in ui_script_tags()
-    pack = bridge_script_tags(fx=True, ui=True)
-    assert "ux-bridge.js" in pack and "ux-fx.js" in pack and "ux-ui.js" in pack
+    assert "widgets.js" in WIDGETS_SCRIPT
+    assert "widgets.js" in widgets_script_tags()
+    pack = bridge_script_tags(builtins=True, widgets=True)
+    assert "ux-bridge.js" in pack and "builtins.js" in pack and "widgets.js" in pack
