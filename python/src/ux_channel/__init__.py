@@ -9,12 +9,14 @@ Application
     from ux_channel import Channel, Region, CapService, state, agents, morph
     # same objects: from ux_channel.api import ...
 
-Power packages (import by intent — not re-exported on root)
-------------------------------------------------------------
-``protocol`` · ``host`` · ``host.stores`` · ``render`` · ``security`` ·
-``wire`` · ``asgi`` · ``agent_runtime`` · ``mcp`` · ``devtools`` · …
+Strata (see ``LAYERS.md`` before opening sibling folders)
+---------------------------------------------------------
+L1 ``protocol`` · L2 ``host`` / ``render`` / ``security`` / ``api``
+L3 ``asgi`` (FastAPI is an adapter) · ``wire`` · ``transport``
+L4 planes, lazy on Channel: ``realtime`` · ``bridge`` · ``mcp`` · …
+L5 tooling: ``devtools`` · ``scaffold``
 
-See ``MENTAL_MODEL.md`` · ``python/STABILITY.md`` · ``PUBLIC_API_FREEZE.md``.
+See ``LAYERS.md`` · ``MENTAL_MODEL.md`` · ``PUBLIC_API_FREEZE.md``.
 """
 
 from __future__ import annotations

@@ -6,8 +6,10 @@ Design
     trust, registry, and region bookkeeping.
 
 Architecture
-    L2 host core sits on L1 protocol (caps/IR). Adapters (asgi/wire) and L4
-    planes hang off this package — they must not redefine CapService/Channel.
+    L2 host core sits on L1 protocol (caps/IR). Adapters (asgi/wire) hang off
+    this package. L4 planes (webrtc / media / bridge) attach on first use
+    via Channel.__getattr__ — they must not redefine CapService/Channel.
+    Map: ``ux_channel/LAYERS.md``.
 
 Implementation
     ``channel``, ``regions`` / ``region_component``, ``registry``, ``state_api``,
@@ -55,4 +57,3 @@ def _install_doctor_go_nogo() -> None:
 
 
 _install_doctor_go_nogo()
-
