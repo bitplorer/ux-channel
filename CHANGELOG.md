@@ -1,3 +1,18 @@
+## 2026-09-01 — Organization: core in host, L4 lazy, FastAPI is an adapter
+
+- `Channel.__init__` attaches only L2 core (regions, flow, live, document,
+  enterprise mint policy, arch). `ch.webrtc` / `ch.media` / `ch.bridge`
+  attach on first attribute access. Public names unchanged.
+- `bridge/__init__.py` is PEP 562 lazy so `bridge.plugins` (Door D hub)
+  does not import `bridge_plane` at factory boot.
+- One-page PE map: `python/src/ux_channel/LAYERS.md`. Encyclopedia
+  `python/docs/start/LAYERS.md` points at it.
+- START_HERE / README / MENTAL_MODEL lead with the protocol, then HTTP.
+  FastAPI stays `asgi/` (Door F).
+- Gate: headless boot must not import L4 planes; lazy planes are
+  idempotent; ux-compose frozen import paths exist.
+- No package moves. No public-API renames. Compose `wire/` untouched.
+
 ## 2026-09-01 — Adapter residuals + island kernel
 
 - `ux-bridge.js`: one `scan`; `hostFor` reads `op._el` first.

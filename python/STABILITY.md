@@ -20,9 +20,10 @@ ux_channel/
   security/         CSRF, limits, attenuate
   transport/        batch, push, stream helpers
   foundations/      quantity, provenance, io
-  realtime/         WebRTC / media
-  bridge/           contracts + scaffold
-  bridges/          npm island presets
+  LAYERS.md         one-page map — read this before sibling folders
+  realtime/         WebRTC / media (L4; lazy on Channel)
+  bridge/           contracts + scaffold (L4; lazy on Channel)
+  bridges/          npm island presets (L4)
   wire/             JSON / CXB codecs
   asgi/             FastAPI / Starlette mount
   devtools/         audit, CLI, observability
