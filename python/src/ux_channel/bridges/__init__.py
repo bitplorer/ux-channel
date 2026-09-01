@@ -1,18 +1,18 @@
 """
-Bridge **presets** — data + ops for stock scenes / vendor widgets.
+Bridge **presets** — data + ops for first-party builtins / vendor widgets.
 
 Markup belongs in **ux-dom** (or templates). Bridges only provide Placement + ops.
 
-Charts & effects::
+First-party islands (we implement them)::
 
     from ux_channel.bridges import ChartBridge, ConfettiBridge, AuroraBridge
 
-Vendor widget islands::
+Vendor widget islands (we wrap another library)::
 
     from ux_channel.bridges import (
         LeafletBridge, CodeMirrorBridge, SelectBridge, DatePickerBridge,
         SortableBridge, SwiperBridge, MermaidBridge, QuillBridge,
-        GenericBridge,
+        LottieBridge, GenericBridge,
     )
 
     maps = LeafletBridge(ch)
@@ -43,17 +43,14 @@ from ux_channel.bridges.spotlight import SpotlightBridge
 from ux_channel.bridges.swiper import SwiperBridge
 
 __all__ = [
-    # charts
     "ChartBridge",
     "ChartSeries",
-    # scenes (stock visual islands)
     "ConfettiBridge",
     "ParticlesBridge",
     "AuroraBridge",
     "CountUpBridge",
     "SpotlightBridge",
     "LottieBridge",
-    # widgets (vendor islands)
     "LeafletBridge",
     "CodeMirrorBridge",
     "SelectBridge",
@@ -63,14 +60,15 @@ __all__ = [
     "MermaidBridge",
     "QuillBridge",
     "GenericBridge",
-    # script paths
-    "SCENES_SCRIPT",
+    "BUILTINS_SCRIPT",
     "WIDGETS_SCRIPT",
+    "SCENES_SCRIPT",
     "FX_SCRIPT",
     "UI_SCRIPT",
 ]
 
-SCENES_SCRIPT = "/ux-channel/static/adapters/scenes.js"
+BUILTINS_SCRIPT = "/ux-channel/static/adapters/builtins.js"
 WIDGETS_SCRIPT = "/ux-channel/static/adapters/widgets.js"
-FX_SCRIPT = SCENES_SCRIPT  # old name
+SCENES_SCRIPT = BUILTINS_SCRIPT  # old name
+FX_SCRIPT = BUILTINS_SCRIPT  # old name
 UI_SCRIPT = WIDGETS_SCRIPT  # old name
