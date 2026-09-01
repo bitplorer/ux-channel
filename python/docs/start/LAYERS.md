@@ -1,6 +1,10 @@
 <!-- pyramid -->
 Read [../../../START_HERE.md](../../../START_HERE.md) first if you are new. This is Layer 2 (encyclopedia), not the intro.
 
+**3-minute package map (L0–L6, what boot attaches):**
+[python/src/ux_channel/LAYERS.md](../../src/ux_channel/LAYERS.md).
+This page is the import encyclopedia. The package file is the PE map.
+
 # Layers — where to import
 
 > Feature encyclopedia: **[FEATURES.md](../FEATURES.md)**.

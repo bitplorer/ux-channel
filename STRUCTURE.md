@@ -39,6 +39,8 @@ ux-channel/
 | Audit / CLI | `devtools` |
 | Package navigator | `catalog` (generated) |
 
+Python folder map (3 minutes): [python/src/ux_channel/LAYERS.md](python/src/ux_channel/LAYERS.md).  
+L4 façades `ch.webrtc` / `ch.media` / `ch.bridge` attach on first use.  
 One-liners: `PACKAGE_MAP.json` → `package_docs`. Design policy: [AUTOMATION.md](AUTOMATION.md).
 
 ## Verify stack
