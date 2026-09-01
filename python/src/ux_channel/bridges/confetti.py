@@ -16,7 +16,7 @@ from ux_channel.bridges._factory import BridgeFactoryMixin
 
 __all__ = ["ConfettiBridge", "CONFETTI_PACKAGE", "CONFETTI_THEMES"]
 
-CONFETTI_PACKAGE = "scene/confetti"
+CONFETTI_PACKAGE = "builtin/confetti"
 CONFETTI_METHODS = ("update", "destroy", "burst", "cannon", "rain", "stop")
 
 CONFETTI_THEMES: dict[str, list[str]] = {
@@ -47,7 +47,7 @@ class _State:
 class ConfettiBridge(BridgeFactoryMixin):
     package = CONFETTI_PACKAGE
     methods = CONFETTI_METHODS
-    description = "Canvas confetti bursts (scenes pack)"
+    description = "Canvas confetti bursts"
 
     def __init__(
         self,
