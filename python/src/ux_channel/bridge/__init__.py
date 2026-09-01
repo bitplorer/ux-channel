@@ -16,6 +16,25 @@ Implementation
 """
 from __future__ import annotations
 
-from ux_channel.bridge.bridge_plane import BRIDGE_PUBLIC_API, attach_bridge
+from typing import Any
 
 __all__ = ["attach_bridge", "BRIDGE_PUBLIC_API"]
+
+# PEP 562 — importing ux_channel.bridge (e.g. factory → bridge.plugins)
+# must not load bridge_plane. Public names stay identical.
+_LAZY = {
+    "attach_bridge": ("ux_channel.bridge.bridge_plane", "attach_bridge"),
+    "BRIDGE_PUBLIC_API": ("ux_channel.bridge.bridge_plane", "BRIDGE_PUBLIC_API"),
+}
+
+
+def __getattr__(name: str) -> Any:
+    spec = _LAZY.get(name)
+    if spec is None:
+        raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+    import importlib
+
+    mod_name, attr = spec
+    val = getattr(importlib.import_module(mod_name), attr)
+    globals()[name] = val
+    return val
