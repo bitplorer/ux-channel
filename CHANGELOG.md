@@ -1,3 +1,15 @@
+## 2026-09-03 — Channel boot is not a second Host
+
+- `Channel.__init__` no longer calls `attach_arch`. Arch power methods
+  (`emit_graph`, `set_hello`, `grant_stamp`, …) attach on first access,
+  same pattern as `ch.webrtc`.
+- Handler `"_graph"` compiles to `Result.ops` at encode time; the pocket
+  is dropped. `after_arch` is not a leftover graph translator.
+- `PUBLIC_API_FREEZE` / `CHANNEL_PUBLIC_API` unchanged. Power methods
+  stay off the public surface.
+- HostRuntime remains the gate / side kit. Letters on the wire stay
+  `Result.ops`. JS `applyOp` untouched.
+
 ## 2026-09-01 — Organization: core in host, L4 lazy, FastAPI is an adapter
 
 - `Channel.__init__` attaches only L2 core (regions, flow, live, document,

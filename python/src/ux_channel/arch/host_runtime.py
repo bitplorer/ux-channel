@@ -1,7 +1,8 @@
 """Standalone host runtime for architecture e2e / tests.
 
-Production apps should prefer ``Channel`` + ``attach_arch``. This class
-speaks dict Intent/Result so gate tests do not need FastAPI.
+Gate / side-kit runtime (not the Channel product path). Speaks dict
+Intent/Result so tests do not need FastAPI. ``Channel.boot`` does not
+wrap this class.
 
 Uses production ``CapService`` (itsdangerous) + MemoryNonceStore.
 Cap key must differ from proof key.

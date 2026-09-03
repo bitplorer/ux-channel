@@ -24,17 +24,19 @@ That loop is the product. Everything else is a door or a plane.
 
 ## What Channel.boot always attaches (L2)
 
-Regions, flow, live, document helpers, enterprise mint policy, arch hooks.
+Regions, flow, live, document helpers, enterprise mint policy.
 
-## What Channel.boot does **not** attach until you touch it (L4)
+## What Channel.boot does **not** attach until you touch it
 
 | Attribute | Package | First access |
 |-----------|---------|--------------|
 | `ch.webrtc` | `realtime.webrtc` | `ch.webrtc` / `diagnose()` |
 | `ch.media` | `realtime.media` | `ch.media` |
 | `ch.bridge` | `bridge.bridge_plane` | `ch.bridge` |
+| `ch.emit_graph` / `set_hello` / `grant_stamp` | `arch.attach` | first power-method access |
 
-Public names are unchanged. `ch.media.plugin(...)` still works.
+Public names are unchanged. `ch.media.plugin(...)` still works. Arch power
+methods are **not** `CHANNEL_PUBLIC_API`; boot is not a second Host.
 
 `host/factory.py` loads Door D `bridge.plugins` (PluginHub). That is the
 extension registry, not the L4 plane façade. `bridge/__init__.py` is lazy

@@ -294,7 +294,6 @@ class Channel:
         from ux_channel.render.html_document import attach_document
         from ux_channel.devtools.enterprise import attach_enterprise
         from ux_channel.host.live import attach_live
-        from ux_channel.arch.attach import attach_arch
 
         attach_regions(self)
         attach_enterprise(self)
@@ -303,10 +302,9 @@ class Channel:
         attach_document(self)
         apply_surface(self)
         attach_live(self)
-        attach_arch(self)
-        # L4 product planes (webrtc / media / bridge) attach on first
-        # attribute access via __getattr__ — see _LAZY_PLANES. Public
-        # names stay identical; boot no longer imports those packages.
+        # L4 product planes (webrtc / media / bridge) and opt-in arch
+        # power methods attach on first attribute access via __getattr__.
+        # Boot is not a second Host: no attach_arch at construct.
 
     # Optional L4 façades. Names stay on Channel (PUBLIC_API_FREEZE:
     # media / bridge). Attach is deferred so a headless Channel.boot()
@@ -315,6 +313,15 @@ class Channel:
         "webrtc": ("ux_channel.realtime.webrtc", "attach_webrtc"),
         "media": ("ux_channel.realtime.media", "attach_media"),
         "bridge": ("ux_channel.bridge.bridge_plane", "attach_bridge"),
+        # Arch power methods (not CHANNEL_PUBLIC_API). Import-on-use —
+        # same pattern as webrtc. Do not glue a Host at Channel.boot.
+        "emit_graph": ("ux_channel.arch.attach", "attach_arch"),
+        "set_hello": ("ux_channel.arch.attach", "attach_arch"),
+        "grant_stamp": ("ux_channel.arch.attach", "attach_arch"),
+        "revoke_session": ("ux_channel.arch.attach", "attach_arch"),
+        "stamps": ("ux_channel.arch.attach", "attach_arch"),
+        "flow_store": ("ux_channel.arch.attach", "attach_arch"),
+        "_arch_sessions": ("ux_channel.arch.attach", "attach_arch"),
     }
 
     def __getattr__(self, name: str) -> Any:

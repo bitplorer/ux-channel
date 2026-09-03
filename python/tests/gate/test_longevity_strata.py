@@ -114,6 +114,8 @@ def test_headless_boot_does_not_load_l4_planes():
             "ux_channel.bridge.bridge_plane",
             "ux_channel.mcp",
             "ux_channel.agent_runtime.runner",
+            "ux_channel.arch.attach",
+            "ux_channel.arch.project",
         )
         bad = [m for m in heavy if m in sys.modules]
         assert not bad, bad
