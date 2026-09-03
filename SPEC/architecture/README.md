@@ -38,7 +38,7 @@ Cap key ≠ proof key
 | Host runtime | `rust/src/host.rs` `HostRuntime` · Python `arch/host_runtime.py` |
 | Peer kernel | `rust/src/apply.rs` `PeerApply` · Python `arch/peer.py` · JS `ux-peer-kernel.js` |
 | Peer runtime | `rust/src/runtime.rs` `PeerRuntime` · Python `PeerRuntime` |
-| Channel attach (power) | `arch/attach.py` — `emit_graph` / `set_hello` / `grant_stamp` |
+| Channel attach (power, import-on-use) | `arch/attach.py` — `emit_graph` / `set_hello` / `grant_stamp` (not at `Channel.boot`) |
 | JS apply (DOM client) | `static/ux-channel.js` — seq / timer / invoke / peerHello |
 | Rust peer **gate** (classic) | `rust/src/peer.rs` — Intent → cap → demo actions (`uxc_peer`) |
 | Rust once/jti | `rust/src/nonce.rs` + `CapService::mint_once` / verify consume |

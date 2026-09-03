@@ -544,6 +544,9 @@ class RegionBook:
                 if isinstance(out, str):
                     tmsg = out
                 elif isinstance(out, Mapping):
+                    # Graph sugar — leave for encode_result (compile to ops, drop pocket).
+                    if "_graph" in out:
+                        return out
                     # Result wire shape — do NOT treat as refresh/toast config.
                     # Footgun: {"ok": False, "error": {...}} used to become ok Result.
                     if (

@@ -9,7 +9,8 @@ is ``ux_channel.protocol.CapService`` (itsdangerous). These modules add:
 * FlowStore / ``meta.flow_id`` (correlation only — never authority)
 * HostRuntime + PeerApply (no DOM in the peer kernel)
 
-Use ``Channel`` (``attach_arch``) in apps. Use ``HostRuntime`` in gate tests.
+``Channel.boot`` does not attach this plane. Opt in via ``ch.emit_graph``
+(import-on-use) or ``attach_arch``. Use ``HostRuntime`` in gate tests.
 
 Classic IR 0.1 clients stay on the floor: without a peer hello advertising
 ``seq`` / ``invoke`` / ``web.v1`` / ``agent.v1``, project emits classic ops.

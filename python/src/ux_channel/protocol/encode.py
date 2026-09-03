@@ -40,16 +40,17 @@ def encode_result(
     if isinstance(value, Result):
         if base_meta:
             merged = {**base_meta, **value.meta}
-            return Result(
+            value = Result(
                 v=value.v,
                 ok=value.ok,
                 ops=list(value.ops),
                 error=value.error,
                 meta=merged,
             )
-        return value
+        return _compile_graph_pocket(value)
 
-    # Architecture EffectGraph — project in Channel after-hook (classic floor otherwise)
+    # Optional handler sugar: compile EffectGraph to Result.ops now.
+    # Never park ``_graph`` in meta — the wire is ops only.
     if isinstance(value, Mapping) and "_graph" in value:
         data = {k: v for k, v in value.items() if k != "_graph"}
         data.setdefault("ok", True)
@@ -61,11 +62,9 @@ def encode_result(
                 ok=bool(value.get("ok", True)),
                 ops=list(value.get("ops") or []),
             )
-        rebuilt.meta = {
-            **base_meta,
-            **dict(value.get("meta") or {}),
-            "_graph": value["_graph"],
-        }
+        rebuilt.meta = {**base_meta, **dict(value.get("meta") or {})}
+        rebuilt.meta.pop("_graph", None)
+        rebuilt.ops = _project_graph(value["_graph"])
         return rebuilt
 
     # Accidental Result.to_dict() / wire-shape return — common footgun
@@ -81,7 +80,7 @@ def encode_result(
             rebuilt = Result.from_dict(data)  # type: ignore[arg-type]
             if base_meta:
                 rebuilt.meta = {**base_meta, **(rebuilt.meta or {})}
-            return rebuilt
+            return _compile_graph_pocket(rebuilt)
         except Exception:
             pass  # fall through to TypeError below
 
@@ -145,6 +144,21 @@ def encode_result(
         f"cannot encode action return type {type(value)!r} as Result; "
         "return Result, Op, HTML str with target, Navigate/Go, or None"
     )
+
+
+def _project_graph(graph: Any) -> list:
+    """Lower EffectGraph sugar to classic-floor ops. Import-on-use (not a Host)."""
+    from ux_channel.arch.project import project
+
+    return project(graph, {}, effects="auto")
+
+
+def _compile_graph_pocket(result: Result) -> Result:
+    """If a Result still carries ``meta._graph``, compile to ops and drop it."""
+    if result.meta and "_graph" in result.meta:
+        g = result.meta.pop("_graph")
+        result.ops = _project_graph(g)
+    return result
 
 
 def _guess_target_from_html(html: str) -> Optional[str]:

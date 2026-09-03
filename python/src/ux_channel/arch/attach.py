@@ -1,11 +1,11 @@
 """Attach architecture plane onto Channel (power — not CHANNEL_PUBLIC_API).
 
-Two runtimes, one law:
-
-* ``Channel`` + ``attach_arch`` — production host (ActionRegistry, Result)
-* ``HostRuntime`` — dict-level e2e / tests (no ASGI)
+Opt-in, import-on-use — same pattern as ``ch.webrtc``. ``Channel.boot`` does
+not call this. ``HostRuntime`` remains the gate / side-kit runtime.
 
 Classic IR 0.1 clients stay on the floor until they send ``meta.hello``.
+Graphs compile to ``Result.ops`` at encode / ``emit_graph`` — not in an
+after-hook translator.
 """
 
 from __future__ import annotations
@@ -78,7 +78,14 @@ class _ArchSessions:
 
 
 def attach_arch(ch: Any) -> Any:
-    """Bind stamps / flow_store / proofs / after-hook / power methods."""
+    """Bind stamps / flow_store / proofs / after-hook / power methods.
+
+    Idempotent. Channel construct does not call this; first access of
+    ``emit_graph`` / ``set_hello`` / … does (see ``Channel._LAZY_PLANES``).
+    """
+    if getattr(ch, "_arch_attached", False):
+        return ch
+    ch._arch_attached = True
     sessions = _ArchSessions()
     ch.stamps = StampTable()
     ch.flow_store = FlowStore()
@@ -129,17 +136,6 @@ def attach_arch(ch: Any) -> Any:
 
         sid = _session_id(intent)
         hello = sessions.get_hello(sid)
-
-        if result.meta and "_graph" in result.meta:
-            g = result.meta.pop("_graph")
-            result.ops = project(g, hello, effects=effects)
-            max_ops = int(_cfg(ch, "max_ops", 256) or 256)
-            if _count_ops(result.ops) > max_ops:
-                result.ops = []
-                result.ok = False
-                result.error = ErrorObject(
-                    code="budget", message="effect graph exceeds max_ops"
-                )
 
         if flow_mode == "auto":
             args = getattr(intent, "args", None) or {}

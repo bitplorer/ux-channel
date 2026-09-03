@@ -211,19 +211,42 @@ def test_classic_floor_without_hello():
 def test_channel_attach_arch_power_not_public():
     from ux_channel import Channel
     from ux_channel.host.channel import CHANNEL_PUBLIC_API
+    from ux_channel.protocol.encode import encode_result
+    from ux_channel.protocol.types import Intent
 
     ch = Channel.boot(secret="dev-secret-key-32chars-minimum!!!!")
-    assert hasattr(ch, "emit_graph")
-    assert hasattr(ch, "set_hello")
-    assert hasattr(ch, "grant_stamp")
-    assert hasattr(ch, "flow_store")
-    assert hasattr(ch, "stamps")
+    # Boot is not a second Host — power methods are not glued at construct.
+    assert "emit_graph" not in vars(ch)
+    assert "set_hello" not in vars(ch)
+    assert "grant_stamp" not in vars(ch)
     assert "emit_graph" not in CHANNEL_PUBLIC_API
     assert "set_hello" not in CHANNEL_PUBLIC_API
-    ch.set_hello("s1", {"profiles": ["web.v1"], "features": ["seq"]})
-    r = ch.emit_graph(graph(seq(toast("hi"))), session_id="s1")
+    assert "grant_stamp" not in CHANNEL_PUBLIC_API
+
+    @ch.on
+    def ping():
+        return {"_graph": graph(toast("hi"))}
+
+    cap = ch.mint("ping", {})
+    r = ch.registry.dispatch(Intent(action="ping", args={}, cap=cap))
     assert r.ok
-    assert r.ops[0]["op"] == "seq"
+    assert r.ops[0]["op"] == "toast"
+    assert "_graph" not in (r.meta or {})
+    # encode-time compile does not attach a Host
+    assert "emit_graph" not in vars(ch)
+
+    encoded = encode_result({"_graph": graph(seq(toast("a"), toast("b")))})
+    assert [o["op"] for o in encoded.ops] == ["toast", "toast"]
+    assert "_graph" not in (encoded.meta or {})
+    body = encoded.to_dict()
+    assert "_graph" not in (body.get("meta") or {})
+
+    # Import-on-use: first access attaches; emit_graph compiles immediately.
+    ch.set_hello("s1", {"profiles": ["web.v1"], "features": ["seq"]})
+    r2 = ch.emit_graph(graph(seq(toast("hi"))), session_id="s1")
+    assert r2.ok
+    assert r2.ops[0]["op"] == "seq"
+    assert "_graph" not in (r2.meta or {})
 
 
 def test_inspect_does_not_burn_once():
