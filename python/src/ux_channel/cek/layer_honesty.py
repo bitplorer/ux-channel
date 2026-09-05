@@ -1,7 +1,7 @@
 """Import-graph assertions — D4 + no second Cap + no vendor-copy.
 
 Used by ``tests/gate/test_cek_layer_honesty.py``. Importing this module
-must not import cek_host / cek_surface (default path stays off).
+must not import cek_host / cek_surface (``cek=off`` still imports nothing).
 """
 
 from __future__ import annotations
@@ -9,7 +9,7 @@ from __future__ import annotations
 import ast
 import sys
 from pathlib import Path
-from typing import Iterable
+from typing import Any, Iterable
 
 CHANNEL_ROOT = Path(__file__).resolve().parents[1]  # ux_channel/
 
@@ -99,6 +99,13 @@ def second_cap_owners(registry: Any) -> list[str]:
     name = type(caps).__name__ if caps is not None else ""
     module = type(caps).__module__ if caps is not None else ""
     owners.append(f"{module}.{name}")
+    extra = getattr(registry, "_cek_caps", None)
+    if extra is not None and extra is not caps:
+        owners.append(f"{type(extra).__module__}.{type(extra).__name__}")
+    rk = getattr(caps, "runtime_kernel", None)
+    host = getattr(caps, "host", None)
+    if rk is not None and rk is not host and hasattr(rk, "mint"):
+        owners.append(f"{type(rk).__module__}.{type(rk).__name__}")
     return owners
 
 

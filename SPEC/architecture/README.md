@@ -30,9 +30,10 @@ Cap key ≠ proof key
 5. [ADR/0007-flow-correlation-only.md](ADR/0007-flow-correlation-only.md)
 6. [ADR/0008-cek-runtime-kernel-ssot.md](ADR/0008-cek-runtime-kernel-ssot.md)
 7. [ADR/0009-channel-cek-runtime-host-cut2.md](ADR/0009-channel-cek-runtime-host-cut2.md)
-8. [project.md](project.md) · [proof.md](proof.md) · [flow.md](flow.md) · [budgets.md](budgets.md) · [concurrency.md](concurrency.md)
-9. [peer-kernel.md](peer-kernel.md) · [host-kernel.md](host-kernel.md) · [runtime-peer.md](runtime-peer.md) · [runtime-host.md](runtime-host.md)
-10. [profiles/](profiles/) · [inventory.md](inventory.md) · [non-goals.md](non-goals.md)
+8. [ADR/0010-channel-cek-runtime-default-cut3.md](ADR/0010-channel-cek-runtime-default-cut3.md)
+9. [project.md](project.md) · [proof.md](proof.md) · [flow.md](flow.md) · [budgets.md](budgets.md) · [concurrency.md](concurrency.md)
+10. [peer-kernel.md](peer-kernel.md) · [host-kernel.md](host-kernel.md) · [runtime-peer.md](runtime-peer.md) · [runtime-host.md](runtime-host.md)
+11. [profiles/](profiles/) · [inventory.md](inventory.md) · [non-goals.md](non-goals.md)
 
 ## Code map
 

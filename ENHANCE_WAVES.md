@@ -63,7 +63,7 @@ cd python && PYTHONPATH=src python -m pytest tests/gate/test_enhance_waves.py te
 
 ## Non-goals
 
-- Optional extra `[cek]` (`ChannelConfig.cek = off \| adapt \| require`). Default remains **off**. `require` wraps **cek-runtime Host** (rust_wrap / port Host; ADR 0008/0009). Classic IR 0.1 stays the Channel floor. Dispatch is dual: `dispatch` / `async_dispatch` (same law as cek `submit` / `async_submit`). Native enhance remains behind off until a later delete.
+- `[cek]` wrap (`ChannelConfig.cek = off \| adapt \| require`). Default is **require** (cek-runtime Host; one port-Host mint/verify owner; ADR 0008/0009/0010). `cek=off` is the explicit classic CapService escape. Classic IR 0.1 stays the Channel floor. Dispatch is dual: `dispatch` / `async_dispatch` (same law as cek `submit` / `async_submit`). Native enhance remains behind off until a later delete.
 - No root `__all__` growth
 - No Cap mint on Peer
 - No breaking classic IR 0.1

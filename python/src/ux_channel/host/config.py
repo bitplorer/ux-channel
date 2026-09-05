@@ -199,10 +199,10 @@ class ChannelConfig:
     proofs: str = "auto"  # auto | require | off
     flow: str = "auto"  # auto | off  (meta.flow_id = correlation only)
     proof_secret: Optional[str] = None
-    # CEK drop-in. off = today's path (zero new imports).
-    # adapt = extra [cek] live, Channel Cap remains authority.
-    # require = Cap machine is cek-runtime Host (ADR 0008); surface = compose only.
-    cek: str = "off"
+    # CEK decide (ADR 0010). require = Cap machine is cek-runtime Host (default).
+    # adapt = extra live, Channel CapService stays authority.
+    # off = classic CapService (explicit escape; imports nothing).
+    cek: str = "require"
     # Morph / toast HTML policy: off (default, ux-dom safe) | strict (strip script/on*).
     # Production factory leaves this off so ux-dom is not broken; doctor warns.
     morph_html_policy: str = "off"
@@ -493,7 +493,7 @@ class ChannelConfig:
             "proofs": os.environ.get(f"{prefix}PROOFS", "auto"),
             "flow": os.environ.get(f"{prefix}FLOW", "auto"),
             "proof_secret": os.environ.get(f"{prefix}PROOF_SECRET") or None,
-            "cek": os.environ.get(f"{prefix}CEK", "off"),
+            "cek": os.environ.get(f"{prefix}CEK", "require"),
             "morph_html_policy": os.environ.get(f"{prefix}MORPH_HTML_POLICY", "off"),
         }
         if base["environment"] == "development":

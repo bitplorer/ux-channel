@@ -1,7 +1,7 @@
-"""Cut #2: cek=require Cap machine is cek-runtime Host (not arch HostRuntime).
+"""Cut #3: default decide is cek-runtime Host (not arch HostRuntime).
 
-Skipped when extra [cek] is missing so main CI stays green.
-Rust wrap assertions run only when CEK_BIN points at cek-runtime ``cek host-json``.
+Skipped when wrap packages are missing so a bare tree can still collect.
+Rust wrap reachability runs only when CEK_BIN points at cek-runtime ``cek host-json``.
 """
 
 from __future__ import annotations
@@ -55,13 +55,67 @@ def test_require_cap_machine_is_cek_runtime_host():
     assert caps.kernel_ssot_adr == KERNEL_SSOT_ADR
     assert caps.name == "cek-runtime.Host"
     assert caps.backend in ("rust_wrap", "port_host")
-    # Documented port Host is the stateful mint/verify machine.
+    # Documented port Host is the one mint/verify owner.
     assert type(caps.host).__name__ == "Host"
+    assert caps.runtime_kernel is None
     # arch HostRuntime is bootable but is not the Cap machine.
     from ux_channel.arch.host_runtime import HostRuntime
 
     assert not isinstance(caps, HostRuntime)
     assert not isinstance(caps.host, HostRuntime)
+
+
+def test_default_boot_cap_authority_is_cek_runtime_host():
+    """Channel.boot default decide is the cek-runtime Host façade (ADR 0010)."""
+    from fastapi import FastAPI
+
+    from ux_channel import Channel, ChannelConfig
+    from ux_channel.arch.host_runtime import HostRuntime
+
+    cfg = ChannelConfig.development(
+        secret=SECRET,
+        allow_memory_stores=True,
+        require_cap=True,
+    )
+    assert cfg.cek == "require"
+    ch = Channel.boot(FastAPI(), config=cfg)
+    caps = ch.registry._caps
+    assert type(caps).__name__ == "CekHostCapService"
+    assert caps.kernel_ssot == "cek-runtime"
+    assert caps.name == "cek-runtime.Host"
+    assert type(caps.host).__name__ == "Host"
+    assert caps.runtime_kernel is None
+    assert not isinstance(caps, HostRuntime)
+    assert not isinstance(caps.host, HostRuntime)
+
+
+def test_factory_fallback_default_require():
+    from ux_channel.host.factory import create_channel
+
+    reg, _hub = create_channel(
+        secret=SECRET,
+        environment="development",
+        app=None,
+        host=None,
+    )
+    assert type(reg._caps).__name__ == "CekHostCapService"
+    assert reg._caps.kernel_ssot == "cek-runtime"
+    assert reg._caps.runtime_kernel is None
+
+
+def test_single_mint_verify_owner():
+    from ux_channel.cek.host_adapter import CekHostCapService
+    from ux_channel.cek.runtime_host import bind_runtime_host
+
+    bind = bind_runtime_host(SECRET)
+    assert type(bind.host).__name__ == "Host"
+    assert bind.runtime_kernel is None
+    assert bind.kernel_ssot == "cek-runtime"
+    caps = CekHostCapService(SECRET)
+    assert caps.host is not None
+    assert caps.runtime_kernel is None
+    tok = caps.mint("Cart.add", {"sku": "x"})
+    assert caps.verify(tok, "Cart.add", {"sku": "x"})
 
 
 def test_arch_e2e_still_boots_alongside_require():
@@ -206,14 +260,13 @@ def test_python_cek_cli_is_not_runtime_bin():
 
 
 @pytest.mark.skipif(not runtime_wrap_available(), reason="CEK_BIN / cek-runtime host-json not bound")
-def test_require_uses_rust_host_kernel_when_runtime_bin_present():
+def test_require_records_rust_wrap_reachability_without_second_mint():
     ch = _boot("require")
     caps = ch.registry._caps
     assert caps.backend == "rust_wrap"
-    assert caps.runtime_kernel is not None
-    assert type(caps.runtime_kernel).__name__ == "RustHostKernel"
-    # Reachability: mint through host-json (Cap object, not Channel token).
-    raw = caps.runtime_kernel.mint("kv.write", once=False)
-    assert isinstance(raw, dict)
-    assert raw.get("action") == "kv.write"
+    assert caps.bin_path
     assert find_runtime_cek_bin()
+    # Dual mint closed: rust_wrap is not a sibling mint machine.
+    assert caps.runtime_kernel is None
+    tok = caps.mint("Cart.add", {"sku": "x"})
+    assert caps.verify(tok, "Cart.add", {"sku": "x"})

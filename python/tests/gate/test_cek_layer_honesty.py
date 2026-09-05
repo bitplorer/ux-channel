@@ -33,7 +33,8 @@ def test_off_path_does_not_import_cek_host():
 
     importlib.reload(cfg)
     assert cfg.parse_cek("off") == "off"
-    assert cfg.parse_cek(None) == "off"
+    assert cfg.parse_cek(False) == "off"
+    assert cfg.parse_cek(None) == "require"
 
 
 def test_require_swaps_one_cap_machine():
@@ -58,13 +59,14 @@ def test_require_swaps_one_cap_machine():
     cfg = ChannelConfig.development(
         secret="layer-honesty-secret-32chars-min!!",
         allow_memory_stores=True,
-        cek="require",
     )
+    assert cfg.cek == "require"
     ch = Channel.boot(FastAPI(), config=cfg)
     owners = second_cap_owners(ch.registry)
     assert len(owners) == 1
     assert "CekHostCapService" in owners[0]
     assert cap_machine_is_cek_runtime(ch.registry)
+    assert ch.registry._caps.runtime_kernel is None
 
 
 def test_classic_ir_needs_no_hello():
@@ -74,12 +76,13 @@ def test_classic_ir_needs_no_hello():
     from ux_channel import Channel, ChannelConfig
     from ux_channel.protocol.types import Intent
 
+    # Classic IR on the default Cap machine (cek=require). Pin cek=off
+    # only when classic CapService is the subject.
     ch = Channel.boot(
         FastAPI(),
         config=ChannelConfig.development(
             secret="classic-floor-secret-32chars-min!!",
             allow_memory_stores=True,
-            cek="off",
         ),
     )
 
@@ -91,3 +94,38 @@ def test_classic_ir_needs_no_hello():
     assert r.ok
     # no hello envelope required
     assert "hello" not in (r.meta or {})
+    assert type(ch.registry._caps).__name__ == "CekHostCapService"
+
+
+def test_classic_capservice_pin_off():
+    """Pin cek=off only when classic CapService is the subject."""
+    from fastapi import FastAPI
+
+    from ux_channel import Channel, ChannelConfig
+    from ux_channel.protocol.capability import CapService
+
+    ch = Channel.boot(
+        FastAPI(),
+        config=ChannelConfig.development(
+            secret="classic-cap-subject-32chars-min!!",
+            allow_memory_stores=True,
+            cek="off",
+        ),
+    )
+    assert type(ch.registry._caps) is CapService
+
+
+def test_config_and_env_default_cek_require(monkeypatch):
+    from ux_channel.host.config import ChannelConfig
+
+    assert ChannelConfig.__dataclass_fields__["cek"].default == "require"
+    cfg = ChannelConfig.development(
+        secret="dev-" + "x" * 32,
+        allow_memory_stores=True,
+    )
+    assert cfg.cek == "require"
+    monkeypatch.setenv("UX_CHANNEL_SECRET", "dev-" + "x" * 32)
+    monkeypatch.setenv("UX_CHANNEL_ENV", "development")
+    monkeypatch.delenv("UX_CHANNEL_CEK", raising=False)
+    env = ChannelConfig.from_env()
+    assert env.cek == "require"

@@ -2,8 +2,9 @@
 
 Two runtimes, one law:
 
-* ``Channel`` + ``attach_arch`` — production host (ActionRegistry, Result)
-* ``HostRuntime`` — dict-level e2e / tests (no ASGI)
+* ``Channel`` + ``attach_arch`` — L7 stamps / flow / EffectGraph plane
+  (not Cap / decide; Cap authority is ``registry._caps``)
+* ``HostRuntime`` — dict-level e2e / tests (no ASGI; not the Cap machine)
 
 Classic IR 0.1 clients stay on the floor until they send ``meta.hello``.
 """
@@ -78,7 +79,12 @@ class _ArchSessions:
 
 
 def attach_arch(ch: Any) -> Any:
-    """Bind stamps / flow_store / proofs / after-hook / power methods."""
+    """Bind L7 stamps / flow_store / proofs / after-hook / power methods.
+
+    This is the flow / stamp / EffectGraph plane — not Cap / decide.
+    Cap authority lives on ``registry._caps`` (cek-runtime Host when
+    ``cek=require``).
+    """
     sessions = _ArchSessions()
     ch.stamps = StampTable()
     ch.flow_store = FlowStore()

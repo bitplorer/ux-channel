@@ -171,11 +171,29 @@ def create_channel(
 
         reg.before(rate_limit_hook(redis_limiter))  # type: ignore[arg-type]
 
-    # CEK adapter (off = no import of cek_host / rust_wrap).
-    if mount_config is not None and getattr(mount_config, "cek", "off") != "off":
+    # CEK adapter. Default decide is require (cek-runtime Host, ADR 0010).
+    # off = no import of cek_host / rust_wrap (explicit escape).
+    from ux_channel.cek.config import parse_cek
+
+    if mount_config is not None:
+        cek_mode = parse_cek(getattr(mount_config, "cek", "require"))
+    else:
+        cek_mode = parse_cek(os.environ.get("UX_CHANNEL_CEK", "require"))
+    if cek_mode != "off":
+        from types import SimpleNamespace
+
         from ux_channel.cek.host_adapter import apply_host_adapter
 
-        apply_host_adapter(reg, mount_config)
+        cfg = mount_config
+        if cfg is None:
+            caps = getattr(reg, "_caps", None)
+            cfg = SimpleNamespace(
+                cek=cek_mode,
+                secret=secret or getattr(caps, "secret", None),
+                max_cap_age=getattr(caps, "max_age", 3600) or 3600,
+                previous_secrets=(),
+            )
+        apply_host_adapter(reg, cfg)
 
     # Wave 1: WS rate limits + Redis ticket revocation
     if mount_config is not None:

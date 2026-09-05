@@ -20,6 +20,8 @@ Product surface remains in scope here: Channel, wire, caps.
 
 **Green cut #2** (this repo): Channel → cek-runtime Host adapter — [ADR 0009](0009-channel-cek-runtime-host-cut2.md).
 
+**Green cut #3** (this repo): default decide → cek-runtime Host — [ADR 0010](0010-channel-cek-runtime-default-cut3.md).
+
 ## Out of scope
 - EffectGraph / `flow` / Peer mint lift
 - Deleting the parallel kernel (later)

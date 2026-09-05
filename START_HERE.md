@@ -71,8 +71,7 @@ token = caps.mint("cart.add", {"sku": "tee"})
 **Async:** `@ch.on async def …` is legal. Call `await ch.registry.async_dispatch(intent)`.  
 `dispatch()` refuses async handlers — it will not nest an event loop.
 
-**CEK (optional):** `pip install "ux-channel[cek]"` then `ChannelConfig.development(..., cek="require")`.  
-Default remains `cek=off`. Channel stays the product; `cek=require` is cek-runtime Host ([ADR 0008](SPEC/architecture/ADR/0008-cek-runtime-kernel-ssot.md) / [0009](SPEC/architecture/ADR/0009-channel-cek-runtime-host-cut2.md)).
+**CEK (default decide):** `Channel.boot` uses cek-runtime Host (`cek=require`). Install `pip install "ux-channel[cek]"` (or rely on the promoted wrap deps). Bare-install escape: `cek="off"` / `UX_CHANNEL_CEK=off`. Channel stays the product ([ADR 0008](SPEC/architecture/ADR/0008-cek-runtime-kernel-ssot.md) / [0009](SPEC/architecture/ADR/0009-channel-cek-runtime-host-cut2.md) / [0010](SPEC/architecture/ADR/0010-channel-cek-runtime-default-cut3.md)).
 
 | You want… | Open |
 |-----------|------|

@@ -10,7 +10,7 @@ A click is not a form post. It is a signed **Intent**.
 Intent {action, args, cap}  →  verify  →  action  →  Result {ok, ops[]}
 ```
 
-JSON is the floor. Caps authorize. Classic IR 0.1 stays valid. Channel is the product. **cek-runtime Host** is the optional Cap machine (`cek=require`; wrap via `[cek]` — [ADR 0008](SPEC/architecture/ADR/0008-cek-runtime-kernel-ssot.md)).
+JSON is the floor. Caps authorize. Classic IR 0.1 stays valid. Channel is the product. **cek-runtime Host** is the default Cap machine (`cek=require`; wrap via `[cek]` — [ADR 0008](SPEC/architecture/ADR/0008-cek-runtime-kernel-ssot.md) / [0010](SPEC/architecture/ADR/0010-channel-cek-runtime-default-cut3.md)). `cek=off` is the explicit escape.
 
 This layer **owns the wire**: Intent, Result, Capability, codecs, peers, host runtime. It does **not** own HTML trees or CSS.
 
@@ -40,7 +40,7 @@ This layer **owns the wire**: Intent, Result, Capability, codecs, peers, host ru
 
 ```bash
 pip install "ux-channel[asgi]"
-pip install "ux-channel[cek]"    # optional: cek-host + cek-surface ≥ 0.1.3
+pip install "ux-channel[cek]"    # default Cap machine: cek-host + cek-surface ≥ 0.1.3
 ```
 
 Extras: `asgi` / `fastapi` / `starlette`, `redis`, `speed`/`serde` (`orjson`), `cek`, `otel`/`devtools`, `full`.
