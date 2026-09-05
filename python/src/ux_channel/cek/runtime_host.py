@@ -1,17 +1,16 @@
-"""Bind Channel's Cap façade to the cek-runtime Host path (cut #2).
+"""Bind Channel's Cap façade to the cek-runtime Host path (cut #3).
 
 Kernel SSoT is cek-runtime (ADR 0008). This module is a wrap, not a second
 kernel and not a new pyo3 extension.
 
-Preferred wrap
-    ``cek_host.rust_wrap.RustHostKernel`` → ``cek host-json`` (CEK_BIN).
-
-Documented port Host
-    ``cek_host.Host`` — language port of decide. Used for stateful mint /
-    verify / once / sealed-args (host-json is a fresh Host per call).
+ONE mint / verify owner
+    ``cek_host.Host`` — documented language port of decide. Stateful mint /
+    verify / once / sealed-args. ``host-json`` is a fresh Host per call, so
+    Channel tokens stay on this port. ``RustHostKernel`` / ``CEK_BIN`` is
+    reachability of the runtime binary, not a second mint path.
 
 ``cek-host``'s console script is **not** the runtime binary (it has no
-``host-json``). Probe before binding rust_wrap.
+``host-json``). Probe before claiming rust_wrap reachability.
 """
 
 from __future__ import annotations
@@ -103,11 +102,15 @@ def runtime_wrap_available() -> bool:
 
 @dataclass
 class RuntimeHostBind:
-    """cek-runtime Host wrap bound for Channel's Cap façade."""
+    """cek-runtime Host wrap bound for Channel's Cap façade.
+
+    ``host`` is the only mint / verify owner. ``runtime_kernel`` is always
+    None — CEK_BIN rust_wrap is not a second Cap machine (ADR 0010).
+    """
 
     kernel_ssot: str
     kernel_ssot_adr: str
-    backend: str  # rust_wrap | port_host
+    backend: str  # rust_wrap | port_host  (reachability; mint owner is host)
     host: Any
     runtime_kernel: Any | None
     bin_path: str | None
@@ -119,7 +122,12 @@ def bind_runtime_host(
     max_age: int = 3600,
     previous_secrets: Optional[Sequence[str]] = None,
 ) -> RuntimeHostBind:
-    """Open the documented port Host; attach RustHostKernel when CEK_BIN is real."""
+    """Open the one mint/verify owner: documented port Host.
+
+    When ``CEK_BIN`` is a real cek-runtime binary, ``backend`` is
+    ``rust_wrap`` (kernel reachability). That binary is not bound as a
+    second mint path — host-json is a fresh Host per call.
+    """
     from cek_host import Host, MemoryOnceBackend
 
     raw = secret.encode("utf-8") if isinstance(secret, str) else bytes(secret)
@@ -130,18 +138,18 @@ def bind_runtime_host(
         require_cap=True,
     )
     bin_path = find_runtime_cek_bin()
-    runtime = None
-    backend = "port_host"
+    backend = "rust_wrap" if bin_path else "port_host"
     if bin_path:
-        from cek_host.rust_wrap import RustHostKernel
-
-        runtime = RustHostKernel(bin_path=bin_path)
-        backend = "rust_wrap"
-        log.info("cek-runtime Host wrap: rust_wrap CEK_BIN=%s (ADR %s)", bin_path, KERNEL_SSOT_ADR)
+        log.info(
+            "cek-runtime Host wrap: port Host is the mint/verify owner; "
+            "CEK_BIN=%s reachable (ADR %s)",
+            bin_path,
+            KERNEL_SSOT_ADR,
+        )
     else:
         log.info(
             "cek-runtime Host wrap: documented port Host (cek_host.Host); "
-            "set CEK_BIN to cek-runtime `cek` for rust_wrap (ADR %s)",
+            "set CEK_BIN to cek-runtime `cek` for rust_wrap reachability (ADR %s)",
             KERNEL_SSOT_ADR,
         )
     _ = previous_secrets
@@ -150,6 +158,6 @@ def bind_runtime_host(
         kernel_ssot_adr=KERNEL_SSOT_ADR,
         backend=backend,
         host=port,
-        runtime_kernel=runtime,
+        runtime_kernel=None,
         bin_path=bin_path,
     )

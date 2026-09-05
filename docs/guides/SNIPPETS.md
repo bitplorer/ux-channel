@@ -40,11 +40,11 @@ Every block is meant to run (or to be the exact fragment you drop into a running
 
 <a id="ch-install"></a>
 
-JSON is the floor. Caps authorize. Channel is the product; cek-runtime Host is optional (`cek=off` by default).
+JSON is the floor. Caps authorize. Channel is the product; cek-runtime Host is the default Cap machine (`cek=require`). `cek=off` is the explicit escape.
 
 ```bash
 pip install "ux-channel[asgi]"
-pip install "ux-channel[cek]"    # optional Cap machine
+pip install "ux-channel[cek]"    # default Cap machine (cek-host + cek-surface)
 uxchannel create-app myapp
 cd myapp && pip install -r requirements.txt
 uvicorn app.main:app --reload

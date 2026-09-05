@@ -137,7 +137,7 @@ def production_go_nogo(config: Any) -> dict[str, Any]:
                 f"cek={cek} needs pip install 'ux-channel[cek]'",
             )
         else:
-            row("cek_extra", True, "cek=off (today's path)", fatal=False)
+            row("cek_extra", True, "cek=off (explicit escape)", fatal=False)
     else:
         row("secret_length", len(secret) >= 8, "dev secret too short", fatal=False)
         row("require_cap", True, "development — require_cap not gated", fatal=False)

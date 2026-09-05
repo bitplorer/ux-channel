@@ -10,7 +10,7 @@
 
 **ux-channel owns the wire:** `Intent {action, args, cap}` → verify → action → `Result {ok, ops[]}`.
 
-This layer **does** implement Caps (optional CEK via extra `cek`), `args_hash`, JTI/once, CSRF as documented, fail-closed unknown actions.
+This layer **does** implement Caps (default decide is cek-runtime Host; `cek=off` is the explicit escape), `args_hash`, JTI/once, CSRF as documented, fail-closed unknown actions.
 
 This layer **does not** implement HTML escaping of morph payloads, MorphState, or multi-tenant policy beyond Caps you mint.
 

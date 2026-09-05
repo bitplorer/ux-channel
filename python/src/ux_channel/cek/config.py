@@ -8,9 +8,15 @@ CEK_MODES = ("off", "adapt", "require")
 
 
 def parse_cek(value: Any) -> str:
-    """Normalize a cek mode. Unknown values fail closed."""
-    if value is None or value is False:
+    """Normalize a cek mode. Unknown values fail closed.
+
+    ``None`` means the cut #3 default: ``require`` (cek-runtime Host).
+    Explicit ``False`` / ``"off"`` is the classic CapService escape.
+    """
+    if value is False:
         return "off"
+    if value is None:
+        return "require"
     if value is True:
         return "require"
     v = str(value).strip().lower()
@@ -21,7 +27,8 @@ def parse_cek(value: Any) -> str:
     if v not in CEK_MODES:
         raise ValueError(
             f"ChannelConfig.cek must be one of {CEK_MODES}, got {value!r}. "
-            "off = today's path; adapt = compare; require = cek-runtime Host is the Cap machine."
+            "require = cek-runtime Host is the Cap machine (default); "
+            "adapt = compare; off = classic CapService (explicit escape)."
         )
     return v
 
@@ -53,8 +60,9 @@ def require_cek_installed(mode: str) -> None:
     if cek_available():
         return
     raise RuntimeError(
-        f"ChannelConfig.cek={mode!r} needs the optional extra: "
+        f"ChannelConfig.cek={mode!r} needs cek-host + cek-surface (>=0.1.3): "
         "pip install 'ux-channel[cek]'. "
-        "Default remains cek=off (today's path, zero new imports). "
+        "Default decide is cek=require (cek-runtime Host). "
+        "Bare-install escape: ChannelConfig(..., cek='off') or UX_CHANNEL_CEK=off. "
         "See Channel.help() / uxchannel recipe production."
     )

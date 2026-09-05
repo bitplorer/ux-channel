@@ -43,3 +43,7 @@ No new pyo3. No Peer mint. No flow-as-authority.
 `[cek]` is a Channel adapter over cek-runtime Host, not a second SSoT.
 Classic IR 0.1 without hello still dispatches. Oracle / drop-in parity stay
 on the port Host token.
+
+**Cut #3** ([ADR 0010](0010-channel-cek-runtime-default-cut3.md)) flips the
+Channel default to `cek=require` and closes the residual dual mint
+(`RustHostKernel` is reachability, not a second mint path).

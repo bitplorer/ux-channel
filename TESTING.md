@@ -14,7 +14,7 @@ Read [START_HERE.md](START_HERE.md) first if you are new.
 | `make verify` | health + layout + longevity + law vectors + **gate** + rust + `uxc_check` | not the full 332+ pytest suite; not soak |
 | `make verify-sec` | pentest + extreme_hardening (CI on main, **separate job**) | not inside the default gate |
 | `make verify-http` | verify + live peer + demo forward | flaky ports; RC only |
-| `pytest python/tests/gate` | freeze, cap oracle, enhance, **async_dispatch**, cek honesty (cek tests skip without extra) | not ASGI/stress |
+| `pytest python/tests/gate` | freeze, cap oracle, enhance, **async_dispatch**, cek honesty (default decide = cek-runtime Host) | not ASGI/stress |
 | `pytest python/tests/security` | residuals (morph policy, memory stores, href) | not soak |
 | `uxchannel doctor --fail` | SECURITY_AUDIT deploy checklist is GO | a pretty JSON dump |
 | `uxchannel upgrade-check . --fail` | no `require_cap=False` / open `/sfu/token` / raw `ChannelConfig(` | a suggestion |

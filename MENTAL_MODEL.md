@@ -13,7 +13,7 @@ DOM slots      ◄──Result(ops[])──  morph / toast / navigate / …
 
 | Layer | Owns | Does not own |
 |-------|------|--------------|
-| **cek-runtime Host** (optional `cek=require`) | mint / verify / once / sealed-args (wrap: rust_wrap / port Host) | HTML, regions |
+| **cek-runtime Host** (default `cek=require`) | mint / verify / once / sealed-args (one port Host; rust_wrap = reachability) | HTML, regions |
 | **Channel** | `@on`, regions, classic IR, dispatch | markup trees, HTTP frameworks |
 | **asgi** (L3 adapter) | FastAPI / Starlette mount | Intent / Cap law |
 | **ux-dom** | Document / components | caps |

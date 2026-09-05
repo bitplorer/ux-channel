@@ -303,7 +303,7 @@ class Channel:
         attach_document(self)
         apply_surface(self)
         attach_live(self)
-        attach_arch(self)
+        attach_arch(self)  # L7 stamps / flow — not Cap / decide
         # L4 product planes (webrtc / media / bridge) attach on first
         # attribute access via __getattr__ — see _LAZY_PLANES. Public
         # names stay identical; boot no longer imports those packages.

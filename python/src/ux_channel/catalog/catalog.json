@@ -47,7 +47,7 @@
     "bridge": "Island contracts, scaffold, guest runtime (singular package).",
     "bridges": "npm / fx / ui preset data (plural). Prefer preset gen over hand copies.",
     "catalog": "Generated package navigator (do not hand-edit catalog.json).",
-    "cek": "Optional Channel wrap of cek-runtime Host (cek=off|adapt|require). Drop-in \u2260 SSoT (ADR 0008/0009).",
+    "cek": "Channel wrap of cek-runtime Host (default cek=require). cek=off is the explicit escape. SSoT is cek-runtime (ADR 0008/0009/0010).",
     "components": "Optional Channel component kit (not default UI path).",
     "devtools": "Audit, CLI, observability, codegen \u2014 L5 free to churn.",
     "foundations": "Quantity, provenance, io_channel \u2014 shared non-UI primitives.",

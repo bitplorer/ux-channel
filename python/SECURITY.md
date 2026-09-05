@@ -8,7 +8,7 @@ Full audit: [docs/security/SECURITY_AUDIT.md](docs/security/SECURITY_AUDIT.md).
 | Door | Development | Production |
 |------|-------------|------------|
 | Secret | `ChannelConfig.development(secret="dev-" + "x"*32)` | Long random secret from the environment; never commit |
-| CEK | `cek=off` (default) | `pip install "ux-channel[cek]"` and `cek="require"` when you want the Cap machine |
+| CEK | `cek=require` (default; cek-runtime Host) | Same default. Escape: `cek=off` / `UX_CHANNEL_CEK=off` for classic CapService |
 | DX | warnings | `export UX_CHANNEL_STRICT_DX=1` and `uxchannel doctor --fail` |
 
 ## Invariants (fail closed)

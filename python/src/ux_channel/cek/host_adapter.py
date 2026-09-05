@@ -1,14 +1,13 @@
-"""CapService façade → cek-runtime Host (cut #2).
+"""CapService façade → cek-runtime Host (cut #3).
 
-off     — this module is not imported.
+off     — this module is not imported (explicit escape).
 adapt   — Host on registry._cek_caps; Channel CapService stays authority.
-require — registry._caps is this façade. One Cap machine.
+require — registry._caps is this façade. One Cap machine (default).
 
-The Cap machine is **cek-runtime Host** (ADR 0008): ``RustHostKernel`` /
-``cek host-json`` when CEK_BIN is the runtime binary, else the documented
-port Host (``cek_host.Host``). Tokens stay port-Host hex+HMAC so Channel
-sealed-args / once / oracle remain stateful (host-json is a fresh Host
-per call). ``cek_surface`` is compose only — not a kernel.
+The Cap machine is **cek-runtime Host** (ADR 0008 / 0010). Mint / verify
+owner is the documented port Host (``cek_host.Host``) — one machine on
+``registry._caps``. ``CEK_BIN`` / rust_wrap is kernel reachability only
+(host-json is a fresh Host per call). ``cek_surface`` is compose only.
 
 Channel ops stay classic IR 0.1. S pairs only go through cek.project.
 EffectGraph is L7 pre-project after Cap (see ``after_cek_cut2``).
@@ -67,10 +66,11 @@ def require_cek_min() -> None:
 
 
 class CekHostCapService:
-    """CapService-shaped façade over cek-runtime Host (port and/or rust_wrap).
+    """CapService-shaped façade over cek-runtime Host.
 
-    Always seals args. Tokens are the documented port Host (hex+HMAC), not
-    itsdangerous. ``kernel_ssot`` is always ``cek-runtime``.
+    One mint / verify owner: the documented port Host (hex+HMAC), not
+    itsdangerous and not a sibling ``RustHostKernel``. ``kernel_ssot`` is
+    always ``cek-runtime``.
     """
 
     def __init__(
@@ -256,7 +256,7 @@ def apply_host_adapter(registry: Any, config: Any) -> str:
     if mode == "require":
         registry._caps = adapted
         log.info(
-            "cek=require: CapService → %s Host (%s, ADR %s)",
+            "cek=require: CapService → %s Host (mint owner=port Host, %s, ADR %s)",
             KERNEL_SSOT,
             adapted.backend,
             KERNEL_SSOT_ADR,
