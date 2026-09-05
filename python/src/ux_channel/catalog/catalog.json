@@ -32,22 +32,16 @@
     "verify": "verify",
     "hash_args": "hash_args",
     "CapError": "CapError",
-    "Intent": "Intent",
-    "HostRuntime": "HostRuntime",
-    "PeerApply": "PeerApply",
-    "PeerRuntime": "PeerRuntime",
-    "project": "project",
-    "ProofService": "ProofService"
+    "Intent": "Intent"
   },
   "package_docs": {
     "agent_runtime": "AgentRunner, policy, session, peer, tool_audit \u2014 non-human callers.",
     "api": "Curated application exports \u2014 same objects as package root.",
-    "arch": "EffectGraph, project, proofs, stamps, FlowStore, HostRuntime, PeerApply/PeerRuntime \u2014 L2 host-adjacent; classic floor.",
     "asgi": "FastAPI / Starlette mount_channel adapters.",
     "bridge": "Island contracts, scaffold, guest runtime (singular package).",
     "bridges": "npm / fx / ui preset data (plural). Prefer preset gen over hand copies.",
     "catalog": "Generated package navigator (do not hand-edit catalog.json).",
-    "cek": "Channel wrap of cek-runtime Host (default cek=require). cek=off is the explicit escape. SSoT is cek-runtime (ADR 0008/0009/0010).",
+    "cek": "Channel wrap of cek-runtime Host (default cek=require). Cap machine = cek-runtime only (ADR 0008\u20130011). cek=off is the explicit escape.",
     "components": "Optional Channel component kit (not default UI path).",
     "devtools": "Audit, CLI, observability, codegen \u2014 L5 free to churn.",
     "foundations": "Quantity, provenance, io_channel \u2014 shared non-UI primitives.",
@@ -71,7 +65,6 @@
     "render": "L2",
     "security": "L2",
     "api": "L2",
-    "arch": "L2",
     "wire": "L3",
     "asgi": "L3",
     "transport": "L3",
@@ -101,19 +94,6 @@
       "tools": "ux_channel.agent_runtime.tools"
     },
     "api": {},
-    "arch": {
-      "attach": "ux_channel.arch.attach",
-      "dispatch": "ux_channel.arch.dispatch",
-      "drivers": "ux_channel.arch.drivers",
-      "effects": "ux_channel.arch.effects",
-      "flow_store": "ux_channel.arch.flow_store",
-      "host_runtime": "ux_channel.arch.host_runtime",
-      "modes": "ux_channel.arch.modes",
-      "peer": "ux_channel.arch.peer",
-      "project": "ux_channel.arch.project",
-      "proof": "ux_channel.arch.proof",
-      "stamps": "ux_channel.arch.stamps"
-    },
     "asgi": {
       "core": "ux_channel.asgi.core",
       "enhance_routes": "ux_channel.asgi.enhance_routes",
@@ -154,6 +134,7 @@
     "catalog": {},
     "cek": {
       "config": "ux_channel.cek.config",
+      "effects": "ux_channel.cek.effects",
       "encode": "ux_channel.cek.encode",
       "host_adapter": "ux_channel.cek.host_adapter",
       "layer_honesty": "ux_channel.cek.layer_honesty",

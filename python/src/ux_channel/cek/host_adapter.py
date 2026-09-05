@@ -1,10 +1,10 @@
-"""CapService façade → cek-runtime Host (cut #3).
+"""CapService façade → cek-runtime Host (cut #4).
 
 off     — this module is not imported (explicit escape).
 adapt   — Host on registry._cek_caps; Channel CapService stays authority.
 require — registry._caps is this façade. One Cap machine (default).
 
-The Cap machine is **cek-runtime Host** (ADR 0008 / 0010). Mint / verify
+The Cap machine is **cek-runtime Host** (ADR 0008 / 0010 / 0011). Mint / verify
 owner is the documented port Host (``cek_host.Host``) — one machine on
 ``registry._caps``. ``CEK_BIN`` / rust_wrap is kernel reachability only
 (host-json is a fresh Host per call). ``cek_surface`` is compose only.
@@ -195,19 +195,25 @@ def after_cek_cut2(intent: Any, result: Any) -> Any:
     * ``flow_id`` → ``meta.trace`` (correlation only)
     * hello → Profile / Manifest on result.meta (handshake; not Cap)
     * ``_graph`` without a present Cap is refused (EffectGraph is L7 after Cap)
+    * ``_graph`` with a present Cap is projected to classic-floor ops
     """
     if not isinstance(result, Result):
         return result
     cap = getattr(intent, "cap", None)
-    if result.meta and "_graph" in result.meta and not cap:
-        result.meta.pop("_graph", None)
-        result.ops = []
-        result.ok = False
-        result.error = ErrorObject(
-            code="forbidden",
-            message="EffectGraph is L7 pre-project after Cap only",
-        )
-        return result
+    if result.meta and "_graph" in result.meta:
+        if not cap:
+            result.meta.pop("_graph", None)
+            result.ops = []
+            result.ok = False
+            result.error = ErrorObject(
+                code="forbidden",
+                message="EffectGraph is L7 pre-project after Cap only",
+            )
+            return result
+        from ux_channel.cek.effects import project_graph
+
+        g = result.meta.pop("_graph")
+        result.ops = project_graph(g)
 
     meta_in = getattr(intent, "meta", None) or {}
     args = getattr(intent, "args", None) or {}

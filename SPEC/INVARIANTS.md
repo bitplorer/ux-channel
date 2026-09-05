@@ -54,7 +54,7 @@ these must not, except via a major IR version (see `BREAKING_CHANGE_POLICY.md`).
 |-----------|-----------|
 | 1–5 | `validate_json_vectors.py` + types + `uxc_check` |
 | 6–9 | `uxc_check` peer edges + unit tests in `peer` / `cap` |
-| 10 | `test_arch_e2e.py` + Rust `once_replay_fails` / integration `once_cap_replay_unauthorized` |
+| 10 | `test_cek_runtime_host.py` + Rust `once_replay_fails` / integration `once_cap_replay_unauthorized` |
 | 11–12 | `actions` unit tests + `uxc_check` edges |
 | 13–16 | `peer.handle_json` + health JSON + HTTP status mapping + CXB suite |
 

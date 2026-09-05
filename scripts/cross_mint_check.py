@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Prove Python CapService and Rust uxc_peer share cap crypto.
+"""Prove Channel/cek-runtime Host mints; Rust Peer only verifies.
 
 Requires live peer (demo oracle). Exit 0 on success.
   UXC peer must use the same oracle secret (startup-peer.sh).
+  Peer has no POST /ux-channel/mint (ADR 0011).
 """
 from __future__ import annotations
 
@@ -13,7 +14,7 @@ import urllib.request
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "python"))
+sys.path.insert(0, str(ROOT / "python" / "src"))
 
 from ux_channel.protocol.capability import CapService  # noqa: E402
 
@@ -40,14 +41,52 @@ def http_json(method: str, path: str, body=None):
             return e.code, {"raw": raw}
 
 
+def _channel_host_mint(action: str, args: dict) -> str:
+    """Mint on the product Cap machine (cek-runtime Host)."""
+    from ux_channel.host.factory import create_channel
+
+    reg, _hub = create_channel(
+        secret=ORACLE,
+        environment="development",
+        app=None,
+        host=None,
+    )
+    caps = reg._caps
+    if type(caps).__name__ != "CekHostCapService":
+        raise SystemExit(f"cross_mint: Cap machine is {type(caps).__name__}, want CekHostCapService")
+    if getattr(caps, "kernel_ssot", None) != "cek-runtime":
+        raise SystemExit("cross_mint: kernel_ssot is not cek-runtime")
+    token = reg.mint(action, args)
+    caps.verify(token, action, args)
+    return token
+
+
 def main() -> int:
-    svc = CapService(ORACLE, max_age=3600)
     st, _ = http_json("GET", "/ux-channel/health")
     if st != 200:
         print("cross_mint: peer not healthy", st, file=sys.stderr)
         return 1
 
-    # Python → Rust
+    st_mint, mint_body = http_json(
+        "POST",
+        "/ux-channel/mint",
+        {"action": "Cart.add", "args": {"sku": "must-404", "qty": 1}},
+    )
+    if st_mint not in (404, 405):
+        print("cross_mint: peer mint must be gone", st_mint, mint_body, file=sys.stderr)
+        return 1
+
+    try:
+        _channel_host_mint("Cart.add", {"sku": "cross-host", "qty": 1})
+    except SystemExit:
+        raise
+    except Exception as exc:
+        print("cross_mint: Channel/cek-runtime Host mint failed:", exc, file=sys.stderr)
+        return 1
+
+    # Classic floor tokens still verify on the Rust peer (shared itsdangerous).
+    # Peer does not mint.
+    svc = CapService(ORACLE, max_age=3600)
     args = {"sku": "cross-py", "qty": 2}
     token = svc.mint("Cart.add", args, sub="user:cross", scopes=["cart:write"])
     st, result = http_json(
@@ -56,30 +95,10 @@ def main() -> int:
         {"v": "1", "action": "Cart.add", "args": args, "cap": token},
     )
     if st != 200 or not result.get("ok"):
-        print("cross_mint: Rust rejected Python cap", st, result, file=sys.stderr)
+        print("cross_mint: Rust rejected classic-floor cap", st, result, file=sys.stderr)
         return 1
 
-    # Rust → Python
-    st, mint = http_json(
-        "POST",
-        "/ux-channel/mint",
-        {
-            "action": "Cart.add",
-            "args": {"sku": "cross-rs", "qty": 3},
-            "sub": "user:rs",
-            "scopes": ["cart:write"],
-        },
-    )
-    token2 = (mint or {}).get("cap") or (mint or {}).get("token")
-    if st != 200 or not token2:
-        print("cross_mint: mint failed", st, mint, file=sys.stderr)
-        return 1
-    out = svc.verify(token2, action="Cart.add", args={"sku": "cross-rs", "qty": 3})
-    if out.get("action") != "Cart.add":
-        print("cross_mint: Python rejected Rust cap", out, file=sys.stderr)
-        return 1
-
-    print("cross_mint: Python↔Rust cap interop OK")
+    print("cross_mint: Channel Host mint + Rust Peer verify-only OK")
     return 0
 
 

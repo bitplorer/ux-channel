@@ -57,38 +57,23 @@ curl -sS http://127.0.0.1:8787/ux-channel/health | python3 -m json.tool
 | `policy.present_cap_must_verify` | Always true on this peer |
 | `policy.once_jti_enforced` | `true` — jti consume is live |
 
-### 2.2 `POST /ux-channel/mint` (dev)
+### 2.2 Mint (Channel / cek-runtime Host — not the Peer)
 
-**Does:** Mint a cap with the **same secret** the peer verifies.
+Peer is **verify-only**. Mint on Channel (`registry.mint` / `CekHostCapService`)
+or classic `CapService` when that machine is the test subject.
 
-```bash
-curl -sS -X POST http://127.0.0.1:8787/ux-channel/mint \
-  -H 'Content-Type: application/json' \
-  -d '{"action":"Cart.add","args":{"sku":"abc-123","qty":2},"sub":"user:42","scopes":["cart:write"]}'
+```python
+from ux_channel import Channel, ChannelConfig
+ch = Channel.boot(config=ChannelConfig.development(secret="dev-" + "x" * 32))
+cap = ch.registry.mint("Cart.add", {"sku": "abc-123", "qty": 2})
 ```
-
-**Request fields:**
-
-| Field | Required | Meaning |
-|-------|----------|---------|
-| `action` | no (default `Cart.add`) | Action name sealed into token |
-| `args` | no (default `{}`) | Sealed args (hashed) |
-| `sub` | no | Principal claim |
-| `scopes` | no | Scope list |
-
-**Success body:** `{ "ok": true, "cap": "<token>", "action": "...", "args": {...} }`  
-**Protect in production** (firewall, auth, or disable).
 
 ### 2.3 `POST /ux-channel/action` (main product path)
 
 **Does:** Intent → (cap gate) → action → Result.
 
 ```bash
-# 1) mint
-CAP=$(curl -sS -X POST http://127.0.0.1:8787/ux-channel/mint \
-  -H 'Content-Type: application/json' \
-  -d '{"action":"Cart.add","args":{"sku":"abc-123","qty":2}}' | python3 -c 'import sys,json; print(json.load(sys.stdin)["cap"])')
-
+# 1) mint via Channel / classic CapService (Peer has no /mint)
 # 2) action
 curl -sS -D- -X POST http://127.0.0.1:8787/ux-channel/action \
   -H 'Content-Type: application/ux-channel+json' \
@@ -185,12 +170,7 @@ rust/src/
   types.rs        Intent, ResultDoc, Op, ErrorObject, Trace  [PERMANENT]
   wire_json.rs    JSON encode/decode + canonical JSON        [PERMANENT]
   cap.rs          mint/verify (itsdangerous-compatible)      [PERMANENT API]
-  host.rs         HostRuntime (project, proofs, flow)        [PERMANENT]
-  project.rs      pure project(auto|classic)                 [PERMANENT]
-  apply.rs        PeerApply kernel (no DOM)                  [PERMANENT]
-  runtime.rs      PeerRuntime + Loopback                     [PERMANENT]
-  proof.rs        effect proofs (Cap key ≠ proof key)        [PERMANENT]
-  peer.rs         classic Intent → cap → demo actions        [PERMANENT gate]
+  peer.rs         classic Intent → cap verify → demo actions [PERMANENT gate]
   actions.rs      Cart / Counter demo handlers               [MOVING]
   bin/uxc_peer.rs HTTP transport + demo HTML                 [MOVING]
   bin/uxc_check.rs conformance runner                        [MOVING surface, permanent duty]
@@ -198,9 +178,7 @@ rust/src/
 
 | Call path | Functions |
 |-----------|-----------|
-| Architecture host | `HostRuntime::handle_intent` / `handle_json` |
-| Architecture apply | `PeerApply::apply_result` / `PeerRuntime::on_result` |
-| Classic demo gate | `Peer::handle_json` / `Peer::handle_intent` |
+| Classic demo gate | `Peer::handle_json` / `Peer::handle_intent` (verify-only) |
 | Domain only | `actions::dispatch` |
 | Cap only | `CapService::mint` / `verify` |
 | CXB only | `encode_cxb` / `decode_cxb` / `is_cxb` |
@@ -230,7 +208,6 @@ Caps still run in `peer` — **never** reimplement verify inside the handler.
 | Cap | `01-valid-notes.md`, `02-oracle-token.json` | Algorithm notes + concrete oracle token |
 | Trace | `01`–`03` | Optional causal spine; missing trace still valid |
 | Handshake | `01-surface-hello` | Optional surface advertisement (Phase 1.5+) |
-| Arch | `project-*`, `apply-budget`, `flow-meta-ignored` | Classic floor, auto seq, agent-only, budgets, flow is not authority |
 | CXB expected | `expected/cxb/*` (14 blobs) | Decode interop with Python oracle |
 
 Index: `conformance/manifest.json`.  
@@ -255,14 +232,12 @@ See [`python/README.md`](python/README.md).
 # peer must be up with allow-listed oracle for demo
 UXC_ALLOW_ORACLE_SECRET=1 UXC_PORT=8787 cargo run --bin uxc_peer
 
-# mint via peer (no itsdangerous required on host)
-python3 demos/python_forward/forward_to_rust.py --mint-via-peer --sku abc-123 --qty 2
+python3 demos/python_forward/forward_to_rust.py --sku abc-123 --qty 2
 ```
 
 | Flag | Does |
 |------|------|
 | `--base URL` | Peer base (default `http://127.0.0.1:8787`) |
-| `--mint-via-peer` | `POST /ux-channel/mint` instead of local itsdangerous |
 | `--sku` / `--qty` | Sealed Cart.add args |
 
 Exit `0` only if `result.ok`. Ops are printed unchanged.

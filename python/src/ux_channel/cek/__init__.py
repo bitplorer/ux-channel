@@ -1,4 +1,4 @@
-"""CEK adapter — Channel product over cek-runtime Host (cut #3).
+"""CEK adapter — Channel product over cek-runtime Host (cut #4).
 
 Channel stays the product (regions, classic IR, FastAPI). Kernel SSoT is
 **cek-runtime** ([ADR 0008](../../../../SPEC/architecture/ADR/0008-cek-runtime-kernel-ssot.md)).
@@ -12,8 +12,9 @@ require  mint/verify/once/sealed-args go through one cek-runtime Host
 
 ``cek_surface`` is Continuation compose only — not a kernel.
 Classic Result.ops stay Channel wire. EffectGraph is L7 pre-project after
-Cap only. ``flow_id`` maps to ``trace`` (correlation). hello/stamps encode
-as Profile/Manifest handshake — Manifest never grants Cap.
+Cap only (``after_cek_cut2``). ``flow_id`` maps to ``trace`` (correlation).
+hello/stamps encode as Profile/Manifest handshake — Manifest never grants
+Cap. No parallel ``arch`` / ``HostRuntime`` kernel.
 """
 
 from __future__ import annotations

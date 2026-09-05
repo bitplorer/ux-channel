@@ -8,6 +8,8 @@
 //!   (present-cap-must-verify — never silently ignored).
 //! - once/jti is enforced: mint_once tokens consume jti atomically before
 //!   handlers; no store → refuse (Peer::new installs MemoryNonceStore).
+//! - Peer is verify-only. Mint lives on Channel / cek-runtime Host
+//!   (or CapService when that machine is the test subject).
 
 use crate::actions;
 use crate::cap::{CapError, CapService};
@@ -105,17 +107,6 @@ impl Peer {
         self.caps
             .verify(token, &intent.action, &args_val)
             .map(|_| ())
-    }
-
-    /// Dev helper: mint a cap for sealed args (same secret as verifier).
-    pub fn mint_cap(
-        &self,
-        action: &str,
-        args: &Value,
-        sub: Option<&str>,
-        scopes: Option<&[String]>,
-    ) -> Result<String, CapError> {
-        self.caps.mint(action, args, sub, scopes)
     }
 
     /// Build a Result for wire-level failures, preserving action when parseable.

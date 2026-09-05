@@ -46,8 +46,8 @@ python3 -m pytest python/tests/gate/test_async_dispatch.py python/tests/gate/tes
 # Python — integration (Channel mint → dispatch)
 python3 -m pytest python/tests/integration -q
 
-# Architecture coverage floor
-python3 -m pytest python/tests/gate -q --cov=ux_channel.arch --cov-fail-under=80
+# Gate (includes cek-runtime Host proofs)
+python3 -m pytest python/tests/gate -q
 
 # Rust
 cd rust && cargo test --lib --tests && cd ..
@@ -62,11 +62,11 @@ cd rust && cargo run --bin uxc_check -- ../conformance && cd ..
 
 | Layer | Python | Rust |
 |-------|--------|------|
-| **Unit** | `tests/core`, `tests/gate` (incl. `test_arch_e2e.py`) | `cap`, `host`, `apply`, `project`, `peer`, `cxb` |
-| **Property** | Hypothesis: `test_cap_properties.py`, `test_arch_properties.py`, `tests/core/test_wire_properties.py`, `tests/foundations/test_properties.py` | proptest: `cap`, `wire_json`, `project`, `proof`, `apply` |
-| **Coverage** | `pytest --cov=ux_channel.arch --cov-fail-under=80` (in `./verify.sh`) | `cargo test --lib` exercises kernel/runtime modules |
+| **Unit** | `tests/core`, `tests/gate` (incl. `test_cek_runtime_host.py`) | `cap`, `peer`, `cxb` |
+| **Property** | Hypothesis: `test_cap_properties.py`, `tests/core/test_wire_properties.py`, `tests/foundations/test_properties.py` | proptest: `cap`, `wire_json` |
+| **Coverage** | gate pytest in `./verify.sh` | `cargo test --lib` exercises classic-floor modules |
 | **Integration** | `tests/integration/test_channel_dispatch.py` | `tests/integration_peer.rs` |
-| **Conformance** | `conformance/harness/` + `vectors/arch/` | `uxc_check` + `tests/arch_vectors.rs` |
+| **Conformance** | `conformance/harness/` (JSON + CXB) | `uxc_check` |
 | **CEK drop-in** | `test_cek_dropin_parity.py`, `test_cek_layer_honesty.py`, `test_async_dispatch.py` | — |
 | **Security** | `tests/security/` via `make verify-sec` | — |
 

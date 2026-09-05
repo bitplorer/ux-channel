@@ -110,7 +110,7 @@ def second_cap_owners(registry: Any) -> list[str]:
 
 
 def cap_machine_is_cek_runtime(registry: Any) -> bool:
-    """require Cap machine identity is cek-runtime Host, not arch HostRuntime."""
+    """require Cap machine identity is cek-runtime Host, not a second kernel."""
     caps = getattr(registry, "_caps", None)
     if caps is None:
         return False

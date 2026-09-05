@@ -1,10 +1,11 @@
 # Architecture extension (host kernel / peer kernel)
 
-**Status:** implemented in this repo. Classic IR 0.1 remains the permanent floor.
+**Status:** kernel SSoT is [cek-runtime](https://github.com/bitplorer/cek-runtime).
+The parallel `arch/` / Rust `HostRuntime` / `PeerApply` plane was deleted in
+[ADR 0011](ADR/0011-delete-parallel-arch-kernel-cut4.md) (cut #4).
 
-**Kernel SSoT:** [bitplorer/cek-runtime](https://github.com/bitplorer/cek-runtime). New kernel work in `arch/` / HostRuntime / PeerApply is frozen — [ADR 0008](ADR/0008-cek-runtime-kernel-ssot.md).
-
-This tree is the **opt-in architecture** on top of Cap 0.1 + Intent/Result/ops.
+Classic IR 0.1 remains the permanent floor. This tree is the Channel
+product (wire, caps, peers, host runtime façade) over that SSoT.
 It does **not** replace `SPEC/capability.md` or `SPEC/intent-result-ops.md`.
 
 ## Design spine (do not break)
@@ -13,12 +14,11 @@ It does **not** replace `SPEC/capability.md` or `SPEC/intent-result-ops.md`.
 Intent + Cap  → truth
 Result.ops    → effects only
 Classic IR    → permanent floor
-effects: auto | classic
-proofs: auto | require | off
-flow: auto | off   (meta.flow_id = correlation, NOT authority)
-Peer kernel   → no DOM; drivers hold web.v1
+Cap machine   → cek-runtime Host only (Channel wrap)
+flow_id       → trace (correlation, NOT authority)
+Peer gate     → verify-only (no mint)
 once/jti      → atomic before side effects; no store → refuse
-Cap key ≠ proof key
+EffectGraph   → L7 after Cap (after_cek_cut2), not L1
 ```
 
 ## Reading order
@@ -31,21 +31,20 @@ Cap key ≠ proof key
 6. [ADR/0008-cek-runtime-kernel-ssot.md](ADR/0008-cek-runtime-kernel-ssot.md)
 7. [ADR/0009-channel-cek-runtime-host-cut2.md](ADR/0009-channel-cek-runtime-host-cut2.md)
 8. [ADR/0010-channel-cek-runtime-default-cut3.md](ADR/0010-channel-cek-runtime-default-cut3.md)
-9. [project.md](project.md) · [proof.md](proof.md) · [flow.md](flow.md) · [budgets.md](budgets.md) · [concurrency.md](concurrency.md)
-10. [peer-kernel.md](peer-kernel.md) · [host-kernel.md](host-kernel.md) · [runtime-peer.md](runtime-peer.md) · [runtime-host.md](runtime-host.md)
-11. [profiles/](profiles/) · [inventory.md](inventory.md) · [non-goals.md](non-goals.md)
+9. [ADR/0011-delete-parallel-arch-kernel-cut4.md](ADR/0011-delete-parallel-arch-kernel-cut4.md)
+10. [project.md](project.md) · [proof.md](proof.md) · [flow.md](flow.md) · [budgets.md](budgets.md) · [concurrency.md](concurrency.md)
+11. [peer-kernel.md](peer-kernel.md) · [host-kernel.md](host-kernel.md) · [runtime-peer.md](runtime-peer.md) · [runtime-host.md](runtime-host.md)
+12. [profiles/](profiles/) · [inventory.md](inventory.md) · [non-goals.md](non-goals.md)
 
 ## Code map
 
 | Layer | Path |
 |-------|------|
-| Host kernel | `rust/src/{cap,nonce,registry,effects,project,proof}.rs` + Python `arch/` |
-| Host runtime | `rust/src/host.rs` `HostRuntime` · Python `arch/host_runtime.py` |
-| Peer kernel | `rust/src/apply.rs` `PeerApply` · Python `arch/peer.py` · JS `ux-peer-kernel.js` |
-| Peer runtime | `rust/src/runtime.rs` `PeerRuntime` · Python `PeerRuntime` |
-| Channel attach (power) | `arch/attach.py` — `emit_graph` / `set_hello` / `grant_stamp` |
-| JS apply (DOM client) | `static/ux-channel.js` — seq / timer / invoke / peerHello |
-| Rust peer **gate** (classic) | `rust/src/peer.rs` — Intent → cap → demo actions (`uxc_peer`) |
+| Cap machine | cek-runtime Host via `python/src/ux_channel/cek/` (`CekHostCapService`) |
+| Classic Peer gate | `rust/src/peer.rs` — Intent → cap verify → demo actions (`uxc_peer`) |
+| Classic floor | `rust/src/{types,wire_json,cxb,actions,op_tags,cap,nonce}.rs` |
+| EffectGraph (L7) | `cek/effects.py` + `after_cek_cut2` (Cap-gated; not L1) |
+| JS apply (DOM client) | `static/ux-channel.js` / `static/ux-peer-*.js` |
 | Rust once/jti | `rust/src/nonce.rs` + `CapService::mint_once` / verify consume |
 | Redis nonce | `ux_channel.redis_extra.RedisNonceStore` (SET NX EX, fail-closed) |
 
@@ -55,8 +54,8 @@ Classic clients that do not send `meta.hello` receive classic ops only.
 
 | Suite | What |
 |-------|------|
-| `python/tests/gate/test_arch_e2e.py` | HostRuntime + PeerApply + Channel attach on production CapService |
-| `conformance/vectors/arch/` | Golden project/budget/flow fixtures (`validate_arch_vectors.py`) |
-| `rust` `cargo test --lib --tests` | HostRuntime, PeerApply, PeerRuntime, `tests/arch_vectors.rs` |
+| `python/tests/gate/test_cek_runtime_host.py` | Cap = `CekHostCapService` / `kernel_ssot=cek-runtime`; no `ux_channel.arch` |
+| `python/tests/gate/test_cek_layer_honesty.py` | one Cap machine; off imports nothing |
+| `rust` `cargo test --lib --tests` | classic floor + Peer verify-only |
 
 Classic clients that omit `meta.hello` stay on flattened classic ops.

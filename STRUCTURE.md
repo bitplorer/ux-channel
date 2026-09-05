@@ -3,8 +3,8 @@
 ```text
 ux-channel/
   SPEC/                 IR / cap + SPEC/architecture/
-  conformance/          Golden vectors + CXB + vectors/arch
-  rust/                 HostRuntime + PeerApply + classic Peer gate + CXB
+  conformance/          Golden vectors + CXB
+  rust/                 classic Peer gate (verify-only) + CXB
   python/src/ux_channel Host library (application runtime)
   python/tests/gate     Interop + layout freeze (CI)
   python/tests/*        Host suites (regions, state, security, …)
@@ -20,7 +20,7 @@ ux-channel/
 |--------------------------------|-------------------------|
 | `SPEC/`, `conformance/` | `demos/`, tutorial examples |
 | `python/src/ux_channel/{protocol,host,render,security,api}` | L5 tooling UI, dashboard chrome |
-| `rust/` HostRuntime / PeerApply / peer gate | Demo HTML in `uxc_peer` |
+| `rust/` classic Peer gate (verify-only) | Demo HTML in `uxc_peer` |
 | Public freeze names | Scaffold templates |
 
 ## Python package map (intent → package)

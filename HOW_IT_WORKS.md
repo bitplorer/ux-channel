@@ -240,7 +240,7 @@ Nothing is reordered; each step either continues or returns a Result error.
 ```mermaid
 flowchart TD
   S([Start: client wants Cart.add]) --> M{Has a cap token?}
-  M -->|no| MINT[Mint: POST /ux-channel/mint<br/>or local itsdangerous with same secret]
+  M -->|no| MINT[Mint: Channel / cek-runtime Host<br/>or classic CapService with same secret]
   MINT --> BUILD
   M -->|yes| BUILD[Build Intent JSON<br/>v, action, args, cap]
   BUILD --> POST[POST /ux-channel/action<br/>Content-Type: application/ux-channel+json]
@@ -486,7 +486,6 @@ flowchart TD
 | `GET` | `/` | Interactive demo HTML | — | Moving demo |
 | `GET` | `/ux-channel/health` | Capability advertisement | — | Always |
 | `POST` | `/ux-channel/action` | **Main product path** Intent→Result | Intent | Always |
-| `POST` | `/ux-channel/mint` | Dev mint cap with peer secret | `{action,args,…}` | Demo/dev; protect or disable in prod |
 | `OPTIONS` | `*` | CORS preflight | — | Browser demos |
 
 Default bind: host `0.0.0.0`, port `8787` (`UXC_HOST` / `UXC_PORT`).

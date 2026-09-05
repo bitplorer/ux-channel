@@ -29,8 +29,7 @@ ux_channel/
   devtools/         audit, CLI, observability
   catalog/          package navigator (GENERATED catalog.json)
   PACKAGE_MAP.json  packages inventory; modules/count are derived
-  arch/             EffectGraph, project, proofs, stamps, HostRuntime (L2; not root)
-  cek/              wrap of cek-runtime Host (L3; default cek=require; cek=off imports nothing)
+  cek/              wrap of cek-runtime Host (L3; default cek=require; Cap machine only; cek=off imports nothing)
 ```
 
 **Forbidden package names (must not reappear):**  

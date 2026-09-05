@@ -4,7 +4,7 @@ Channel wire (toast, navigate, …) is the product floor. Only pairs in S
 are legal on a CEK Host. Everything else stays on the Channel peer.
 
 EffectGraph is **not** L1 and is **not** projected here. Graph → ops is
-L7 pre-project after Cap (``arch.attach`` after-hook / ``after_cek_cut2``).
+L7 pre-project after Cap (``after_cek_cut2`` / ``cek.effects.project_graph``).
 """
 
 from __future__ import annotations

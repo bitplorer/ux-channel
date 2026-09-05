@@ -2,7 +2,8 @@
 """Minimal Python → Rust peer forward.
 
 Sends one hot action (Cart.add) to the Rust HTTP peer and returns Result.ops
-unchanged to the caller. No dependency on the full ux-channel package.
+unchanged to the caller. Mint is Channel / cek-runtime Host when available,
+else local itsdangerous (classic floor). Peer is verify-only (no /mint).
 
 Usage:
   # terminal A (demo secret — see OPERATIONAL.md)
@@ -11,7 +12,6 @@ Usage:
   # terminal B
   python3 demos/python_forward/forward_to_rust.py
   python3 demos/python_forward/forward_to_rust.py --base http://127.0.0.1:8787
-  python3 demos/python_forward/forward_to_rust.py --mint-via-peer
 """
 from __future__ import annotations
 
@@ -39,9 +39,9 @@ def hash_args(args: dict[str, Any]) -> str:
 
 
 def mint_cap_python(action: str, args: dict[str, Any], *, sub: str = "user:42") -> str:
-    """Mint with itsdangerous when available; otherwise ask Rust /ux-channel/mint."""
+    """Classic-floor itsdangerous mint (same tokens Rust Peer verifies)."""
     if URLSafeTimedSerializer is None:
-        raise RuntimeError("itsdangerous not installed; use --mint-via-peer")
+        raise RuntimeError("itsdangerous not installed")
     import time
 
     ser = URLSafeTimedSerializer(secret_key=ORACLE_SECRET, salt=SALT)
@@ -53,23 +53,6 @@ def mint_cap_python(action: str, args: dict[str, Any], *, sub: str = "user:42") 
         "scopes": ["cart:write"],
     }
     return ser.dumps(payload)
-
-
-def mint_via_peer(base: str, action: str, args: dict[str, Any]) -> str:
-    body = json.dumps(
-        {"action": action, "args": args, "sub": "user:42", "scopes": ["cart:write"]}
-    ).encode()
-    req = urllib.request.Request(
-        f"{base.rstrip('/')}/ux-channel/mint",
-        data=body,
-        headers={"Content-Type": "application/json"},
-        method="POST",
-    )
-    with urllib.request.urlopen(req, timeout=5) as resp:
-        doc = json.loads(resp.read().decode())
-    if not doc.get("ok"):
-        raise RuntimeError(f"mint failed: {doc}")
-    return doc["cap"]
 
 
 def forward_intent(base: str, intent: dict[str, Any]) -> dict[str, Any]:
@@ -88,7 +71,6 @@ def forward_intent(base: str, intent: dict[str, Any]) -> dict[str, Any]:
         with urllib.request.urlopen(req, timeout=5) as resp:
             return json.loads(resp.read().decode())
     except urllib.error.HTTPError as e:
-        # Peer returns Result-shaped bodies even on 4xx.
         body = e.read().decode()
         try:
             return json.loads(body)
@@ -99,25 +81,19 @@ def forward_intent(base: str, intent: dict[str, Any]) -> dict[str, Any]:
 def main() -> int:
     ap = argparse.ArgumentParser(description="Forward Cart.add to Rust ux-channel peer")
     ap.add_argument("--base", default=DEFAULT_BASE, help="Rust peer base URL")
-    ap.add_argument(
-        "--mint-via-peer",
-        action="store_true",
-        help="mint via POST /ux-channel/mint instead of local itsdangerous",
-    )
     ap.add_argument("--sku", default="abc-123")
     ap.add_argument("--qty", type=int, default=2)
     args = ap.parse_args()
 
     sealed = {"sku": args.sku, "qty": args.qty}
-    if args.mint_via_peer:
-        cap = mint_via_peer(args.base, "Cart.add", sealed)
-    else:
-        try:
-            cap = mint_cap_python("Cart.add", sealed)
-        except RuntimeError as e:
-            print(e, file=sys.stderr)
-            print("hint: pip install itsdangerous  or pass --mint-via-peer", file=sys.stderr)
-            return 2
+    # Classic-floor token for the Rust Peer hop (Peer is verify-only).
+    # Product mint is Channel / cek-runtime Host — see scripts/cross_mint_check.py.
+    try:
+        cap = mint_cap_python("Cart.add", sealed)
+    except RuntimeError as e:
+        print(e, file=sys.stderr)
+        print("hint: pip install itsdangerous", file=sys.stderr)
+        return 2
 
     intent = {
         "v": "1",

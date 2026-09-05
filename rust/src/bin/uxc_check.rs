@@ -313,7 +313,8 @@ fn check_peer_inprocess() -> Result<usize, String> {
     let peer = Peer::with_oracle();
     let args = json!({"sku": "abc-123", "qty": 2});
     let cap = peer
-        .mint_cap(
+        .caps
+        .mint(
             "Cart.add",
             &args,
             Some("user:42"),
@@ -413,7 +414,7 @@ fn check_peer_edges() -> Result<usize, String> {
     n += 1;
 
     let args = json!({"sku":"a","qty":"2"});
-    let cap = peer.mint_cap("Cart.add", &args, None, None).map_err(|e| e.to_string())?;
+    let cap = peer.caps.mint("Cart.add", &args, None, None).map_err(|e| e.to_string())?;
     let out = peer
         .handle_json(
             &serde_json::to_vec(&json!({
@@ -436,7 +437,7 @@ fn check_peer_edges() -> Result<usize, String> {
     );
     map.insert("qty".into(), json!(1));
     let args = Value::Object(map);
-    let cap = peer.mint_cap("Cart.add", &args, None, None).map_err(|e| e.to_string())?;
+    let cap = peer.caps.mint("Cart.add", &args, None, None).map_err(|e| e.to_string())?;
     let out = peer
         .handle_json(
             &serde_json::to_vec(&json!({
@@ -476,7 +477,8 @@ fn check_http_peer(base: &str) -> Result<usize, String> {
     let peer = Peer::with_oracle();
     let args = json!({"sku": "abc-123", "qty": 2});
     let cap = peer
-        .mint_cap(
+        .caps
+        .mint(
             "Cart.add",
             &args,
             Some("user:42"),

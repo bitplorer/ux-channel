@@ -1,4 +1,4 @@
-"""Cut #3: default decide is cek-runtime Host (not arch HostRuntime).
+"""Cut #4: Cap machine is cek-runtime Host only (no arch / HostRuntime).
 
 Skipped when wrap packages are missing so a bare tree can still collect.
 Rust wrap reachability runs only when CEK_BIN points at cek-runtime ``cek host-json``.
@@ -6,6 +6,7 @@ Rust wrap reachability runs only when CEK_BIN points at cek-runtime ``cek host-j
 
 from __future__ import annotations
 
+import importlib.util
 import os
 import sys
 from pathlib import Path
@@ -47,6 +48,13 @@ def _boot(mode: str, **cfg_kw):
     return Channel.boot(FastAPI(), config=cfg)
 
 
+def test_arch_package_is_gone():
+    """No ux_channel.arch import — Cap machine is not a parallel kernel."""
+    assert importlib.util.find_spec("ux_channel.arch") is None
+    with pytest.raises(ImportError):
+        import ux_channel.arch  # noqa: F401
+
+
 def test_require_cap_machine_is_cek_runtime_host():
     ch = _boot("require")
     caps = ch.registry._caps
@@ -55,22 +63,20 @@ def test_require_cap_machine_is_cek_runtime_host():
     assert caps.kernel_ssot_adr == KERNEL_SSOT_ADR
     assert caps.name == "cek-runtime.Host"
     assert caps.backend in ("rust_wrap", "port_host")
-    # Documented port Host is the one mint/verify owner.
     assert type(caps.host).__name__ == "Host"
     assert caps.runtime_kernel is None
-    # arch HostRuntime is bootable but is not the Cap machine.
-    from ux_channel.arch.host_runtime import HostRuntime
-
-    assert not isinstance(caps, HostRuntime)
-    assert not isinstance(caps.host, HostRuntime)
+    assert "arch" not in type(caps).__module__
+    assert "arch" not in type(caps.host).__module__
+    assert not hasattr(ch, "emit_graph")
+    assert not hasattr(ch, "set_hello")
+    assert not hasattr(ch, "grant_stamp")
 
 
 def test_default_boot_cap_authority_is_cek_runtime_host():
-    """Channel.boot default decide is the cek-runtime Host façade (ADR 0010)."""
+    """Channel.boot default decide is the cek-runtime Host façade (ADR 0010/0011)."""
     from fastapi import FastAPI
 
     from ux_channel import Channel, ChannelConfig
-    from ux_channel.arch.host_runtime import HostRuntime
 
     cfg = ChannelConfig.development(
         secret=SECRET,
@@ -85,8 +91,6 @@ def test_default_boot_cap_authority_is_cek_runtime_host():
     assert caps.name == "cek-runtime.Host"
     assert type(caps.host).__name__ == "Host"
     assert caps.runtime_kernel is None
-    assert not isinstance(caps, HostRuntime)
-    assert not isinstance(caps.host, HostRuntime)
 
 
 def test_factory_fallback_default_require():
@@ -116,25 +120,6 @@ def test_single_mint_verify_owner():
     assert caps.runtime_kernel is None
     tok = caps.mint("Cart.add", {"sku": "x"})
     assert caps.verify(tok, "Cart.add", {"sku": "x"})
-
-
-def test_arch_e2e_still_boots_alongside_require():
-    from ux_channel.arch import HostConfig, HostRuntime, graph, toast
-
-    ch = _boot("require")
-    host = HostRuntime(
-        cap_secret="0123456789abcdef",
-        proof_secret="proof-secret-16b!",
-        config=HostConfig(demo_mode=True, require_cap=False),
-    )
-    host.set_hello("s1", {"profiles": ["web.v1"], "features": ["seq"]})
-    result = host.emit_from_graph(graph(toast("hi")), session_id="s1")
-    assert result["ok"] is True
-    # Parallel kernel lives; it is not registry._caps.
-    assert ch.registry._caps.kernel_ssot == "cek-runtime"
-    assert hasattr(ch, "emit_graph")
-    assert hasattr(ch, "set_hello")
-    assert hasattr(ch, "grant_stamp")
 
 
 def test_classic_ir_without_hello_still_dispatches_on_require():
@@ -201,7 +186,7 @@ def test_effect_graph_refused_without_cap_on_require():
     from fastapi import FastAPI
 
     from ux_channel import Channel, ChannelConfig
-    from ux_channel.arch.effects import graph, toast
+    from ux_channel.cek.effects import graph, toast
 
     cfg = ChannelConfig.development(
         secret=SECRET,
@@ -226,7 +211,7 @@ def test_effect_graph_projects_after_cap_on_require():
     from fastapi import FastAPI
 
     from ux_channel import Channel, ChannelConfig
-    from ux_channel.arch.effects import graph, toast
+    from ux_channel.cek.effects import graph, toast
 
     cfg = ChannelConfig.development(
         secret=SECRET,
@@ -253,7 +238,6 @@ def test_python_cek_cli_is_not_runtime_bin():
     if fake.is_file():
         text = fake.read_text(encoding="utf-8")
         if "cek_host.cli" in text:
-            # Probe must reject this path even if it is named ``cek``.
             from ux_channel.cek.runtime_host import is_runtime_cek_bin
 
             assert is_runtime_cek_bin(str(fake)) is False
@@ -266,7 +250,6 @@ def test_require_records_rust_wrap_reachability_without_second_mint():
     assert caps.backend == "rust_wrap"
     assert caps.bin_path
     assert find_runtime_cek_bin()
-    # Dual mint closed: rust_wrap is not a sibling mint machine.
     assert caps.runtime_kernel is None
     tok = caps.mint("Cart.add", {"sku": "x"})
     assert caps.verify(tok, "Cart.add", {"sku": "x"})

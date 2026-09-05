@@ -2,7 +2,7 @@
 name = "ux_channel_rs"
 version = "0.1.0"
 edition = "2021"
-description = "Rust host+peer kernel/runtime for ux-channel IR 0.1"
+description = "Classic IR 0.1 floor: types, wire, CXB, cap verify, Peer gate"
 license = "MIT"
 readme = "README.md"
 
