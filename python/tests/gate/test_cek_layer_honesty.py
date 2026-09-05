@@ -6,6 +6,7 @@ import sys
 from pathlib import Path
 
 from ux_channel.cek.layer_honesty import (
+    cap_machine_is_cek_runtime,
     cek_surface_imports_ux_channel,
     channel_vendor_copy_hits,
     second_cap_owners,
@@ -63,6 +64,7 @@ def test_require_swaps_one_cap_machine():
     owners = second_cap_owners(ch.registry)
     assert len(owners) == 1
     assert "CekHostCapService" in owners[0]
+    assert cap_machine_is_cek_runtime(ch.registry)
 
 
 def test_classic_ir_needs_no_hello():

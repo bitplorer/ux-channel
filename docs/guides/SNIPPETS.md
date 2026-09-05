@@ -40,7 +40,7 @@ Every block is meant to run (or to be the exact fragment you drop into a running
 
 <a id="ch-install"></a>
 
-JSON is the floor. Caps authorize. Channel is the product; cek-host is optional (cek=off by default).
+JSON is the floor. Caps authorize. Channel is the product; cek-runtime Host is optional (`cek=off` by default).
 
 ```bash
 pip install "ux-channel[asgi]"

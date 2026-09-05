@@ -171,7 +171,7 @@ def create_channel(
 
         reg.before(rate_limit_hook(redis_limiter))  # type: ignore[arg-type]
 
-    # CEK Phase 1: Cap adapter (off = no import of cek_host).
+    # CEK adapter (off = no import of cek_host / rust_wrap).
     if mount_config is not None and getattr(mount_config, "cek", "off") != "off":
         from ux_channel.cek.host_adapter import apply_host_adapter
 

@@ -199,9 +199,9 @@ class ChannelConfig:
     proofs: str = "auto"  # auto | require | off
     flow: str = "auto"  # auto | off  (meta.flow_id = correlation only)
     proof_secret: Optional[str] = None
-    # CEK drop-in (Phase 1). off = today's path (zero new imports).
+    # CEK drop-in. off = today's path (zero new imports).
     # adapt = extra [cek] live, Channel Cap remains authority.
-    # require = Cap + enhance compose go through cek-host / cek-surface.
+    # require = Cap machine is cek-runtime Host (ADR 0008); surface = compose only.
     cek: str = "off"
     # Morph / toast HTML policy: off (default, ux-dom safe) | strict (strip script/on*).
     # Production factory leaves this off so ux-dom is not broken; doctor warns.

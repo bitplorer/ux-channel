@@ -51,7 +51,14 @@ def channel_vendor_copy_hits() -> list[str]:
         if "class Host:" in text and "cek_host" in text and "vendor" in text.lower():
             hits.append(str(rel))
     # Physical vendor trees
-    for name in ("cek_host", "cek_surface", "cek-host", "cek-surface"):
+    for name in (
+        "cek_host",
+        "cek_surface",
+        "cek-host",
+        "cek-surface",
+        "cek-runtime",
+        "cek_host_kernel",
+    ):
         if (CHANNEL_ROOT / name).exists():
             hits.append(name)
     return hits
@@ -93,3 +100,13 @@ def second_cap_owners(registry: Any) -> list[str]:
     module = type(caps).__module__ if caps is not None else ""
     owners.append(f"{module}.{name}")
     return owners
+
+
+def cap_machine_is_cek_runtime(registry: Any) -> bool:
+    """require Cap machine identity is cek-runtime Host, not arch HostRuntime."""
+    caps = getattr(registry, "_caps", None)
+    if caps is None:
+        return False
+    if type(caps).__name__ != "CekHostCapService":
+        return False
+    return getattr(caps, "kernel_ssot", None) == "cek-runtime"

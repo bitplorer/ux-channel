@@ -72,7 +72,7 @@ token = caps.mint("cart.add", {"sku": "tee"})
 `dispatch()` refuses async handlers — it will not nest an event loop.
 
 **CEK (optional):** `pip install "ux-channel[cek]"` then `ChannelConfig.development(..., cek="require")`.  
-Default remains `cek=off`. Channel stays the product; cek-host 0.1.3 is the Cap machine.
+Default remains `cek=off`. Channel stays the product; `cek=require` is cek-runtime Host ([ADR 0008](SPEC/architecture/ADR/0008-cek-runtime-kernel-ssot.md) / [0009](SPEC/architecture/ADR/0009-channel-cek-runtime-host-cut2.md)).
 
 | You want… | Open |
 |-----------|------|

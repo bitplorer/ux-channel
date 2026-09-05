@@ -1,10 +1,17 @@
-"""CapService façade → cek_host.Host (0.1.3+).
+"""CapService façade → cek-runtime Host (cut #2).
 
 off     — this module is not imported.
 adapt   — Host on registry._cek_caps; Channel CapService stays authority.
 require — registry._caps is this façade. One Cap machine.
 
+The Cap machine is **cek-runtime Host** (ADR 0008): ``RustHostKernel`` /
+``cek host-json`` when CEK_BIN is the runtime binary, else the documented
+port Host (``cek_host.Host``). Tokens stay port-Host hex+HMAC so Channel
+sealed-args / once / oracle remain stateful (host-json is a fresh Host
+per call). ``cek_surface`` is compose only — not a kernel.
+
 Channel ops stay classic IR 0.1. S pairs only go through cek.project.
+EffectGraph is L7 pre-project after Cap (see ``after_cek_cut2``).
 """
 
 from __future__ import annotations
@@ -13,8 +20,20 @@ import logging
 from typing import Any, Mapping, Optional, Sequence
 
 from ux_channel.cek.config import parse_cek, require_cek_installed
+from ux_channel.cek.encode import (
+    flow_id_to_trace,
+    hello_to_manifest,
+    hello_to_profile,
+    intent_trace,
+)
+from ux_channel.cek.runtime_host import (
+    KERNEL_SSOT,
+    KERNEL_SSOT_ADR,
+    bind_runtime_host,
+)
 from ux_channel.protocol.capability import CapError
 from ux_channel.protocol.capability import CapService as ChannelCapService
+from ux_channel.protocol.types import ErrorObject, Result
 
 log = logging.getLogger("ux_channel.cek.host_adapter")
 
@@ -48,9 +67,10 @@ def require_cek_min() -> None:
 
 
 class CekHostCapService:
-    """CapService-shaped façade over ``cek_host.Host``.
+    """CapService-shaped façade over cek-runtime Host (port and/or rust_wrap).
 
-    Always seals args. Tokens are cek-host (hex+HMAC), not itsdangerous.
+    Always seals args. Tokens are the documented port Host (hex+HMAC), not
+    itsdangerous. ``kernel_ssot`` is always ``cek-runtime``.
     """
 
     def __init__(
@@ -61,19 +81,21 @@ class CekHostCapService:
         previous_secrets: Optional[Sequence[str]] = None,
         nonce_store: Any = None,
     ) -> None:
-        from cek_host import Host, MemoryOnceBackend
-
-        raw = secret.encode("utf-8") if isinstance(secret, str) else bytes(secret)
-        self._host = Host(
-            secret=raw,
-            ttl_s=int(max_age or 3600),
-            once=MemoryOnceBackend(),
-            require_cap=True,
+        bind = bind_runtime_host(
+            secret,
+            max_age=int(max_age or 3600),
+            previous_secrets=previous_secrets,
         )
+        self._host = bind.host
+        self.runtime_kernel = bind.runtime_kernel
+        self.backend = bind.backend
+        self.kernel_ssot = bind.kernel_ssot
+        self.kernel_ssot_adr = bind.kernel_ssot_adr
+        self.bin_path = bind.bin_path
         self.max_age = int(max_age or 3600)
         self.nonce_store = nonce_store
         self.previous_secrets = tuple(previous_secrets or ())
-        self.name = "cek_host.Host"
+        self.name = "cek-runtime.Host"
 
     @property
     def host(self) -> Any:
@@ -167,6 +189,51 @@ class CekHostCapService:
         return await asyncio.to_thread(self.verify, token, action, args, **kw)
 
 
+def after_cek_cut2(intent: Any, result: Any) -> Any:
+    """Encoding + L7 EffectGraph gate. Registered on adapt|require.
+
+    * ``flow_id`` → ``meta.trace`` (correlation only)
+    * hello → Profile / Manifest on result.meta (handshake; not Cap)
+    * ``_graph`` without a present Cap is refused (EffectGraph is L7 after Cap)
+    """
+    if not isinstance(result, Result):
+        return result
+    cap = getattr(intent, "cap", None)
+    if result.meta and "_graph" in result.meta and not cap:
+        result.meta.pop("_graph", None)
+        result.ops = []
+        result.ok = False
+        result.error = ErrorObject(
+            code="forbidden",
+            message="EffectGraph is L7 pre-project after Cap only",
+        )
+        return result
+
+    meta_in = getattr(intent, "meta", None) or {}
+    args = getattr(intent, "args", None) or {}
+    if not isinstance(meta_in, Mapping):
+        meta_in = {}
+    if not isinstance(args, Mapping):
+        args = {}
+
+    fid = args.get("flow_id") or meta_in.get("flow_id")
+    if fid:
+        result.meta.setdefault("flow_id", str(fid))
+        tr = flow_id_to_trace(fid)
+        if tr:
+            result.meta.setdefault("trace", tr)
+    else:
+        tr = intent_trace(meta=meta_in, args=args)
+        if tr:
+            result.meta.setdefault("trace", tr)
+
+    hello = meta_in.get("hello") if isinstance(meta_in, Mapping) else None
+    if isinstance(hello, dict):
+        result.meta.setdefault("profile", hello_to_profile(hello))
+        result.meta.setdefault("manifest", hello_to_manifest(hello))
+    return result
+
+
 def apply_host_adapter(registry: Any, config: Any) -> str:
     """Swap ``registry._caps`` when cek is adapt|require."""
     mode = parse_cek(getattr(config, "cek", "off") if config is not None else "off")
@@ -188,8 +255,19 @@ def apply_host_adapter(registry: Any, config: Any) -> str:
     )
     if mode == "require":
         registry._caps = adapted
-        log.info("cek=require: CapService → cek_host.Host 0.1.3+")
+        log.info(
+            "cek=require: CapService → %s Host (%s, ADR %s)",
+            KERNEL_SSOT,
+            adapted.backend,
+            KERNEL_SSOT_ADR,
+        )
     else:
         registry._cek_caps = adapted
-        log.info("cek=adapt: Host adapter live; Channel CapService remains authority")
+        log.info(
+            "cek=adapt: cek-runtime Host wrap live (%s); Channel CapService remains authority",
+            adapted.backend,
+        )
+    after = getattr(registry, "after", None)
+    if callable(after):
+        after(after_cek_cut2)
     return mode
