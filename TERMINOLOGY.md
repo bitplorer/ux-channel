@@ -47,8 +47,8 @@ Terms are grouped: **big picture → messages → security → wire → HTTP →
 |--|--|
 | **Is** | Any process that can **accept an Intent** and **return a Result**. |
 | **Does** | Validates IR, verifies caps when needed, runs an action, emits ops or an error. |
-| **Not** | Not “only the HTTP server.” The in-process `Peer` struct is the **gate**; `PeerApply` / `PeerRuntime` apply Results; `uxc_peer` is one transport. |
-| **Where** | Gate: `rust/src/peer.rs`. Kernel: `rust/src/apply.rs`. Runtime: `rust/src/runtime.rs`. HTTP: `bin/uxc_peer.rs`. |
+| **Not** | Not “only the HTTP server.” The in-process `Peer` struct is the **verify-only gate**; `uxc_peer` is one transport. Apply lives in cek-runtime / client JS. |
+| **Where** | Gate: `rust/src/peer.rs`. HTTP: `bin/uxc_peer.rs`. |
 
 ### Client / surface
 
@@ -419,13 +419,13 @@ RegionBook = the whole book (registry on the channel)
 | **Does** | Lets clients discover what is real **today** without guessing. |
 | **Not** | Not a substitute for conformance vectors. |
 
-### `/ux-channel/mint`
+### Mint (Channel / cek-runtime Host)
 
 | | |
 |--|--|
-| **Is** | Dev helper to mint a cap with the **same secret** as the verifier. |
-| **Does** | Speeds demos and `python_forward --mint-via-peer`. |
-| **Not** | Not a public production API without auth/network lock-down. |
+| **Is** | Product mint on Channel `CekHostCapService` (cek-runtime Host). |
+| **Does** | Issues Caps the Host verifies. Classic `CapService` remains for floor tests. |
+| **Not** | Not a Peer HTTP endpoint. `Peer` is verify-only (ADR 0011). |
 
 ### HTTP status (secondary)
 
@@ -466,11 +466,7 @@ Clients still branch on **Result**, not status alone.
 | **`cap`** | Cap crypto | mint/verify | Not action handlers |
 | **`cxb`** | Binary codec | encode/decode CXB1/CXBZ | Not HTTP negotiation yet |
 | **`op_tags`** | Dense key table | Tag ↔ field name | Not op runtime |
-| **`peer`** | Classic demo gate | validate → cap → dispatch | Not PeerApply, not HostRuntime |
-| **`host`** | Host kernel + runtime | Cap → project → proof → Result | Not Python Channel / regions |
-| **`apply`** | Peer kernel | apply Result.ops; no DOM | Not a transport |
-| **`runtime`** | Peer process wrapper | hello, submit_intent, revoke | Not the apply machine |
-| **`project`** | Pure lower | EffectGraph + hello → ops | Not I/O, not Cap |
+| **`peer`** | Classic demo gate | validate → cap verify → dispatch | Not a mint authority |
 | **`actions`** | Demo handlers | Cart / Counter | Not the product forever (moving) |
 | **`uxc_peer`** | HTTP binary | Serves action/health/mint/demo page | Not the only possible transport |
 | **`uxc_check`** | Conformance runner | Loads vectors, oracle, CXB, optional `--http` | Not a production server |

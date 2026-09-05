@@ -29,9 +29,6 @@ python3 "$ROOT/scripts/check_longevity.py"
 echo "== JSON vectors =="
 python3 conformance/harness/validate_json_vectors.py
 
-echo "== architecture vectors =="
-python3 conformance/harness/validate_arch_vectors.py
-
 echo "== CXB expected =="
 python3 conformance/harness/validate_cxb_expected.py
 
@@ -39,8 +36,7 @@ echo "== Python host interop (sync with law) =="
 if ! python3 -c "import itsdangerous, pytest" 2>/dev/null; then
   python3 -m pip install -q -r "$ROOT/requirements-dev.txt"
 fi
-PYTHONPATH="$ROOT/python/src${PYTHONPATH:+:$PYTHONPATH}" python3 -m pytest "$ROOT/python/tests/gate" -q --tb=line \
-  --cov=ux_channel.arch --cov-fail-under=80 --cov-report=term-missing:skip-covered
+PYTHONPATH="$ROOT/python/src${PYTHONPATH:+:$PYTHONPATH}" python3 -m pytest "$ROOT/python/tests/gate" -q --tb=line
 
 echo "== Rust unit tests =="
 cd rust
@@ -56,7 +52,7 @@ if [ "$HTTP" -eq 1 ]; then
   cd rust
   cargo run --quiet --bin uxc_check -- ../conformance --http http://127.0.0.1:8787
   echo "== python forward (demo) =="
-  PYTHONPATH="$ROOT/python/src${PYTHONPATH:+:$PYTHONPATH}" python3 "$ROOT/demos/python_forward/forward_to_rust.py" --mint-via-peer >/dev/null
+  PYTHONPATH="$ROOT/python/src${PYTHONPATH:+:$PYTHONPATH}" python3 "$ROOT/demos/python_forward/forward_to_rust.py" >/dev/null
   echo "python forward: ok"
   echo "== cross-mint Python↔Rust =="
   PYTHONPATH="$ROOT/python/src${PYTHONPATH:+:$PYTHONPATH}" python3 "$ROOT/scripts/cross_mint_check.py"

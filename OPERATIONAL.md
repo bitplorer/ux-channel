@@ -19,7 +19,7 @@ They are easy to miss if you only read the IR SPEC.
 | **Never ship production with the oracle secret** | `ORACLE_SECRET` / `conformance-oracle-secret-32chars!!` is **public** (in git). Anyone can mint caps for that secret. |
 | **Production** | Set a private high-entropy secret (≥ 16 bytes / 16 chars) via `UXC_CAP_SECRET`. Leave `UXC_ALLOW_ORACLE_SECRET` **unset**. |
 | **Local demo / CI only** | Set `UXC_ALLOW_ORACLE_SECRET=1` (or `true`). Without it, `uxc_peer` **refuses** to start if the secret is missing, empty, or equal to the public oracle. |
-| **Mint endpoint** | `POST /ux-channel/mint` is **dev/demo**. Do not expose it on a public production host without auth + private secret. |
+| **Mint** | Peer is **verify-only**. Mint via Channel / cek-runtime Host (product) or classic `CapService` when that machine is the test subject. |
 | **Rotation** | Cap verifier supports a previous-secret window; rotate without invalidating all live controls at once. |
 
 **Footgun:** `UXC_CAP_SECRET=conformance-oracle-secret-32chars!!` looks “configured” but is still the public oracle. The peer refuses that value unless allow-listed.
@@ -94,7 +94,7 @@ make peer-stop
 
 1. [ ] `UXC_CAP_SECRET` set to a private value (≥ 16 chars, not the oracle string)  
 2. [ ] `UXC_ALLOW_ORACLE_SECRET` **unset**  
-3. [ ] `/ux-channel/mint` firewalled or disabled for public hosts  
+3. [ ] Peer has no mint endpoint (Channel / cek-runtime Host mints)  
 4. [ ] Health shows `demo_mode: false` and `formats` matches real Accept support  
 5. [ ] Health shows `policy.once_jti_enforced: true` — once-caps require a nonce store (Redis multi-worker)  
 6. [ ] HTTPS / network ACLs as appropriate for your deploy  

@@ -1,7 +1,7 @@
 # Python → Rust forward (P2d)
 
-Minimal adapter: host Python mints (or asks Rust to mint) a cap, POSTs one
-hot action (`Cart.add`) to the Rust peer, and returns **Result.ops unchanged**.
+Minimal adapter: host Python mints a classic-floor cap, POSTs one
+hot action (`Cart.add`) to the Rust peer (verify-only), and returns **Result.ops unchanged**.
 
 ```text
 client / host
@@ -25,14 +25,11 @@ UXC_ALLOW_ORACLE_SECRET=1 UXC_PORT=8787 cargo run --bin uxc_peer
 
 # terminal B — forward one action
 python3 demos/python_forward/forward_to_rust.py --base http://127.0.0.1:8787
-# or mint via Rust if itsdangerous is unavailable:
-python3 demos/python_forward/forward_to_rust.py --mint-via-peer --sku abc-123 --qty 2
 ```
 
 | Flag | Default | Meaning |
 |------|---------|---------|
 | `--base` | `http://127.0.0.1:8787` | Peer base URL |
-| `--mint-via-peer` | off | Mint via `POST /ux-channel/mint` |
 | `--sku` | `abc-123` | Cart sku |
 | `--qty` | `2` | Cart qty (integer) |
 

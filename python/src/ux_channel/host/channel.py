@@ -294,7 +294,6 @@ class Channel:
         from ux_channel.render.html_document import attach_document
         from ux_channel.devtools.enterprise import attach_enterprise
         from ux_channel.host.live import attach_live
-        from ux_channel.arch.attach import attach_arch
 
         attach_regions(self)
         attach_enterprise(self)
@@ -303,7 +302,6 @@ class Channel:
         attach_document(self)
         apply_surface(self)
         attach_live(self)
-        attach_arch(self)  # L7 stamps / flow — not Cap / decide
         # L4 product planes (webrtc / media / bridge) attach on first
         # attribute access via __getattr__ — see _LAZY_PLANES. Public
         # names stay identical; boot no longer imports those packages.

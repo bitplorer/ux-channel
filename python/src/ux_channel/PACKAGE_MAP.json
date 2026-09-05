@@ -35,8 +35,7 @@
     "static",
     "api",
     "catalog",
-    "cek",
-    "arch"
+    "cek"
   ],
   "packages": {
     "agent_runtime": [
@@ -48,19 +47,6 @@
       "tools"
     ],
     "api": [],
-    "arch": [
-      "attach",
-      "dispatch",
-      "drivers",
-      "effects",
-      "flow_store",
-      "host_runtime",
-      "modes",
-      "peer",
-      "project",
-      "proof",
-      "stamps"
-    ],
     "asgi": [
       "core",
       "enhance_routes",
@@ -101,6 +87,7 @@
     "catalog": [],
     "cek": [
       "config",
+      "effects",
       "encode",
       "host_adapter",
       "layer_honesty",
@@ -281,17 +268,6 @@
     "agent_runtime.session": "agent_runtime",
     "agent_runtime.tool_audit": "agent_runtime",
     "agent_runtime.tools": "agent_runtime",
-    "arch.attach": "arch",
-    "arch.dispatch": "arch",
-    "arch.drivers": "arch",
-    "arch.effects": "arch",
-    "arch.flow_store": "arch",
-    "arch.host_runtime": "arch",
-    "arch.modes": "arch",
-    "arch.peer": "arch",
-    "arch.project": "arch",
-    "arch.proof": "arch",
-    "arch.stamps": "arch",
     "asgi.core": "asgi",
     "asgi.enhance_routes": "asgi",
     "asgi.fastapi": "asgi",
@@ -324,6 +300,7 @@
     "bridges.spotlight": "bridges",
     "bridges.swiper": "bridges",
     "cek.config": "cek",
+    "cek.effects": "cek",
     "cek.encode": "cek",
     "cek.host_adapter": "cek",
     "cek.layer_honesty": "cek",
@@ -495,22 +472,16 @@
     "verify": "verify",
     "hash_args": "hash_args",
     "CapError": "CapError",
-    "Intent": "Intent",
-    "HostRuntime": "HostRuntime",
-    "PeerApply": "PeerApply",
-    "PeerRuntime": "PeerRuntime",
-    "project": "project",
-    "ProofService": "ProofService"
+    "Intent": "Intent"
   },
   "package_docs": {
     "agent_runtime": "AgentRunner, policy, session, peer, tool_audit \u2014 non-human callers.",
     "api": "Curated application exports \u2014 same objects as package root.",
-    "arch": "EffectGraph, project, proofs, stamps, FlowStore, HostRuntime, PeerApply/PeerRuntime \u2014 L2 host-adjacent; classic floor.",
     "asgi": "FastAPI / Starlette mount_channel adapters.",
     "bridge": "Island contracts, scaffold, guest runtime (singular package).",
     "bridges": "npm / fx / ui preset data (plural). Prefer preset gen over hand copies.",
     "catalog": "Generated package navigator (do not hand-edit catalog.json).",
-    "cek": "Channel wrap of cek-runtime Host (default cek=require). cek=off is the explicit escape. SSoT is cek-runtime (ADR 0008/0009/0010).",
+    "cek": "Channel wrap of cek-runtime Host (default cek=require). Cap machine = cek-runtime only (ADR 0008\u20130011). cek=off is the explicit escape.",
     "components": "Optional Channel component kit (not default UI path).",
     "devtools": "Audit, CLI, observability, codegen \u2014 L5 free to churn.",
     "foundations": "Quantity, provenance, io_channel \u2014 shared non-UI primitives.",
@@ -547,7 +518,6 @@
     "render": "L2",
     "security": "L2",
     "api": "L2",
-    "arch": "L2",
     "wire": "L3",
     "asgi": "L3",
     "transport": "L3",
@@ -602,5 +572,5 @@
       "extension_doors_A_to_G"
     ]
   },
-  "module_count": 189
+  "module_count": 179
 }

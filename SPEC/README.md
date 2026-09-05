@@ -34,9 +34,8 @@ Golden vectors + manifest + harness notes live under `../conformance/`.
 They are the executable source of truth for interop.
 
 - JSON structural: `conformance/harness/validate_json_vectors.py`
-- Architecture: `conformance/harness/validate_arch_vectors.py` + `vectors/arch/`
 - CXB expected: `conformance/expected/cxb/` + `validate_cxb_expected.py`
-- Second implementation: `../rust` (`uxc_check` + `HostRuntime` / `PeerApply`)
+- Second implementation: `../rust` (`uxc_check` + classic `Peer` verify-only)
 
 ## Cap wire (Cap 0.1)
 

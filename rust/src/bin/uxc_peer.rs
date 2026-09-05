@@ -2,8 +2,9 @@
 //!
 //! Also serves:
 //!   GET  /ux-channel/health
-//!   POST /ux-channel/mint     (dev: mint cap — same secret as verifier)
 //!   GET  /                    interactive demo page
+//!
+//! Peer is verify-only (ADR 0011). Mint is Channel / cek-runtime Host.
 //!
 //! Bind: UXC_HOST (default 0.0.0.0) + UXC_PORT (default 8787).
 //!
@@ -102,7 +103,7 @@ fn main() {
     eprintln!("uxc_peer listening on http://{addr}");
     eprintln!("  POST /ux-channel/action   Intent → Result");
     eprintln!("  GET  /ux-channel/health");
-    eprintln!("  POST /ux-channel/mint     (cap mint; same secret as verifier)");
+    eprintln!("  Peer is verify-only; mint via Channel / cek-runtime Host");
     if demo_mode {
         eprintln!("  mode: DEMO (public oracle-capable secret) — not for production");
     } else {
@@ -120,7 +121,7 @@ fn main() {
         }
 
         let response = match (method, path.as_str()) {
-            (Method::Get, "/") => Response::from_string(DEMO_HTML)
+            (Method::Get, "/") => Response::from_string(demo_html(&peer.caps))
                 .with_header(header("Content-Type", "text/html; charset=utf-8")),
             (Method::Get, "/ux-channel/health") => {
                 // Honest advertisement: HTTP action is JSON-only today.
@@ -140,14 +141,6 @@ fn main() {
                             "content_type": "application/ux-channel+json",
                             "accept_response": ["application/ux-channel+json"],
                         },
-                        "mint": {
-                            "path": "/ux-channel/mint",
-                            "note": if demo_mode {
-                                "dev/demo; oracle or allow-listed secret"
-                            } else {
-                                "uses UXC_CAP_SECRET; protect this endpoint in production"
-                            },
-                        },
                     },
                     "cap_required": ["Cart.add"],
                     "policy": {
@@ -163,7 +156,6 @@ fn main() {
                 json_response(StatusCode(200), &body)
             }
             (Method::Post, "/ux-channel/action") => handle_action(&peer, &body),
-            (Method::Post, "/ux-channel/mint") => handle_mint(&peer, &body),
             (Method::Options, _) => Response::from_data(vec![])
                 .with_status_code(StatusCode(204))
                 .with_header(header("Access-Control-Allow-Origin", "*"))
@@ -236,37 +228,10 @@ fn handle_action(peer: &Peer, body: &[u8]) -> Response<std::io::Cursor<Vec<u8>>>
     }
 }
 
-fn handle_mint(peer: &Peer, body: &[u8]) -> Response<std::io::Cursor<Vec<u8>>> {
-    let doc: Value = match serde_json::from_slice(body) {
-        Ok(v) => v,
-        Err(e) => {
-            let err = json!({"ok": false, "error": e.to_string()});
-            return json_response(StatusCode(400), &err);
-        }
-    };
-    let action = doc["action"].as_str().unwrap_or("Cart.add");
-    let args = doc.get("args").cloned().unwrap_or_else(|| json!({}));
-    let sub = doc["sub"].as_str();
-    let scopes: Option<Vec<String>> = doc["scopes"].as_array().map(|a| {
-        a.iter()
-            .filter_map(|v| v.as_str().map(|s| s.to_string()))
-            .collect()
-    });
-    match peer.mint_cap(action, &args, sub, scopes.as_deref()) {
-        Ok(token) => {
-            let out = json!({
-                "ok": true,
-                "cap": token,
-                "action": action,
-                "args": args,
-            });
-            json_response(StatusCode(200), &out)
-        }
-        Err(e) => {
-            let out = json!({"ok": false, "error": e.to_string()});
-            json_response(StatusCode(400), &out)
-        }
-    }
+fn demo_html(caps: &CapService) -> String {
+    let args = json!({"sku": "abc-123", "qty": 2});
+    let cap = caps.mint("Cart.add", &args, None, None).unwrap_or_default();
+    DEMO_HTML.replace("{{DEMO_CAP}}", &cap.replace('\\', "\\\\").replace('\'', "\\'"))
 }
 
 fn json_response(status: StatusCode, value: &Value) -> Response<std::io::Cursor<Vec<u8>>> {
@@ -376,7 +341,7 @@ const DEMO_HTML: &str = r#"<!DOCTYPE html>
     <header>
       <div class="eyebrow">ux-channel · wire-native peer</div>
       <h1>Intent → Result · demo</h1>
-      <p class="lede">Mint a cap, run Cart.add / Counter.inc. Caps authorize; this transport only delivers.</p>
+      <p class="lede">Peer is verify-only. Cart.add uses a page-rendered CapService token for the default sku/qty. Other args: mint via Channel / cek-runtime Host.</p>
     </header>
     <div class="grid">
       <div class="card">
@@ -392,10 +357,10 @@ const DEMO_HTML: &str = r#"<!DOCTYPE html>
           </div>
         </div>
         <div class="row">
-          <button type="button" id="btn-cart">Mint + Cart.add</button>
+          <button type="button" id="btn-cart">Cart.add (page cap)</button>
           <button type="button" class="secondary" id="btn-cart-no-cap">Cart without cap</button>
         </div>
-        <p class="hint">Missing cap → unauthorized. Present bogus cap also fails (present-cap-must-verify).</p>
+        <p class="hint">Missing cap → unauthorized. Present bogus cap also fails (present-cap-must-verify). No POST /ux-channel/mint.</p>
       </div>
       <div class="card">
         <h2>Counter (open)</h2>
@@ -439,21 +404,18 @@ const DEMO_HTML: &str = r#"<!DOCTYPE html>
       return data;
     }
 
-    async function mint(action, args) {
-      const res = await fetch('/ux-channel/mint', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action, args }),
-      });
-      return res.json();
-    }
+    const PAGE_CAP = '{{DEMO_CAP}}';
+    const PAGE_ARGS = { sku: 'abc-123', qty: 2 };
 
     document.getElementById('btn-cart').onclick = async () => {
       const sku = document.getElementById('sku').value;
       const qty = Number(document.getElementById('qty').value);
-      const m = await mint('Cart.add', { sku, qty });
-      if (!m.ok) { logEl.className = 'err'; logEl.textContent = JSON.stringify(m, null, 2); return; }
-      await postAction({ v: '1', action: 'Cart.add', args: { sku, qty }, cap: m.cap, request_id: 'demo-' + Date.now() });
+      if (sku !== PAGE_ARGS.sku || qty !== PAGE_ARGS.qty) {
+        logEl.className = 'err';
+        logEl.textContent = 'Peer is verify-only. Mint via Channel / cek-runtime Host for other args.';
+        return;
+      }
+      await postAction({ v: '1', action: 'Cart.add', args: PAGE_ARGS, cap: PAGE_CAP, request_id: 'demo-' + Date.now() });
     };
     document.getElementById('btn-cart-no-cap').onclick = async () => {
       const sku = document.getElementById('sku').value;

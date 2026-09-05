@@ -100,10 +100,10 @@ CI runs the same on every push (`.github/workflows/ci.yml`).
 | Cap crypto | `rust/src/cap.rs` |
 | CXB | `rust/src/cxb.rs` |
 | Dispatch (classic demo) | `rust/src/actions.rs` + `peer.rs` |
-| Host kernel + runtime | `rust/src/host.rs` · `python/src/ux_channel/arch/` |
-| Peer kernel (no DOM) | `rust/src/apply.rs` · `arch/peer.py` · `static/ux-peer-kernel.js` |
-| Project / effects | `rust/src/project.rs` · `arch/project.py` |
-| Architecture law | `SPEC/architecture/` + `conformance/vectors/arch/` |
+| Host / Cap machine | `python/src/ux_channel/cek/` (`CekHostCapService`) |
+| Peer kernel (no DOM) | cek-runtime (SSoT) · JS `static/ux-peer-kernel.js` |
+| EffectGraph (L7) | `python/src/ux_channel/cek/effects.py` + `after_cek_cut2` |
+| Architecture law | `SPEC/architecture/` |
 | HTTP surface | `rust/src/bin/uxc_peer.rs` |
 | Conformance | `conformance/` |
 | Invariants / structure | `SPEC/INVARIANTS.md`, `STRUCTURE.md` |

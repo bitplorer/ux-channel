@@ -1,4 +1,4 @@
-# Channel `[cek]` adapter (cut #3)
+# Channel `[cek]` adapter (cut #4)
 
 Kernel SSoT is **[cek-runtime](https://github.com/bitplorer/cek-runtime)** —
 [ADR 0008](../../../../SPEC/architecture/ADR/0008-cek-runtime-kernel-ssot.md).
@@ -6,6 +6,8 @@ This package is a Channel wrap, not a second kernel.
 
 Default decide is **`cek=require`**
 ([ADR 0010](../../../../SPEC/architecture/ADR/0010-channel-cek-runtime-default-cut3.md)).
+Cut #4 deleted the parallel `arch/` / `HostRuntime` / `PeerApply` plane
+([ADR 0011](../../../../SPEC/architecture/ADR/0011-delete-parallel-arch-kernel-cut4.md)).
 
 | Mode | Cap machine | Imports |
 |------|-------------|---------|
@@ -32,9 +34,10 @@ Bare install without the wrap packages: set `cek=off` or `UX_CHANNEL_CEK=off`.
 - hello → Profile / Manifest (handshake; Manifest never grants Cap)
 - stamp → handshake apply-set (not a Cap)
 
-**EffectGraph** is L7 pre-project after Cap (`after_cek_cut2`). Not L1.
+**EffectGraph** is L7 pre-project after Cap (`after_cek_cut2` +
+`cek.effects.project_graph`). Not L1. No `ux_channel.arch`. No second
+`HostRuntime`. Peer is verify-only.
 
-`arch/` / HostRuntime / PeerApply stay bootable and are **not** the Cap
-machine. `attach_arch` is L7 stamps / flow — not Cap / decide.
-See [ADR 0009](../../../../SPEC/architecture/ADR/0009-channel-cek-runtime-host-cut2.md)
-and [ADR 0010](../../../../SPEC/architecture/ADR/0010-channel-cek-runtime-default-cut3.md).
+See [ADR 0009](../../../../SPEC/architecture/ADR/0009-channel-cek-runtime-host-cut2.md),
+[ADR 0010](../../../../SPEC/architecture/ADR/0010-channel-cek-runtime-default-cut3.md),
+and [ADR 0011](../../../../SPEC/architecture/ADR/0011-delete-parallel-arch-kernel-cut4.md).

@@ -23,7 +23,6 @@ verify_cap(token: str, action: str, sealed_args: dict, *, max_age: int) -> dict 
 | Script | Role | Deps |
 |--------|------|------|
 | `validate_json_vectors.py` | Structural Intent/Result/trace | stdlib only |
-| `validate_arch_vectors.py` | project / budget / flow law | `ux_channel` on PYTHONPATH |
 | `validate_cxb_expected.py` | Magic/len/sha256/CRC; re-encode when oracle importable | stdlib; optional `ux_channel` |
 | `regenerate_cxb_expected.py` | Rebuild `expected/cxb/*` from pure-Python oracle | `ux_channel` on PYTHONPATH |
 

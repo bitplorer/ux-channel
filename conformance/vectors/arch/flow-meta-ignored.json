@@ -1,7 +1,0 @@
-{
-  "id": "flow/meta-ignored",
-  "kind": "apply",
-  "ops": [{"op": "toast", "message": "hi", "level": "info"}],
-  "meta": {"flow_id": "flow_not_authority", "step": 9, "unknown_meta": true},
-  "expect_log": [["toast", "hi", "info"]]
-}
