@@ -49,7 +49,8 @@ def encode_result(
             )
         return value
 
-    # Architecture EffectGraph — project in Channel after-hook (classic floor otherwise)
+    # Architecture EffectGraph — L7 parking only. Project after Cap in the
+    # Channel after-hook (classic floor otherwise). Never L1 / never a Cap.
     if isinstance(value, Mapping) and "_graph" in value:
         data = {k: v for k, v in value.items() if k != "_graph"}
         data.setdefault("ok", True)

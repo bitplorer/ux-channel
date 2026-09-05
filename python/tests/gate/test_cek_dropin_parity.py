@@ -53,6 +53,9 @@ def test_cek_host_is_012():
     assert parts >= (0, 1, 3)
     b = CekHostCapService(SECRET)
     assert type(b.host).__name__ == "Host"
+    assert b.kernel_ssot == "cek-runtime"
+    assert b.name == "cek-runtime.Host"
+    assert b.backend in ("rust_wrap", "port_host")
 
 
 def test_mint_verify_roundtrip_both_machines():

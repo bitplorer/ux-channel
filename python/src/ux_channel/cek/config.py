@@ -21,13 +21,13 @@ def parse_cek(value: Any) -> str:
     if v not in CEK_MODES:
         raise ValueError(
             f"ChannelConfig.cek must be one of {CEK_MODES}, got {value!r}. "
-            "off = today's path; adapt = compare; require = cek-host.Host is the Cap machine."
+            "off = today's path; adapt = compare; require = cek-runtime Host is the Cap machine."
         )
     return v
 
 
 def cek_available() -> bool:
-    """True when the optional extra ``[cek]`` can be imported."""
+    """True when the optional extra ``[cek]`` wrap packages can be imported."""
     try:
         import cek_host  # noqa: F401
         import cek_surface  # noqa: F401

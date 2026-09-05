@@ -18,12 +18,14 @@ Product surface remains in scope here: Channel, wire, caps.
 
 **Green cut #1** (lands in cek-runtime, not this repo): Peer apply budgets.
 
+**Green cut #2** (this repo): Channel → cek-runtime Host adapter — [ADR 0009](0009-channel-cek-runtime-host-cut2.md).
+
 ## Out of scope
 - EffectGraph / `flow` / Peer mint lift
-- Channel → cek-runtime adapter (cut #2)
 - Deleting the parallel kernel (later)
 
-This ADR does not rewrite adapters and does not delete `arch/` / HostRuntime / PeerApply.
+This ADR does not delete `arch/` / HostRuntime / PeerApply. Cut #2 rewrites
+the Channel `[cek]` adapter only.
 
 ## Consequences
 New kernel law and apply-budget work go to cek-runtime. Channel product work continues here. Existing parallel kernel stays until a later cut.

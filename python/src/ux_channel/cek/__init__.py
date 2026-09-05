@@ -1,16 +1,19 @@
-"""CEK adapter — Channel product over cek-host 0.1.3 + cek-surface 0.1.3.
+"""CEK adapter — Channel product over cek-runtime Host (cut #2).
 
-Channel stays the product (regions, classic IR, FastAPI). cek-host is the
-Cap/decide machine when ``ChannelConfig.cek = require``. cek-surface is
-Continuation compose only. Nothing is vendored.
+Channel stays the product (regions, classic IR, FastAPI). Kernel SSoT is
+**cek-runtime** ([ADR 0008](../../../../SPEC/architecture/ADR/0008-cek-runtime-kernel-ssot.md)).
+The ``[cek]`` extra is a drop-in wrap, not a second kernel.
 
 off      today's path. Zero cek imports.
 adapt    extra ``[cek]``; Host on the side; Channel Cap remains authority.
-require  mint/verify/once/sealed-args go through ``cek_host.Host``.
+require  mint/verify/once/sealed-args go through cek-runtime Host
+         (``RustHostKernel`` / ``cek host-json`` when CEK_BIN is the runtime
+         binary, else the documented port ``cek_host.Host``).
 
-Classic Result.ops (morph/toast/navigate) stay Channel wire. S pairs
-(``kv.*`` ``log.append`` ``ui.dom.morph|restore``) are the only thing
-``Host.project_wire`` will accept — see ``cek.project``.
+``cek_surface`` is Continuation compose only — not a kernel.
+Classic Result.ops stay Channel wire. EffectGraph is L7 pre-project after
+Cap only. ``flow_id`` maps to ``trace`` (correlation). hello/stamps encode
+as Profile/Manifest handshake — Manifest never grants Cap.
 """
 
 from __future__ import annotations

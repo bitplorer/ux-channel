@@ -10,7 +10,7 @@ A click is not a form post. It is a signed **Intent**.
 Intent {action, args, cap}  →  verify  →  action  →  Result {ok, ops[]}
 ```
 
-JSON is the floor. Caps authorize. Classic IR 0.1 stays valid. Channel is the product. **cek-host 0.1.3** is the optional Cap machine (`cek=require`).
+JSON is the floor. Caps authorize. Classic IR 0.1 stays valid. Channel is the product. **cek-runtime Host** is the optional Cap machine (`cek=require`; wrap via `[cek]` — [ADR 0008](SPEC/architecture/ADR/0008-cek-runtime-kernel-ssot.md)).
 
 This layer **owns the wire**: Intent, Result, Capability, codecs, peers, host runtime. It does **not** own HTML trees or CSS.
 
