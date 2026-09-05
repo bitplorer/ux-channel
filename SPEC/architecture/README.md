@@ -2,6 +2,8 @@
 
 **Status:** implemented in this repo. Classic IR 0.1 remains the permanent floor.
 
+**Kernel SSoT:** [bitplorer/cek-runtime](https://github.com/bitplorer/cek-runtime). New kernel work in `arch/` / HostRuntime / PeerApply is frozen — [ADR 0008](ADR/0008-cek-runtime-kernel-ssot.md).
+
 This tree is the **opt-in architecture** on top of Cap 0.1 + Intent/Result/ops.
 It does **not** replace `SPEC/capability.md` or `SPEC/intent-result-ops.md`.
 
@@ -26,9 +28,10 @@ Cap key ≠ proof key
 3. [ADR/0003-peer-kernel-no-dom.md](ADR/0003-peer-kernel-no-dom.md)
 4. [ADR/0006-once-jti-fail-closed.md](ADR/0006-once-jti-fail-closed.md)
 5. [ADR/0007-flow-correlation-only.md](ADR/0007-flow-correlation-only.md)
-6. [project.md](project.md) · [proof.md](proof.md) · [flow.md](flow.md) · [budgets.md](budgets.md) · [concurrency.md](concurrency.md)
-7. [peer-kernel.md](peer-kernel.md) · [host-kernel.md](host-kernel.md) · [runtime-peer.md](runtime-peer.md) · [runtime-host.md](runtime-host.md)
-8. [profiles/](profiles/) · [inventory.md](inventory.md) · [non-goals.md](non-goals.md)
+6. [ADR/0008-cek-runtime-kernel-ssot.md](ADR/0008-cek-runtime-kernel-ssot.md)
+7. [project.md](project.md) · [proof.md](proof.md) · [flow.md](flow.md) · [budgets.md](budgets.md) · [concurrency.md](concurrency.md)
+8. [peer-kernel.md](peer-kernel.md) · [host-kernel.md](host-kernel.md) · [runtime-peer.md](runtime-peer.md) · [runtime-host.md](runtime-host.md)
+9. [profiles/](profiles/) · [inventory.md](inventory.md) · [non-goals.md](non-goals.md)
 
 ## Code map
 
