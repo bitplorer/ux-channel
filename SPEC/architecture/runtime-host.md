@@ -13,6 +13,9 @@ façade `CekHostCapService`. There is no live `HostRuntime` module.
 - Classic `CapService` + Channel `nonce_store` remain for `cek=off`
 - Health / diagnose: `once_jti_enforced` is true when Host owns once
   (require) or when a Channel nonce store is present (classic)
+- `previous_secrets` rotation is **classic CapService (`cek=off`) only**.
+  cek-host Host has no HMAC previous_secrets API. `cek=require` refuses
+  a non-empty window (cut #5D). Diagnose reports `verify: unwired`.
 
 ## Config (documented defaults)
 

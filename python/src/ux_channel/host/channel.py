@@ -490,6 +490,13 @@ class Channel:
                 hints.append("enable webrtc_require_ticket for private media rooms")
         else:
             hints.append("development defaults: fine for local; use production() for deploy")
+        rot = d.get("previous_secrets") or {}
+        if rot.get("verify") == "unwired":
+            hints.append(
+                rot.get("note")
+                or "cek=require: previous_secrets rotation is not wired "
+                "(classic CapService / cek=off only)"
+            )
         media = d.get("media") or {}
         mode = media.get("default_mode")
         if mode == "mesh":
@@ -569,6 +576,8 @@ class Channel:
 
     def diagnose(self) -> dict[str, Any]:
         """Low-noise health snapshot for DX (no secrets)."""
+        from ux_channel.cek.runtime_host import diagnose_previous_secrets
+
         cfg = self.config
         book = getattr(self, "regions", None)
         return {
@@ -598,6 +607,7 @@ class Channel:
                 )
             ),
             "proofs_configured": getattr(self, "proofs", None) is not None,
+            "previous_secrets": diagnose_previous_secrets(cfg, self.registry),
         }
 
     @classmethod

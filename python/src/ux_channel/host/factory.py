@@ -187,11 +187,18 @@ def create_channel(
         cfg = mount_config
         if cfg is None:
             caps = getattr(reg, "_caps", None)
+            prev = tuple(registry_kwargs.get("previous_secrets") or ())
+            if not prev:
+                prev = tuple(
+                    s.strip()
+                    for s in (os.environ.get("UX_CHANNEL_PREVIOUS_SECRETS") or "").split(",")
+                    if s.strip()
+                )
             cfg = SimpleNamespace(
                 cek=cek_mode,
                 secret=secret or getattr(caps, "secret", None),
                 max_cap_age=getattr(caps, "max_age", 3600) or 3600,
-                previous_secrets=(),
+                previous_secrets=prev,
             )
         apply_host_adapter(reg, cfg)
 

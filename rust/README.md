@@ -5,11 +5,12 @@
 Channel product Cap machine is **cek-runtime Host** (Python wrap,
 [ADR 0011](../SPEC/architecture/ADR/0011-delete-parallel-arch-kernel-cut4.md)).
 This crate is **not** a second Host/Peer kernel. `Peer` is verify-only.
+`CapService::mint` is **conformance / demo / tests only** (cut #5C).
 
 | Role | Type | File |
 |------|------|------|
 | Classic demo gate | `Peer` | `src/peer.rs` → `uxc_peer` |
-| Cap crypto | `CapService` | `src/cap.rs` (verify on the gate; mint for tests / classic floor) |
+| Cap crypto | `CapService` | `src/cap.rs` (verify on the gate; **mint = conformance/demo only**) |
 | IR types / JSON / CXB | — | `types.rs` · `wire_json.rs` · `cxb.rs` · `op_tags.rs` |
 
 Operators: read repo-root [`OPERATIONAL.md`](../OPERATIONAL.md) before running `uxc_peer`.
@@ -22,7 +23,7 @@ Law: [`SPEC/architecture/`](../SPEC/architecture/).
 |-----------------|------|--------|
 | `types` | `Intent`, `ResultDoc`, `Op`, `ErrorObject`, `Trace`, `Hop` | permanent |
 | `wire_json` | encode/decode + canonical JSON + validation | permanent |
-| `cap` | itsdangerous-compatible mint/verify (oracle secret + args_hash) | permanent API; oracle = test-only |
+| `cap` | itsdangerous-compatible verify + **demo/conformance mint** (oracle secret + args_hash) | permanent API; mint = not product Cap |
 | `cxb` | CXB1/CXBZ encode/decode (decode matches frozen oracle blobs) | permanent tags; encode freeform still evolving |
 | `op_tags` | Dense op key tags 1–63 (append-only) | permanent |
 | `actions` | `Cart.add`, `Counter.inc`, `Counter.get` | **moving** demo |
@@ -40,7 +41,7 @@ rust/
 │   ├── lib.rs           # crate root re-exports
 │   ├── types.rs         # Intent, ResultDoc, Op (IR)
 │   ├── wire_json.rs     # JSON encode/decode + canonical_json
-│   ├── cap.rs           # CapService mint/verify/hash_args
+│   ├── cap.rs           # CapService verify; mint = conformance/demo only
 │   ├── cxb.rs           # CXB codec
 │   ├── op_tags.rs       # dense op tags (append-only)
 │   ├── peer.rs          # classic Intent → cap verify → demo actions
@@ -59,7 +60,7 @@ rust/
 
 | Kind | Command | What |
 |------|---------|------|
-| Unit + property | `cargo test --lib` | cap, wire, peer, CXB + proptest |
+| Unit + property | `cargo test --lib` | cap (classic mint = test-only), wire, peer, CXB + proptest |
 | Integration | `cargo test --tests` | Classic gate |
 | Conformance | `cargo run --bin uxc_check -- ../conformance` | golden vectors |
 
@@ -154,7 +155,8 @@ Wire/parse failures return a Result `{ ok:false, error, meta }` — never a bare
 
 ## Cap compatibility
 
-Matches Python `CapService` / `itsdangerous.URLSafeTimedSerializer`:
+Matches Python classic `CapService` / `itsdangerous.URLSafeTimedSerializer`
+(conformance / demo mint; product Cap is cek-runtime Host):
 
 - salt `ux-channel-cap`
 - django-concat key derivation + HMAC-SHA1
@@ -173,13 +175,16 @@ Oracle vector: `conformance/vectors/cap/02-oracle-token.json`.
 
 ## Python forward
 
-See [`../demos/python_forward/`](../demos/python_forward/) — host mints locally (classic floor), POSTs `Cart.add`, returns `Result.ops` unchanged.
+See [`../demos/python_forward/`](../demos/python_forward/) — **demo** classic-floor mint (not product Cap), POSTs `Cart.add`, returns `Result.ops` unchanged.
 Parses Result bodies from HTTP 4xx (peer keeps Result shape on 401/400).
+Product mint is Channel / cek-runtime Host — see [`../scripts/cross_mint_check.py`](../scripts/cross_mint_check.py).
 
 ## Next
 
 - [x] once/jti consumption + tests
 - [x] delete parallel HostRuntime / PeerApply (cut #4 / ADR 0011)
+- [x] classic Cap mint labeled demo/conformance only (cut #5C)
+- [x] previous_secrets honesty on cek=require (cut #5D)
 - [ ] HTTP Accept `+cxb` response path
 - [ ] Byte-identical encode vs Python oracle freeform
 - [ ] WASM island / mesh (later phases)
@@ -188,7 +193,7 @@ Parses Result bodies from HTTP 4xx (peer keeps Result shape on 401/400).
 
 | Concern | Rust | Python |
 |---------|------|--------|
-| Cap mint/verify (classic floor) | `CapService::mint` / `verify` | `CapService.mint` / `verify` |
+| Cap mint/verify (classic floor; mint = demo/conformance) | `CapService::mint` / `verify` | `CapService.mint` / `verify` |
 | Product Cap machine | — | `CekHostCapService` (cek-runtime Host) |
 | args_hash | sorted compact JSON | same (`sort_keys=True`) |
 | CXB decode | `decode_cxb` | `wire.cxb.decode_cxb` |

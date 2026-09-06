@@ -1,5 +1,8 @@
 //! Integration tests: Peer dispatch + cap gate (library surface).
 //!
+//! Classic `CapService::mint` here is **conformance / demo only** (cut #5C).
+//! Product Cap is Channel / cek-runtime Host. Peer is verify-only.
+//!
 //! Run: `cargo test --test integration_peer`
 
 use serde_json::json;
@@ -51,6 +54,7 @@ fn cart_add_with_valid_cap_ok() {
     let peer = Peer::with_oracle();
     let svc = CapService::oracle();
     let args = json!({"sku": "x", "qty": 1});
+    // Conformance mint (classic floor) — not the product Cap machine.
     let tok = svc.mint("Cart.add", &args, None, None).unwrap();
     let i = intent("Cart.add", args, Some(tok));
     let r = peer.handle_intent(&i);
@@ -80,6 +84,7 @@ fn bogus_cap_on_open_action_fails() {
 fn once_cap_replay_unauthorized() {
     let peer = Peer::with_oracle();
     let args = json!({"sku": "x", "qty": 1});
+    // Conformance mint_once (classic floor) — Peer HTTP has no /mint.
     let tok = peer
         .caps
         .mint_once("Cart.add", &args, None, None, Some("once-itest"))

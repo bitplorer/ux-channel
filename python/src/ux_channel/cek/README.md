@@ -26,6 +26,10 @@ Cut #4 deleted the parallel `arch/` / `HostRuntime` / `PeerApply` plane
 
 `cek_surface` = Continuation compose only.
 
+`previous_secrets` is **classic CapService (`cek=off`) only**. cek-host
+0.1.3 Host has no HMAC rotation API. `cek=require` **refuses** a
+non-empty window rather than silently dropping it (cut #5D).
+
 Bare install without the wrap packages: set `cek=off` or `UX_CHANNEL_CEK=off`.
 
 **Encodings** (`encode.py`) — frozen CEK nouns only:

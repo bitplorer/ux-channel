@@ -2,7 +2,8 @@
 //!
 //! Channel product Cap machine is cek-runtime Host (Python wrap, ADR 0011).
 //! This crate is the classic Peer **verify-only** gate plus codecs.
-//! No HostRuntime / PeerApply / Peer mint.
+//! `CapService::mint` is **conformance / demo / tests only** (cut #5C) —
+//! not the product Cap. No HostRuntime / PeerApply / Peer HTTP `/mint`.
 
 pub mod actions;
 pub mod cap;

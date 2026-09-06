@@ -27,6 +27,59 @@ log = logging.getLogger("ux_channel.cek.runtime_host")
 KERNEL_SSOT = "cek-runtime"
 KERNEL_SSOT_ADR = "0008"
 
+# cek-host 0.1.3 Host / CapService has no HMAC previous_secrets API.
+# Channel must not silently drop a rotation window on cek=require (cut #5D).
+PREVIOUS_SECRETS_REQUIRE_MSG = (
+    "previous_secrets is not wired on cek=require "
+    "(cek-runtime Host has no HMAC previous_secrets API). "
+    "Unset previous_secrets / UX_CHANNEL_PREVIOUS_SECRETS, or pin cek='off' "
+    "for classic CapService rotation."
+)
+
+
+def previous_secrets_nonempty(previous_secrets: Optional[Sequence[str]] = None) -> bool:
+    return any(str(s).strip() for s in (previous_secrets or ()) if s is not None)
+
+
+def refuse_previous_secrets_on_require(
+    previous_secrets: Optional[Sequence[str]] = None,
+    *,
+    mode: str = "require",
+) -> None:
+    """Loud fail when a rotation window is asked of Host (no second Cap machine)."""
+    if mode != "require":
+        return
+    if previous_secrets_nonempty(previous_secrets):
+        raise RuntimeError(PREVIOUS_SECRETS_REQUIRE_MSG)
+
+
+def diagnose_previous_secrets(config: Any = None, registry: Any = None) -> dict[str, Any]:
+    """Honest rotation snapshot (no secrets). Host does not verify previous_secrets."""
+    from ux_channel.cek.config import parse_cek
+
+    prev = tuple(getattr(config, "previous_secrets", ()) or ()) if config is not None else ()
+    configured = previous_secrets_nonempty(prev)
+    cek = parse_cek(getattr(config, "cek", "require") if config is not None else "require")
+    caps = getattr(registry, "_caps", None) if registry is not None else None
+    host_owned = type(caps).__name__ == "CekHostCapService" if caps is not None else cek == "require"
+    if cek == "require" or host_owned:
+        return {
+            "configured": configured,
+            "wired": False,
+            "verify": "unwired",
+            "note": (
+                "cek=require Host has no HMAC previous_secrets API; "
+                "rotation is classic CapService (cek=off) only"
+            ),
+        }
+    classic_prev = bool(getattr(caps, "_previous", ()) or ()) if caps is not None else configured
+    return {
+        "configured": configured or classic_prev,
+        "wired": classic_prev,
+        "verify": "classic CapService" if (classic_prev or configured) else "none",
+        "note": "previous_secrets rotate on classic CapService (cek=off)",
+    }
+
 
 def is_runtime_cek_bin(path: str | os.PathLike[str] | None) -> bool:
     """True when ``path`` is cek-runtime ``cek`` (supports ``host-json``)."""
@@ -127,7 +180,11 @@ def bind_runtime_host(
     When ``CEK_BIN`` is a real cek-runtime binary, ``backend`` is
     ``rust_wrap`` (kernel reachability). That binary is not bound as a
     second mint path — host-json is a fresh Host per call.
+
+    ``previous_secrets`` is not a Host API today. Non-empty on this path
+    is a hard refuse (cut #5D) — never a silent ``_ = previous_secrets``.
     """
+    refuse_previous_secrets_on_require(previous_secrets, mode="require")
     from cek_host import Host, MemoryOnceBackend
 
     raw = secret.encode("utf-8") if isinstance(secret, str) else bytes(secret)
@@ -152,7 +209,6 @@ def bind_runtime_host(
             "set CEK_BIN to cek-runtime `cek` for rust_wrap reachability (ADR %s)",
             KERNEL_SSOT_ADR,
         )
-    _ = previous_secrets
     return RuntimeHostBind(
         kernel_ssot=KERNEL_SSOT,
         kernel_ssot_adr=KERNEL_SSOT_ADR,
