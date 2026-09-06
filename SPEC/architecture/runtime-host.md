@@ -1,35 +1,45 @@
 # Host runtime
 
+Channel is the **product host** (boot, registry, regions, ASGI). The Cap
+machine on `cek=require` (default) is **cek-runtime Host** via the Channel
+façade `CekHostCapService`. There is no live `HostRuntime` module.
+
 ## Responsibilities
 
 - Load config; **MUST** refuse oracle/demo secret unless `demo_mode: true`
-- Open nonce and idempotency stores
-- Session map: `session_id → { gen, peer_hello, stamps? }`
-- `handle_intent(raw, conn_ctx) -> Result`
-- `revoke_session(session_id)` → gen++
-- Health: stores_ok, demo_mode, key kids
+- Dispatch Intent → Cap gate → handler → Result
+- Once consume on require: **Host only** (`cek_host.Host` /
+  `MemoryOnceBackend`). Channel `nonce_store` is not re-consumed.
+- Classic `CapService` + Channel `nonce_store` remain for `cek=off`
+- Health / diagnose: `once_jti_enforced` is true when Host owns once
+  (require) or when a Channel nonce store is present (classic)
 
 ## Config (documented defaults)
 
 ```text
 demo_mode: false
 require_cap: true          # prod writes
-effects: "auto"            # or "classic"
-proofs: "auto"             # or "require" | "off"
-flow: "auto"               # or "off"
-nonce_store: required if once Caps used
+cek: require               # Cap machine = cek-runtime Host (ADR 0010)
+effects: "auto"            # or "classic" — EffectGraph is L7 after Cap
+flow: "auto"               # correlation only (ADR 0007)
+nonce_store: Channel store for cek=off once-caps; unused for require consume
 ```
 
 ## Code
 
 | Language | Path |
 |----------|------|
-| Python | `python/src/ux_channel/arch/host_runtime.py` — `HostRuntime` |
-| Rust | `rust/src/host.rs` — `HostRuntime` (kernel + runtime). `peer.rs` is the classic demo gate only. |
+| Python host | `python/src/ux_channel/host/` — Channel, registry, factory |
+| Cap façade | `python/src/ux_channel/cek/host_adapter.py` — `CekHostCapService` |
+| Cap machine | cek-runtime Host (`cek_host.Host`) |
+| Rust | `rust/src/peer.rs` — classic demo gate (verify-only). No `HostRuntime`. |
 
-A Rust **Channel** (regions / ASGI) is out of scope. The architecture host in Rust is `HostRuntime` (same contract as Python). The classic `uxc_peer` gate remains for IR 0.1 demo actions.
+A Rust **Channel** (regions / ASGI) is out of scope. Mint for demos and
+cross-checks is Channel / cek-runtime Host (or classic `CapService` when
+that machine is the test subject).
 
 ## Assumptions
 
-- HTTP framework (FastAPI, etc.) is an adapter calling `handle_intent`.
+- HTTP framework (FastAPI, etc.) is an adapter calling `registry.dispatch`.
 - App registers handlers on the registry before serve.
+- EffectGraph / hello Profile·Manifest are not a second Cap machine.

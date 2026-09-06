@@ -1,4 +1,4 @@
-"""Cut #4: Cap machine is cek-runtime Host only (no arch / HostRuntime).
+"""Cut #4/#5: Cap machine is cek-runtime Host; once consume is Host-only on require.
 
 Skipped when wrap packages are missing so a bare tree can still collect.
 Rust wrap reachability runs only when CEK_BIN points at cek-runtime ``cek host-json``.
@@ -241,6 +241,41 @@ def test_python_cek_cli_is_not_runtime_bin():
             from ux_channel.cek.runtime_host import is_runtime_cek_bin
 
             assert is_runtime_cek_bin(str(fake)) is False
+
+
+def test_require_once_is_host_owned_channel_store_unused():
+    """cek=require: Host consumes once; Channel MemoryNonceStore is never called."""
+    from ux_channel.host.nonce import MemoryNonceStore
+
+    class ProbeStore(MemoryNonceStore):
+        def __init__(self) -> None:
+            super().__init__()
+            self.calls: list[tuple[str, float]] = []
+
+        def use_once(self, key: str, *, ttl_s: float = 3600) -> bool:
+            self.calls.append((key, ttl_s))
+            return super().use_once(key, ttl_s=ttl_s)
+
+    probe = ProbeStore()
+    ch = _boot("require")
+    ch.registry.nonce_store = probe
+
+    @ch.on
+    def pay():
+        return ch.done()
+
+    cap = ch.registry.mint("pay", {}, once=True)
+    r = ch.registry.dispatch(Intent(action="pay", args={}, cap=cap))
+    assert r.ok
+    assert probe.calls == []
+
+    replay = ch.registry.dispatch(Intent(action="pay", args={}, cap=cap))
+    assert replay.ok is False
+    assert replay.error is not None
+    assert probe.calls == []
+
+    ch.registry._nonce_store = None
+    assert ch.diagnose()["once_jti_enforced"] is True
 
 
 @pytest.mark.skipif(not runtime_wrap_available(), reason="CEK_BIN / cek-runtime host-json not bound")
