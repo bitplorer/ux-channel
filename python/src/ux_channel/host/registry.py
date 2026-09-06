@@ -81,7 +81,9 @@ class ActionRegistry:
     require_cap:
         Production True — reject missing/invalid caps.
     nonce_store / idempotency_store:
-        Replay protection for once-caps and client idempotency keys.
+        Replay protection for once-caps (classic ``CapService`` / ``cek=off``)
+        and client idempotency keys. On ``cek=require``, Host consumes once
+        — Channel ``nonce_store`` is not re-consumed (cut #5A).
     auth_resolver:
         Optional request → Principal.
     action_timeout_s:
@@ -147,6 +149,10 @@ class ActionRegistry:
         self.require_principal = require_principal
         # optional request stashed by host for auth_resolver
 
+    def _cek_require_owns_once(self) -> bool:
+        """True when registry._caps is the cek-runtime Host façade (cut #5A)."""
+        return type(self._caps).__name__ == "CekHostCapService"
+
     @property
     def nonce_store(self) -> Optional[NonceStore]:
         return self._nonce_store
@@ -154,7 +160,16 @@ class ActionRegistry:
     @nonce_store.setter
     def nonce_store(self, store: Optional[NonceStore]) -> None:
         self._nonce_store = store
-        self._caps.nonce_store = store
+        # Classic CapService only. require Host owns once — do not wire.
+        if not self._cek_require_owns_once():
+            self._caps.nonce_store = store
+
+    @property
+    def once_jti_enforced(self) -> bool:
+        """Host consumes once on require; Channel nonce_store on classic off."""
+        if self._cek_require_owns_once():
+            return True
+        return self._nonce_store is not None
 
     @classmethod
     def from_config(
@@ -592,15 +607,19 @@ class ActionRegistry:
                 )
             verify_args = args if self.verify_form_in_cap else dict(intent.args)
             try:
+                verify_kw: dict[str, Any] = {
+                    "expected_sub": principal.id if principal and getattr(
+                        self.config, "bind_cap_to_principal", False
+                    ) else None,
+                    "consume_once": True,
+                }
+                if not self._cek_require_owns_once():
+                    verify_kw["nonce_store"] = self.nonce_store
                 cap_data = self._caps.verify(
                     intent.cap,
                     intent.action,
                     verify_args,
-                    expected_sub=principal.id if principal and getattr(
-                        self.config, "bind_cap_to_principal", False
-                    ) else None,
-                    consume_once=True,
-                    nonce_store=self.nonce_store,
+                    **verify_kw,
                 )
                 tr.emit(
                     _trace_api().FrameKind.CAP_OK,

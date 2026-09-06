@@ -1,12 +1,13 @@
-"""CapService façade → cek-runtime Host (cut #4).
+"""CapService façade → cek-runtime Host (cut #4 / #5).
 
 off     — this module is not imported (explicit escape).
 adapt   — Host on registry._cek_caps; Channel CapService stays authority.
 require — registry._caps is this façade. One Cap machine (default).
 
 The Cap machine is **cek-runtime Host** (ADR 0008 / 0010 / 0011). Mint / verify
-owner is the documented port Host (``cek_host.Host``) — one machine on
-``registry._caps``. ``CEK_BIN`` / rust_wrap is kernel reachability only
+/ once-consume owner is the documented port Host (``cek_host.Host``) — one
+machine on ``registry._caps``. Channel ``nonce_store`` is not re-consumed on
+require (cut #5A). ``CEK_BIN`` / rust_wrap is kernel reachability only
 (host-json is a fresh Host per call). ``cek_surface`` is compose only.
 
 Channel ops stay classic IR 0.1. S pairs only go through cek.project.
@@ -68,9 +69,11 @@ def require_cek_min() -> None:
 class CekHostCapService:
     """CapService-shaped façade over cek-runtime Host.
 
-    One mint / verify owner: the documented port Host (hex+HMAC), not
-    itsdangerous and not a sibling ``RustHostKernel``. ``kernel_ssot`` is
-    always ``cek-runtime``.
+    One mint / verify / once-consume owner: the documented port Host
+    (hex+HMAC), not itsdangerous and not a sibling ``RustHostKernel``.
+    ``kernel_ssot`` is always ``cek-runtime``. Channel ``nonce_store`` is
+    not wired and not re-consumed (cut #5A). Classic ``CapService`` +
+    ``nonce_store`` remain for ``cek=off``.
     """
 
     def __init__(
@@ -93,6 +96,7 @@ class CekHostCapService:
         self.kernel_ssot_adr = bind.kernel_ssot_adr
         self.bin_path = bind.bin_path
         self.max_age = int(max_age or 3600)
+        # Kept for CapService-shaped inspect; Host owns once (cut #5A).
         self.nonce_store = nonce_store
         self.previous_secrets = tuple(previous_secrets or ())
         self.name = "cek-runtime.Host"
@@ -162,18 +166,8 @@ class CekHostCapService:
             missing = [s for s in required_scopes if s not in have]
             if missing:
                 raise CapError("capability missing required scopes")
-        store = nonce_store if nonce_store is not None else self.nonce_store
-        if claims.get("once") and consume_once and store is not None:
-            jti = str(claims.get("jti") or "")
-            if not jti:
-                raise CapError("empty jti")
-            ttl = int(max_age or self.max_age or 3600)
-            try:
-                ok = store.use_once(jti, ttl_s=ttl)
-            except Exception as exc:
-                raise CapError("nonce store refused") from exc
-            if ok is False:
-                raise CapError("once cap already used")
+        # Host already consumed once (cek_host / MemoryOnceBackend). Do not
+        # re-consume on a Channel nonce_store — that is a second machine.
         return claims
 
     async def async_verify(
@@ -257,7 +251,6 @@ def apply_host_adapter(registry: Any, config: Any) -> str:
         str(secret),
         max_age=int(getattr(config, "max_cap_age", 3600) or 3600),
         previous_secrets=tuple(getattr(config, "previous_secrets", ()) or ()),
-        nonce_store=getattr(registry, "_nonce_store", None),
     )
     if mode == "require":
         registry._caps = adapted
