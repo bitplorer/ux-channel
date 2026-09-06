@@ -14,7 +14,9 @@ require  mint/verify/once/sealed-args go through one cek-runtime Host
 Classic Result.ops stay Channel wire. EffectGraph is L7 pre-project after
 Cap only (``after_cek_cut2``). ``flow_id`` maps to ``trace`` (correlation).
 hello/stamps encode as Profile/Manifest handshake — Manifest never grants
-Cap. No parallel ``arch`` / ``HostRuntime`` kernel.
+Cap. ``previous_secrets`` is classic CapService (``cek=off``) only —
+``cek=require`` refuses a non-empty window (cut #5D). No parallel
+``arch`` / ``HostRuntime`` kernel.
 """
 
 from __future__ import annotations

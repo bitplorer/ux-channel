@@ -288,3 +288,100 @@ def test_require_records_rust_wrap_reachability_without_second_mint():
     assert caps.runtime_kernel is None
     tok = caps.mint("Cart.add", {"sku": "x"})
     assert caps.verify(tok, "Cart.add", {"sku": "x"})
+
+
+PREVIOUS = "old-secret-key-32chars-minimum!!xx"
+ROTATION_NEW = "new-secret-key-32chars-minimum!!xx"
+
+
+def test_require_previous_secrets_refuses_loudly():
+    """cek=require + previous_secrets must not silently drop rotation (cut #5D).
+
+    cek-host 0.1.3 Host/CapService has no HMAC previous_secrets API. Channel
+    must refuse rather than store-and-ignore (no second Cap machine).
+    """
+    from ux_channel.cek.host_adapter import CekHostCapService
+    from ux_channel.cek.runtime_host import (
+        PREVIOUS_SECRETS_REQUIRE_MSG,
+        bind_runtime_host,
+    )
+    from ux_channel.host.config import ChannelConfig
+    from ux_channel.host.factory import create_channel
+
+    with pytest.raises((ValueError, RuntimeError), match="previous_secrets"):
+        ChannelConfig.development(
+            secret=ROTATION_NEW,
+            allow_memory_stores=True,
+            require_cap=True,
+            cek="require",
+            previous_secrets=(PREVIOUS,),
+        )
+
+    with pytest.raises(RuntimeError, match="previous_secrets"):
+        bind_runtime_host(ROTATION_NEW, previous_secrets=[PREVIOUS])
+
+    with pytest.raises(RuntimeError, match="previous_secrets"):
+        CekHostCapService(ROTATION_NEW, previous_secrets=[PREVIOUS])
+
+    with pytest.raises((ValueError, RuntimeError), match="previous_secrets"):
+        create_channel(
+            secret=ROTATION_NEW,
+            environment="development",
+            app=None,
+            host=None,
+            previous_secrets=[PREVIOUS],
+        )
+
+    assert "HMAC previous_secrets" in PREVIOUS_SECRETS_REQUIRE_MSG
+
+
+def test_require_diagnose_does_not_claim_rotation():
+    """Hello/diagnose must not imply previous_secrets verify under require."""
+    ch = _boot("require")
+    d = ch.diagnose()
+    rot = d["previous_secrets"]
+    assert rot["wired"] is False
+    assert rot["verify"] == "unwired"
+    assert "cek=off" in rot["note"] or "classic CapService" in rot["note"]
+    assert PREVIOUS not in str(d)
+    doc = ch.doctor()
+    assert any("previous_secrets" in h or "rotation" in h for h in doc["hints"])
+
+
+def test_classic_off_previous_secrets_still_rotates():
+    """Classic cek=off rotation stays on Channel CapService (unchanged law)."""
+    from fastapi import FastAPI
+
+    from ux_channel import Channel, ChannelConfig
+    from ux_channel.protocol.capability import CapService
+    from ux_channel.protocol.types import Intent
+
+    old_cfg = ChannelConfig.development(
+        secret=PREVIOUS,
+        allow_memory_stores=True,
+        require_cap=True,
+        cek="off",
+    )
+    old = Channel.boot(FastAPI(), config=old_cfg)
+
+    @old.on
+    def hi():
+        return old.done()
+
+    cap = old.registry.mint("hi", {})
+
+    new_cfg = ChannelConfig.development(
+        secret=ROTATION_NEW,
+        allow_memory_stores=True,
+        require_cap=True,
+        cek="off",
+        previous_secrets=(PREVIOUS,),
+    )
+    ch = Channel.boot(FastAPI(), config=new_cfg)
+    assert type(ch.registry._caps) is CapService
+    ch.registry.replace("hi", hi)
+    r = ch.registry.dispatch(Intent(action="hi", args={}, cap=cap))
+    assert r.ok
+    d = ch.diagnose()
+    assert d["previous_secrets"]["wired"] is True
+    assert d["previous_secrets"]["verify"] == "classic CapService"

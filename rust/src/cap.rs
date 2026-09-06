@@ -2,6 +2,11 @@
 //! `itsdangerous.URLSafeTimedSerializer` (django-concat + HMAC-SHA1 +
 //! optional zlib, URL-safe base64, timed signature).
 //!
+//! **Mint is conformance / demo / classic-floor tests only.** Product Cap
+//! is cek-runtime Host (`CekHostCapService`). This `CapService` stays for
+//! Peer verify, golden vectors, and `uxc_check` — not a second product
+//! Cap machine.
+//!
 //! See SPEC/capability.md and conformance/vectors/cap/.
 
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine as _};
@@ -168,6 +173,8 @@ impl CapService {
         hex::encode(&digest[..16]) // 16 bytes → 32 hex chars
     }
 
+    /// Classic-floor mint (itsdangerous). **Conformance / demo / tests only.**
+    /// Product Cap machine is Channel `CekHostCapService` (cek-runtime Host).
     pub fn mint(
         &self,
         action: &str,
@@ -178,6 +185,7 @@ impl CapService {
         self.mint_full(action, args, sub, scopes, false, None)
     }
 
+    /// Classic-floor once mint. **Conformance / demo / tests only** (cut #5C).
     /// Mint a single-use cap (`once=true` + jti). Verify consumes the jti.
     pub fn mint_once(
         &self,
@@ -190,6 +198,7 @@ impl CapService {
         self.mint_full(action, args, sub, scopes, true, jti)
     }
 
+    /// Classic-floor mint (full). **Conformance / demo / tests only.**
     pub fn mint_full(
         &self,
         action: &str,
@@ -495,6 +504,7 @@ fn unsign_timed(
 
 #[cfg(test)]
 mod tests {
+    // Crate tests mint on the classic floor — conformance / unit only (cut #5C).
     use super::*;
     use serde_json::json;
     use std::sync::Arc;

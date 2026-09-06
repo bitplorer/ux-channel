@@ -4,6 +4,9 @@
 The parallel `arch/` / Rust `HostRuntime` / `PeerApply` plane was deleted in
 [ADR 0011](ADR/0011-delete-parallel-arch-kernel-cut4.md) (cut #4).
 Once consume on `cek=require` is **Host-only** (cut #5A).
+Classic Rust `CapService::mint` is **conformance/demo only** (cut #5C).
+`previous_secrets` on `cek=require` is refused — Host has no HMAC
+rotation API (cut #5D).
 
 Classic IR 0.1 remains the permanent floor. This tree is the Channel
 product (wire, caps, peers, host runtime façade) over that SSoT.
@@ -57,7 +60,7 @@ Classic clients that do not send `meta.hello` receive classic ops only.
 
 | Suite | What |
 |-------|------|
-| `python/tests/gate/test_cek_runtime_host.py` | Cap = `CekHostCapService` / `kernel_ssot=cek-runtime`; Host-only once |
+| `python/tests/gate/test_cek_runtime_host.py` | Cap = `CekHostCapService` / `kernel_ssot=cek-runtime`; Host-only once; previous_secrets refuse |
 | `python/tests/gate/test_cek_layer_honesty.py` | one Cap machine; off imports nothing |
 | `rust` `cargo test --lib --tests` | classic floor + Peer verify-only |
 

@@ -8,7 +8,7 @@ First principles
 Dev defaults that "just work" are hostile in production. This is the single
 place that turns environment into policy:
 
-- secret / previous_secrets (cap rotation)
+- secret / previous_secrets (classic CapService rotation; ``cek=off`` only)
 - require_cap, require_channel_header (``X-Channel``)
 - rate limits, timeouts, max body sizes
 - push/ws tokens, allowed origins
@@ -136,7 +136,8 @@ class ChannelConfig:
     mcp_resource_regions: tuple[str, ...] = ()
     # CSRF: require X-Channel on JSON POSTs (production default True)
     require_channel_header: bool = True
-    # Cap rotation: older secrets still verify (comma-separated in env)
+    # Cap rotation: older secrets still verify on classic CapService (cek=off).
+    # cek=require refuses a non-empty list — Host has no HMAC previous_secrets API.
     previous_secrets: tuple[str, ...] = ()
     # Optional: require X-Channel-Client-Version >= this (ux-channel.js version)
     min_client_version: Optional[str] = None
@@ -301,6 +302,12 @@ class ChannelConfig:
             raise ValueError("max_request_bytes too small")
         if self.action_timeout_s < 0:
             raise ValueError("action_timeout_s must be >= 0")
+        if parse_cek(self.cek) == "require" and any(
+            str(s).strip() for s in (self.previous_secrets or ()) if s is not None
+        ):
+            from ux_channel.cek.runtime_host import PREVIOUS_SECRETS_REQUIRE_MSG
+
+            raise ValueError(PREVIOUS_SECRETS_REQUIRE_MSG)
         return self
 
     @classmethod
@@ -445,6 +452,8 @@ class ChannelConfig:
             "agent_confirmation_secret": os.environ.get(f"{prefix}AGENT_CONFIRM") or None,
             "require_channel_header": os.environ.get(f"{prefix}REQUIRE_CHANNEL_HEADER", "1")
             not in ("0", "false"),
+            # Classic CapService rotation (cek=off). validate() refuses this
+            # list when cek=require so env cannot hide an unwired window.
             "previous_secrets": tuple(
                 s.strip() for s in (os.environ.get(f"{prefix}PREVIOUS_SECRETS") or "").split(",")
                 if s.strip()

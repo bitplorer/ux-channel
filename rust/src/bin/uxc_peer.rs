@@ -4,7 +4,8 @@
 //!   GET  /ux-channel/health
 //!   GET  /                    interactive demo page
 //!
-//! Peer is verify-only (ADR 0011). Mint is Channel / cek-runtime Host.
+//! Peer is verify-only (ADR 0011). Product mint is Channel / cek-runtime Host.
+//! Classic `CapService::mint` here is **demo / conformance only** (cut #5C).
 //!
 //! Bind: UXC_HOST (default 0.0.0.0) + UXC_PORT (default 8787).
 //!
@@ -20,7 +21,11 @@ use tiny_http::{Header, Method, Response, Server, StatusCode};
 use ux_channel_rs::cap::{CapService, ORACLE_SECRET};
 use ux_channel_rs::Peer;
 
-/// Resolve cap secret. Fail closed: no silent public default in production.
+/// Resolve classic-floor verify secret.
+///
+/// The returned `CapService` is the Peer **verify** machine. Mint on this
+/// type is demo/conformance only — not the product Cap (`CekHostCapService`).
+/// Fail closed: no silent public default in production.
 fn resolve_secret() -> Result<(CapService, bool), String> {
     let allow_oracle = env::var("UXC_ALLOW_ORACLE_SECRET")
         .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
@@ -103,7 +108,8 @@ fn main() {
     eprintln!("uxc_peer listening on http://{addr}");
     eprintln!("  POST /ux-channel/action   Intent → Result");
     eprintln!("  GET  /ux-channel/health");
-    eprintln!("  Peer is verify-only; mint via Channel / cek-runtime Host");
+    eprintln!("  Peer is verify-only; product mint is Channel / cek-runtime Host");
+    eprintln!("  Classic CapService::mint is demo/conformance only (cut #5C)");
     if demo_mode {
         eprintln!("  mode: DEMO (public oracle-capable secret) — not for production");
     } else {
@@ -121,7 +127,7 @@ fn main() {
         }
 
         let response = match (method, path.as_str()) {
-            (Method::Get, "/") => Response::from_string(demo_html(&peer.caps))
+            (Method::Get, "/") => Response::from_string(demo_html(&peer.caps, demo_mode))
                 .with_header(header("Content-Type", "text/html; charset=utf-8")),
             (Method::Get, "/ux-channel/health") => {
                 // Honest advertisement: HTTP action is JSON-only today.
@@ -148,9 +154,9 @@ fn main() {
                         "once_jti_enforced": true,
                     },
                     "notes": if demo_mode {
-                        "DEMO: capability secret is public oracle or explicitly allowed. JSON only on HTTP."
+                        "DEMO: capability secret is public oracle or explicitly allowed. Classic CapService mint is demo-only. JSON only on HTTP."
                     } else {
-                        "HTTP surface speaks JSON only; CXB is library-side optional"
+                        "HTTP surface speaks JSON only; CXB is library-side optional. Classic CapService mint is demo-only — product mint is Channel / cek-runtime Host."
                     },
                 });
                 json_response(StatusCode(200), &body)
@@ -228,9 +234,14 @@ fn handle_action(peer: &Peer, body: &[u8]) -> Response<std::io::Cursor<Vec<u8>>>
     }
 }
 
-fn demo_html(caps: &CapService) -> String {
-    let args = json!({"sku": "abc-123", "qty": 2});
-    let cap = caps.mint("Cart.add", &args, None, None).unwrap_or_default();
+fn demo_html(caps: &CapService, demo_mode: bool) -> String {
+    // Classic CapService mint is demo-only. Production secret peers stay verify-only.
+    let cap = if demo_mode {
+        let args = json!({"sku": "abc-123", "qty": 2});
+        caps.mint("Cart.add", &args, None, None).unwrap_or_default()
+    } else {
+        String::new()
+    };
     DEMO_HTML.replace("{{DEMO_CAP}}", &cap.replace('\\', "\\\\").replace('\'', "\\'"))
 }
 
@@ -339,9 +350,9 @@ const DEMO_HTML: &str = r#"<!DOCTYPE html>
 <body>
   <div class="wrap">
     <header>
-      <div class="eyebrow">ux-channel · wire-native peer</div>
+      <div class="eyebrow">ux-channel · verify-only peer · classic mint is demo-only</div>
       <h1>Intent → Result · demo</h1>
-      <p class="lede">Peer is verify-only. Cart.add uses a page-rendered CapService token for the default sku/qty. Other args: mint via Channel / cek-runtime Host.</p>
+      <p class="lede">Peer is verify-only. Page CapService mint is demo_mode only (not the product Cap). Product mint is Channel / cek-runtime Host (<code>CekHostCapService</code>).</p>
     </header>
     <div class="grid">
       <div class="card">
@@ -360,7 +371,7 @@ const DEMO_HTML: &str = r#"<!DOCTYPE html>
           <button type="button" id="btn-cart">Cart.add (page cap)</button>
           <button type="button" class="secondary" id="btn-cart-no-cap">Cart without cap</button>
         </div>
-        <p class="hint">Missing cap → unauthorized. Present bogus cap also fails (present-cap-must-verify). No POST /ux-channel/mint.</p>
+        <p class="hint">Missing cap → unauthorized. Present bogus cap also fails (present-cap-must-verify). No POST /ux-channel/mint. Classic page mint is demo-only.</p>
       </div>
       <div class="card">
         <h2>Counter (open)</h2>
@@ -410,6 +421,11 @@ const DEMO_HTML: &str = r#"<!DOCTYPE html>
     document.getElementById('btn-cart').onclick = async () => {
       const sku = document.getElementById('sku').value;
       const qty = Number(document.getElementById('qty').value);
+      if (!PAGE_CAP) {
+        logEl.className = 'err';
+        logEl.textContent = 'Classic CapService mint is demo-only. This peer is not in demo_mode. Mint via Channel / cek-runtime Host.';
+        return;
+      }
       if (sku !== PAGE_ARGS.sku || qty !== PAGE_ARGS.qty) {
         logEl.className = 'err';
         logEl.textContent = 'Peer is verify-only. Mint via Channel / cek-runtime Host for other args.';

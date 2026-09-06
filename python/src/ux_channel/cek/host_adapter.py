@@ -30,6 +30,8 @@ from ux_channel.cek.runtime_host import (
     KERNEL_SSOT,
     KERNEL_SSOT_ADR,
     bind_runtime_host,
+    previous_secrets_nonempty,
+    refuse_previous_secrets_on_require,
 )
 from ux_channel.protocol.capability import CapError
 from ux_channel.protocol.capability import CapService as ChannelCapService
@@ -73,7 +75,8 @@ class CekHostCapService:
     (hex+HMAC), not itsdangerous and not a sibling ``RustHostKernel``.
     ``kernel_ssot`` is always ``cek-runtime``. Channel ``nonce_store`` is
     not wired and not re-consumed (cut #5A). Classic ``CapService`` +
-    ``nonce_store`` remain for ``cek=off``.
+    ``nonce_store`` remain for ``cek=off``. ``previous_secrets`` is not a
+    Host API — non-empty on this façade is a hard refuse (cut #5D).
     """
 
     def __init__(
@@ -84,10 +87,11 @@ class CekHostCapService:
         previous_secrets: Optional[Sequence[str]] = None,
         nonce_store: Any = None,
     ) -> None:
+        refuse_previous_secrets_on_require(previous_secrets, mode="require")
         bind = bind_runtime_host(
             secret,
             max_age=int(max_age or 3600),
-            previous_secrets=previous_secrets,
+            previous_secrets=None,
         )
         self._host = bind.host
         self.runtime_kernel = bind.runtime_kernel
@@ -97,8 +101,9 @@ class CekHostCapService:
         self.bin_path = bind.bin_path
         self.max_age = int(max_age or 3600)
         # Kept for CapService-shaped inspect; Host owns once (cut #5A).
+        # previous_secrets is never stored as if Host verified them (cut #5D).
         self.nonce_store = nonce_store
-        self.previous_secrets = tuple(previous_secrets or ())
+        self.previous_secrets: tuple[str, ...] = ()
         self.name = "cek-runtime.Host"
 
     @property
@@ -247,10 +252,19 @@ def apply_host_adapter(registry: Any, config: Any) -> str:
         secret = getattr(caps, "secret", None) or getattr(caps, "_secret", None)
     if not secret:
         raise RuntimeError("cek adapter needs a secret on ChannelConfig / registry")
+    prev = tuple(getattr(config, "previous_secrets", ()) or ())
+    if mode == "require":
+        refuse_previous_secrets_on_require(prev, mode="require")
+    elif previous_secrets_nonempty(prev):
+        log.error(
+            "cek=adapt: previous_secrets apply to Channel CapService only; "
+            "Host wrap does not verify rotation (cek-runtime Host has no "
+            "HMAC previous_secrets API)"
+        )
     adapted = CekHostCapService(
         str(secret),
         max_age=int(getattr(config, "max_cap_age", 3600) or 3600),
-        previous_secrets=tuple(getattr(config, "previous_secrets", ()) or ()),
+        previous_secrets=(),
     )
     if mode == "require":
         registry._caps = adapted

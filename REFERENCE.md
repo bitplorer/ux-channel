@@ -59,8 +59,9 @@ curl -sS http://127.0.0.1:8787/ux-channel/health | python3 -m json.tool
 
 ### 2.2 Mint (Channel / cek-runtime Host — not the Peer)
 
-Peer is **verify-only**. Mint on Channel (`registry.mint` / `CekHostCapService`)
-or classic `CapService` when that machine is the test subject.
+Peer is **verify-only**. Product mint is Channel (`registry.mint` /
+`CekHostCapService`). Classic `CapService` mint is demo / conformance /
+`cek=off` only (cut #5C).
 
 ```python
 from ux_channel import Channel, ChannelConfig
@@ -73,7 +74,7 @@ cap = ch.registry.mint("Cart.add", {"sku": "abc-123", "qty": 2})
 **Does:** Intent → (cap gate) → action → Result.
 
 ```bash
-# 1) mint via Channel / classic CapService (Peer has no /mint)
+# 1) mint via Channel / cek-runtime Host (classic CapService = demo/conformance; Peer has no /mint)
 # 2) action
 curl -sS -D- -X POST http://127.0.0.1:8787/ux-channel/action \
   -H 'Content-Type: application/ux-channel+json' \

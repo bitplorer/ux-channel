@@ -1,7 +1,11 @@
 # Python → Rust forward (P2d)
 
-Minimal adapter: host Python mints a classic-floor cap, POSTs one
-hot action (`Cart.add`) to the Rust peer (verify-only), and returns **Result.ops unchanged**.
+Minimal adapter: this demo mints a **classic-floor** cap (itsdangerous —
+not the product Cap machine), POSTs one hot action (`Cart.add`) to the
+Rust peer (verify-only), and returns **Result.ops unchanged**.
+
+Product mint is Channel / cek-runtime Host (`CekHostCapService`). See
+[`../../scripts/cross_mint_check.py`](../../scripts/cross_mint_check.py).
 
 ```text
 client / host

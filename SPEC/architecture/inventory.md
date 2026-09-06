@@ -12,6 +12,8 @@
 | project classic | project.md | `cek/project.py` | `test_classic_channel_ops_are_not_s` |
 | web safeHref | profiles/web.v1.md | drivers + `static/ux-channel.js` | driver / client tests |
 | Peer verify-only | ADR 0011 | `rust/src/peer.rs` | `cargo test --lib --tests` |
+| classic mint demo-only | cut #5C | `rust/src/cap.rs` mint + `uxc_peer` demo_html | crate/README banners; `uxc_check` |
+| previous_secrets honesty | cut #5D | `cek/runtime_host.py` refuse on require | `test_require_previous_secrets_refuses_loudly` |
 
 Empty cells are defects — fill before release.
 

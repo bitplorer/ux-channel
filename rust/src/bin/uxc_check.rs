@@ -1,6 +1,9 @@
 //! Load conformance vectors, verify JSON round-trip, cap oracle, CXB expected,
 //! peer edge cases, and optional HTTP peer.
 //!
+//! Classic `CapService::mint` in this binary is **conformance only** (cut #5C).
+//! Product Cap is Channel / cek-runtime Host. Peer HTTP is verify-only.
+//!
 //! Usage (from rust):
 //!   cargo run --bin uxc_check -- ../conformance
 //!   cargo run --bin uxc_check -- ../conformance --http http://127.0.0.1:8787
@@ -212,6 +215,7 @@ fn check_cap_oracle(raw: &[u8], name: &str) -> Result<usize, String> {
         }
     }
 
+    // Conformance mint (classic floor) — not the product Cap machine.
     let minted = svc
         .mint(action, &sealed, Some("user:42"), Some(&["cart:write".into()]))
         .map_err(|e| format!("{name}: mint {e}"))?;
@@ -312,6 +316,7 @@ fn check_peer_inprocess() -> Result<usize, String> {
     actions::reset_counter();
     let peer = Peer::with_oracle();
     let args = json!({"sku": "abc-123", "qty": 2});
+    // Conformance mint (classic floor) — not the product Cap machine.
     let cap = peer
         .caps
         .mint(
@@ -414,6 +419,7 @@ fn check_peer_edges() -> Result<usize, String> {
     n += 1;
 
     let args = json!({"sku":"a","qty":"2"});
+    // Conformance mint (classic floor).
     let cap = peer.caps.mint("Cart.add", &args, None, None).map_err(|e| e.to_string())?;
     let out = peer
         .handle_json(
@@ -437,6 +443,7 @@ fn check_peer_edges() -> Result<usize, String> {
     );
     map.insert("qty".into(), json!(1));
     let args = Value::Object(map);
+    // Conformance mint (classic floor) for XSS escape check.
     let cap = peer.caps.mint("Cart.add", &args, None, None).map_err(|e| e.to_string())?;
     let out = peer
         .handle_json(
@@ -476,6 +483,7 @@ fn check_http_peer(base: &str) -> Result<usize, String> {
     let base = base.trim_end_matches('/');
     let peer = Peer::with_oracle();
     let args = json!({"sku": "abc-123", "qty": 2});
+    // Conformance mint (classic floor) for the live Peer hop — Peer has no /mint.
     let cap = peer
         .caps
         .mint(

@@ -8,8 +8,8 @@
 //!   (present-cap-must-verify — never silently ignored).
 //! - once/jti is enforced: mint_once tokens consume jti atomically before
 //!   handlers; no store → refuse (Peer::new installs MemoryNonceStore).
-//! - Peer is verify-only. Mint lives on Channel / cek-runtime Host
-//!   (or CapService when that machine is the test subject).
+//! - Peer is verify-only. `caps.mint` is conformance/demo only (cut #5C).
+//!   Product mint lives on Channel / cek-runtime Host (`CekHostCapService`).
 
 use crate::actions;
 use crate::cap::{CapError, CapService};
@@ -25,6 +25,8 @@ const CAP_REQUIRED: &[&str] = &["Cart.add"];
 
 #[derive(Debug)]
 pub struct Peer {
+    /// Classic-floor CapService. Verify on the gate; `mint` is
+    /// conformance/demo only — not the product Cap machine.
     pub caps: CapService,
     pub name: String,
 }

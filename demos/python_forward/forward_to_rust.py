@@ -2,8 +2,9 @@
 """Minimal Python → Rust peer forward.
 
 Sends one hot action (Cart.add) to the Rust HTTP peer and returns Result.ops
-unchanged to the caller. Mint is Channel / cek-runtime Host when available,
-else local itsdangerous (classic floor). Peer is verify-only (no /mint).
+unchanged to the caller. This demo's local itsdangerous mint is **classic-floor
+/ demo only** (cut #5C). Product mint is Channel / cek-runtime Host
+(`CekHostCapService`). Peer is verify-only (no /mint).
 
 Usage:
   # terminal A (demo secret — see OPERATIONAL.md)
@@ -39,7 +40,7 @@ def hash_args(args: dict[str, Any]) -> str:
 
 
 def mint_cap_python(action: str, args: dict[str, Any], *, sub: str = "user:42") -> str:
-    """Classic-floor itsdangerous mint (same tokens Rust Peer verifies)."""
+    """Classic-floor itsdangerous mint — demo hop only, not product Cap."""
     if URLSafeTimedSerializer is None:
         raise RuntimeError("itsdangerous not installed")
     import time
