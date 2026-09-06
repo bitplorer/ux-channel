@@ -35,13 +35,11 @@ In-tree patch: [`patches/0001-production-hardening-authz-seal.patch`](patches/00
 - Gate suite: [`python/tests/gate/test_deeper_hardening.py`](python/tests/gate/test_deeper_hardening.py)
 
 ### Architecture plane (IR 0.1 floor)
+Superseded: `HostRuntime` / `PeerApply` / `arch` vectors / `test_arch_e2e` deleted (ADR 0011 / cuts #4–5 — paths deleted).
 - once/jti consume is live on Python `CapService.verify` and Rust `mint_once`
 - Channel.boot installs a process-local nonce store in development
-- present-cap-must-verify on ActionRegistry and ArchRegistry
-- proofs fail closed (`proofs=require` without a key emits zero ops)
-- Architecture inventory vectors in `conformance/vectors/arch/` run from `verify.sh`
-- Rust: `HostRuntime` + `PeerApply` / `PeerRuntime`; classic `Peer` gate unchanged
-- Gate suite: [`python/tests/gate/test_arch_e2e.py`](python/tests/gate/test_arch_e2e.py)
+- present-cap-must-verify on ActionRegistry
+- Classic Rust `Peer` gate unchanged (verify-only)
 
 ## Verify after any restore
 

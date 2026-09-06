@@ -1,5 +1,7 @@
 # ADR 0008 — Kernel SSoT is cek-runtime
 
+**Status:** Superseded for parallel-kernel existence by [ADR 0011](0011-delete-parallel-arch-kernel-cut4.md) (cut #4). Decision body below is unchanged.
+
 ## Context
 This repo still ships a parallel host/peer kernel (`python/src/ux_channel/arch/`, Rust `HostRuntime` / `PeerApply`) next to the product surface (Channel, wire, caps). Kernel work must not fork further.
 
