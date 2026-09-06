@@ -1,7 +1,8 @@
 ## 2026-09-01 — Organization: core in host, L4 lazy, FastAPI is an adapter
 
 - `Channel.__init__` attaches only L2 core (regions, flow, live, document,
-  enterprise mint policy, arch). `ch.webrtc` / `ch.media` / `ch.bridge`
+  enterprise mint policy). Cap plane = `cek/` (cek-runtime Host façade);
+  `arch` deleted cut #4. `ch.webrtc` / `ch.media` / `ch.bridge`
   attach on first attribute access. Public names unchanged.
 - `bridge/__init__.py` is PEP 562 lazy so `bridge.plugins` (Door D hub)
   does not import `bridge_plane` at factory boot.

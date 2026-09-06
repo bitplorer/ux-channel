@@ -1,5 +1,7 @@
 # ADR 0010 — Default decide is cek-runtime Host (cut #3)
 
+**Status:** `attach_arch` / EffectGraph now live as `cek/effects` + `after_cek_cut2` ([ADR 0011](0011-delete-parallel-arch-kernel-cut4.md) / cut #4). Decision body below is unchanged.
+
 ## Context
 [ADR 0008](0008-cek-runtime-kernel-ssot.md) froze kernel SSoT as
 [cek-runtime](https://github.com/bitplorer/cek-runtime).
