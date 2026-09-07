@@ -13,7 +13,7 @@ This file is the GitHub `docs/` landing. It is not the map — [INDEX.md](INDEX.
 | **Import** | `ux_channel` |
 | **CLI** | **`uxchannel`** |
 
-This layer owns Intent / Result / Cap / wire / peers / host runtime.
+This layer owns Intent / Result / Cap / wire / peers / Cap Host (cek-runtime; ≠ HTTP Product host).
 It does **not** own HTML trees or CSS.
 
 ---

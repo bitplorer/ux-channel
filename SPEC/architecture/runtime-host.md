@@ -24,7 +24,8 @@ demo_mode: false
 require_cap: true          # prod writes
 cek: require               # Cap machine = cek-runtime Host (ADR 0010)
 effects: "auto"            # or "classic" — EffectGraph is L7 after Cap
-flow: "auto"               # correlation only (ADR 0007)
+trace: "auto"              # CEK correlation (VOCAB); never authority
+flow: "auto"               # alias of trace (env FLOW; wire meta.flow_id)
 nonce_store: Channel store for cek=off once-caps; unused for require consume
 ```
 

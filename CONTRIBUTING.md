@@ -13,7 +13,7 @@ Docs map: [docs/INDEX.md](docs/INDEX.md).
 
 ## Layer ownership
 
-This repo owns Intent / Result / Capability / wire / peers / host runtime.
+This repo owns Intent / Result / Capability / wire / peers / Cap Host (cek-runtime; ≠ HTTP Product host).
 It does **not** own HTML trees or CSS. Do not add a document renderer here.
 
 ## Setup

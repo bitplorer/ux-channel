@@ -12,7 +12,8 @@ require  mint/verify/once/sealed-args go through one cek-runtime Host
 
 ``cek_surface`` is Continuation compose only — not a kernel.
 Classic Result.ops stay Channel wire. EffectGraph is L7 pre-project after
-Cap only (``after_cek_cut2``). ``flow_id`` maps to ``trace`` (correlation).
+Cap only (``after_cek_cut2``). CEK **trace** is correlation; wire alias
+``flow_id`` maps to ``trace`` (no wire break).
 hello/stamps encode as Profile/Manifest handshake — Manifest never grants
 Cap. ``previous_secrets`` is classic CapService (``cek=off``) only —
 ``cek=require`` refuses a non-empty window (cut #5D). No parallel

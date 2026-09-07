@@ -34,7 +34,7 @@ Bare install without the wrap packages: set `cek=off` or `UX_CHANNEL_CEK=off`.
 
 **Encodings** (`encode.py`) — frozen CEK nouns only:
 
-- `flow_id` → `trace` (correlation; ADR 0007)
+- `trace` (CEK VOCAB) — correlation; wire alias `flow_id` (ADR 0007)
 - hello → Profile / Manifest (handshake; Manifest never grants Cap)
 - stamp → handshake apply-set (not a Cap)
 

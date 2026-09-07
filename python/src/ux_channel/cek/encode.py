@@ -3,7 +3,8 @@
 This module must not import ``cek_host`` / ``cek_surface`` (off path stays
 import-clean). Encodings are handshake / correlation only.
 
-- ``flow_id`` → ``trace`` (LAW §10 / ADR 0007 — never authority)
+- ``trace`` (CEK VOCAB) — correlation only; wire alias ``flow_id``
+  (LAW §10 / ADR 0007 — never authority)
 - hello → Profile + Manifest (project ability bind; Manifest never grants Cap)
 - stamp → handshake apply-set (not a Cap)
 
@@ -39,7 +40,7 @@ _UI_APPLY = ("ui.dom.morph", "ui.dom.restore")
 
 
 def flow_id_to_trace(flow_id: Any) -> Optional[str]:
-    """Map Channel ``flow_id`` to CEK ``trace``. Correlation only."""
+    """Map wire-immortal ``flow_id`` to CEK ``trace``. Correlation only."""
     if flow_id is None:
         return None
     s = str(flow_id).strip()
@@ -51,7 +52,7 @@ def intent_trace(
     meta: Mapping[str, Any] | None = None,
     args: Mapping[str, Any] | None = None,
 ) -> Optional[str]:
-    """Prefer explicit ``meta.trace``; else map ``flow_id`` → trace."""
+    """Prefer explicit ``meta.trace``; else map wire alias ``flow_id`` → trace."""
     meta = meta or {}
     args = args or {}
     raw = meta.get("trace")

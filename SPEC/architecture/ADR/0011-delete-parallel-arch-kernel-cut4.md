@@ -52,7 +52,7 @@ Deleted in this cut:
 - Touching cek-runtime law
 - Deleting product Channel / wire / ASGI / UI / regions
 - EffectGraph → L1
-- Peer mint / flow-as-authority
+- Peer mint / trace-as-authority (`flow_id` remains a wire alias)
 - New pyo3
 - Static `ux-peer-*.js` (client apply stays droppable)
 

@@ -440,7 +440,7 @@ class RegionBook:
 
             ch = self.channel
             if login:
-                from ux_channel.host.flow import _auth_wrap
+                from ux_channel.host.outcomes import _auth_wrap
 
                 fn = _auth_wrap(ch, fn)
 
@@ -615,7 +615,7 @@ class RegionBook:
 
 
 def attach_regions(channel: Any) -> RegionBook:
-    """Attach RegionBook as ``ch.regions`` — product verbs come from flow.attach_flow."""
+    """Attach RegionBook as ``ch.regions`` — product verbs come from outcomes.attach_outcomes."""
     existing = getattr(channel, "regions", None)
     if isinstance(existing, RegionBook):
         return existing

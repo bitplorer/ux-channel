@@ -40,7 +40,7 @@ tests whose subject is that machine.
 - Deleting `arch/` / Rust `HostRuntime` / `PeerApply` (cut #4)
 - EffectGraph into L1
 - Inventing nouns
-- Peer mint / flow-as-authority
+- Peer mint / trace-as-authority (`flow_id` remains a wire alias)
 - New pyo3
 
 ## Consequences

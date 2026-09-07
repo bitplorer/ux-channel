@@ -17,7 +17,7 @@ This file routes by **audience** and **Diátaxis mode**. It does not replace DOC
 Specialized folders (`security/`, `ship/`, `design/`, `tutorial/`, `patterns/`, `archive/`) stay.
 `docs/INDEX.md` is the map. Do not add a second competing map.
 
-This layer owns Intent / Result / Cap / wire / peers / host runtime.
+This layer owns Intent / Result / Cap / wire / peers / Cap Host (cek-runtime; ≠ HTTP Product host).
 It does **not** own HTML trees or CSS.
 
 Stale history: [archive/](archive/) — **do not cite as current law**.

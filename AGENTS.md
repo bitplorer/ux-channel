@@ -15,7 +15,7 @@ The UX stack is a **layered system of specialists**, not a monolith.
 | Layer | Owns | Must **not** own |
 |-------|------|------------------|
 | **ux-dom** | HTML/CSS/JS trees, `Document`, serialize, pure discovery, `uxdom` | Intent, Cap, Result ops, MorphState, motion IR, product CLI |
-| **ux-channel** (this repo) | Intent / Result / Cap / wire / peers / host runtime | HTML trees, CSS |
+| **ux-channel** (this repo) | Intent / Result / Cap / wire / peers / Cap Host (cek-runtime; ≠ HTTP Product host) | HTML trees, CSS |
 | **ux-behavior** | Product behavior, Morph/Ref, `@action`, validation | Raw HTML construction, wire codecs |
 | **ux-motion** | Presence / transition plans as data (IR v1) | Product behavior, DOM construction |
 | **ux-compose** | Author composition + product CLI (`uxcompose`) | Re-implementing any specialist |

@@ -24,20 +24,20 @@ Encoding maps (frozen CEK nouns only):
 
 | Channel | CEK | Law |
 |---------|-----|-----|
-| `flow_id` | `trace` | correlation only (ADR 0007 / LAW §10) |
+| `flow_id` (wire alias) | `trace` | correlation only (ADR 0007 / LAW §10); `meta.flow_id` stays |
 | hello | Profile + Manifest | handshake; Manifest **never** grants Cap |
 | stamp | handshake apply-set | not a Cap |
 
 EffectGraph is **L7** pre-project **after Cap** (not L1). `arch/` /
 HostRuntime / PeerApply stay bootable and are **not** the Cap machine.
 
-No new pyo3. No Peer mint. No flow-as-authority.
+No new pyo3. No Peer mint. No trace-as-authority (`flow_id` is a wire alias).
 
 ## Out of scope
 - Deleting `arch/` / Rust `HostRuntime` / `PeerApply` (later cut)
 - EffectGraph into L1
 - Inventing nouns
-- Peer mint / flow-as-authority
+- Peer mint / trace-as-authority (`flow_id` remains a wire alias)
 
 ## Consequences
 `[cek]` is a Channel adapter over cek-runtime Host, not a second SSoT.

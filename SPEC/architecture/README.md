@@ -20,7 +20,8 @@ Result.ops    → effects only
 Classic IR    → permanent floor
 Cap machine   → cek-runtime Host only (Channel wrap)
 once consume  → Host on require; Channel nonce_store on cek=off
-flow_id       → trace (correlation, NOT authority)
+trace         → correlation of related Intents (NOT authority)
+flow_id       → wire alias of trace (immortal key; no wire break)
 Peer gate     → verify-only (no mint)
 once/jti      → atomic before side effects; no store → refuse (classic)
 EffectGraph   → L7 after Cap (after_cek_cut2), not L1
@@ -32,12 +33,12 @@ EffectGraph   → L7 after Cap (after_cek_cut2), not L1
 2. [ADR/0002-classic-floor.md](ADR/0002-classic-floor.md)
 3. [ADR/0003-peer-kernel-no-dom.md](ADR/0003-peer-kernel-no-dom.md)
 4. [ADR/0006-once-jti-fail-closed.md](ADR/0006-once-jti-fail-closed.md)
-5. [ADR/0007-flow-correlation-only.md](ADR/0007-flow-correlation-only.md)
+5. [ADR/0007-flow-correlation-only.md](ADR/0007-flow-correlation-only.md) (H1: trace)
 6. [ADR/0008-cek-runtime-kernel-ssot.md](ADR/0008-cek-runtime-kernel-ssot.md)
 7. [ADR/0009-channel-cek-runtime-host-cut2.md](ADR/0009-channel-cek-runtime-host-cut2.md)
 8. [ADR/0010-channel-cek-runtime-default-cut3.md](ADR/0010-channel-cek-runtime-default-cut3.md)
 9. [ADR/0011-delete-parallel-arch-kernel-cut4.md](ADR/0011-delete-parallel-arch-kernel-cut4.md)
-10. [project.md](project.md) · [flow.md](flow.md) · [budgets.md](budgets.md) · [concurrency.md](concurrency.md)
+10. [project.md](project.md) · [trace.md](trace.md) ([flow.md](flow.md) stub) · [budgets.md](budgets.md) · [concurrency.md](concurrency.md)
 11. [peer-kernel.md](peer-kernel.md) · [host-kernel.md](host-kernel.md) · [runtime-peer.md](runtime-peer.md) · [runtime-host.md](runtime-host.md)
 12. [profiles/](profiles/) · [inventory.md](inventory.md) · [non-goals.md](non-goals.md)
 13. Historical (not law): [archive/historical/proof.md](archive/historical/proof.md)

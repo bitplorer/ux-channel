@@ -1,8 +1,8 @@
-"""Flow layer — ch.on / ch.view / ch.ok / ch.err without losing command/island."""
+"""Outcomes layer — ch.on / ch.done / ch.fail without losing command/island."""
 
 from __future__ import annotations
 
-from ux_channel import Channel, Result
+from ux_channel import Channel, ChannelConfig, Result
 from ux_channel.host.testing import ChannelTest
 
 SECRET = "dev-secret-key-32chars-minimum!!!!"
@@ -88,3 +88,20 @@ def test_command_and_on_coexist():
 
     ChannelTest(ch).call("A.x").assert_ok()
     ChannelTest(ch).call("B.y").assert_ok().assert_notice("y")
+
+
+def test_outcomes_bound_not_flow_module_name():
+    ch = Channel.boot(secret=SECRET)
+    assert hasattr(ch, "outcomes")
+    assert not hasattr(ch, "flow")
+    assert ch.fail is ch.outcomes.fail
+    assert ch.done is ch.outcomes.done
+
+
+def test_config_trace_aliases_flow():
+    cfg = ChannelConfig.development(secret=SECRET, trace="off")
+    assert cfg.trace == "off"
+    assert cfg.flow == "off"
+    cfg2 = ChannelConfig.development(secret=SECRET, flow="off")
+    assert cfg2.trace == "off"
+    assert cfg2.flow == "off"
