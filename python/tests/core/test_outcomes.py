@@ -95,7 +95,7 @@ def test_outcomes_bound_not_flow_module_name():
     assert hasattr(ch, "outcomes")
     assert not hasattr(ch, "flow")
     assert ch.fail is ch.outcomes.fail
-    assert ch.done is ch.outcomes.done
+    assert ch.done.__self__ is ch.outcomes
 
 
 def test_config_trace_aliases_flow():
