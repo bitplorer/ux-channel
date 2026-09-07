@@ -191,7 +191,7 @@ class CekHostCapService:
 def after_cek_cut2(intent: Any, result: Any) -> Any:
     """Encoding + L7 EffectGraph gate. Registered on adapt|require.
 
-    * ``flow_id`` → ``meta.trace`` (correlation only)
+    * CEK ``trace`` ← wire alias ``flow_id`` (correlation only; no wire break)
     * hello → Profile / Manifest on result.meta (handshake; not Cap)
     * ``_graph`` without a present Cap is refused (EffectGraph is L7 after Cap)
     * ``_graph`` with a present Cap is projected to classic-floor ops

@@ -23,16 +23,18 @@ Use these terms in code, config, and docs. Do not invent synonyms in public APIs
 | **stamp** | Host-tracked id for a surface right (invoke path) |
 | **once** | Cap claim: single successful consume |
 | **jti** | Unique id for once-consume / replay detection |
-| **flow_id** | Optional correlation id for multi-step work (not authority) |
+| **trace** | Correlation of related Intents (not authority). CEK VOCAB. |
+| **flow_id** | Wire-immortal alias of **trace** (`meta.flow_id`) |
 | **EffectGraph** | Host-side structure of intended effects before project |
 | **hello** | Peer declaration of profiles and capability bits |
 | **effects** (config) | `"auto"` \| `"classic"` — encoding mode for project |
 | **proofs** (config) | `"auto"` \| `"require"` \| `"off"` |
-| **flow** (config) | `"auto"` \| `"off"` — whether host may attach flow meta |
+| **trace** (config) | `"auto"` \| `"off"` — whether host may attach trace meta |
+| **flow** (config) | Alias of **trace** (config); env `FLOW` |
 
 ## Explicitly not synonyms
 
 - **Cap** ≠ session cookie ≠ proof  
 - **profile** ≠ user profile ≠ Cap  
 - **driver** ≠ host action handler  
-- **flow_id** ≠ permission to run next step  
+- **trace** / **flow_id** ≠ permission to run next step  

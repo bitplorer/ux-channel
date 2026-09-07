@@ -97,7 +97,7 @@ def join_key(*parts: Any) -> str:
 def _resolve_refresh(refresh: Any) -> list[str]:
     if refresh is None or refresh is False:
         return []
-    from ux_channel.host.flow import resolve_uids
+    from ux_channel.host.outcomes import resolve_uids
 
     if isinstance(refresh, (list, tuple)):
         return list(resolve_uids(list(refresh)))

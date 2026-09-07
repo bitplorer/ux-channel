@@ -322,7 +322,7 @@ class RegistryHost:
 
 
 class _HostFail:
-    """Minimal fail speech for RegistryHost (no Channel.flow)."""
+    """Minimal fail speech for RegistryHost (no Channel.outcomes)."""
 
     def __init__(self, host: RegistryHost):
         self._host = host

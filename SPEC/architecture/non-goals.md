@@ -9,5 +9,5 @@ The following are **out of scope** and MUST NOT be introduced as core law:
 5. Peer-side product op catalogs  
 6. Library-scoped profile names (e.g. product-branded surface ids)  
 7. CXB tags as capabilities  
-8. Requiring flow_id to apply ops  
+8. Requiring trace / flow_id to apply ops  
 9. Browser APIs inside peer kernel  

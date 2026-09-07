@@ -1,5 +1,5 @@
 """
-Flow — product verbs on Channel: on, done, fail, refresh.
+Outcomes — product verbs on Channel: on, done, fail, refresh.
 
 First principles
 ----------------
@@ -11,12 +11,12 @@ Handlers should speak **outcomes**, not hand-assemble ops every time:
 - ``ch.refresh(*uids)`` — power: same as done(refresh=uids)
 - ``@ch.on`` — register actions with refresh/auth/idempotent metadata
 
-``attach_flow(channel)`` binds these onto the Channel instance at boot.
+``attach_outcomes(channel)`` binds these onto the Channel instance at boot.
 Internal plumbing still calls ``RegionBook.revalidate``; **product speech**
 is always ``refresh``.
 
-FailFlow methods (closed set)
------------------------------
+Fail methods (closed set)
+-------------------------
 valid, auth, forbidden, rate, plus ``code(name, …)`` for not_found / conflict / internal / …
 
 No aliases — use the short intent names (``valid`` not ``validation``).
@@ -49,7 +49,7 @@ def resolve_uids(uids: Sequence[Any]) -> list[str]:
 
 
 
-class FailFlow:
+class Fail:
     """
     Structured failure builders attached as ``ch.fail``.
 
@@ -203,10 +203,10 @@ class DraftBag:
         """Counter sugar → ``change(key, lambda n: n + delta)``."""
         return self._ch.state.incr(key, delta, default=default)
 
-class Flow:
+class Outcomes:
     def __init__(self, channel: Any):
         self.ch = channel
-        self.fail = FailFlow(channel)
+        self.fail = Fail(channel)
         self.draft = DraftBag(channel)
         self._refresh_uids: list[str] = []
         self._refresh_principal: Any = None
@@ -447,18 +447,18 @@ def _auth_wrap(ch: Any, fn: Handler) -> Handler:
     return wrapped
 
 
-def attach_flow(channel: Any) -> Flow:
+def attach_outcomes(channel: Any) -> Outcomes:
     """Wire the stable product surface onto Channel."""
-    flow = Flow(channel)
+    outcomes = Outcomes(channel)
     book = channel.regions
 
-    channel.flow = flow
-    channel.fail = flow.fail
-    channel.done = flow.done
-    channel.refresh = flow.refresh  # region reload (overrides morph helper name)
-    channel.notice = flow.notice
-    channel.filter = flow.filter
-    channel.draft = flow.draft
+    channel.outcomes = outcomes
+    channel.fail = outcomes.fail
+    channel.done = outcomes.done
+    channel.refresh = outcomes.refresh  # region reload (overrides morph helper name)
+    channel.notice = outcomes.notice
+    channel.filter = outcomes.filter
+    channel.draft = outcomes.draft
 
     # removed from product surface — keep only if tests still need via registry path
     # do NOT bind: ok, err, view, sync, notify, search
@@ -535,9 +535,9 @@ def attach_flow(channel: Any) -> Flow:
 
             def _finish(out: Any, *, notice=notice, notice_level=notice_level, rev=rev):
                 if out is None:
-                    return flow.done(notice, notice_level=notice_level)
+                    return outcomes.done(notice, notice_level=notice_level)
                 if isinstance(out, str) and (rev or notice):
-                    return flow.done(out, notice_level=notice_level)
+                    return outcomes.done(out, notice_level=notice_level)
                 return out
 
             if inspect.iscoroutinefunction(fn):
@@ -545,7 +545,7 @@ def attach_flow(channel: Any) -> Flow:
                     ctx = kwargs.get("ctx")
                     scope = dict(getattr(ctx, "scope", None) or {})
                     principal = _principal_from_call(*args, **kwargs)
-                    flow.push_refresh(rev, principal=principal, scope=scope)
+                    outcomes.push_refresh(rev, principal=principal, scope=scope)
                     try:
                         if role_list:
                             denied = require_roles(
@@ -561,13 +561,13 @@ def attach_flow(channel: Any) -> Flow:
                             channel.audit(action_name, actor=actor, keys=dict(scope))
                         return _finish(out)
                     finally:
-                        flow.clear_refresh()
+                        outcomes.clear_refresh()
             else:
                 def user_fn(*args: Any, **kwargs: Any) -> Any:  # type: ignore[misc]
                     ctx = kwargs.get("ctx")
                     scope = dict(getattr(ctx, "scope", None) or {})
                     principal = _principal_from_call(*args, **kwargs)
-                    flow.push_refresh(rev, principal=principal, scope=scope)
+                    outcomes.push_refresh(rev, principal=principal, scope=scope)
                     try:
                         if role_list:
                             denied = require_roles(
@@ -583,7 +583,7 @@ def attach_flow(channel: Any) -> Flow:
                             channel.audit(action_name, actor=actor, keys=dict(scope))
                         return _finish(out)
                     finally:
-                        flow.clear_refresh()
+                        outcomes.clear_refresh()
 
             try:
                 user_fn.__signature__ = inspect.signature(fn)  # type: ignore[attr-defined]
@@ -617,7 +617,7 @@ def attach_flow(channel: Any) -> Flow:
         return decorator
 
     channel.on = on
-    return flow
+    return outcomes
 
 
 
@@ -667,7 +667,7 @@ CHANNEL_PUBLIC = frozenset(
         "ui",
         "sel",
         "uid_attr",
-        "flow",
+        "outcomes",
     }
 )
 
@@ -688,5 +688,5 @@ def apply_surface(channel: Any) -> None:
             continue
         if removed in getattr(channel, "__dict__", {}):
             del channel.__dict__[removed]
-        # flow may have set attributes - only instance
+        # outcomes may have set attributes - only instance
 

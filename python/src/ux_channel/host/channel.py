@@ -182,7 +182,7 @@ class UiBuilder:
 
 # Public API architecture overview (keep small — decades of DX)
 # Public API: boot → region → on → control → runtime → draft/done → media → bridge
-# Power: webrtc, sign_*, live, flow, before/after, multi, diagnose, enterprise
+# Power: webrtc, sign_*, live, outcomes, before/after, multi, diagnose, enterprise
 # Demo HTML — ux_channel.render.kit only (not on Channel)
 # Layers: webrtc / scaffold / sfu / otel — never grow root exports
 CHANNEL_PUBLIC_API = (
@@ -252,7 +252,7 @@ class Channel:
     Power (when you need them)
     --------------------------
     ``mint`` / ``sign_push`` / ``sign_ws``, ``live``, ``before``/``after``,
-    ``multi``, ``patch``, ``flow``, ``diagnose``, ``audit*``, ``policies``.
+    ``multi``, ``patch``, ``outcomes``, ``diagnose``, ``audit*``, ``policies``.
 
     Demo only (not production UI kit)
     ---------------------------------
@@ -261,7 +261,7 @@ class Channel:
 
     Layers
     ------
-    L2 core attaches at boot (regions, flow, live, document, mint policy).
+    L2 core attaches at boot (regions, outcomes, live, document, mint policy).
     L4 planes (``ch.webrtc``, ``ch.media``, ``ch.bridge``) attach on first
     use — same public names. Map: ``ux_channel/LAYERS.md``.
     FastAPI is an L3 adapter (``asgi/``), not the protocol.
@@ -289,7 +289,7 @@ class Channel:
             self.state = MemoryStateStore()
         # L2 host core — always on. This is the Channel speech surface.
         from ux_channel.host.regions import attach_regions
-        from ux_channel.host.flow import apply_surface, attach_flow
+        from ux_channel.host.outcomes import apply_surface, attach_outcomes
         from ux_channel.host.region_component import attach_region_classes
         from ux_channel.render.html_document import attach_document
         from ux_channel.devtools.enterprise import attach_enterprise
@@ -297,7 +297,7 @@ class Channel:
 
         attach_regions(self)
         attach_enterprise(self)
-        attach_flow(self)
+        attach_outcomes(self)
         attach_region_classes(self)
         attach_document(self)
         apply_surface(self)
@@ -598,7 +598,8 @@ class Channel:
             "presence": getattr(getattr(self, "live", None), "presence_snapshot", lambda: {})(),
             "effects": getattr(cfg, "effects", None) if cfg else None,
             "proofs": getattr(cfg, "proofs", None) if cfg else None,
-            "flow": getattr(cfg, "flow", None) if cfg else None,
+            "trace": getattr(cfg, "trace", getattr(cfg, "flow", None)) if cfg else None,
+            "flow": getattr(cfg, "flow", None) if cfg else None,  # alias of CEK trace
             "once_jti_enforced": bool(
                 getattr(
                     self.registry,

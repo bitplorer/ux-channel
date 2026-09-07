@@ -24,7 +24,7 @@ That loop is the product. Everything else is a door or a plane.
 
 ## What Channel.boot always attaches (L2)
 
-Regions, flow, live, document helpers, enterprise mint policy, arch hooks.
+Regions, outcomes, live, document helpers, enterprise mint policy, arch hooks.
 
 ## What Channel.boot does **not** attach until you touch it (L4)
 

@@ -198,7 +198,7 @@ class ChannelConfig:
     # Architecture opt-ins (ADR 0002/0005). Classic floor when peer lacks hello.
     effects: str = "auto"  # auto | classic
     proofs: str = "auto"  # auto | require | off
-    flow: str = "auto"  # auto | off  (meta.flow_id = correlation only)
+    flow: str = "auto"  # alias of CEK trace (auto|off); wire key meta.flow_id
     proof_secret: Optional[str] = None
     # CEK decide (ADR 0010). require = Cap machine is cek-runtime Host (default).
     # adapt = extra live, Channel CapService stays authority.
@@ -207,6 +207,11 @@ class ChannelConfig:
     # Morph / toast HTML policy: off (default, ux-dom safe) | strict (strip script/on*).
     # Production factory leaves this off so ux-dom is not broken; doctor warns.
     morph_html_policy: str = "off"
+
+    @property
+    def trace(self) -> str:
+        """CEK **trace** correlation mode (VOCAB). ``flow`` / env ``FLOW`` are aliases."""
+        return self.flow
 
     def validate(self) -> "ChannelConfig":
         """Raise ValueError if config is unsafe for declared environment."""
@@ -218,7 +223,7 @@ class ChannelConfig:
         if self.proofs not in ("auto", "require", "off"):
             raise ValueError('proofs must be "auto", "require", or "off"')
         if self.flow not in ("auto", "off"):
-            raise ValueError('flow must be "auto" or "off"')
+            raise ValueError('flow (trace alias) must be "auto" or "off"')
         from ux_channel.cek.config import parse_cek
 
         object.__setattr__(self, "cek", parse_cek(self.cek))
@@ -310,6 +315,18 @@ class ChannelConfig:
             raise ValueError(PREVIOUS_SECRETS_REQUIRE_MSG)
         return self
 
+    @staticmethod
+    def _alias_trace_kw(kwargs: dict) -> dict:
+        """Accept ``trace=`` (CEK speech); stored field remains ``flow``."""
+        if "trace" not in kwargs:
+            return kwargs
+        trace = kwargs.pop("trace")
+        flow = kwargs.get("flow")
+        if flow is not None and flow != trace:
+            raise ValueError("ChannelConfig.trace and .flow aliases disagree")
+        kwargs["flow"] = trace
+        return kwargs
+
     @classmethod
     def production(cls, secret: str, **kwargs) -> "ChannelConfig":
         """Fail-closed production defaults.
@@ -325,6 +342,7 @@ class ChannelConfig:
         hostnames are derived so absolute navigate/push_url cannot open-redirect
         off-site (relative paths remain allowed).
         """
+        kwargs = cls._alias_trace_kw(kwargs)
         kwargs.setdefault("audit", True)
         kwargs.setdefault("webrtc_require_ticket", True)
         kwargs.setdefault("webrtc_require_origin", True)
@@ -355,6 +373,7 @@ class ChannelConfig:
     @classmethod
     def development(cls, secret: str = "", **kwargs) -> "ChannelConfig":
         """Local DX defaults; generates a secret if omitted."""
+        kwargs = cls._alias_trace_kw(kwargs)
         sec = secret or ("dev-" + secrets.token_urlsafe(24))
         kw = {
             "expose_internal_errors": True,
@@ -500,7 +519,8 @@ class ChannelConfig:
             "observe": os.environ.get(f"{prefix}OBSERVE", "off" if env == "production" else "dev"),
             "effects": os.environ.get(f"{prefix}EFFECTS", "auto"),
             "proofs": os.environ.get(f"{prefix}PROOFS", "auto"),
-            "flow": os.environ.get(f"{prefix}FLOW", "auto"),
+            "flow": os.environ.get(f"{prefix}TRACE")
+            or os.environ.get(f"{prefix}FLOW", "auto"),
             "proof_secret": os.environ.get(f"{prefix}PROOF_SECRET") or None,
             "cek": os.environ.get(f"{prefix}CEK", "require"),
             "morph_html_policy": os.environ.get(f"{prefix}MORPH_HTML_POLICY", "off"),

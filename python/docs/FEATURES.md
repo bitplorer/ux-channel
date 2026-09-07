@@ -165,14 +165,14 @@ coerced to Result/ops.
 
 ---
 
-### 1.7 Flow & navigation helpers
+### 1.7 Outcomes & navigation helpers
 
 | | |
 |--|--|
-| **What** | Multi-step flows, fail paths, navigate/push helpers |
+| **What** | Handler outcomes, fail paths, navigate/push helpers |
 | **Use when** | Wizards, login/signup chains, post-action redirects |
-| **API** | `Flow`, `FailFlow`, `attach_flow`, `Go`, `Navigate` |
-| **Implements** | `flow.py`, `encode.py` |
+| **API** | `Outcomes`, `Fail`, `attach_outcomes`, `Go`, `Navigate` |
+| **Implements** | `outcomes.py`, `encode.py` |
 | **Docs** | [HOW_TO](start/HOW_TO.md) · [PATTERNS](start/PATTERNS.md) |
 
 ---

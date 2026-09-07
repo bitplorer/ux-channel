@@ -4,7 +4,7 @@ Document / runtime **Placement** for Channel (no HTML strings).
 ux-dom and templates consume ``ch.runtime().scripts`` and ``ch.body_attrs()``.
 Demo HTML lives only in ``ux_channel.render.kit``.
 
-Region SSR is separate: ``ch.html(uid)`` from RegionBook (see flow.attach_flow).
+Region SSR is separate: ``ch.html(uid)`` from RegionBook (see outcomes.attach_outcomes).
 """
 
 from __future__ import annotations

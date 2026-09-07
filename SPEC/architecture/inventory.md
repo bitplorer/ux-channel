@@ -7,7 +7,7 @@
 | once replay (classic) | capability-extension.md | `CapService.verify` + Channel `nonce_store` | `test_once_replay_fails_closed_both` (`cek=off`) |
 | store down (classic) | capability-extension.md | `CapService` no store → refuse | `test_once_cap_requires_nonce_store` |
 | Cap machine identity | ADR 0008–0011 | `cek/host_adapter.py` + `cek/runtime_host.py` | `test_cek_runtime_host.py` / `test_cek_layer_honesty.py` |
-| flow non-authority | flow.md / ADR 0007 | `flow_id` → `meta.trace` (`after_cek_cut2`) | `test_flow_id_becomes_trace_on_require_result` |
+| trace non-authority | trace.md / ADR 0007 | `flow_id` → `meta.trace` (`after_cek_cut2`); `flow_id` is wire alias | `test_flow_id_becomes_trace_on_require_result` |
 | EffectGraph L7 | effects.md | `cek/effects.py` + `after_cek_cut2` | `test_effect_graph_*_on_require` |
 | project classic | project.md | `cek/project.py` | `test_classic_channel_ops_are_not_s` |
 | web safeHref | profiles/web.v1.md | drivers + `static/ux-channel.js` | driver / client tests |

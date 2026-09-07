@@ -46,7 +46,7 @@ def test_public_api_closed_and_no_alias_map():
     assert not hasattr(ch, "multi")
     assert not hasattr(ch, "page")
     assert not hasattr(ch, "button")
-    assert "ch" not in dir(ch.fail)  # no FailFlow.ch leak
+    assert "ch" not in dir(ch.fail)  # no Fail.ch leak
     assert "update" not in dir(ch.draft)
     assert not hasattr(ch, "search")
 

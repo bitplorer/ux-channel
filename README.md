@@ -12,7 +12,7 @@ Intent {action, args, cap}  →  verify  →  action  →  Result {ok, ops[]}
 
 JSON is the floor. Caps authorize. Classic IR 0.1 stays valid. Channel is the product. **cek-runtime Host** is the default Cap machine (`cek=require`; wrap via `[cek]` — [ADR 0008](SPEC/architecture/ADR/0008-cek-runtime-kernel-ssot.md) / [0010](SPEC/architecture/ADR/0010-channel-cek-runtime-default-cut3.md)). `cek=off` is the explicit escape.
 
-This layer **owns the wire**: Intent, Result, Capability, codecs, peers, host runtime. It does **not** own HTML trees or CSS.
+This layer **owns the wire**: Intent, Result, Capability, codecs, peers, Cap Host (cek-runtime; ≠ HTTP Product host). It does **not** own HTML trees or CSS.
 
 | Layer | Name |
 |-------|------|
@@ -93,7 +93,7 @@ Do **not** ship `development(secret=…)` in production. Five-minute path: [STAR
 |------|------------------|
 | Intent / Result / Cap / args_hash | HTML trees, CSS, Document (`ux-dom`) |
 | Wire codecs (JSON floor, CXB upgrade) | MorphState / `@action` (`ux-behavior`) |
-| Host runtime, peers, regions protocol | Motion IR (`ux-motion`) |
+| Cap Host (cek-runtime; ≠ HTTP Product host), peers, regions protocol | Motion IR (`ux-motion`) |
 | `uxchannel` CLI + conformance vectors | Product serve (`ux-compose`) |
 
 ## Audience
