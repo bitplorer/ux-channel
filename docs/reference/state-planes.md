@@ -18,6 +18,18 @@ Extracted from root `START_HERE.md` (Phase 2 mixed-mode split). The 5-minute pat
 **Quantity / money:** load via foundations (`Quantity.from_store…`); never trust client paths for magnitudes.  
 **RMW:** use store semantics / drafts carefully under concurrency (see host stores docs).
 
-Power backends: `from ux_channel.host.stores import MemoryStateStore` (not on root).
+Power backends (not on root):
+
+```python
+from ux_channel.host.stores import MemoryStateStore, FileStateStore
+```
+
+| Backend | Lives | Use |
+|---------|-------|-----|
+| `MemoryStateStore` | Process RAM | Default. Single worker / tests |
+| `FileStateStore` | sqlite WAL, JSON values | serve-dev: `UXCOMPOSE_STATE_STORE` set, no `REDIS_URL`. `Channel.boot` opens it |
+| `RedisStateStore` | Redis, JSON values (`redis_extra`) | Product multi-worker (`REDIS_URL` / `redis_url=`) |
+
+File matches Redis's JSON domain (`default=str`), not pickle. `change()` is `BEGIN IMMEDIATE` across processes.
 
 ---

@@ -13,14 +13,14 @@ Architecture
 
 Implementation
     ``channel``, ``regions`` / ``region_component``, ``registry``, ``state_api``,
-    ``stores``. Note: ``state`` is not re-exported here (collides with stores
-    module path) — use ``state_api`` or package root.
+    ``stores`` (Memory / File sqlite / Redis). Note: ``state`` is not re-exported
+    here (collides with stores module path) — use ``state_api`` or package root.
 
     Preferred::
 
         from ux_channel.host import Channel, Region, RegionBook, ChannelConfig
         from ux_channel.host.state_api import state
-        from ux_channel.host.stores import MemoryStateStore
+        from ux_channel.host.stores import MemoryStateStore, FileStateStore
 """
 from __future__ import annotations
 
