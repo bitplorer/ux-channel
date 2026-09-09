@@ -155,7 +155,7 @@ Wire keys are **not** renamed to match prose. Prose maps *to* wire keys in TERMI
 | `protocol` | Wire IR + CapService (mint/verify) |
 | `host` | Channel, regions, actions |
 | `host.channel` | Channel implementation module |
-| `host.stores` | MemoryStateStore backends |
+| `host.stores` | Memory / File (sqlite JSON) / Redis backends |
 | `host.state_api` | Application `state()` API |
 | `render` | Morph / HTML / renderers / kit |
 | `wire` | encode/decode + CXB |

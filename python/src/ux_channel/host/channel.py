@@ -10,6 +10,7 @@ See ``Channel.describe()`` and docs/API_SURFACE.md."""
 from __future__ import annotations
 
 import logging
+import os
 
 from dataclasses import dataclass, field
 from typing import Any, Callable, Mapping, Optional, Sequence, Union  # noqa: F401
@@ -384,6 +385,17 @@ class Channel:
                 logging.getLogger("ux_channel.boot").exception(
                     "RedisStateStore attach failed for redis_url — using default state"
                 )
+        elif state is None:
+            # File is the serve-dev share (compose prepares the path).
+            # Precedence: explicit state= > redis_url > File (env) > Memory.
+            # REDIS_URL in the environment skips File even when Redis
+            # attach did not run — do not silently share a cwd sqlite
+            # when the author asked for Redis.
+            file_path = os.environ.get("UXCOMPOSE_STATE_STORE")
+            if file_path and not os.environ.get("REDIS_URL"):
+                from ux_channel.host.stores import FileStateStore
+
+                ch.state = FileStateStore(file_path)
         # agents façade always available
         import logging as _logging
         _blog = _logging.getLogger("ux_channel.boot")

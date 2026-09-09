@@ -1,4 +1,17 @@
+## 2026-09-09 — FileStateStore (serve-dev sqlite)
+
+- `FileStateStore` in `host.stores`: JSON sqlite WAL, same StateStore
+  protocol as Memory. Values JSON (`default=str`), matching Redis —
+  not pickle.
+- `Channel.boot` opens it when `UXCOMPOSE_STATE_STORE` is set and
+  `REDIS_URL` is not. Explicit `state=` and Redis still win.
+- `change()` uses `BEGIN IMMEDIATE` so two processes cannot lose
+  increments (ui + channel workers).
+- Compose serve-dev prepares the path; Channel owns the class (ADR
+  0006 on ux-compose).
+
 ## 2026-09-01 — Organization: core in host, L4 lazy, FastAPI is an adapter
+
 
 - `Channel.__init__` attaches only L2 core (regions, flow, live, document,
   enterprise mint policy). Cap plane = `cek/` (cek-runtime Host façade);
