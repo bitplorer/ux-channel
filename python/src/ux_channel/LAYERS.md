@@ -60,6 +60,13 @@ ch.registry.dispatch(Intent(action="ping", args={}))
 
 HTTP later: `Channel.boot(app, host="fastapi")` or `from ux_channel.asgi import mount_channel`.
 
+HTTP `/action` and `/batch` require a **declared** JSON or form
+`Content-Type`. Empty / missing is not a format (`health.formats` lists
+JSON). Live clients already send `application/ux-channel+json`
+(`static/ux-channel.js`, codegen, `demos/python_forward`). Compose stamps
+`data-channel-endpoint` and uses that JS client; form posts send
+`application/x-www-form-urlencoded`. CXB stays a library codec.
+
 ## Dependents (ux-compose tree)
 
 Compose may import only:

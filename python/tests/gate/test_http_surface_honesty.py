@@ -12,13 +12,53 @@ SECRET = "http-surface-honesty-secret-32ch!!"
 
 
 def test_http_action_content_type_json_or_form_only():
-    assert http_action_content_type_ok(None) is True
+    # Empty / missing is not a format (health.formats lists JSON; clients declare).
+    assert http_action_content_type_ok(None) is False
+    assert http_action_content_type_ok("") is False
+    assert http_action_content_type_ok("   ") is False
     assert http_action_content_type_ok("application/json") is True
     assert http_action_content_type_ok("application/ux-channel+json; charset=utf-8") is True
     assert http_action_content_type_ok("application/x-www-form-urlencoded") is True
     assert http_action_content_type_ok("multipart/form-data; boundary=x") is True
     assert http_action_content_type_ok("application/ux-channel+cxb") is False
     assert http_action_content_type_ok("application/cbor") is False
+
+
+def test_preflight_rejects_missing_content_type():
+    cfg = ChannelConfig.development(
+        SECRET, require_channel_header=True, rate_limit_per_minute=0, cek="off"
+    )
+    fail = preflight_action(
+        {
+            "content-length": "2",
+            "x-channel": "1",
+        },
+        config=cfg,
+    )
+    assert fail is not None
+    result, status, _ = fail
+    assert status == 400
+    assert result.error is not None
+    assert result.error.code == "bad_request"
+
+
+def test_preflight_rejects_empty_content_type():
+    cfg = ChannelConfig.development(
+        SECRET, require_channel_header=True, rate_limit_per_minute=0, cek="off"
+    )
+    fail = preflight_action(
+        {
+            "content-type": "",
+            "content-length": "2",
+            "x-channel": "1",
+        },
+        config=cfg,
+    )
+    assert fail is not None
+    result, status, _ = fail
+    assert status == 400
+    assert result.error is not None
+    assert result.error.code == "bad_request"
 
 
 def test_preflight_rejects_cxb():

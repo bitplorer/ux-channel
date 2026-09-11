@@ -74,6 +74,20 @@ def test_health():
     assert body["policy"]["once_jti_enforced"] is bool(reg.once_jti_enforced)
 
 
+def test_action_rejects_missing_content_type():
+    app, _ = build_app()
+    client = TestClient(app)
+    res = client.post(
+        "/ux-channel/action",
+        content=b'{"v":"1","action":"Counter.inc","args":{"n":0}}',
+        headers={"X-Channel": "1"},
+    )
+    assert res.status_code == 400
+    body = res.json()
+    assert body["ok"] is False
+    assert body["error"]["code"] == "bad_request"
+
+
 def test_action_rejects_cxb_content_type():
     app, reg = build_app()
     client = TestClient(app)
