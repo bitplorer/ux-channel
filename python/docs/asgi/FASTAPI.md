@@ -52,6 +52,12 @@ reg, hub = create_channel(config=cfg, app=app, host="fastapi")
 |--------|------|---------|
 | **POST** | `/ux-channel/action` | Intent → Result (`application/ux-channel+json` or JSON) |
 | **POST** | `/ux-channel/batch` | Batch intents |
+
+Request `Content-Type` must be JSON (`application/json`,
+`application/ux-channel+json`, `application/uid+json`, `text/json`,
+`text/plain`) or form (`application/x-www-form-urlencoded`,
+`multipart/form-data`). Missing or empty Content-Type is `bad_request`.
+CXB is a library codec, not an HTTP format.
 | **GET** | `/ux-channel/health` | Liveness |
 | **GET** | `/ux-channel/ready` | Readiness |
 | **GET** | `/ux-channel/version` | Library / protocol info |

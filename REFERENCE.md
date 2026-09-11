@@ -73,6 +73,10 @@ cap = ch.registry.mint("Cart.add", {"sku": "abc-123", "qty": 2})
 
 **Does:** Intent → (cap gate) → action → Result.
 
+Python HTTP requires a **declared** JSON or form `Content-Type`. Missing
+or empty is `bad_request` (not a silent JSON default). Live clients
+already send `application/ux-channel+json`.
+
 ```bash
 # 1) mint via Channel / cek-runtime Host (classic CapService = demo/conformance; Peer has no /mint)
 # 2) action

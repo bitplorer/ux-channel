@@ -42,10 +42,15 @@ def media_type_name(content_type: str | None) -> str:
 
 
 def http_action_content_type_ok(content_type: str | None) -> bool:
-    """HTTP /action and /batch accept JSON or form only (CXB is library-side)."""
+    """HTTP /action and /batch accept JSON or form only (CXB is library-side).
+
+    Missing or empty Content-Type is not a format. Health ``formats`` lists
+    JSON; live clients declare ``+json`` or form. Empty was fail-open leftover
+    from "reject CXB" without requiring a type.
+    """
     mt = media_type_name(content_type)
     if not mt:
-        return True
+        return False
     if mt in _HTTP_JSON_TYPES or mt in _HTTP_FORM_TYPES:
         return True
     return False
@@ -137,7 +142,8 @@ def preflight_action(
         return (
             Result.failure(
                 "bad_request",
-                "HTTP /action is JSON only; CXB is a library codec "
+                "HTTP /action requires a JSON or form Content-Type; "
+                "CXB is a library codec "
                 "(see health.formats vs health.codecs)",
             ),
             400,

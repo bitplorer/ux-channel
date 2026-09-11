@@ -290,7 +290,8 @@ def mount_channel(
             return JSONResponse(
                 Result.failure(
                     "bad_request",
-                    "HTTP /batch is JSON only; CXB is a library codec "
+                    "HTTP /batch requires a JSON or form Content-Type; "
+                    "CXB is a library codec "
                     "(see health.formats vs health.codecs)",
                 ).to_dict(),
                 status_code=400,

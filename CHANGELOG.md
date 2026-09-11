@@ -1,3 +1,13 @@
+## 2026-09-11 — Cut C: empty Content-Type fail-closed
+
+- Python HTTP `/action` and `/batch` require a declared JSON or form
+  `Content-Type`. Missing / empty is `bad_request` (was fail-open
+  leftover: `http_action_content_type_ok(None)=True`).
+- CXB Content-Type stays `bad_request`. JSON / form / charset params
+  unchanged. Public verbs unchanged. Compose Kit/helpers untouched.
+- Lock: `python/tests/gate/test_http_surface_honesty.py` + live FastAPI
+  post without CT.
+
 ## 2026-09-11 — Cut A: leftover teaching + `_ch_g0` absence
 
 - Encyclopedia names Cuts 1–2 leftovers as leftovers (compose Cut 4

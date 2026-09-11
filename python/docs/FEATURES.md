@@ -240,8 +240,12 @@ batch workers default sequential (opt-in parallelism).
 | **Use when** | FastAPI/Starlette apps (primary host story) |
 | **API** | `Channel.boot(app, …)`; `ux_channel.asgi` helpers |
 | **Implements** | `asgi/fastapi.py`, `asgi/starlette.py`, `asgi/pipeline.py`, `asgi/core.py`, `middleware.py` |
-| **Tests** | `tests/asgi/` |
+| **Tests** | `tests/asgi/` · `tests/gate/test_http_surface_honesty.py` |
 | **Docs** | [FASTAPI](asgi/FASTAPI.md) |
+
+HTTP `/action` and `/batch` require a declared JSON or form Content-Type
+(empty / missing is `bad_request`). CXB is a library codec
+(`health.formats` ≠ `health.codecs`).
 
 ---
 
