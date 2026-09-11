@@ -8,6 +8,9 @@ This page is the import encyclopedia. The package file is the PE map.
 # Layers — where to import
 
 > Feature encyclopedia: **[FEATURES.md](../FEATURES.md)**.
+> Cuts 1–2 leftovers: `uxchannel` → `ux_channel.devtools.cli:main`
+> (not `ux_channel.cli:main`); `ops/` mapped ≠ `protocol.ops`;
+> `enhance/` mapped; region CLI is `scaffold/region_cli.py`.
 
 
 ### Brand lines

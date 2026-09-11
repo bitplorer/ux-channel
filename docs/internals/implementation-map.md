@@ -30,9 +30,9 @@ The parallel `arch/` / `HostRuntime` / `PeerApply` plane was deleted
 | L1 | `protocol` | Intent, Result, ops, CapService, error map |
 | L2 | `host`, `render`, `security`, `api` | Channel, regions, HTML helpers, CSRF/limits |
 | L2′ | `cek` | Cap façade to cek-runtime Host (default decide) |
-| L3 | `wire`, `asgi`, `transport`, `redis_extra` | Codecs, HTTP mount, buses, Redis backends |
-| L4 | `agent_runtime`, `mcp`, `bridge`, `realtime`, … | Optional product planes |
-| L5 | `devtools`, `scaffold`, `catalog` | Audit, CLI, navigation catalog |
+| L3 | `wire`, `asgi`, `transport`, `redis_extra`, `ops` | Codecs, HTTP mount, buses, Redis backends; Wave A composition (`ops/` ≠ `protocol.ops`) |
+| L4 | `agent_runtime`, `mcp`, `bridge`, `realtime`, `enhance`, … | Optional product planes; `enhance/` additive envelopes (mapped) |
+| L5 | `devtools`, `scaffold`, `catalog` | Audit, CLI (`ux_channel.devtools.cli:main`), navigation catalog |
 
 ### Cold import (what loads when you `import ux_channel`)
 

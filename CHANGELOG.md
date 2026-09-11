@@ -1,3 +1,14 @@
+## 2026-09-11 — Cut A: leftover teaching + `_ch_g0` absence
+
+- Encyclopedia names Cuts 1–2 leftovers as leftovers (compose Cut 4
+  pattern). Live: `uxchannel` → `ux_channel.devtools.cli:main`;
+  `ops/` + `enhance/` mapped (`ops/` ≠ `protocol.ops`); region CLI in
+  `scaffold/region_cli.py`.
+- Leftover (never existed / retired): `ux_channel.cli:main`, fashion
+  `cli/`, `host/region_cli.py`, unmapped `ops/`/`enhance/` ghosts.
+- Delete `host/_ch_g0.py` (1-line PLACEHOLDER transport stub). Not a
+  product. Absence lock + leftover teaching. Do not map a ghost.
+
 ## 2026-09-11 — Cut 2: ghosts + region ownership
 
 - Map `ops/` (Wave A composition, L3) and `enhance/` (additive

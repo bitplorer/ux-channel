@@ -9,6 +9,9 @@ Brand lines
 | **CLI** | ``uxchannel`` |
 
 Console entry: ``uxchannel <subcommand>`` · ``python -m ux_channel``.
+Poetry script target: ``ux_channel.devtools.cli:main``.
+Leftover: ``ux_channel.cli:main`` never existed; do not fashion ``cli/``.
+Region verb body: ``scaffold.region_cli`` (leftover ``host.region_cli``).
 
 Keep this module thin: parsing + DxLog output.
 Scaffold logic: ``ux_channel.scaffold`` / ``bridge_scaffold``.

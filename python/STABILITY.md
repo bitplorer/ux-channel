@@ -37,6 +37,11 @@ ux_channel/
 **Forbidden package names (must not reappear):**  
 `day1`, `ops_dx`, `bridge_meta`, `paint`, `zones`, `security_plane`, `host/dx.py`, `host/state.py` (use `host/stores.py`).
 
+**Leftover (absent / never fashion):** `cli/` — `uxchannel` is
+`ux_channel.devtools.cli:main` (leftover `ux_channel.cli:main`).
+`host/region_cli.py` — body is `scaffold/region_cli.py`.
+`host/_ch_g0.py` — placeholder transport stub; deleted; not a product.
+
 ## Root surface
 
 * Root binds **only** the application / stable core (see ``__all__``).

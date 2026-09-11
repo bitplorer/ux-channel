@@ -64,6 +64,18 @@ Policy details: [AUTOMATION.md](AUTOMATION.md).
 9. Do not reintroduce forbidden packages (`zones`, `day1`, `paint`, shims).
 10. Do not own HTML/CSS in this repo. Do not teach Channel `transition.*` (motion stays droppable).
 
+## Leftover teaching (Cuts 1–2)
+
+Name these as leftovers. Do not teach them live. Do not fashion `cli/`.
+
+| Leftover | Live |
+|----------|------|
+| Poetry script `ux_channel.cli:main` (module never existed) | `uxchannel` → `ux_channel.devtools.cli:main` |
+| Fashion a `cli/` or `services/` package | One argv dispatcher in `devtools/cli.py` |
+| `host/region_cli.py` as L2 | `scaffold/region_cli.py` (`uxchannel region`); runtime stays `host.regions` |
+| Silence: `ops/` / `enhance/` unmapped | Mapped. `ops/` = Wave A composition, **not** `protocol.ops` wire dicts. `enhance/` = additive envelopes (L4) |
+| `host/_ch_g0.py` placeholder transport stub | **Absent.** Not a product. Do not map a ghost. |
+
 ## Verify before claiming green
 
 Do **not** ask humans to re-run ceremonial steps by hand — use automation:

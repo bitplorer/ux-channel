@@ -20,6 +20,12 @@ Specialized folders (`security/`, `ship/`, `design/`, `tutorial/`, `patterns/`, 
 This layer owns Intent / Result / Cap / wire / peers / Cap Host (cek-runtime; ≠ HTTP Product host).
 It does **not** own HTML trees or CSS.
 
+**Cuts 1–2 leftovers (named, not live):** `uxchannel` →
+`ux_channel.devtools.cli:main` (leftover `ux_channel.cli:main`; no `cli/`
+package). `ops/` + `enhance/` are mapped (`ops/` ≠ `protocol.ops`).
+Region CLI is `scaffold/region_cli.py` (leftover `host/region_cli.py`).
+`host/_ch_g0.py` is absent (placeholder stub, not a product).
+
 Stale history: [archive/](archive/) — **do not cite as current law**.
 
 ---
