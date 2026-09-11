@@ -1,9 +1,10 @@
 """
 Bare-bones Channel region primitives — library-agnostic (Tailwind-like utilities).
 
-These are **pure helpers**: no FastAPI, no ux-dom import, no CSS framework lock-in.
+These are **pure helpers**: no FastAPI, no hard ux-dom dep, no CSS framework lock-in.
 Produce HTML strings + Result ops that any host can embed (ux-dom trees, Jinja,
-string templates, Starlette responses).
+string templates, Starlette responses). ``to_html`` prefers ux-dom serialize
+when present; stdlib escape if absent. Channel does not own HTML.
 
 Primitives (like Tailwind utilities)
 ------------------------------------
@@ -23,7 +24,7 @@ from __future__ import annotations
 from typing import Any, Mapping, Optional, Protocol, runtime_checkable
 
 from ux_channel.render.html import action_attrs, button as html_button
-from ux_channel.render.html_safe import esc
+from ux_channel.render.html_safe import _ux_dom_to_html, esc
 from ux_channel.protocol.ops import morph, toast
 from ux_channel.protocol.types import Result
 
@@ -128,15 +129,20 @@ def region_morph(
 
 def to_html(value: Any) -> str:
     """
-    Coerce library-native values to HTML **without importing ux-dom**.
+    Coerce library-native values to HTML.
+
+    Prefers ux-dom owner serialize (``to_html_bytes`` / ``__render__``)
+    when importable. Same duck-type order; no second stringify.
+    Stdlib / ``esc`` last resort if ux-dom is absent.
 
     Order:
       1. ``None`` → ``""``
       2. SafeHtml / objects with ``__html__()``
       3. ``str`` / ``bytes``
-      4. objects with ``__render__()`` (ux-dom-style)
-      5. objects with ``render()`` returning str
-      6. ``str(value)`` last resort (escaped)
+      4. ux-dom serialize when present (``is_html_renderable``)
+      5. objects with ``__render__()`` (duck-type if ux-dom absent)
+      6. objects with ``render()`` returning str
+      7. ``str(value)`` last resort (escaped)
     """
     if value is None:
         return ""
@@ -153,6 +159,9 @@ def to_html(value: Any) -> str:
         return value
     if isinstance(value, bytes):
         return value.decode("utf-8")
+    owned = _ux_dom_to_html(value)
+    if owned is not None:
+        return owned
     if hasattr(value, "__render__"):
         try:
             out = value.__render__()

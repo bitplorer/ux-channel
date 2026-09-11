@@ -647,6 +647,8 @@ q = Quantity.from_store(3, "seats", source="db.booking.1.seats", revision=1)
 | **Docs** | [STACK](start/STACK.md) · [BRIDGES_VS_UX_DOM](bridges/BRIDGES_VS_UX_DOM.md) |
 
 Channel owns **control/trust/ops**; ux-dom owns **markup components**.
+Leftover: `lower_html` / `to_html` clone. Channel does not own HTML —
+ux-dom when present; stdlib `html.escape` if absent.
 
 ---
 
@@ -739,6 +741,7 @@ pytest tests/core tests/regions tests/asgi -q
 | `host/region_cli.py` as L2 | `scaffold/region_cli.py`; runtime `host.regions` stays |
 | Unmapped `ops/` / `enhance/` ghosts | Mapped. `ops/` ≠ `protocol.ops`. `enhance/` = L4 envelopes |
 | `host/_ch_g0.py` placeholder stub | **Absent.** Not a product. Do not map a ghost |
+| Channel HTML clone (`lower_html` / `to_html`) | ux-dom serialize when present; stdlib `html.escape` if absent |
 
 ---
 

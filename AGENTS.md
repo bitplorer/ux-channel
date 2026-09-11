@@ -75,6 +75,7 @@ Name these as leftovers. Do not teach them live. Do not fashion `cli/`.
 | `host/region_cli.py` as L2 | `scaffold/region_cli.py` (`uxchannel region`); runtime stays `host.regions` |
 | Silence: `ops/` / `enhance/` unmapped | Mapped. `ops/` = Wave A composition, **not** `protocol.ops` wire dicts. `enhance/` = additive envelopes (L4) |
 | `host/_ch_g0.py` placeholder transport stub | **Absent.** Not a product. Do not map a ghost. |
+| Channel HTML clone (`lower_html` / `to_html` without owner) | ux-dom serialize (`__render__` / `to_html_bytes`) when present; stdlib `html.escape` if absent. Channel does not own HTML. |
 
 ## Verify before claiming green
 

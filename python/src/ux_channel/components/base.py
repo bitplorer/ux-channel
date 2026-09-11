@@ -98,8 +98,8 @@ class ChannelComponent(ABC):
         """Pure: return HTML root including ``data-channel-id``. No registration."""
 
     def html(self, **state: Any) -> str:
-        """Alias of ``render`` for embedding beside ux-dom trees."""
-        return self.render(**state)
+        """``render`` coerced via ``to_html`` (ux-dom serialize when present)."""
+        return to_html(self.render(**state))
 
     def __call__(self, **state: Any) -> str:
         return self.render(**state)

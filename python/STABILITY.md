@@ -41,6 +41,8 @@ ux_channel/
 `ux_channel.devtools.cli:main` (leftover `ux_channel.cli:main`).
 `host/region_cli.py` — body is `scaffold/region_cli.py`.
 `host/_ch_g0.py` — placeholder transport stub; deleted; not a product.
+Channel HTML clone (`lower_html` / `to_html`) — live is ux-dom when
+present; stdlib `html.escape` if absent. Channel does not own HTML.
 
 ## Root surface
 

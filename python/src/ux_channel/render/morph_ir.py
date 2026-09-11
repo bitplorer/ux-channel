@@ -3,16 +3,18 @@
 * **Not AX** — ``project_agent`` is an IR skin, not ``agents(ch).situation(...)``.
 * ``region(uid, …)`` is a **morph target** (same law as ``@ch.region``) — not an HTML tag.
 
-Authoring may happen in a document host (via interop) or plain dicts; this module
-never imports a document library. HTML is one projection among many."""
+Authoring may happen in a document host (via interop) or plain dicts.
+HTML is one projection among many. Leftover: this module does not own
+HTML — ``lower_html`` prefers ux-dom escape when present (via
+``html_safe``); stdlib ``html.escape`` if ux-dom is absent."""
 
 from __future__ import annotations
 
-import html as html_lib
 from dataclasses import dataclass, field
 from typing import Any, Optional, Sequence, Union
 
 from ux_channel.protocol.ops import morph as morph_op
+from ux_channel.render.html_safe import _html_escape
 
 __all__ = [
     "MorphNode",
@@ -147,10 +149,10 @@ def _attr_string(attrs: dict[str, Any]) -> str:
         if v is None or v is False:
             continue
         if v is True:
-            parts.append(f" {html_lib.escape(str(k))}")
+            parts.append(f" {_html_escape(str(k))}")
             continue
         parts.append(
-            f' {html_lib.escape(str(k))}="{html_lib.escape(str(v), quote=True)}"'
+            f' {_html_escape(str(k))}="{_html_escape(str(v), quote=True)}"'
         )
     return "".join(parts)
 
@@ -160,9 +162,9 @@ def _is_region(node: MorphNode) -> bool:
 
 
 def lower_html(node: MorphNode) -> str:
-    """Project IR to an HTML string (one skin)."""
+    """Project IR to an HTML string (one skin). Prefers ux-dom escape."""
     if node.kind == "text":
-        return html_lib.escape(node.text or "")
+        return _html_escape(node.text or "")
     if node.kind == "list":
         return "".join(lower_html(c) for c in node.children)
     if _is_region(node):
