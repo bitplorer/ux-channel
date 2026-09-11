@@ -1,3 +1,10 @@
+## 2026-09-11 — Cut 1: CLI honesty (console script)
+
+- Poetry script `uxchannel` now points at the live owner
+  `ux_channel.devtools.cli:main` (was `ux_channel.cli:main`, which
+  did not exist). Public CLI verbs unchanged. No `cli/` package.
+- Gate lock: the script target must import-resolve to that live `main`.
+
 ## 2026-09-09 — FileStateStore (serve-dev sqlite)
 
 - `FileStateStore` in `host.stores`: JSON sqlite WAL, same StateStore
