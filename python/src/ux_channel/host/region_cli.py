@@ -8,7 +8,11 @@ from typing import Any
 from ux_channel.devtools.errors import DxUsageError
 
 
-def cmd_region(args: Any, *, get_log) -> int:
+def cmd_region(args: Any, *, get_log=None) -> int:
+    if get_log is None:
+        from ux_channel.devtools.log import get_log as _get_log
+
+        get_log = _get_log
     log = get_log()
     action = (getattr(args, "region_action", None) or "list").lower()
     root = Path(getattr(args, "out", None) or "app/regions")

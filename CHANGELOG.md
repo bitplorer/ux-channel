@@ -1,3 +1,17 @@
+## 2026-09-11 — CLI ownership + unmapped planes
+
+- Console script `uxchannel` now calls `ux_channel.devtools.cli:main`
+  (same function as `python -m ux_channel`). The previous
+  `ux_channel.cli:main` entry pointed at a module layout forbids
+  (no top-level shims). Public verbs and flags are unchanged.
+- `devtools.cli` is parser + dispatch only. Each verb has one owner
+  module; the map is `devtools.cli_catalog.CLI_VERBS`. Taught happy
+  paths: `create-app`, `doctor --fail`.
+- `enhance/` and `ops/` are now in `PACKAGE_MAP` (L4). They were on
+  disk and tested but invisible to the catalog. `ops` is the host
+  composition algebra — not `protocol.ops` wire builders.
+- Removed leftover `host/_ch_g0.py` placeholder.
+
 ## 2026-09-09 — FileStateStore (serve-dev sqlite)
 
 - `FileStateStore` in `host.stores`: JSON sqlite WAL, same StateStore

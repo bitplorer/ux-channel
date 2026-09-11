@@ -208,3 +208,86 @@ def run_suite(benches, *, out_dir, title, rounds=80, warmup=8, profile_rounds=40
         notes="p95 is the primary SLI.",
     )
     return report
+
+
+def cmd_profile(args: Any) -> int:
+    """First-class DX: p95 latency + flamegraph for dispatch / batch."""
+    from ux_channel.devtools.log import get_log
+    from ux_channel.host.registry import ActionRegistry
+    from ux_channel.protocol.types import Intent, Result
+    from ux_channel.transport.batch import dispatch_batch
+    from ux_channel.transport.concurrency import dispatch_parallel
+
+    log = get_log()
+    out = Path(args.out) if getattr(args, "out", None) else Path.cwd() / "reports" / "p95"
+    rounds = int(getattr(args, "rounds", 50) or 50)
+    warmup = int(getattr(args, "warmup", 5) or 5)
+    profile_rounds = int(getattr(args, "profile_rounds", 25) or 25)
+
+    reg = ActionRegistry(
+        secret="test-secret-key-32chars-minimum!!!!",
+        require_cap=False,
+    )
+
+    @reg.action("echo")
+    def echo(ctx, n: int = 0):
+        return Result.success(n=n)
+
+    intents = [
+        Intent(action="echo", args={"n": i}, request_id=f"r{i}") for i in range(32)
+    ]
+    items = [
+        {"action": "echo", "args": {"n": i}, "request_id": f"b{i}"} for i in range(16)
+    ]
+
+    def one_dispatch():
+        reg.dispatch(Intent(action="echo", args={"n": 1}, request_id="solo"))
+
+    def parallel_dispatch():
+        dispatch_parallel(reg, intents)
+
+    def batch_dispatch():
+        dispatch_batch(reg, items)
+
+    report = run_suite(
+        [
+            ("dispatch_one", one_dispatch),
+            ("dispatch_parallel_32", parallel_dispatch),
+            ("dispatch_batch_16", batch_dispatch),
+        ],
+        out_dir=out,
+        title="ux-channel p95 suite",
+        rounds=rounds,
+        warmup=warmup,
+        profile_rounds=profile_rounds,
+    )
+    log.ok(
+        "profile complete",
+        out=str(out.resolve()),
+        html=str((out / "report.html").resolve()),
+        speedscope=str((out / "profile.speedscope.json").resolve()),
+    )
+    if getattr(args, "json_report", False) or getattr(args, "json", False):
+        print(json.dumps(report, indent=2))
+    else:
+        print("uxchannel profile")
+        print("=" * 40)
+        print("Brand lines")
+        print("  PyPI / pip : ux-channel")
+        print("  import     : ux_channel")
+        print("  CLI        : uxchannel")
+        print("-" * 40)
+        print("p95 latency (ms)")
+        for lat in report.get("latencies") or []:
+            print(
+                f"  {lat['name']:<28} p50={lat['p50_ms']:<8} "
+                f"p95={lat['p95_ms']:<8} p99={lat['p99_ms']}"
+            )
+        print("-" * 40)
+        print(f"out: {out.resolve()}")
+        print(f"  html:       {(out / 'report.html').resolve()}")
+        print(f"  speedscope: {(out / 'profile.speedscope.json').resolve()}")
+        print("Open profile.speedscope.json at https://www.speedscope.app")
+        print("=" * 40)
+        print("OK — profiling complete (app source untouched)")
+    return 0

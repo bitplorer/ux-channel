@@ -35,7 +35,9 @@
     "static",
     "api",
     "catalog",
-    "cek"
+    "cek",
+    "enhance",
+    "ops"
   ],
   "packages": {
     "agent_runtime": [
@@ -115,6 +117,7 @@
       "agents_api",
       "audit",
       "cli",
+      "cli_catalog",
       "codegen",
       "dashboard",
       "doctor",
@@ -135,6 +138,17 @@
       "ticket_revoke",
       "trace",
       "upgrade_check"
+    ],
+    "enhance": [
+      "asgi_wire",
+      "attach",
+      "causal",
+      "continuations",
+      "delta",
+      "envelopes",
+      "handshake",
+      "negotiation",
+      "recorder"
     ],
     "foundations": [
       "io_channel",
@@ -180,6 +194,11 @@
       "sessions",
       "subscribe",
       "verticals"
+    ],
+    "ops": [
+      "catalog",
+      "macros",
+      "translate"
     ],
     "protocol": [
       "capability",
@@ -324,6 +343,7 @@
     "devtools.agents_api": "devtools",
     "devtools.audit": "devtools",
     "devtools.cli": "devtools",
+    "devtools.cli_catalog": "devtools",
     "devtools.codegen": "devtools",
     "devtools.dashboard": "devtools",
     "devtools.doctor": "devtools",
@@ -344,6 +364,15 @@
     "devtools.ticket_revoke": "devtools",
     "devtools.trace": "devtools",
     "devtools.upgrade_check": "devtools",
+    "enhance.asgi_wire": "enhance",
+    "enhance.attach": "enhance",
+    "enhance.causal": "enhance",
+    "enhance.continuations": "enhance",
+    "enhance.delta": "enhance",
+    "enhance.envelopes": "enhance",
+    "enhance.handshake": "enhance",
+    "enhance.negotiation": "enhance",
+    "enhance.recorder": "enhance",
     "foundations.io_channel": "foundations",
     "foundations.provenance": "foundations",
     "foundations.quantity": "foundations",
@@ -381,6 +410,9 @@
     "mcp.sessions": "mcp",
     "mcp.subscribe": "mcp",
     "mcp.verticals": "mcp",
+    "ops.catalog": "ops",
+    "ops.macros": "ops",
+    "ops.translate": "ops",
     "protocol.capability": "protocol",
     "protocol.encode": "protocol",
     "protocol.error_map": "protocol",
@@ -484,6 +516,8 @@
     "cek": "Channel wrap of cek-runtime Host (default cek=require). Cap machine = cek-runtime only (ADR 0008\u20130011). cek=off is the explicit escape.",
     "components": "Optional Channel component kit (not default UI path).",
     "devtools": "Audit, CLI, observability, codegen \u2014 L5 free to churn.",
+    "enhance": "Optional Waves B\u2013G envelopes (hello, continuations, trace). Additive; classic IR ignores unknown keys.",
+    "ops": "Host-side Op algebra (Wave A). Composition only \u2014 wire floor stays classic protocol.ops dicts.",
     "foundations": "Quantity, provenance, io_channel \u2014 shared non-UI primitives.",
     "host": "Channel runtime \u2014 regions, ActionRegistry, state_api, stores. Design: app control plane.",
     "io_adapters": "Hardware/lab I/O adapters for workplace mesh.",
@@ -535,7 +569,9 @@
     "scaffold": "L5",
     "catalog": "L5",
     "cek": "L3",
-    "static": "L5"
+    "static": "L5",
+    "enhance": "L4",
+    "ops": "L4"
   },
   "strata_legend": {
     "L0": "SPEC + conformance (not a Python package)",
@@ -561,7 +597,9 @@
     "bridges",
     "realtime",
     "components",
-    "io_adapters"
+    "io_adapters",
+    "enhance",
+    "ops"
   ],
   "longevity": {
     "doc": "LONGEVITY.md",
@@ -572,5 +610,5 @@
       "extension_doors_A_to_G"
     ]
   },
-  "module_count": 179
+  "module_count": 192
 }

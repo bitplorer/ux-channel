@@ -104,7 +104,9 @@ httpx = ">=0.24"
 fakeredis = ">=2.20"
 
 [tool.poetry.scripts]
-uxchannel = "ux_channel.cli:main"
+# Owner is devtools.cli (layout forbids a top-level ux_channel.cli shim).
+# Same function as ``python -m ux_channel``.
+uxchannel = "ux_channel.devtools.cli:main"
 
 [build-system]
 requires = ["poetry-core>=1.9.0"]

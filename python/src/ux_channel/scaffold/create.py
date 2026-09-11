@@ -13,12 +13,17 @@ import re
 import secrets
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 __all__ = [
     "ScaffoldOptions",
     "available_templates",
     "create_app",
     "validate_scaffold",
+    "cmd_new",
+    "cmd_create_app",
+    "cmd_scaffold_check",
+    "cmd_templates",
 ]
 
 # Template catalogue — single source of truth for CLI help + validation
@@ -734,3 +739,121 @@ Server (this app)
 3. **Do** keep `get_channel_config()` as the only config entry.
 4. Production: strong secret, Redis, TURN, `require_channel_header=True`.
 """
+
+
+# --- CLI handlers (uxchannel create-app / new / templates / scaffold-check) ---
+
+_SINGLE_FILE = "\n".join(
+    [
+        '"""Minimal uxchannel app (single file). Prefer: uxchannel create-app."""',
+        "",
+        "from fastapi import FastAPI",
+        "from fastapi.responses import HTMLResponse",
+        "",
+        "from ux_channel import Channel, ChannelConfig",
+        "",
+        'app = FastAPI(title="uxchannel app")',
+        'ch = Channel.boot(app, config=ChannelConfig.development(secret="{secret}", allow_memory_stores=True))',
+        "",
+        "",
+        "@ch.region",
+        "def counter(ctx):",
+        '    n = ch.draft.get("n", 0)',
+        '    return f"<strong>{n}</strong>"',
+        "",
+        "",
+        "@ch.on(refresh=[counter])",
+        "def inc():",
+        '    ch.draft.set("n", ch.draft.get("n", 0) + 1)',
+        "",
+        "",
+        '@app.get("/", response_class=HTMLResponse)',
+        "def index():",
+        "    return demo_page(ch, counter, demo_button(ch, '+', inc), title='ux-channel')",
+        "",
+        "",
+        'if __name__ == "__main__":',
+        "    import uvicorn",
+        '    uvicorn.run(app, host="0.0.0.0", port=8080)',
+    ]
+) + "\n"
+
+
+def cmd_templates(_args: Any) -> int:
+    for name in available_templates():
+        print(name)
+    return 0
+
+
+def cmd_new(args: Any) -> int:
+    import secrets as _secrets
+
+    from ux_channel.devtools.errors import DxUsageError
+    from ux_channel.devtools.log import get_log
+
+    dest = Path(args.path or "app.py")
+    log = get_log()
+    if dest.exists() and not args.force:
+        raise DxUsageError(
+            f"refusing to overwrite {dest}",
+            code="cli.file_exists",
+            hint="pass --force or choose another --path",
+        )
+    secret = _secrets.token_urlsafe(32)
+    dest.write_text(_SINGLE_FILE.replace("{secret}", secret), encoding="utf-8")
+    log.ok("wrote scaffold", path=str(dest))
+    log.info("tip: prefer uxchannel create-app myapp for full projects")
+    return 0
+
+
+def cmd_create_app(args: Any) -> int:
+    import sys
+
+    if args.list_templates:
+        for t in available_templates():
+            print(t)
+        return 0
+
+    try:
+        opts = ScaffoldOptions(
+            app_name=args.name,
+            dest=Path(args.dir) if args.dir else None,
+            template=args.template,
+            with_webrtc=args.webrtc if args.webrtc is not None else None,
+            with_ux_dom=bool(args.ux_dom),
+            force=bool(args.force),
+            port=int(args.port),
+            bridges=list(getattr(args, "bridges", None) or []),
+        )
+        root = create_app(opts)
+    except (ValueError, FileExistsError) as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 1
+
+    report = validate_scaffold(root, template=opts.template)
+    print(f"created {root}")
+    print(f"  template={opts.template} webrtc={opts.with_webrtc}")
+    if opts.bridges:
+        print(f"  bridges={opts.bridges}")
+    if report.get("warnings"):
+        for w in report["warnings"]:
+            print(f"  warn: {w}")
+    if report.get("errors"):
+        for e in report["errors"]:
+            print(f"  error: {e}")
+        return 1
+    print("next:")
+    print(f"  cd {root}")
+    print("  pip install -r requirements.txt")
+    print(f"  uvicorn app.main:app --host 0.0.0.0 --port {opts.port} --reload")
+    return 0
+
+
+def cmd_scaffold_check(args: Any) -> int:
+    report = validate_scaffold(Path(args.path), template=args.template)
+    for e in report.get("errors") or []:
+        print(f"ERROR {e}")
+    for w in report.get("warnings") or []:
+        print(f"WARN  {w}")
+    print("OK" if report.get("ok") else "FAIL")
+    return 0 if report.get("ok") else 1

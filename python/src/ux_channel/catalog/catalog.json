@@ -44,6 +44,8 @@
     "cek": "Channel wrap of cek-runtime Host (default cek=require). Cap machine = cek-runtime only (ADR 0008\u20130011). cek=off is the explicit escape.",
     "components": "Optional Channel component kit (not default UI path).",
     "devtools": "Audit, CLI, observability, codegen \u2014 L5 free to churn.",
+    "enhance": "Optional Waves B\u2013G envelopes (hello, continuations, trace). Additive; classic IR ignores unknown keys.",
+    "ops": "Host-side Op algebra (Wave A). Composition only \u2014 wire floor stays classic protocol.ops dicts.",
     "foundations": "Quantity, provenance, io_channel \u2014 shared non-UI primitives.",
     "host": "Channel runtime \u2014 regions, ActionRegistry, state_api, stores. Design: app control plane.",
     "io_adapters": "Hardware/lab I/O adapters for workplace mesh.",
@@ -82,7 +84,9 @@
     "scaffold": "L5",
     "catalog": "L5",
     "cek": "L3",
-    "static": "L5"
+    "static": "L5",
+    "enhance": "L4",
+    "ops": "L4"
   },
   "packages": {
     "agent_runtime": {
@@ -162,6 +166,7 @@
       "agents_api": "ux_channel.devtools.agents_api",
       "audit": "ux_channel.devtools.audit",
       "cli": "ux_channel.devtools.cli",
+      "cli_catalog": "ux_channel.devtools.cli_catalog",
       "codegen": "ux_channel.devtools.codegen",
       "dashboard": "ux_channel.devtools.dashboard",
       "doctor": "ux_channel.devtools.doctor",
@@ -182,6 +187,17 @@
       "ticket_revoke": "ux_channel.devtools.ticket_revoke",
       "trace": "ux_channel.devtools.trace",
       "upgrade_check": "ux_channel.devtools.upgrade_check"
+    },
+    "enhance": {
+      "asgi_wire": "ux_channel.enhance.asgi_wire",
+      "attach": "ux_channel.enhance.attach",
+      "causal": "ux_channel.enhance.causal",
+      "continuations": "ux_channel.enhance.continuations",
+      "delta": "ux_channel.enhance.delta",
+      "envelopes": "ux_channel.enhance.envelopes",
+      "handshake": "ux_channel.enhance.handshake",
+      "negotiation": "ux_channel.enhance.negotiation",
+      "recorder": "ux_channel.enhance.recorder"
     },
     "foundations": {
       "io_channel": "ux_channel.foundations.io_channel",
@@ -227,6 +243,11 @@
       "sessions": "ux_channel.mcp.sessions",
       "subscribe": "ux_channel.mcp.subscribe",
       "verticals": "ux_channel.mcp.verticals"
+    },
+    "ops": {
+      "catalog": "ux_channel.ops.catalog",
+      "macros": "ux_channel.ops.macros",
+      "translate": "ux_channel.ops.translate"
     },
     "protocol": {
       "capability": "ux_channel.protocol.capability",

@@ -194,3 +194,46 @@ def merge_go_nogo(report: Mapping[str, Any] | None, config: Any) -> dict[str, An
             next_steps.append(cmd)
     body["next"] = next_steps
     return body
+
+
+def cmd_doctor(args: Any) -> int:
+    """Print Channel.doctor() — go/no-go matches SECURITY_AUDIT deploy list."""
+    import json
+
+    from fastapi import FastAPI
+
+    from ux_channel import Channel, ChannelConfig
+
+    secret = args.secret or "doctor-dev-secret-key-32chars-min!!"
+    env = (getattr(args, "env", None) or "development").lower()
+    if env == "production":
+        kwargs = {}
+        if getattr(args, "allow_memory", False):
+            kwargs["allow_memory_stores"] = True
+        try:
+            cfg = ChannelConfig.production(secret, **kwargs)
+        except ValueError as exc:
+            report = {
+                "ok": False,
+                "go": False,
+                "no_go": [str(exc)],
+                "hints": [str(exc), "uxchannel explain short_secret"],
+            }
+            print(json.dumps(report, indent=2, default=str))
+            return 1 if getattr(args, "fail", False) else 0
+    else:
+        cfg = ChannelConfig.development(
+            secret=secret,
+            allow_memory_stores=True,
+            webrtc_enabled=True,
+        )
+    ch = Channel.boot(FastAPI(), config=cfg)
+    report = ch.doctor()
+    gn = production_go_nogo(cfg)
+    report.setdefault("go", gn["go"])
+    report.setdefault("no_go", gn["no_go"])
+    print(json.dumps(report, indent=2, default=str))
+    if getattr(args, "fail", False) and not report.get("ok", True):
+        print("doctor: NO-GO", file=__import__("sys").stderr)
+        return 1
+    return 0

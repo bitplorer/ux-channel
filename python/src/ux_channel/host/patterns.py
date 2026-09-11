@@ -220,3 +220,50 @@ cfg = ChannelConfig.production(
 # TURN for mesh NATs; LiveKit for multiparty A/V
 ''',
 }
+
+
+def cmd_dx(_: Any) -> int:
+    """Print mental model + decision tree (ux-dom-style teaching surface)."""
+    from ux_channel import Channel
+
+    print(Channel.describe())
+    print()
+    print(Channel.help())
+    print()
+    print("Application names:", ", ".join(Channel.public_api_names()))
+    print("Recipes:", ", ".join(RECIPE_NAMES))
+    print()
+    print("Scaffold:")
+    print("  uxchannel create-app myapp")
+    print("  uxchannel create-app call --template media")
+    print("  uxchannel recipe counter")
+    print("  uxchannel help-topic aliases")
+    print("  uxchannel doctor")
+    print("  uxchannel profile   # p95 + flamegraph → reports/p95")
+    print("  uxchannel dashboard # status · guidance · perf · inventory → reports/dx")
+    return 0
+
+
+def cmd_recipe(args: Any) -> int:
+    import sys
+
+    if args.list or not args.name:
+        if args.tree:
+            print(decision_tree())
+            return 0
+        for n in RECIPE_NAMES:
+            print(n)
+        return 0
+    try:
+        print(recipe_text(args.name))
+    except KeyError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 1
+    return 0
+
+
+def cmd_help_topic(args: Any) -> int:
+    from ux_channel import Channel
+
+    print(Channel.help(args.topic))
+    return 0

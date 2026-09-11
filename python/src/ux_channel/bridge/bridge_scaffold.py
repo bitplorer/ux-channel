@@ -44,6 +44,7 @@ __all__ = [
     "sync_register_py_methods",
     "normalize_contract",
     "CONTRACT_SCHEMA_VERSION",
+    "cmd_bridge",
 ]
 
 
@@ -935,3 +936,199 @@ Catalog: chartjs, leaflet, codemirror — or any npm package name.
 
 Docs: docs/BRIDGE_CONTRACT.md  docs/BRIDGES_VS_UI_DOM.md
 """
+
+
+def cmd_bridge(args: Any) -> int:
+    """DX: scaffold / explain / edit contract methods for npm bridges."""
+    from pathlib import Path
+
+    from ux_channel.bridge.bridge_preset_gen import create_bridge_preset, list_known_presets
+    from ux_channel.devtools.errors import DxUsageError
+    from ux_channel.devtools.log import get_log
+
+    log = get_log()
+    action = (args.bridge_action or "explain").lower().replace("_", "-")
+    log.debug("bridge command", action=action, package=getattr(args, "package", None))
+
+    if action in ("explain", "help", ""):
+        log.section("bridge explain")
+        log.info("printing bridge overview to stdout")
+        print(explain_bridge())
+        log.ok("explain complete")
+        return 0
+
+    if action == "recipe":
+        log.section("bridge recipe")
+        from ux_channel.host.patterns import recipe_text
+
+        try:
+            body = recipe_text("bridge-npm")
+        except Exception as exc:
+            log.warn("recipe bridge-npm missing; using inline fallback", error=str(exc))
+            body = (
+                "# bridge-npm recipe\n"
+                'ch.bridge.register("chartjs", methods=("update", "resetZoom"))\n'
+            )
+        print(body)
+        log.ok("recipe printed", name="bridge-npm")
+        return 0
+
+    if action in ("catalog", "list-presets"):
+        log.section("bridge catalog")
+        print("Pick a name, then:")
+        print("  uxchannel bridge preset <name> --out bridges")
+        print("  uxchannel create-app myapp --bridge <name>")
+        print()
+        for r in list_known_presets():
+            builtin = f"  [builtin {r['builtin']}]" if r.get("builtin") else ""
+            print(f"  {r['key']:12}  {r['package']:16}  {','.join(r['methods'])}{builtin}")
+        log.ok("catalog done")
+        log.info("any npm package also works: uxchannel bridge preset my-lib --methods a,b")
+        return 0
+
+    if action == "new":
+        log.info("bridge new is an alias of bridge preset")
+        action = "preset"
+
+    if action in ("preset", "generate", "gen"):
+        name = args.package
+        if not name:
+            raise DxUsageError(
+                "bridge preset requires <name|npm>",
+                code="bridge.usage_preset",
+                hint="uxchannel bridge catalog",
+            )
+        methods = []
+        if args.methods:
+            methods = [m.strip() for m in args.methods.split(",") if m.strip()]
+        dest = Path(args.out or "bridges")
+        log.section("bridge preset")
+        root = create_bridge_preset(
+            dest,
+            name,
+            methods=methods or None,
+            npm=args.npm or "",
+            npm_import=args.import_name or "",
+            global_name=args.global_name or "",
+            force=bool(args.force),
+        )
+        log.ok("preset ready", path=str(root))
+        return 0
+
+    if action in ("methods", "list-methods"):
+        name = args.package
+        if not name:
+            raise DxUsageError(
+                "bridge methods requires <package>",
+                code="bridge.usage_methods",
+                hint="uxchannel bridge methods chartjs --out bridges",
+            )
+        log.section("bridge methods")
+        search = args.out or "."
+        log.info("loading contract", package=name, search=search)
+        info = list_contract_methods(
+            name,
+            contract_path=args.contract or None,
+            start=search,
+        )
+        log.ok("contract loaded", path=info["path"])
+        print(f"package: {info['package']}")
+        print(f"contract: {info['path']}")
+        if info.get("schema_version") is not None:
+            print(f"schema_version: {info['schema_version']}")
+        if info.get("npm"):
+            print(f"npm: {info['npm']}")
+        if not info["names"]:
+            log.warn("no methods declared in contract")
+            print("methods: (none)")
+            return 0
+        for m in info["methods"]:
+            args_s = ",".join(
+                a.get("name", "?") + (":req" if a.get("required") else "")
+                for a in (m.get("args") or [])
+                if isinstance(a, dict)
+            )
+            kw = " kwargs" if m.get("kwargs") else ""
+            print(f"  - {m['name']}({args_s}){kw}")
+        log.ok("listed methods", count=len(info["names"]))
+        return 0
+
+    if action in ("add-method", "add"):
+        name = args.package
+        method = getattr(args, "method", None)
+        if not name or not method:
+            raise DxUsageError(
+                "bridge add-method requires <package> <method>",
+                code="bridge.usage_add_method",
+                hint=(
+                    "uxchannel bridge add-method chartjs setData "
+                    "--arg data:object:required --kwargs --out bridges"
+                ),
+            )
+        log.section("bridge add-method")
+        log.info(
+            "adding method",
+            package=name,
+            method=method,
+            force=bool(args.force),
+            args=list(args.arg or []),
+        )
+        result = add_contract_method(
+            name,
+            method,
+            contract_path=args.contract or None,
+            start=args.out or ".",
+            args=list(args.arg or []),
+            kwargs=bool(args.kwargs),
+            description=args.desc or "",
+            sync_register=not bool(args.no_sync),
+            force=bool(args.force),
+        )
+        log.info(
+            "result",
+            action=result["action"],
+            idempotent=result.get("idempotent"),
+            methods=",".join(result["methods"]),
+        )
+        return 0
+
+    if action in ("remove-method", "rm-method", "remove"):
+        name = args.package
+        method = getattr(args, "method", None)
+        if not name or not method:
+            raise DxUsageError(
+                "bridge remove-method requires <package> <method>",
+                code="bridge.usage_remove_method",
+                hint="uxchannel bridge remove-method chartjs destroy --out bridges",
+            )
+        log.section("bridge remove-method")
+        log.info("removing method", package=name, method=method)
+        result = remove_contract_method(
+            name,
+            method,
+            contract_path=args.contract or None,
+            start=args.out or ".",
+            sync_register=not bool(args.no_sync),
+            missing_ok=not bool(getattr(args, "strict", False)),
+        )
+        log.info(
+            "result",
+            action=result["action"],
+            idempotent=result.get("idempotent"),
+            methods=",".join(result["methods"]) or "(none)",
+        )
+        return 0
+
+    if action == "list":
+        log.section("bridge list")
+        log.info("Built-in plane: ch.bridge (widget islands)")
+        log.info("Scaffolded packages: ./bridges or packages/@ux-channel/")
+        log.info("Contract edits: methods | add-method | remove-method")
+        log.ok("list complete")
+        return 0
+
+    raise DxUsageError(
+        f"unknown bridge action: {action}",
+        code="bridge.usage_action",
+        hint="explain | new | methods | add-method | remove-method | recipe | list",
+    )

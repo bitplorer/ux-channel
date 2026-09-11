@@ -25,7 +25,7 @@ L0  LAW          SPEC + conformance + IR major     decades (change = major)
 L1  PEER CORE    CapService, Intent/Result/ops, CXB tags, peer gate
 L2  HOST CORE    Channel, Region, ActionRegistry, hooks, mint/verify path
 L3  ADAPTERS     asgi, wire codecs, security CSRF, stores backends
-L4  PLANES       agent_runtime, mcp, workplace, bridge, realtime, components
+L4  PLANES       agent_runtime, mcp, workplace, bridge, realtime, components, enhance, ops
 L5  TOOLING      devtools, scaffold, dashboard, profiling
 L6  DEMOS        examples/, demos/, uxc_peer HTML
 ```

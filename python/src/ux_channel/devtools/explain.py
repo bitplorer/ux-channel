@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import Any, Mapping, Optional
 
-__all__ = ["explain", "explain_code", "TEACH", "HINTS_BY_CODE"]
+__all__ = ["explain", "explain_code", "TEACH", "HINTS_BY_CODE", "cmd_explain"]
 
 # code → short teach line (also used as Result.message suffix or details)
 # Top-20 first-week failures (G2). Every entry names the one fix + CLI/recipe.
@@ -231,3 +231,12 @@ def explain(result_or_code: Any, message: str = "") -> dict[str, Any]:
     out = explain_code(code, message=msg)
     out["ok"] = False
     return out
+
+
+def cmd_explain(args: Any) -> int:
+    """Never silent — print the teachable fix for a first-week failure."""
+    import json
+
+    report = explain_code(str(args.code))
+    print(json.dumps(report, indent=2, default=str))
+    return 0

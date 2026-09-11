@@ -1172,6 +1172,50 @@ def write_dashboard(
     return out / "dashboard.html"
 
 
+def cmd_dashboard(args: Any) -> int:
+    """Observe-only DX dashboard (status · guidance · performance · inventory)."""
+    from ux_channel.devtools.log import get_log
+
+    log = get_log()
+    out = Path(args.out) if getattr(args, "out", None) else Path.cwd() / "reports" / "dx"
+    model = run_dashboard_suite(
+        out_dir=out,
+        include_profile=not getattr(args, "no_profile", False),
+        rounds=int(getattr(args, "rounds", 40) or 40),
+        warmup=int(getattr(args, "warmup", 4) or 4),
+        profile_rounds=int(getattr(args, "profile_rounds", 15) or 15),
+    )
+    arts = model.get("artifacts") or {}
+    log.ok("dashboard ready", html=arts.get("html"), out=str(out.resolve()))
+    if getattr(args, "json_report", False):
+        print(_serde.dumps(model, pretty=True))
+    else:
+        print("uxchannel dashboard")
+        print("=" * 40)
+        print("Brand lines")
+        print("  PyPI / pip : ux-channel")
+        print("  import     : ux_channel")
+        print("  CLI        : uxchannel")
+        print("-" * 40)
+        sec = model.get("sections") or {}
+        st = sec.get("status") or {}
+        print(f"  status     : {st.get('summary', '—')}")
+        perf = sec.get("performance") or {}
+        if perf.get("available"):
+            for lat in perf.get("latencies") or []:
+                print(f"  perf       : {lat.get('name', ''):<24} p95={lat.get('p95_ms')}")
+        else:
+            print("  perf       : (not sampled)")
+        inv = sec.get("inventory") or {}
+        print(f"  inventory  : actions={inv.get('actions')} regions={inv.get('regions')}")
+        print("-" * 40)
+        print(f"open: {arts.get('html')}")
+        print("sections → panels → optional shell (model schema 1)")
+        print("live actions: ux-inspector.js (separate from this snapshot)")
+        print("=" * 40)
+    return 0
+
+
 def run_dashboard_suite(
     *,
     out_dir: Path | str | None = None,

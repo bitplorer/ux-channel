@@ -36,7 +36,9 @@ ux-channel/
 | FastAPI mount | `asgi` |
 | WebRTC | `realtime` |
 | Island contracts | `bridge` + `bridges` |
-| Audit / CLI | `devtools` |
+| Audit / CLI | `devtools` (`uxchannel` → `devtools.cli`) |
+| Host Op algebra (not wire) | `ops` |
+| Optional hello / continuations | `enhance` |
 | Package navigator | `catalog` (generated) |
 
 Python folder map (3 minutes): [python/src/ux_channel/LAYERS.md](python/src/ux_channel/LAYERS.md).  

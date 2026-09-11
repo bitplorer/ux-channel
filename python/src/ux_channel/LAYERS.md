@@ -20,7 +20,9 @@ That loop is the product. Everything else is a door or a plane.
 | `bridge/` `bridges/` | Widget islands | Boot / `@ch.on` |
 | `agent_runtime/` `mcp/` `workplace/` | Non-human callers | Boot / `@ch.on` |
 | `components/` | Optional Channel UI kit | Product UI (use ux-dom) |
-| `devtools/` `scaffold/` | CLI / doctor / create-app | Runtime path |
+| `devtools/` `scaffold/` | CLI / doctor / create-app (`uxchannel` → `devtools.cli:main`) | Runtime path |
+| `ops/` | Host Op algebra (Wave A); not wire `protocol.ops` | Treating it as L1 IR |
+| `enhance/` | Optional hello / continuations / trace envelopes | Required for interop |
 
 ## What Channel.boot always attaches (L2)
 

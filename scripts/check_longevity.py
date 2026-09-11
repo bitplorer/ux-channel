@@ -24,6 +24,8 @@ L4_PLANES = (
     "realtime",
     "components",
     "io_adapters",
+    "enhance",
+    "ops",
 )
 CORE = ("protocol", "host", "render", "security", "api")
 

@@ -11,7 +11,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Iterable
+from typing import Any, Iterable
 
 __all__ = ["Finding", "scan_path", "format_report"]
 
@@ -152,3 +152,23 @@ def format_report(report: Report) -> str:
     if not report.findings:
         lines.append("OK — no outdated patterns found")
     return "\n".join(lines)
+
+
+def cmd_upgrade_check(args: Any) -> int:
+    from ux_channel.devtools.log import get_log
+
+    log = get_log()
+    path = args.path or "."
+    log.section("upgrade-check")
+    log.info("scanning", path=path)
+    report = scan_path(path)
+    print(format_report(report))
+    n = len(report.findings)
+    if n:
+        log.warn("findings", count=n)
+    else:
+        log.ok("no outdated patterns")
+    if (args.strict or args.fail) and report.findings:
+        log.error("upgrade-check failed (findings with --fail/--strict)")
+        return 1
+    return 0
