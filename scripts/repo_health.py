@@ -120,6 +120,12 @@ def check_forbidden_layout(root: Path) -> list[str]:
         issues.append("FORBIDDEN: host/dx.py (use host/channel.py)")
     if (pkg / "host" / "state.py").exists():
         issues.append("FORBIDDEN: host/state.py (use host/stores.py)")
+    if (pkg / "cli").exists():
+        issues.append("FORBIDDEN package dir: ux_channel/cli (script is devtools.cli:main)")
+    if (pkg / "host" / "region_cli.py").exists():
+        issues.append("FORBIDDEN: host/region_cli.py (use scaffold/region_cli.py)")
+    if (pkg / "host" / "_ch_g0.py").exists():
+        issues.append("FORBIDDEN leftover: host/_ch_g0.py (placeholder stub — deleted)")
     return issues
 
 

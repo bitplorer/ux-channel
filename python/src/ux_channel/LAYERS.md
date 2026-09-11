@@ -20,7 +20,9 @@ That loop is the product. Everything else is a door or a plane.
 | `bridge/` `bridges/` | Widget islands | Boot / `@ch.on` |
 | `agent_runtime/` `mcp/` `workplace/` | Non-human callers | Boot / `@ch.on` |
 | `components/` | Optional Channel UI kit | Product UI (use ux-dom) |
-| `devtools/` `scaffold/` | CLI / doctor / create-app | Runtime path |
+| `devtools/` `scaffold/` | CLI / doctor / create-app. Script: `ux_channel.devtools.cli:main` | Fashion `cli/`; leftover `ux_channel.cli:main` |
+| `ops/` | Wave A composition (mapped). Not `protocol.ops` | Wire dicts (`protocol/ops.py`) |
+| `enhance/` | Additive envelopes (mapped L4) | Root `__all__` |
 
 ## What Channel.boot always attaches (L2)
 

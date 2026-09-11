@@ -5,9 +5,9 @@ Canonical law: [STABILITY.md](STABILITY.md) · Automation: [../AUTOMATION.md](..
 ```text
 src/ux_channel/
   protocol/ host/ render/ security/ api/     # core (hand design + tests)
-  wire/ asgi/ transport/                     # adapters
-  bridge/ bridges/ realtime/ …               # L4 planes (optional)
-  devtools/ scaffold/ catalog/               # L5 tooling
+  wire/ asgi/ transport/ ops/                # adapters + Wave A composition
+  bridge/ bridges/ realtime/ enhance/ …      # L4 planes (optional; enhance mapped)
+  devtools/ scaffold/ catalog/               # L5 tooling (uxchannel → devtools.cli:main)
   PACKAGE_MAP.json                           # packages intentional;
                                              # modules + count DERIVED
   catalog/catalog.json                       # GENERATED — make regen

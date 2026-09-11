@@ -95,13 +95,18 @@ markup; use channel helpers that emit public attributes.
 |--|--|
 | **What** | Portable UI/control effects applied by the client (or other surfaces) |
 | **Use when** | Any server decision that should change UI or client state |
-| **API** | `ops.morph`, `toast`, `swap`, `navigate`, `push_url`, `reload`, `remove`, `focus`, `scroll`, `set_attr`, `set_text`, `signal_set`, `clear_errors`, `noop`, `bridge_*`, `dispatch`, … |
-| **Implements** | `ops.py` |
+| **API** | `from ux_channel.protocol.ops import morph, toast, …` |
+| **Implements** | `protocol/ops.py` (wire dicts) |
 | **Tests** | `tests/core/`, client/live suites |
 | **Docs** | [RESULT](core/RESULT.md) · [JS_RUNTIME](client/JS_RUNTIME.md) |
 
 Ops are **data**, not HTML templates. New op **types** are free strings; wire
 dense keys for common fields are fixed in [CXB.md](core/CXB.md).
+
+**Homonym (mapped, not leftover):** `ops/` is Wave A host composition
+(`ux_channel.ops.Op` / `plan` / `to_classic`). It is **not**
+`protocol.ops` wire dicts. `enhance/` is mapped L4 additive envelopes.
+Classic IR ignores unknown keys; neither package is on root `__all__`.
 
 ---
 
@@ -418,9 +423,12 @@ own forward-looking header policy.
 | | |
 |--|--|
 | **What** | `uxchannel` supercommand: info, doctor, scaffold, … |
-| **API** | console script `uxchannel` · `python -m ux_channel` |
+| **API** | console script `uxchannel` → `ux_channel.devtools.cli:main` · `python -m ux_channel` |
 | **Implements** | `devtools/cli.py` (argv dispatcher) · `scaffold/region_cli.py` (`region`) · `__main__.py` |
 | **Docs** | [SCAFFOLD](dx/SCAFFOLD.md) · README |
+
+Leftover (do not teach live): `ux_channel.cli:main` never existed — do not fashion a `cli/` package. `host/region_cli.py` moved; verb body is
+`scaffold/region_cli.py`. Public verb names unchanged.
 
 ---
 
@@ -647,7 +655,9 @@ uxchannel create-app …  # scaffold (see SCAFFOLD.md)
 # additional subcommands as registered in devtools/cli.py — run uxchannel --help
 ```
 
-Implementation: `devtools/cli.py`, entry points in `pyproject.toml` (`uxchannel`).
+Implementation: `devtools/cli.py` (`ux_channel.devtools.cli:main`), entry
+points in `pyproject.toml` (`uxchannel`). Leftover: `ux_channel.cli:main`
+never existed. `uxchannel region` lives in `scaffold/region_cli.py`.
 
 ---
 
@@ -721,6 +731,10 @@ pytest tests/core tests/regions tests/asgi -q
 | `UID_*` env legacy | `UX_CHANNEL_*` |
 | Public wire plugin registration for apps | Internal `wire.plugins` only |
 | Forced CXB for browsers | JSON default; CXB opt-in |
+| Poetry script `ux_channel.cli:main` | `uxchannel` → `ux_channel.devtools.cli:main` (no `cli/` package) |
+| `host/region_cli.py` as L2 | `scaffold/region_cli.py`; runtime `host.regions` stays |
+| Unmapped `ops/` / `enhance/` ghosts | Mapped. `ops/` ≠ `protocol.ops`. `enhance/` = L4 envelopes |
+| `host/_ch_g0.py` placeholder stub | **Absent.** Not a product. Do not map a ghost |
 
 ---
 

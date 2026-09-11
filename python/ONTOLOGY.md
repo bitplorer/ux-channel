@@ -82,7 +82,10 @@ Think in **five strata**. Never mix them.
 | Multi-surface structure (HTML is one projection) | **morph_ir** | `from ux_channel.render.morph_ir import elem, region` | Treating morph_ir `region()` as an HTML tag |
 | Framework-agnostic attrs/scripts for the page shell | **Placement** | `ux_channel.placement` | Putting markup ownership inside Channel |
 | File/package auto-discovery of Region classes | **RegionDirectory** | `region_directory` / config `regions=` | Assuming core Intent plane needs it (it does **not**) |
-| Scaffold region files from CLI | **region CLI** | `uxchannel region add …` | Confusing CLI with runtime |
+| Scaffold region files from CLI | **region CLI** | `uxchannel region add …` (`scaffold/region_cli.py`; leftover: `host/region_cli.py`) | Confusing CLI with runtime |
+| Console script `uxchannel` | **devtools CLI** | `ux_channel.devtools.cli:main` | Leftover `ux_channel.cli:main` / fashion `cli/` |
+| Wave A composition (Op/plan) | **`ops/`** (mapped) | `from ux_channel.ops import Op, plan` | `protocol.ops` wire dicts (homonym) |
+| Additive envelopes | **`enhance/`** (mapped L4) | `ux_channel.enhance` | Dumping onto root `__all__` |
 | Encode Intent/Result bytes (JSON/CXB) | **wire** | `ux_channel.wire` | Cap crypto (that’s `capability`) |
 | Sign/verify permission tokens | **CapService** | `ux_channel.capability` (`mint`/`verify`) | Rust name `mint` — same idea, different method names |
 | Live in-process topic → refresh regions | **live** | `ux_channel.live` | Redis/SSE itself (that’s push bus / separate docs) |
@@ -337,7 +340,9 @@ python/
     region_component.py       ← class Region
     region_directory.py       ← opt-in discovery
     scaffold/region_cli.py    ← scaffolding (not L2 host)
-    ops.py · morph_ir.py      ← ops / multi-surface IR
+    protocol/ops.py · ops/    ← wire dicts vs Wave A composition (homonym)
+    enhance/                  ← mapped L4 envelopes
+    morph_ir.py               ← multi-surface IR
     bridges/ · components/    ← optional, not core ontology
     capability.py · wire/     ← authority + codecs
     channel.py                     ← Channel façade (application API)
