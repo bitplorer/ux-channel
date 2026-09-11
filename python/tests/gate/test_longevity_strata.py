@@ -144,13 +144,33 @@ def test_lazy_planes_are_idempotent():
 
 def test_compose_frozen_import_paths():
     """ux-compose wire/ may only touch these paths. Do not rename them."""
-    from ux_channel import Channel, ChannelConfig
-    from ux_channel.cek.host_adapter import apply_host_adapter
+    from ux_channel import ActionRegistry, Channel, ChannelConfig
+    from ux_channel.cek.config import cek_available
+    from ux_channel.cek.host_adapter import after_cek_cut2, apply_host_adapter
     from ux_channel.protocol.types import Intent
 
     assert Channel is not None and ChannelConfig is not None
     assert callable(apply_host_adapter)
     assert Intent is not None
     assert hasattr(Channel, "boot")
-    ch = Channel.boot(config=ChannelConfig.development(secret="dev-" + "x" * 32))
+    cfg = ChannelConfig.development(secret="dev-" + "x" * 32)
+    ch = Channel.boot(config=cfg)
     assert hasattr(ch, "mint") and hasattr(ch, "done") and hasattr(ch, "registry")
+
+    # Lower-level compose path: from_config applies the same adapter.
+    if cek_available():
+        assert cfg.cek == "require"
+        reg = ActionRegistry.from_config(cfg)
+        assert type(reg._caps).__name__ == "CekHostCapService"
+        assert any(fn is after_cek_cut2 for fn in reg.hooks.after)
+        # Second call (compose + factory) must not double-register the hook.
+        apply_host_adapter(reg, cfg)
+        assert sum(1 for fn in reg.hooks.after if fn is after_cek_cut2) == 1
+
+        @reg.action("compose_ping")
+        def compose_ping():
+            return {"ok": True, "ops": []}
+
+        cap = reg.mint("compose_ping", {})
+        result = reg.dispatch(Intent(action="compose_ping", args={}, cap=cap))
+        assert result.ok, result

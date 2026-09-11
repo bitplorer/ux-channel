@@ -21,7 +21,10 @@ from ux_channel.cek.host_adapter import ORACLE_ARGS, ORACLE_HASH, CekHostCapServ
 from ux_channel.protocol.capability import CapError, CapService
 from ux_channel.protocol.types import Intent
 
-pytestmark = pytest.mark.skipif(not cek_available(), reason="optional extra [cek] not installed")
+pytestmark = pytest.mark.skipif(
+    not cek_available(),
+    reason="cek-host/cek-surface not importable (required deps)",
+)
 
 SECRET = "parity-secret-key-32chars-minimum!!"
 

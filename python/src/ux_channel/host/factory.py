@@ -266,7 +266,14 @@ def create_channel(
         if eng:
             _configure_wire(engine=eng)
     except Exception:
-        pass
+        import logging
+
+        logging.getLogger("ux_channel.host.factory").exception(
+            "concurrency/wire configure failed"
+        )
+        env = getattr(config, "environment", None) if config is not None else None
+        if env == "production":
+            raise
 
     if max_in_flight is not None and max_in_flight > 0:
         from ux_channel.security.bulkhead import install_bulkhead

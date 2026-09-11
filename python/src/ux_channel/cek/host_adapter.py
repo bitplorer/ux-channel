@@ -63,8 +63,9 @@ def require_cek_min() -> None:
     ver = _cek_version_tuple()
     if ver < MIN_CEK:
         raise RuntimeError(
-            f"ux-channel[cek] needs cek-host>=0.1.3 (got {ver[0]}.{ver[1]}.{ver[2]}). "
-            "pip install -U 'cek-host>=0.1.3' 'cek-surface>=0.1.3'"
+            f"ux-channel needs cek-host>=0.1.3 (got {ver[0]}.{ver[1]}.{ver[2]}). "
+            "pip install -U 'cek-host>=0.1.3' 'cek-surface>=0.1.3' "
+            "(required deps; extra [cek] is an empty install alias)"
         )
 
 
@@ -239,10 +240,38 @@ def after_cek_cut2(intent: Any, result: Any) -> Any:
     return result
 
 
+def _adapter_already_applied(registry: Any, mode: str) -> bool:
+    """True when this registry already has the adapter for ``mode``."""
+    if getattr(registry, "_cek_adapter_mode", None) != mode:
+        return False
+    if mode == "require":
+        return type(getattr(registry, "_caps", None)).__name__ == "CekHostCapService"
+    if mode == "adapt":
+        extra = getattr(registry, "_cek_caps", None)
+        return extra is not None and extra is not getattr(registry, "_caps", None)
+    return False
+
+
+def _ensure_after_cek_cut2(registry: Any) -> None:
+    hooks = getattr(registry, "hooks", None)
+    after_list = getattr(hooks, "after", None) if hooks is not None else None
+    if after_list is not None and any(fn is after_cek_cut2 for fn in after_list):
+        return
+    after = getattr(registry, "after", None)
+    if callable(after):
+        after(after_cek_cut2)
+
+
 def apply_host_adapter(registry: Any, config: Any) -> str:
-    """Swap ``registry._caps`` when cek is adapt|require."""
+    """Swap ``registry._caps`` when cek is adapt|require.
+
+    Idempotent: ``from_config`` and ``create_channel`` may both call this.
+    """
     mode = parse_cek(getattr(config, "cek", "off") if config is not None else "off")
     if mode == "off":
+        return mode
+    if _adapter_already_applied(registry, mode):
+        _ensure_after_cek_cut2(registry)
         return mode
     require_cek_installed(mode)
     require_cek_min()
@@ -280,7 +309,6 @@ def apply_host_adapter(registry: Any, config: Any) -> str:
             "cek=adapt: cek-runtime Host wrap live (%s); Channel CapService remains authority",
             adapted.backend,
         )
-    after = getattr(registry, "after", None)
-    if callable(after):
-        after(after_cek_cut2)
+    _ensure_after_cek_cut2(registry)
+    registry._cek_adapter_mode = mode
     return mode

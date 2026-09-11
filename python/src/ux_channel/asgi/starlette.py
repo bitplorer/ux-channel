@@ -137,10 +137,11 @@ def channel_routes(
             headers["Retry-After"] = str(int(max(0, round(ra))))
         elif status == 429:
             headers["Retry-After"] = "5"
+        # HTTP /action is JSON only (CXB stays a library codec).
         blob = encode_http_body(
             result.to_dict(),
-            accept=request.headers.get("accept"),
-            content_type_in=request.headers.get("content-type"),
+            accept=CHANNEL_JSON,
+            content_type_in=CHANNEL_JSON,
         )
         from ux_channel.wire.negotiate import response_headers_for
 
@@ -153,10 +154,9 @@ def channel_routes(
         )
 
     async def health(_: Request) -> Response:
-        body: dict[str, Any] = {"ok": True, "v": "1", "package": "ux-channel", "status": "live"}
-        if health_list:
-            body["actions"] = registry.names()
-        return JSONResponse(body)
+        from ux_channel.asgi.pipeline import health_payload
+
+        return JSONResponse(health_payload(registry, health_list=health_list, path=path))
 
     async def version_ep(_: Request) -> Response:
         from ux_channel.devtools.info import package_info

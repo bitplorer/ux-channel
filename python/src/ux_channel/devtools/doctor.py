@@ -134,7 +134,9 @@ def production_go_nogo(config: Any) -> dict[str, Any]:
             row(
                 "cek_extra",
                 cek_available(),
-                f"cek={cek} needs pip install 'ux-channel[cek]'",
+                f"cek={cek} needs cek-host + cek-surface (>=0.1.3); "
+                "pip install -U 'cek-host>=0.1.3' 'cek-surface>=0.1.3' "
+                "(required deps; extra [cek] is an empty alias)",
             )
         else:
             row("cek_extra", True, "cek=off (explicit escape)", fatal=False)

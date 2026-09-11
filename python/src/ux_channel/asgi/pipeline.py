@@ -12,9 +12,79 @@ from typing import Any, Mapping, Optional, Tuple
 from ux_channel.transport.middleware import check_client_version
 from ux_channel.security.security import channel_header_ok, content_length_ok, origin_allowed
 from ux_channel.protocol.types import Result
+from ux_channel.wire.core import MEDIA_TYPES, available_formats
 
 # (Result, http_status, optional_extra_headers)
 PreflightFail = Tuple[Result, int, list[tuple[bytes, bytes]]]
+
+HTTP_JSON = MEDIA_TYPES.get("json", "application/ux-channel+json")
+_HTTP_JSON_TYPES = frozenset(
+    {
+        "application/json",
+        "application/ux-channel+json",
+        "application/uid+json",
+        "text/plain",
+        "text/json",
+    }
+)
+_HTTP_FORM_TYPES = frozenset(
+    {
+        "application/x-www-form-urlencoded",
+        "multipart/form-data",
+    }
+)
+
+
+def media_type_name(content_type: str | None) -> str:
+    if not content_type:
+        return ""
+    return content_type.split(";")[0].strip().lower()
+
+
+def http_action_content_type_ok(content_type: str | None) -> bool:
+    """HTTP /action and /batch accept JSON or form only (CXB is library-side)."""
+    mt = media_type_name(content_type)
+    if not mt:
+        return True
+    if mt in _HTTP_JSON_TYPES or mt in _HTTP_FORM_TYPES:
+        return True
+    return False
+
+
+def health_payload(
+    registry: Any,
+    *,
+    health_list: bool = False,
+    path: str = "/ux-channel",
+) -> dict[str, Any]:
+    """Honest liveness body: formats = HTTP today; codecs = library."""
+    path = (path or "/ux-channel").rstrip("/") or "/ux-channel"
+    codecs = list(available_formats())
+    if "json" not in codecs:
+        codecs.insert(0, "json")
+    body: dict[str, Any] = {
+        "ok": True,
+        "v": "1",
+        "package": "ux-channel",
+        "status": "live",
+        "formats": [HTTP_JSON],
+        "codecs": codecs,
+        "http": {
+            "action": {
+                "path": f"{path}/action",
+                "content_type": HTTP_JSON,
+                "accept_response": [HTTP_JSON],
+            }
+        },
+        "policy": {
+            "present_cap_must_verify": True,
+            "once_jti_enforced": bool(getattr(registry, "once_jti_enforced", True)),
+        },
+    }
+    if health_list:
+        names = getattr(registry, "names", None)
+        body["actions"] = names() if callable(names) else []
+    return body
 
 
 def preflight_action(
@@ -63,6 +133,16 @@ def preflight_action(
         return Result.failure("forbidden", "origin not allowed"), 403, []
 
     ctype = (h.get("content-type") or "").lower()
+    if not http_action_content_type_ok(ctype):
+        return (
+            Result.failure(
+                "bad_request",
+                "HTTP /action is JSON only; CXB is a library codec "
+                "(see health.formats vs health.codecs)",
+            ),
+            400,
+            [],
+        )
     if not channel_header_ok(h, required=require_ch, content_type=ctype):
         try:
             from ux_channel.security.security_events import emit_security

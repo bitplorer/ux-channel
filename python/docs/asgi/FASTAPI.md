@@ -35,7 +35,7 @@ from ux_channel.host.config import ChannelConfig
 from ux_channel.asgi.fastapi import mount_channel
 
 cfg = ChannelConfig.from_env()
-reg = ActionRegistry.from_config(cfg)
+reg = ActionRegistry.from_config(cfg)  # applies cek adapter when cfg.cek != "off"
 mount_channel(app, reg, config=cfg)
 ```
 

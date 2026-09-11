@@ -89,8 +89,9 @@ TEACH: dict[str, str] = {
         "Set ChannelConfig allowed_origins / same-origin; send Origin header."
     ),
     "cek_missing": (
-        "ChannelConfig.cek is adapt|require but extra [cek] is not installed. "
-        "pip install 'ux-channel[cek]' or set cek='off'."
+        "ChannelConfig.cek is adapt|require but cek-host / cek-surface cannot be imported. "
+        "pip install -U 'cek-host>=0.1.3' 'cek-surface>=0.1.3' "
+        "(required deps; extra [cek] is an empty alias) or set cek='off'."
     ),
 }
 
