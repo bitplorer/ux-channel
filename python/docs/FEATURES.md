@@ -419,7 +419,7 @@ own forward-looking header policy.
 |--|--|
 | **What** | `uxchannel` supercommand: info, doctor, scaffold, … |
 | **API** | console script `uxchannel` · `python -m ux_channel` |
-| **Implements** | `cli.py`, `__main__.py` |
+| **Implements** | `devtools/cli.py`, `__main__.py` |
 | **Docs** | [SCAFFOLD](dx/SCAFFOLD.md) · README |
 
 ---
@@ -644,10 +644,10 @@ Channel owns **control/trust/ops**; ux-dom owns **markup components**.
 uxchannel info          # versions, paths, health hints
 uxchannel doctor        # environment / config diagnostics
 uxchannel create-app …  # scaffold (see SCAFFOLD.md)
-# additional subcommands as registered in cli.py — run uxchannel --help
+# additional subcommands as registered in devtools/cli.py — run uxchannel --help
 ```
 
-Implementation: `cli.py`, entry points in `pyproject.toml` (`uxchannel`).
+Implementation: `devtools/cli.py`, entry points in `pyproject.toml` (`uxchannel`).
 
 ---
 

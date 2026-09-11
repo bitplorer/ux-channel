@@ -104,7 +104,7 @@ httpx = ">=0.24"
 fakeredis = ">=2.20"
 
 [tool.poetry.scripts]
-uxchannel = "ux_channel.cli:main"
+uxchannel = "ux_channel.devtools.cli:main"
 
 [build-system]
 requires = ["poetry-core>=1.9.0"]
