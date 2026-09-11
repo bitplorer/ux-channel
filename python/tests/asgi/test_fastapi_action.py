@@ -60,11 +60,36 @@ def test_action_endpoint():
 
 
 def test_health():
-    app, _ = build_app(list_actions=True)
+    app, reg = build_app(list_actions=True)
     client = TestClient(app)
     r = client.get("/ux-channel/health")
     assert r.status_code == 200
-    assert "Counter.inc" in r.json().get("actions", [])
+    body = r.json()
+    assert "Counter.inc" in body.get("actions", [])
+    assert body.get("formats") == ["application/ux-channel+json"]
+    assert "json" in body.get("codecs", [])
+    assert "cxb" in body.get("codecs", [])
+    assert body["http"]["action"]["accept_response"] == ["application/ux-channel+json"]
+    assert body["policy"]["present_cap_must_verify"] is True
+    assert body["policy"]["once_jti_enforced"] is bool(reg.once_jti_enforced)
+
+
+def test_action_rejects_cxb_content_type():
+    app, reg = build_app()
+    client = TestClient(app)
+    cap = reg.mint("Counter.inc", {"n": 1})
+    res = client.post(
+        "/ux-channel/action",
+        content=b"\x00not-json",
+        headers={
+            "Content-Type": "application/ux-channel+cxb",
+            "X-Channel": "1",
+        },
+    )
+    assert res.status_code == 400
+    body = res.json()
+    assert body["ok"] is False
+    assert body["error"]["code"] == "bad_request"
 
 
 def test_static_js():

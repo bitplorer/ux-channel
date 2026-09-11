@@ -34,8 +34,6 @@ from ux_channel.api import Channel, Region, CapService, state
 | `ch.control(...)` | Control attrs (+ cap mint) |
 | `ch.done` / `ch.fail` | Result verbs |
 | `registry.dispatch` / `async_dispatch` | Sync / async Intent → Result (same law) |
-| `ch.control(...)` | Control attrs (+ cap mint) |
-| `ch.done` / `ch.fail` | Result verbs |
 | `ch.runtime` | Placement data (not HTML ownership) |
 | `ch.mint` | Cap mint (Rust-parity name) |
 | `ch.media` / `ch.bridge` | Optional planes |

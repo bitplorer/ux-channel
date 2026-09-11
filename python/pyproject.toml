@@ -72,7 +72,9 @@ realtime = []
 devtools = ["opentelemetry-api", "opentelemetry-sdk"]
 pydantic = ["pydantic"]
 otel = ["opentelemetry-api", "opentelemetry-sdk"]
-# Door K — wrap packages are required (cut #3). Extra kept as install alias.
+# Door K — wrap packages are required deps (cut #3). Extra is an empty
+# install alias so `pip install ux-channel[cek]` stays valid and installs
+# nothing extra. Missing wrap packages fail closed on cek=adapt|require.
 cek = []
 # Batteries
 full = [

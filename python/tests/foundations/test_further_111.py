@@ -37,6 +37,21 @@ def test_preflight_ok_with_header():
     assert fail is None
 
 
+def test_preflight_rejects_cxb_content_type():
+    cfg = ChannelConfig.development(SECRET, require_channel_header=True, rate_limit_per_minute=0)
+    fail = preflight_action(
+        {
+            "content-type": "application/ux-channel+cxb",
+            "content-length": "4",
+            "x-channel": "1",
+        },
+        config=cfg,
+    )
+    assert fail is not None
+    result, status, _ = fail
+    assert status == 400 and result.error.code == "bad_request"
+
+
 def test_safe_html_and_mark_safe():
     assert isinstance(mark_safe("<b>x</b>"), SafeHtml)
     ch = Channel.boot(secret=SECRET)

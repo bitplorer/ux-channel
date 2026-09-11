@@ -34,7 +34,7 @@ def parse_cek(value: Any) -> str:
 
 
 def cek_available() -> bool:
-    """True when the optional extra ``[cek]`` wrap packages can be imported."""
+    """True when required wrap packages ``cek-host`` and ``cek-surface`` import."""
     try:
         import cek_host  # noqa: F401
         import cek_surface  # noqa: F401
@@ -54,14 +54,15 @@ def min_cek() -> str:
 
 
 def require_cek_installed(mode: str) -> None:
-    """Fail closed when require/adapt is set but the extra is missing."""
+    """Fail closed when require/adapt is set but wrap packages cannot import."""
     if mode == "off":
         return
     if cek_available():
         return
     raise RuntimeError(
         f"ChannelConfig.cek={mode!r} needs cek-host + cek-surface (>=0.1.3): "
-        "pip install 'ux-channel[cek]'. "
+        "pip install -U 'cek-host>=0.1.3' 'cek-surface>=0.1.3'. "
+        "Those packages are required runtime deps; extra [cek] is an empty alias. "
         "Default decide is cek=require (cek-runtime Host). "
         "Bare-install escape: ChannelConfig(..., cek='off') or UX_CHANNEL_CEK=off. "
         "See Channel.help() / uxchannel recipe production."

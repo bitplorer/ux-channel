@@ -236,10 +236,11 @@ def mount_channel(
         ra_h = _retry_after_header(result, status)
         if ra_h is not None:
             headers["Retry-After"] = ra_h
+        # HTTP /action is JSON only (CXB stays a library codec).
         blob = encode_http_body(
             result.to_dict(),
-            accept=accept,
-            content_type_in=request.headers.get("content-type"),
+            accept=CHANNEL_JSON,
+            content_type_in=CHANNEL_JSON,
         )
         from ux_channel.wire.negotiate import response_headers_for
 
@@ -283,6 +284,18 @@ def mount_channel(
                 media_type=CHANNEL_JSON,
             )
         ctype = headers.get("content-type") or ""
+        from ux_channel.asgi.pipeline import http_action_content_type_ok
+
+        if not http_action_content_type_ok(ctype):
+            return JSONResponse(
+                Result.failure(
+                    "bad_request",
+                    "HTTP /batch is JSON only; CXB is a library codec "
+                    "(see health.formats vs health.codecs)",
+                ).to_dict(),
+                status_code=400,
+                media_type=CHANNEL_JSON,
+            )
         if not channel_header_ok(headers, required=require_ch, content_type=ctype):
             try:
                 from ux_channel.security.security_events import emit_security
@@ -407,15 +420,9 @@ def mount_channel(
     @router.get("/health")
     async def health() -> dict[str, Any]:
         """Liveness — safe for public probes (no secrets, optional action list)."""
-        body: dict[str, Any] = {
-            "ok": True,
-            "v": "1",
-            "package": "ux-channel",
-            "status": "live",
-        }
-        if health_list:
-            body["actions"] = registry.names()
-        return body
+        from ux_channel.asgi.pipeline import health_payload
+
+        return health_payload(registry, health_list=health_list, path=path)
 
     @router.get("/push/{topic}")
     async def push_stream(topic: str, request: Request):

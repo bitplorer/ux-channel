@@ -51,6 +51,10 @@ class AsyncDispatchRequired(TypeError):
     """Raised when sync dispatch meets an async handler or hook."""
 
 
+class AuthResolverFailed(RuntimeError):
+    """auth_resolver raised — fail closed (not anonymous)."""
+
+
 def _sec(kind: str, **kw) -> None:
     try:
         from ux_channel.security.security_events import emit_security
@@ -248,6 +252,14 @@ class ActionRegistry:
                         log_all=config.environment == "development",
                     )
                 )
+        # One Cap machine: from_config honors config.cek (compose / lower-level
+        # path). create_channel may call apply_host_adapter again — idempotent.
+        from ux_channel.cek.config import parse_cek
+
+        if parse_cek(getattr(config, "cek", "require")) != "off":
+            from ux_channel.cek.host_adapter import apply_host_adapter
+
+            apply_host_adapter(reg, config)
         return reg
 
     def action(
@@ -442,9 +454,14 @@ class ActionRegistry:
             return None
         try:
             return self.auth_resolver(_request_var.get())
-        except Exception:
+        except Exception as exc:
             logger.exception("auth_resolver failed")
-            return None
+            _sec(
+                "auth_resolver_failed",
+                action="",
+                reason=str(exc) or type(exc).__name__,
+            )
+            raise AuthResolverFailed(str(exc) or type(exc).__name__) from exc
 
     def _prepare(
         self, intent: Intent | Mapping[str, Any]
@@ -546,7 +563,20 @@ class ActionRegistry:
             for k, v in intent.form.items():
                 args.setdefault(k, v)
 
-        principal = self._resolve_principal()
+        try:
+            principal = self._resolve_principal()
+        except AuthResolverFailed as exc:
+            return (
+                intent,
+                args,
+                Result.failure(
+                    "unauthorized",
+                    f"auth_resolver failed: {exc}",
+                    **{k: v for k, v in meta_base.items() if v is not None},
+                ),
+                None,
+                None,
+            )
         soft_from_args = False
         # Soft identity: id only. NEVER take roles/scopes from client Intent args.
         if principal is None:

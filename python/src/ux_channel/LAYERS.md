@@ -68,6 +68,11 @@ Compose may import only:
 
 Do not rename those. Isolation Law lives in compose `wire/`.
 
+`ActionRegistry.from_config(cfg)` applies `apply_host_adapter` when
+`cfg.cek != "off"` (same Cap machine as `Channel.boot`). A second
+`apply_host_adapter(reg, cfg)` is idempotent. Compose should not skip
+the adapter and expect classic `CapService` while config says `require`.
+
 ## Law vs moving
 
 Frozen: Intent / Result / Cap mint-verify / `Channel.boot` / `@on` / `control` / `done`/`fail`.
