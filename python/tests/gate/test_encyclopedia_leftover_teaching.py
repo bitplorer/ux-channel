@@ -70,3 +70,15 @@ def test_ch_g0_placeholder_absent_and_taught():
 def test_encyclopedia_files_exist_for_lock():
     missing = [str(p.relative_to(ROOT)) for p in ENCYCLOPEDIA if not p.is_file()]
     assert missing == [], f"encyclopedia lock targets missing: {missing}"
+
+
+def test_encyclopedia_teaches_html_leftover_soft1():
+    """Soft 1 leftover: channel does not own HTML. Live is ux-dom when present."""
+    for path in ENCYCLOPEDIA:
+        text = _read(path)
+        assert "lower_html" in text, f"{path} must name leftover lower_html"
+        assert "to_html" in text, f"{path} must name leftover to_html"
+        assert "ux-dom" in text, f"{path} must teach live ux-dom owner"
+        assert "html.escape" in text, f"{path} must teach stdlib fallback"
+        lowered = text.replace("**", "")
+        assert "does not own HTML" in lowered, f"{path} must teach leftover: channel does not own HTML"

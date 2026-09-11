@@ -18,7 +18,8 @@ Specialized folders (`security/`, `ship/`, `design/`, `tutorial/`, `patterns/`, 
 `docs/INDEX.md` is the map. Do not add a second competing map.
 
 This layer owns Intent / Result / Cap / wire / peers / Cap Host (cek-runtime; ≠ HTTP Product host).
-It does **not** own HTML trees or CSS.
+It does **not** own HTML trees or CSS. Leftover: `lower_html` / `to_html`
+HTML clone. Live: ux-dom when present; stdlib `html.escape` if absent.
 
 **Cuts 1–2 leftovers (named, not live):** `uxchannel` →
 `ux_channel.devtools.cli:main` (leftover `ux_channel.cli:main`; no `cli/`

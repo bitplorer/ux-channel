@@ -1,3 +1,15 @@
+## 2026-09-11 — Soft 1: HTML lower via ux-dom when present
+
+- `lower_html` / `to_html` / ChannelComponent HTML paths prefer ux-dom
+  serialize / escape (pin e8be99a) when importable.
+- Stdlib `html.escape` if ux-dom is absent. No hard ux-dom dep.
+  No root `__all__` names.
+- Leftover teaching: channel does not own HTML. Live owner is ux-dom
+  when present. Do not teach the channel HTML clone as the product path.
+- KEEP: `mount_channel`, isolation/`wire/`, Cap HTTP door, ASGI Cap
+  surface (`asgi/fastapi.py` not gutted). Soft 2–4 not in this change.
+- Plan: ux-compose#76 ownership map (KEEP-HEAD).
+
 ## 2026-09-11 — Cut C: empty Content-Type fail-closed
 
 - Python HTTP `/action` and `/batch` require a declared JSON or form
