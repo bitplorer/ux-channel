@@ -35,7 +35,9 @@
     "static",
     "api",
     "catalog",
-    "cek"
+    "cek",
+    "enhance",
+    "ops"
   ],
   "packages": {
     "agent_runtime": [
@@ -136,6 +138,17 @@
       "trace",
       "upgrade_check"
     ],
+    "enhance": [
+      "asgi_wire",
+      "attach",
+      "causal",
+      "continuations",
+      "delta",
+      "envelopes",
+      "handshake",
+      "negotiation",
+      "recorder"
+    ],
     "foundations": [
       "io_channel",
       "provenance",
@@ -154,7 +167,6 @@
       "nonce",
       "outcomes",
       "patterns",
-      "region_cli",
       "region_component",
       "region_directory",
       "regions",
@@ -180,6 +192,11 @@
       "sessions",
       "subscribe",
       "verticals"
+    ],
+    "ops": [
+      "catalog",
+      "macros",
+      "translate"
     ],
     "protocol": [
       "capability",
@@ -220,6 +237,7 @@
     ],
     "scaffold": [
       "create",
+      "region_cli",
       "templates_src"
     ],
     "security": [
@@ -344,6 +362,15 @@
     "devtools.ticket_revoke": "devtools",
     "devtools.trace": "devtools",
     "devtools.upgrade_check": "devtools",
+    "enhance.asgi_wire": "enhance",
+    "enhance.attach": "enhance",
+    "enhance.causal": "enhance",
+    "enhance.continuations": "enhance",
+    "enhance.delta": "enhance",
+    "enhance.envelopes": "enhance",
+    "enhance.handshake": "enhance",
+    "enhance.negotiation": "enhance",
+    "enhance.recorder": "enhance",
     "foundations.io_channel": "foundations",
     "foundations.provenance": "foundations",
     "foundations.quantity": "foundations",
@@ -359,7 +386,6 @@
     "host.nonce": "host",
     "host.outcomes": "host",
     "host.patterns": "host",
-    "host.region_cli": "host",
     "host.region_component": "host",
     "host.region_directory": "host",
     "host.regions": "host",
@@ -381,6 +407,9 @@
     "mcp.sessions": "mcp",
     "mcp.subscribe": "mcp",
     "mcp.verticals": "mcp",
+    "ops.catalog": "ops",
+    "ops.macros": "ops",
+    "ops.translate": "ops",
     "protocol.capability": "protocol",
     "protocol.encode": "protocol",
     "protocol.error_map": "protocol",
@@ -411,6 +440,7 @@
     "render.response": "render",
     "render.slot_compile": "render",
     "scaffold.create": "scaffold",
+    "scaffold.region_cli": "scaffold",
     "scaffold.templates_src": "scaffold",
     "security.attenuate": "security",
     "security.bulkhead": "security",
@@ -484,15 +514,17 @@
     "cek": "Channel wrap of cek-runtime Host (default cek=require). Cap machine = cek-runtime only (ADR 0008\u20130011). cek=off is the explicit escape.",
     "components": "Optional Channel component kit (not default UI path).",
     "devtools": "Audit, CLI, observability, codegen \u2014 L5 free to churn.",
+    "enhance": "Additive envelopes (continuations, handshake, delta, recorder). Optional L4; classic IR ignores unknown keys.",
     "foundations": "Quantity, provenance, io_channel \u2014 shared non-UI primitives.",
     "host": "Channel runtime \u2014 regions, ActionRegistry, state_api, stores. Design: app control plane.",
     "io_adapters": "Hardware/lab I/O adapters for workplace mesh.",
     "mcp": "MCP adapter, sessions, verticals, resources \u2014 L4 plane.",
+    "ops": "Wave A host composition (Op/plan/to_classic). Not protocol.ops wire dicts.",
     "protocol": "Wire IR + CapService (Rust-parity mint/verify/hash_args). Design: Intent/Result/ops types.",
     "realtime": "WebRTC / SFU / media / WHIP \u2014 L4 plane, never on root.",
     "redis_extra": "Optional Redis-backed stores and resilience helpers.",
     "render": "HTML safety, morph IR, placement, renderers, kit. Implementation of Result ops \u2192 DOM.",
-    "scaffold": "create-app and template sources \u2014 L5 tooling.",
+    "scaffold": "create-app, templates, and region file DX \u2014 L5 tooling.",
     "security": "CSRF, attenuate, limits, rate limit, WS/push security policy.",
     "static": "Client JS assets (ux-channel.js, webrtc, bridges).",
     "transport": "batch, push, stream, outbox, concurrency, intent_sync helpers.",
@@ -532,6 +564,8 @@
     "components": "L4",
     "io_adapters": "L4",
     "devtools": "L5",
+    "enhance": "L4",
+    "ops": "L3",
     "scaffold": "L5",
     "catalog": "L5",
     "cek": "L3",
@@ -561,7 +595,8 @@
     "bridges",
     "realtime",
     "components",
-    "io_adapters"
+    "io_adapters",
+    "enhance"
   ],
   "longevity": {
     "doc": "LONGEVITY.md",
@@ -572,5 +607,5 @@
       "extension_doors_A_to_G"
     ]
   },
-  "module_count": 179
+  "module_count": 191
 }

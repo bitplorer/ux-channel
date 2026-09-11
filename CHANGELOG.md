@@ -1,3 +1,12 @@
+## 2026-09-11 — Cut 2: ghosts + region ownership
+
+- Map `ops/` (Wave A composition, L3) and `enhance/` (additive
+  envelopes, L4) onto `PACKAGE_MAP`. They were on disk and gated,
+  but invisible to layout. Lock: every on-disk package must be mapped.
+- Move `uxchannel region` body `host/region_cli.py` →
+  `scaffold/region_cli.py`. Public verb names unchanged; argv
+  dispatcher stays `devtools.cli`. Runtime `host.regions` stays L2.
+
 ## 2026-09-11 — Cut 1: CLI honesty (console script)
 
 - Poetry script `uxchannel` now points at the live owner

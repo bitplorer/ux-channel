@@ -14,17 +14,6 @@ ROOT = Path(__file__).resolve().parents[1]
 PKG = ROOT / "python" / "src" / "ux_channel"
 MAP = PKG / "PACKAGE_MAP.json"
 
-# Core packages must not eagerly import these at module top level
-L4_PLANES = (
-    "agent_runtime",
-    "mcp",
-    "workplace",
-    "bridge",
-    "bridges",
-    "realtime",
-    "components",
-    "io_adapters",
-)
 CORE = ("protocol", "host", "render", "security", "api")
 
 
@@ -79,6 +68,10 @@ def check() -> list[str]:
     for pkg in packages:
         if pkg not in strata:
             problems.append(f"package {pkg} has no strata entry")
+
+    L4_PLANES = tuple(meta.get("plane_packages") or ())
+    if not L4_PLANES:
+        problems.append("PACKAGE_MAP.json missing plane_packages")
 
     # root only application — no L4 names
     sys.path.insert(0, str(ROOT / "python" / "src"))

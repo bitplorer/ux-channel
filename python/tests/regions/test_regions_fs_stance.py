@@ -198,7 +198,7 @@ def test_free_on_still_works():
 
 
 def test_cli_region_add(tmp_path):
-    from ux_channel.host.region_cli import cmd_region
+    from ux_channel.scaffold.region_cli import cmd_region
     from types import SimpleNamespace
     from ux_channel.devtools.log import get_log
 

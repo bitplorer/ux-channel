@@ -289,6 +289,14 @@ def check(meta: dict) -> list[str]:
             if not (PKG / pkg / f"{stem}.py").exists():
                 problems.append(f"missing {pkg}/{stem}.py")
 
+    disk_pkgs = set(discover_packages_from_disk(by_pkg).keys())
+    mapped_pkgs = set(by_pkg.keys())
+    for extra in sorted(disk_pkgs - mapped_pkgs):
+        problems.append(
+            f"unmapped package {extra}/ "
+            f"(on disk, absent from PACKAGE_MAP.packages — map it or delete it)"
+        )
+
     for pkg, stems in by_pkg.items():
         d = PKG / pkg
         if not d.is_dir():
