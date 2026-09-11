@@ -6,6 +6,7 @@ Public API
 * :func:`create_app` — write a project tree with safe defaults
 * :func:`available_templates` — ``minimal`` | ``live`` | ``webrtc`` | ``full``
 * :func:`validate_scaffold` — post-create integrity checks
+* ``region_cli`` — file-based region generator (``uxchannel region``)
 
 CLI::
 

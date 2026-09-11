@@ -44,15 +44,17 @@
     "cek": "Channel wrap of cek-runtime Host (default cek=require). Cap machine = cek-runtime only (ADR 0008\u20130011). cek=off is the explicit escape.",
     "components": "Optional Channel component kit (not default UI path).",
     "devtools": "Audit, CLI, observability, codegen \u2014 L5 free to churn.",
+    "enhance": "Additive envelopes (continuations, handshake, delta, recorder). Optional L4; classic IR ignores unknown keys.",
     "foundations": "Quantity, provenance, io_channel \u2014 shared non-UI primitives.",
     "host": "Channel runtime \u2014 regions, ActionRegistry, state_api, stores. Design: app control plane.",
     "io_adapters": "Hardware/lab I/O adapters for workplace mesh.",
     "mcp": "MCP adapter, sessions, verticals, resources \u2014 L4 plane.",
+    "ops": "Wave A host composition (Op/plan/to_classic). Not protocol.ops wire dicts.",
     "protocol": "Wire IR + CapService (Rust-parity mint/verify/hash_args). Design: Intent/Result/ops types.",
     "realtime": "WebRTC / SFU / media / WHIP \u2014 L4 plane, never on root.",
     "redis_extra": "Optional Redis-backed stores and resilience helpers.",
     "render": "HTML safety, morph IR, placement, renderers, kit. Implementation of Result ops \u2192 DOM.",
-    "scaffold": "create-app and template sources \u2014 L5 tooling.",
+    "scaffold": "create-app, templates, and region file DX \u2014 L5 tooling.",
     "security": "CSRF, attenuate, limits, rate limit, WS/push security policy.",
     "static": "Client JS assets (ux-channel.js, webrtc, bridges).",
     "transport": "batch, push, stream, outbox, concurrency, intent_sync helpers.",
@@ -79,6 +81,8 @@
     "components": "L4",
     "io_adapters": "L4",
     "devtools": "L5",
+    "enhance": "L4",
+    "ops": "L3",
     "scaffold": "L5",
     "catalog": "L5",
     "cek": "L3",
@@ -183,6 +187,17 @@
       "trace": "ux_channel.devtools.trace",
       "upgrade_check": "ux_channel.devtools.upgrade_check"
     },
+    "enhance": {
+      "asgi_wire": "ux_channel.enhance.asgi_wire",
+      "attach": "ux_channel.enhance.attach",
+      "causal": "ux_channel.enhance.causal",
+      "continuations": "ux_channel.enhance.continuations",
+      "delta": "ux_channel.enhance.delta",
+      "envelopes": "ux_channel.enhance.envelopes",
+      "handshake": "ux_channel.enhance.handshake",
+      "negotiation": "ux_channel.enhance.negotiation",
+      "recorder": "ux_channel.enhance.recorder"
+    },
     "foundations": {
       "io_channel": "ux_channel.foundations.io_channel",
       "provenance": "ux_channel.foundations.provenance",
@@ -201,7 +216,6 @@
       "nonce": "ux_channel.host.nonce",
       "outcomes": "ux_channel.host.outcomes",
       "patterns": "ux_channel.host.patterns",
-      "region_cli": "ux_channel.host.region_cli",
       "region_component": "ux_channel.host.region_component",
       "region_directory": "ux_channel.host.region_directory",
       "regions": "ux_channel.host.regions",
@@ -227,6 +241,11 @@
       "sessions": "ux_channel.mcp.sessions",
       "subscribe": "ux_channel.mcp.subscribe",
       "verticals": "ux_channel.mcp.verticals"
+    },
+    "ops": {
+      "catalog": "ux_channel.ops.catalog",
+      "macros": "ux_channel.ops.macros",
+      "translate": "ux_channel.ops.translate"
     },
     "protocol": {
       "capability": "ux_channel.protocol.capability",
@@ -267,6 +286,7 @@
     },
     "scaffold": {
       "create": "ux_channel.scaffold.create",
+      "region_cli": "ux_channel.scaffold.region_cli",
       "templates_src": "ux_channel.scaffold.templates_src"
     },
     "security": {

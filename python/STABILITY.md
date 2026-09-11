@@ -30,6 +30,8 @@ ux_channel/
   catalog/          package navigator (GENERATED catalog.json)
   PACKAGE_MAP.json  packages inventory; modules/count are derived
   cek/              wrap of cek-runtime Host (L3; default cek=require; Cap machine only; cek=off imports nothing)
+  ops/              Wave A host composition (Op/plan). Not protocol.ops wire dicts.
+  enhance/          Additive envelopes (L4; classic IR ignores unknown keys)
 ```
 
 **Forbidden package names (must not reappear):**  

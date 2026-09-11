@@ -317,7 +317,7 @@ def cmd_help_topic(args: argparse.Namespace) -> int:
 
 
 def cmd_region(args: argparse.Namespace) -> int:
-    from ux_channel.host.region_cli import cmd_region as _cmd
+    from ux_channel.scaffold.region_cli import cmd_region as _cmd
 
     return _cmd(args, get_log=get_log)
 

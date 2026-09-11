@@ -152,7 +152,7 @@ All three register into the same **RegionBook** (`ch.regions`): uid → loader/r
 | [`regions.py`](src/ux_channel/host/regions.py) | **RegionBook**, `@region` decorator, context, revalidate | Yes (via Channel) |
 | [`region_component.py`](src/ux_channel/host/region_component.py) | Class-style **Region**, `@Region.action`, `ch.use` | Yes if you prefer classes |
 | [`region_directory.py`](src/ux_channel/host/region_directory.py) | Opt-in FS/package discovery | No — shell feature |
-| [`region_cli.py`](src/ux_channel/host/region_cli.py) | Scaffold files for discovery | No — DX only |
+| [`region_cli.py`](src/ux_channel/scaffold/region_cli.py) | Scaffold files for discovery | No — DX only |
 | [`morph_ir.py`](src/ux_channel/render/morph_ir.py) | IR node named `region` = morph **target**, same law | Power |
 | [`ops.py`](src/ux_channel/protocol/ops.py) | `morph`/`swap` builders the refresh path emits | Power / implicit |
 | [`live.py`](src/ux_channel/host/live.py) | Bind topics → region uids (in-process) | Power |
@@ -336,7 +336,7 @@ python/
     regions.py                ← RegionBook (core)
     region_component.py       ← class Region
     region_directory.py       ← opt-in discovery
-    region_cli.py             ← scaffolding
+    scaffold/region_cli.py    ← scaffolding (not L2 host)
     ops.py · morph_ir.py      ← ops / multi-surface IR
     bridges/ · components/    ← optional, not core ontology
     capability.py · wire/     ← authority + codecs

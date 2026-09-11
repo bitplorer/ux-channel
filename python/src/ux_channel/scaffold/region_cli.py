@@ -1,4 +1,7 @@
-"""CLI handlers for opt-in file-based regions."""
+"""L5 file-based region generator — dispatched as ``uxchannel region``.
+
+Runtime discovery stays in ``host.regions`` / ``host.region_directory``.
+"""
 
 from __future__ import annotations
 

@@ -419,7 +419,7 @@ own forward-looking header policy.
 |--|--|
 | **What** | `uxchannel` supercommand: info, doctor, scaffold, … |
 | **API** | console script `uxchannel` · `python -m ux_channel` |
-| **Implements** | `devtools/cli.py`, `__main__.py` |
+| **Implements** | `devtools/cli.py` (argv dispatcher) · `scaffold/region_cli.py` (`region`) · `__main__.py` |
 | **Docs** | [SCAFFOLD](dx/SCAFFOLD.md) · README |
 
 ---
