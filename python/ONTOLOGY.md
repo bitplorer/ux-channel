@@ -73,7 +73,7 @@ Think in **five strata**. Never mix them.
 
 | You want… | Use this | Module / import | **Do not** use |
 |-----------|----------|-----------------|----------------|
-| Re-paint a **server-owned HTML fragment** after an action | **Region** | `from ux_channel import Region` · `@ch.region` · `ch.regions` | Bridge, ChannelComponent (unless you want a kit block) |
+| Re-paint a **server-owned HTML fragment** after an action | **Region** | `from ux_channel import Region` · `@ch.region` · `ch.regions` | Bridge; leftover ChannelComponent kit (not product UI) |
 | Host a **Chart.js / Leaflet / npm island** | **Bridge** | `from ux_channel.bridges import …` | Region (regions return HTML strings; bridges return mount attrs + bridge ops) |
 | Leftover `ChannelComponent` / `components/` kit (not Cap product, not a sixth product) | leftover **kit teaching** | Prefer ux-dom + `ch.control`. Do not port into compose `kit/`. | Teaching kit as product UI / Cap product / sixth product |
 | Mutate session / guard client paths | **state** | `from ux_channel import state` → `state(ch)` | `planes()` as application API (power helper only) |
