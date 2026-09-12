@@ -1,3 +1,14 @@
+## 2026-09-12 — Soft 4: response HTML helpers via ux_dom.response
+
+- Leftover: `render/response.py` (`HTMLResponse` / `html_response` /
+  `render_content`). Channel does not own response HTML helpers that
+  belong to ux-dom. Live owner is `ux_dom.response` when present;
+  leftover clone if absent. No hard ux-dom dep. No root `__all__` names.
+- KEEP: `mount_channel`, isolation/`wire/`, Cap HTTP door, ASGI Cap
+  surface (`asgi/fastapi.py` not gutted). Soft 3 kit teaching is not
+  in this change.
+- Plan: ux-compose#76 ownership map (KEEP-HEAD) S4 contract.
+
 ## 2026-09-12 — Soft 3: demote kit teaching (honesty)
 
 - Leftover: `ChannelComponent` / `components/` kit teaching is **not Cap product**,

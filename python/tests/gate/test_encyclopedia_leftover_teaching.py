@@ -132,3 +132,16 @@ def test_kit_teaching_files_leftover_soft3():
         assert "sixth product" in lowered, f"{path} must leftover-teach: not a sixth product"
         assert "ch.control" in lowered, f"{path} must teach live ux-dom + ch.control"
         assert "leftover" in lowered, f"{path} must leftover-teach kit"
+
+
+def test_encyclopedia_teaches_response_leftover_soft4():
+    """Soft 4 leftover: channel does not own response HTML helpers that belong to ux-dom."""
+    for path in ENCYCLOPEDIA:
+        text = _read(path)
+        assert "render/response.py" in text, f"{path} must name leftover render/response.py"
+        assert "ux_dom.response" in text, f"{path} must teach live ux_dom.response owner"
+        lowered = text.replace("**", "").replace("``", "")
+        assert "does not own response HTML helpers" in lowered, (
+            f"{path} must leftover-teach: channel does not own response HTML helpers"
+        )
+        assert "mount_channel" in text, f"{path} must keep Cap HTTP door mount_channel"

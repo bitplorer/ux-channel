@@ -80,6 +80,7 @@ Think in **five strata**. Never mix them.
 | Agent tools / situation / effects | **agents** | `from ux_channel import agents` → `agents(ch)` | Dual agent APIs / raw MCP unless you need MCP plane |
 | Low-level “patch this selector” without a region registry | **ops** | `from ux_channel.protocol.ops import morph, toast, …` | Hand-building ops when `ch.done(refresh=[…])` already does it |
 | Multi-surface structure (HTML is one projection) | **morph_ir** | `from ux_channel.render.morph_ir import elem, region` | Treating morph_ir `region()` as an HTML tag; leftover `lower_html` / `to_html` HTML clone — ux-dom when present; stdlib `html.escape` if absent. Channel does not own HTML |
+| HTML HTTP response for tag trees | leftover **`render/response.py`** | `ux_channel.render.response` — leftover clone | Owner is `ux_dom.response`. Channel does not own response HTML helpers that belong to ux-dom |
 | Framework-agnostic attrs/scripts for the page shell | **Placement** | `ux_channel.placement` | Putting markup ownership inside Channel |
 | File/package auto-discovery of Region classes | **RegionDirectory** | `region_directory` / config `regions=` | Assuming core Intent plane needs it (it does **not**) |
 | Scaffold region files from CLI | **region CLI** | `uxchannel region add …` (`scaffold/region_cli.py`; leftover: `host/region_cli.py`) | Confusing CLI with runtime |

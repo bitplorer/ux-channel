@@ -43,6 +43,9 @@ ux_channel/
 `host/_ch_g0.py` — placeholder transport stub; deleted; not a product.
 Channel HTML clone (`lower_html` / `to_html`) — live is ux-dom when
 present; stdlib `html.escape` if absent. Channel does not own HTML.
+Channel response HTML helpers (`render/response.py`) — live is
+`ux_dom.response` when present; leftover clone if absent. Channel
+does not own response HTML helpers that belong to ux-dom.
 `uxchannel create-app` — lab FastAPI scaffold, not the product Cap door.
 Product create-app is `uxcompose create-app`. Cap HTTP door is
 `mount_channel` (KEEP). Do not gut `asgi/fastapi.py`.
