@@ -433,6 +433,9 @@ own forward-looking header policy.
 
 Leftover (do not teach live): `ux_channel.cli:main` never existed — do not fashion a `cli/` package. `host/region_cli.py` moved; verb body is
 `scaffold/region_cli.py`. Public verb names unchanged.
+Leftover: `uxchannel create-app` is a lab FastAPI scaffold, not the
+product Cap door. Product create-app is `uxcompose create-app`. Cap
+HTTP door is `mount_channel` (KEEP). Do not gut `asgi/fastapi.py`.
 
 ---
 
@@ -657,13 +660,15 @@ ux-dom when present; stdlib `html.escape` if absent.
 ```bash
 uxchannel info          # versions, paths, health hints
 uxchannel doctor        # environment / config diagnostics
-uxchannel create-app …  # scaffold (see SCAFFOLD.md)
+uxchannel create-app …  # leftover lab FastAPI scaffold — not the product Cap door
 # additional subcommands as registered in devtools/cli.py — run uxchannel --help
 ```
 
 Implementation: `devtools/cli.py` (`ux_channel.devtools.cli:main`), entry
 points in `pyproject.toml` (`uxchannel`). Leftover: `ux_channel.cli:main`
 never existed. `uxchannel region` lives in `scaffold/region_cli.py`.
+Leftover: `uxchannel create-app` is lab, not product. Product create-app
+is `uxcompose create-app`. Cap HTTP door is `mount_channel` (KEEP).
 
 ---
 

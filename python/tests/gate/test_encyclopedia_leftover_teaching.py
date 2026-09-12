@@ -82,3 +82,17 @@ def test_encyclopedia_teaches_html_leftover_soft1():
         assert "html.escape" in text, f"{path} must teach stdlib fallback"
         lowered = text.replace("**", "")
         assert "does not own HTML" in lowered, f"{path} must teach leftover: channel does not own HTML"
+
+
+def test_encyclopedia_teaches_create_app_leftover_soft2():
+    """Soft 2 leftover: uxchannel create-app is lab, not the product Cap door."""
+    for path in ENCYCLOPEDIA:
+        text = _read(path)
+        assert "uxchannel create-app" in text, f"{path} must name leftover uxchannel create-app"
+        assert "uxcompose create-app" in text, f"{path} must teach product uxcompose create-app"
+        assert "mount_channel" in text, f"{path} must keep Cap HTTP door mount_channel"
+        lowered = text.replace("**", "").replace("``", "")
+        assert "not the product Cap door" in lowered, (
+            f"{path} must leftover-teach: create-app is not the product Cap door"
+        )
+        assert "lab" in lowered, f"{path} must leftover-teach create-app as lab"

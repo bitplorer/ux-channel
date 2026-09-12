@@ -27,6 +27,11 @@ package). `ops/` + `enhance/` are mapped (`ops/` ≠ `protocol.ops`).
 Region CLI is `scaffold/region_cli.py` (leftover `host/region_cli.py`).
 `host/_ch_g0.py` is absent (placeholder stub, not a product).
 
+**Soft 2 leftover:** `uxchannel create-app` is a lab FastAPI scaffold,
+not the product Cap door. Product create-app is `uxcompose create-app`
+(Clock A). Cap HTTP door is `mount_channel` (KEEP). Do not gut
+`asgi/fastapi.py`.
+
 Stale history: [archive/](archive/) — **do not cite as current law**.
 
 ---

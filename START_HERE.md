@@ -2,7 +2,7 @@
 
 **Audience:** first-time users of this package.
 **Promise:** a running morph in five minutes.
-**Time:** ~5 minutes (`uxchannel create-app`). Encyclopedia sections moved to `docs/` (Phase 2).
+**Time:** ~5 minutes (lab leftover: `uxchannel create-app`; product: `uxcompose create-app`). Encyclopedia sections moved to `docs/` (Phase 2).
 
 **Map:** [docs/INDEX.md](docs/INDEX.md).
 
@@ -10,12 +10,15 @@
 
 ```bash
 pip install "ux-channel[asgi]"
+# leftover lab FastAPI scaffold — not the product Cap door
+# product create-app: uxcompose create-app
 uxchannel create-app myapp
 cd myapp && pip install -r requirements.txt
 uvicorn app.main:app --reload
 ```
 
 Click **+1**. That is Intent → Result → morph. Then come back here for why.
+Cap HTTP door (KEEP): `from ux_channel.asgi import mount_channel`.
 
 **Cookbook:** [docs/guides/SNIPPETS.md](docs/guides/SNIPPETS.md) — boot, Caps, Intent/Result, ops, fail-closed, usage patterns.
 
