@@ -19,7 +19,7 @@ That loop is the product. Everything else is a door or a plane.
 | `realtime/` | WebRTC / media | Boot / `@ch.on` |
 | `bridge/` `bridges/` | Widget islands | Boot / `@ch.on` |
 | `agent_runtime/` `mcp/` `workplace/` | Non-human callers | Boot / `@ch.on` |
-| `components/` | Optional Channel UI kit | Product UI (use ux-dom) |
+| `components/` | Leftover: `ChannelComponent` kit teaching — not Cap product, not a sixth product. Prefer ux-dom + `ch.control`. | Product UI (ux-dom + `ch.control`); compose `kit/` port |
 | `devtools/` `scaffold/` | CLI / doctor / leftover lab `uxchannel create-app` (not the product Cap door; product is `uxcompose create-app`). Script: `ux_channel.devtools.cli:main`. Cap HTTP: `mount_channel` (KEEP). | Fashion `cli/`; leftover `ux_channel.cli:main`; gutting `asgi/fastapi.py` |
 | `ops/` | Wave A composition (mapped). Not `protocol.ops` | Wire dicts (`protocol/ops.py`) |
 | `enhance/` | Additive envelopes (mapped L4) | Root `__all__` |

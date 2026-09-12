@@ -46,6 +46,9 @@ present; stdlib `html.escape` if absent. Channel does not own HTML.
 `uxchannel create-app` — lab FastAPI scaffold, not the product Cap door.
 Product create-app is `uxcompose create-app`. Cap HTTP door is
 `mount_channel` (KEEP). Do not gut `asgi/fastapi.py`.
+`ChannelComponent` / `components/` — leftover kit teaching, not Cap product,
+not a sixth product. Product UI is ux-dom + `ch.control`. Do not port into
+compose `kit/`.
 
 ## Root surface
 

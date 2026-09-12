@@ -1,11 +1,11 @@
 """
-ChannelComponent — optional channel-side UI blocks.
+ChannelComponent — leftover kit teaching, not Cap product, not a sixth product.
 
 First principles
 ----------------
-ux-dom (or any HTML library) is the default for markup. This package is an
-**optional kit** of server-driven blocks that speak regions + actions when
-you want drop-in channel patterns without ux-dom.
+ux-dom (or any HTML library) is the default for markup. This package is
+leftover optional demo blocks that speak regions + actions. It is **not**
+product UI, **not Cap product**, and **not a sixth product**.
 
 Naming: **ChannelComponent** never ``Component`` — avoids clashing with ux-dom.
 
@@ -13,8 +13,8 @@ Not part of the core import surface::
 
     from ux_channel.components import Badge, Modal, Form
 
-Prefer ux-dom + ``ch.control`` for product apps. See docs/COMPONENTS.md,
-docs/COURSE.md.
+Prefer ux-dom + ``ch.control`` for product UI. Do not port into compose
+``kit/``. See docs/COMPONENTS.md, docs/COURSE.md.
 """
 from __future__ import annotations
 

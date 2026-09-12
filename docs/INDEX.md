@@ -32,6 +32,10 @@ not the product Cap door. Product create-app is `uxcompose create-app`
 (Clock A). Cap HTTP door is `mount_channel` (KEEP). Do not gut
 `asgi/fastapi.py`.
 
+**Soft 3 leftover:** `ChannelComponent` / `components/` kit teaching is
+not Cap product, not a sixth product. Product UI is ux-dom + `ch.control`.
+Do not port into compose `kit/`.
+
 Stale history: [archive/](archive/) — **do not cite as current law**.
 
 ---
