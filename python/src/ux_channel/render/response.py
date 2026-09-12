@@ -1,8 +1,8 @@
-"""
-FastAPI / Starlette HTML responses — ux-dom-compatible.
+"""Leftover HTML response helpers. Owner is ux_dom.response.
 
-ux_dom.response.HTMLResponse calls ``__render__()`` on tag trees.
-We do the same for ``HtmlFragment``, SafeHtml, Region, and str.
+Soft 4: prefer ux_dom.response (pin e8be99a) when importable.
+Channel does not own response HTML helpers that belong to ux-dom.
+Leftover clone below if ux-dom is absent. No hard ux-dom dep.
 """
 
 from __future__ import annotations
@@ -11,8 +11,32 @@ from typing import Any, Callable, Optional, TypeVar
 
 F = TypeVar("F", bound=Callable[..., Any])
 
+_UNSET = object()
+_UX_RESPONSE: Any = _UNSET
+
+
+def _owner_html(content: Any) -> str | None:
+    """Owner serialize via ux_dom.response when present. None if absent/n/a."""
+    global _UX_RESPONSE
+    if _UX_RESPONSE is _UNSET:
+        try:
+            from ux_dom.response.serialize import is_html_renderable, to_html_bytes
+
+            _UX_RESPONSE = (is_html_renderable, to_html_bytes)
+        except Exception:
+            _UX_RESPONSE = None
+    if _UX_RESPONSE is None:
+        return None
+    is_html_renderable, to_html_bytes = _UX_RESPONSE
+    if not is_html_renderable(content):
+        return None
+    return to_html_bytes(content).decode("utf-8")
+
 
 def render_content(content: Any) -> str:
+    owned = _owner_html(content)
+    if owned is not None:
+        return owned
     if content is None:
         return ""
     if isinstance(content, (bytes, bytearray)):
@@ -41,7 +65,7 @@ try:
     from starlette.responses import HTMLResponse as _StarletteHTMLResponse
 
     class HTMLResponse(_StarletteHTMLResponse):
-        """Like ux_dom.response.HTMLResponse — renders ``__render__`` / ``__html__``."""
+        """Leftover wrapper. Owner is ux_dom.response.HTMLResponse when present."""
 
         media_type = "text/html"
 

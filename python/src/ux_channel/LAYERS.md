@@ -13,7 +13,7 @@ That loop is the product. Everything else is a door or a plane.
 | `protocol/` | Wire law: Intent, Result, CapService, ops | — |
 | `host/` | Channel, Registry, Region, config | — |
 | `security/` | CSRF, caps policy, limits | Redis backends (`redis_extra`) |
-| `render/` | Morph IR + safe attrs. Leftover: `lower_html` / `to_html` HTML clone — prefer ux-dom when present; stdlib `html.escape` if absent. Channel does not own HTML. | HTML kits (`components/`) |
+| `render/` | Morph IR + safe attrs. Leftover: `lower_html` / `to_html` HTML clone — prefer ux-dom when present; stdlib `html.escape` if absent. Channel does not own HTML. Leftover: `render/response.py` — `ux_dom.response` when present; leftover clone if absent. Channel does not own response HTML helpers. | HTML kits (`components/`) |
 | `asgi/` | HTTP mount (FastAPI / Starlette) | Treating FastAPI as the protocol |
 | `wire/` | JSON floor + CXB | — |
 | `realtime/` | WebRTC / media | Boot / `@ch.on` |

@@ -36,6 +36,10 @@ not the product Cap door. Product create-app is `uxcompose create-app`
 not Cap product, not a sixth product. Product UI is ux-dom + `ch.control`.
 Do not port into compose `kit/`.
 
+**Soft 4 leftover:** `render/response.py` HTMLResponse helpers. Live:
+`ux_dom.response` when present; leftover clone if absent. Channel
+does not own response HTML helpers that belong to ux-dom.
+
 Stale history: [archive/](archive/) — **do not cite as current law**.
 
 ---

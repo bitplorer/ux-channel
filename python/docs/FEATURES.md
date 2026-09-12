@@ -656,6 +656,7 @@ q = Quantity.from_store(3, "seats", source="db.booking.1.seats", revision=1)
 Channel owns **control/trust/ops**; ux-dom owns **markup components**.
 Leftover: `lower_html` / `to_html` clone. Channel does not own HTML —
 ux-dom when present; stdlib `html.escape` if absent.
+Leftover: `render/response.py` clone. Channel does not own response HTML helpers that belong to ux-dom — `ux_dom.response` when present.
 
 ---
 
@@ -751,6 +752,7 @@ pytest tests/core tests/regions tests/asgi -q
 | Unmapped `ops/` / `enhance/` ghosts | Mapped. `ops/` ≠ `protocol.ops`. `enhance/` = L4 envelopes |
 | `host/_ch_g0.py` placeholder stub | **Absent.** Not a product. Do not map a ghost |
 | Channel HTML clone (`lower_html` / `to_html`) | ux-dom serialize when present; stdlib `html.escape` if absent |
+| Channel response HTML helpers (`render/response.py`) | `ux_dom.response` when present; leftover clone if absent |
 | `ChannelComponent` / `components/` kit as product UI | Leftover teaching. Not Cap product, not a sixth product. Prefer ux-dom + `ch.control` |
 
 ---
