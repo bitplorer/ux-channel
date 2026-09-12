@@ -96,3 +96,39 @@ def test_encyclopedia_teaches_create_app_leftover_soft2():
             f"{path} must leftover-teach: create-app is not the product Cap door"
         )
         assert "lab" in lowered, f"{path} must leftover-teach create-app as lab"
+
+
+def test_encyclopedia_teaches_kit_leftover_soft3():
+    """Soft 3 leftover: ChannelComponent / components/ is not Cap product / not a sixth product."""
+    for path in ENCYCLOPEDIA:
+        text = _read(path)
+        assert "ChannelComponent" in text, f"{path} must name leftover ChannelComponent"
+        assert "components/" in text, f"{path} must name leftover components/"
+        lowered = text.replace("**", "").replace("``", "")
+        assert "not Cap product" in lowered, (
+            f"{path} must leftover-teach: kit is not Cap product"
+        )
+        assert "sixth product" in lowered, (
+            f"{path} must leftover-teach: kit is not a sixth product"
+        )
+        assert "ch.control" in lowered, f"{path} must teach live ux-dom + ch.control"
+        assert "leftover" in lowered, f"{path} must leftover-teach kit (not live product UI)"
+
+
+KIT_TEACHING = (
+    ROOT / "python" / "src" / "ux_channel" / "components" / "__init__.py",
+    ROOT / "python" / "src" / "ux_channel" / "components" / "base.py",
+    ROOT / "python" / "docs" / "regions" / "COMPONENTS.md",
+)
+
+
+def test_kit_teaching_files_leftover_soft3():
+    """Plan S3 Where: components/ + COMPONENTS.md must not teach kit as product UI."""
+    for path in KIT_TEACHING:
+        text = _read(path)
+        lowered = text.replace("**", "").replace("``", "")
+        assert "ChannelComponent" in text, f"{path} must name ChannelComponent"
+        assert "not Cap product" in lowered, f"{path} must leftover-teach: not Cap product"
+        assert "sixth product" in lowered, f"{path} must leftover-teach: not a sixth product"
+        assert "ch.control" in lowered, f"{path} must teach live ux-dom + ch.control"
+        assert "leftover" in lowered, f"{path} must leftover-teach kit"

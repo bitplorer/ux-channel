@@ -17,7 +17,7 @@ If two names sound similar, the table here decides which one you mean.
 | [docs/start/API_SURFACE.md](docs/start/API_SURFACE.md) | What is frozen public |
 | [docs/regions/REGIONS.md](docs/regions/REGIONS.md) | Region usage recipes |
 | [docs/regions/REGIONS_FS.md](docs/regions/REGIONS_FS.md) | File-based region discovery |
-| [docs/regions/COMPONENTS.md](docs/regions/COMPONENTS.md) | Optional ChannelComponents |
+| [docs/regions/COMPONENTS.md](docs/regions/COMPONENTS.md) | Leftover ChannelComponent / `components/` kit teaching |
 | [docs/core/WIRE.md](docs/core/WIRE.md) · [RESULT.md](docs/core/RESULT.md) | Wire IR (language-neutral) |
 | Repo [TERMINOLOGY.md](../TERMINOLOGY.md) | Full glossary (IR + both languages) |
 
@@ -73,9 +73,9 @@ Think in **five strata**. Never mix them.
 
 | You want… | Use this | Module / import | **Do not** use |
 |-----------|----------|-----------------|----------------|
-| Re-paint a **server-owned HTML fragment** after an action | **Region** | `from ux_channel import Region` · `@ch.region` · `ch.regions` | Bridge, ChannelComponent (unless you want a kit block) |
+| Re-paint a **server-owned HTML fragment** after an action | **Region** | `from ux_channel import Region` · `@ch.region` · `ch.regions` | Bridge; leftover ChannelComponent kit (not product UI) |
 | Host a **Chart.js / Leaflet / npm island** | **Bridge** | `from ux_channel.bridges import …` | Region (regions return HTML strings; bridges return mount attrs + bridge ops) |
-| Drop-in **server-driven UI kit** (Badge, Modal…) without ux-dom | **ChannelComponent** | `from ux_channel.components import …` | Calling it “Component” (clashes with ux-dom); not application API required |
+| Leftover `ChannelComponent` / `components/` kit (not Cap product, not a sixth product) | leftover **kit teaching** | Prefer ux-dom + `ch.control`. Do not port into compose `kit/`. | Teaching kit as product UI / Cap product / sixth product |
 | Mutate session / guard client paths | **state** | `from ux_channel import state` → `state(ch)` | `planes()` as application API (power helper only) |
 | Agent tools / situation / effects | **agents** | `from ux_channel import agents` → `agents(ch)` | Dual agent APIs / raw MCP unless you need MCP plane |
 | Low-level “patch this selector” without a region registry | **ops** | `from ux_channel.protocol.ops import morph, toast, …` | Hand-building ops when `ch.done(refresh=[…])` already does it |
@@ -160,7 +160,7 @@ All three register into the same **RegionBook** (`ch.regions`): uid → loader/r
 | [`morph_ir.py`](src/ux_channel/render/morph_ir.py) | IR node named `region` = morph **target**, same law | Power |
 | [`ops.py`](src/ux_channel/protocol/ops.py) | `morph`/`swap` builders the refresh path emits | Power / implicit |
 | [`live.py`](src/ux_channel/host/live.py) | Bind topics → region uids (in-process) | Power |
-| [`components/*`](src/ux_channel/components/) | Optional kit built **on** regions | Optional |
+| [`components/*`](src/ux_channel/components/) | Leftover ChannelComponent kit teaching (not Cap product, not a sixth product). Prefer ux-dom + `ch.control` | Leftover |
 | [`bridges/*`](src/ux_channel/bridges/) | **Not regions** — JS islands | Optional |
 
 ---

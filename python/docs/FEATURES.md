@@ -168,6 +168,10 @@ coerced to Result/ops.
 | **Tests** | `tests/regions/` |
 | **Docs** | [REGIONS](regions/REGIONS.md) · [COMPONENTS](regions/COMPONENTS.md) · [REGIONS_FS](regions/REGIONS_FS.md) |
 
+Leftover: `ChannelComponent` / `components/` kit teaching is not Cap product,
+not a sixth product. Product UI is ux-dom + `ch.control`. Do not port into
+compose `kit/`.
+
 ---
 
 ### 1.7 Outcomes & navigation helpers
@@ -747,6 +751,7 @@ pytest tests/core tests/regions tests/asgi -q
 | Unmapped `ops/` / `enhance/` ghosts | Mapped. `ops/` ≠ `protocol.ops`. `enhance/` = L4 envelopes |
 | `host/_ch_g0.py` placeholder stub | **Absent.** Not a product. Do not map a ghost |
 | Channel HTML clone (`lower_html` / `to_html`) | ux-dom serialize when present; stdlib `html.escape` if absent |
+| `ChannelComponent` / `components/` kit as product UI | Leftover teaching. Not Cap product, not a sixth product. Prefer ux-dom + `ch.control` |
 
 ---
 

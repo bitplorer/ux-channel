@@ -1,3 +1,13 @@
+## 2026-09-12 — Soft 3: demote kit teaching (honesty)
+
+- Leftover: `ChannelComponent` / `components/` kit teaching is **not Cap product**,
+  **not a sixth product**. Product UI is ux-dom + `ch.control`.
+  Do not port into compose `kit/`.
+- Teaching / encyclopedia leftover-teach. Kit code kept (YAGNI teaching).
+  Isolation/`wire/` / `mount_channel` untouched. Soft 4 (`render/response.py`)
+  not in this change.
+- Plan: ux-compose#76 ownership map (KEEP-HEAD) S3 contract.
+
 ## 2026-09-12 — Soft 2: create-app honesty (lab, not product)
 
 - Leftover: `uxchannel create-app` is a lab FastAPI scaffold, **not the product Cap door**.

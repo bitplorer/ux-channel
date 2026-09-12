@@ -1,20 +1,21 @@
 """
-Optional Channel Components kit — not the default product UI path (L4).
+Leftover ChannelComponent / ``components/`` kit teaching — not Cap product,
+not a sixth product.
 
 Design
-    Convenience region/components kit for demos and internal apps. Core
-    products should prefer ux-dom + ``ch.control``.
+    Optional leftover region blocks for demos. Product UI is ux-dom +
+    ``ch.control``. Do not port into compose ``kit/``.
 
 Architecture
-    L4 plane — never on root application exports.
+    L4 plane — never on root application exports. Not a sixth product.
 
 Implementation
 
-Import explicitly::
+Import explicitly (leftover, extra-install)::
 
     from ux_channel.components import Badge, Modal
 
-Core apps use ux-dom + ``ch.control``. See docs/COMPONENTS.md and docs/COURSE.md.
+Prefer ux-dom + ``ch.control``. See docs/COMPONENTS.md and docs/COURSE.md.
 """
 from ux_channel.components.badge import Badge
 from ux_channel.components.base import ChannelComponent, ChannelKit
