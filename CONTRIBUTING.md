@@ -24,7 +24,7 @@ python3 -m pip install -r requirements-dev.txt
 export PYTHONPATH="$PWD/python/src${PYTHONPATH:+:$PYTHONPATH}"
 ```
 
-Python 3.10+.
+Python 3.14+.
 
 ## Default workflow (automation first)
 
