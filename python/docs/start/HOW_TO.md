@@ -22,7 +22,7 @@ pip install "ux-channel[fastapi]"
 pip install "ux-channel[fastapi,redis,dev]"
 ```
 
-Python **3.10+**.
+Python **3.14+**.
 
 ```bash
 uxchannel info

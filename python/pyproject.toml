@@ -21,7 +21,7 @@ classifiers = [
   "Intended Audience :: Developers",
   "License :: OSI Approved :: MIT License",
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.14",
   "Topic :: Internet :: WWW/HTTP",
   "Framework :: FastAPI",
   "Typing :: Typed",
@@ -41,7 +41,7 @@ include = [
 ]
 
 [tool.poetry.dependencies]
-python = ">=3.10,<4"
+python = ">=3.14,<4"
 itsdangerous = ">=2.1"
 
 # Optional extras (ux-dom is a peer — install separately for glue tests)
@@ -120,7 +120,7 @@ filterwarnings = [
 ]
 
 [tool.mypy]
-python_version = "3.10"
+python_version = "3.14"
 ignore_missing_imports = true
 mypy_path = "src"
 

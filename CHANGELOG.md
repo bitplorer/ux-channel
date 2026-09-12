@@ -1,3 +1,13 @@
+## 2026-09-12 — Soft: Python >=3.14 floor (match compose/dom)
+
+- Pin-lockstep: Poetry `python = ">=3.14,<4"` (compose-open, not ux-dom
+  `<3.15`), classifiers 3.14, mypy `python_version = 3.14`. Ruff was
+  already `target-version = "py314"`. CI runs 3.14.
+- Docs / README / CONTRIBUTING leftover 3.10 floor claims raised.
+  No scaffold `python_requires` 3.10 existed.
+- KEEP: Cap / `Channel.boot` / `mount_channel`. `asgi/fastapi.py` not
+  gutted. Soft 1–4 leftover-teach not redone. #17 thin-boot stays closed.
+
 ## 2026-09-12 — Soft 4: response HTML helpers via ux_dom.response
 
 - Leftover: `render/response.py` (`HTMLResponse` / `html_response` /

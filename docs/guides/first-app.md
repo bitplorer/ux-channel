@@ -7,7 +7,7 @@ Extracted from root `START_HERE.md` (Phase 2 mixed-mode split). The 5-minute pat
 
 ## 7. First working app (copy-paste)
 
-Requires: Python 3.10+, `fastapi`, `uvicorn` (or any supported host).
+Requires: Python 3.14+, `fastapi`, `uvicorn` (or any supported host).
 
 ```python
 from fastapi import FastAPI

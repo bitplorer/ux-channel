@@ -1,7 +1,7 @@
 # ux-channel
 
 [![CI](https://github.com/bitplorer/ux-channel/actions/workflows/ci.yml/badge.svg)](https://github.com/bitplorer/ux-channel/actions/workflows/ci.yml)
-[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
+[![Python 3.14+](https://img.shields.io/badge/python-3.14%2B-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 A click is not a form post. It is a signed **Intent**.
@@ -20,7 +20,7 @@ This layer **owns the wire**: Intent, Result, Capability, codecs, peers, Cap Hos
 | **Import** | `ux_channel` |
 | **CLI** | **`uxchannel`** |
 | **Version** | `0.1.0` |
-| **Python** | ≥ 3.10 |
+| **Python** | ≥ 3.14 |
 | **License** | [MIT](LICENSE) |
 
 ## Table of Contents
