@@ -43,6 +43,17 @@ def test_create_app_prod_template_keeps_require_cap():
 def test_cli_create_app_help_is_lab_not_product(capsys):
     """Soft 2: verb kept; help must not claim the product Cap door."""
     try:
+        cli_main(["--help"])
+    except SystemExit as exc:
+        assert exc.code == 0
+    else:
+        raise AssertionError("argparse --help should SystemExit 0")
+    parent = capsys.readouterr().out
+    assert "uxcompose create-app" in parent
+    assert "lab" in parent.lower()
+    assert "recommended" not in parent.lower()
+
+    try:
         cli_main(["create-app", "--help"])
     except SystemExit as exc:
         assert exc.code == 0

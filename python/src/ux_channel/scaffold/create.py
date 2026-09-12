@@ -333,9 +333,9 @@ def _readme(opts: ScaffoldOptions, *, title: str, port: int) -> str:
     return f"""\
 # {title}
 
-Leftover lab: `uxchannel create-app` is a FastAPI scaffold, **not the
-product Cap door**. Product create-app is `uxcompose create-app`. Cap
-HTTP door is `mount_channel` (KEEP).
+Leftover lab: `uxchannel create-app` is a FastAPI scaffold, **not the product Cap door**.
+Product create-app is `uxcompose create-app`. Cap HTTP door is
+`mount_channel` (KEEP).
 
 Scaffolded with **ux-channel** (`template={tpl}`, webrtc={webrtc}).
 

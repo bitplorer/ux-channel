@@ -738,6 +738,10 @@ def main(argv: Optional[list[str]] = None) -> int:
     p = sub.add_parser(
         "create-app",
         help="lab FastAPI scaffold (not product; use uxcompose create-app)",
+        description=(
+            "Leftover lab FastAPI scaffold — not the product Cap door. "
+            "Product create-app is uxcompose create-app. Cap HTTP door is mount_channel."
+        ),
     )
     p.add_argument("name", nargs="?", default="myapp", help="app directory / name")
     p.add_argument(
