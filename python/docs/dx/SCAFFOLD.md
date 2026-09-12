@@ -1,9 +1,13 @@
 <!-- pyramid -->
 Read [../../../START_HERE.md](../../../START_HERE.md) first if you are new. This is Layer 2 (encyclopedia), not the intro.
 
-# Scaffolding — plug-and-play DX
+# Scaffolding — leftover lab FastAPI DX
 
-Create a runnable uxchannel app with **defaults that work on day 1**.
+Leftover: `uxchannel create-app` is a lab FastAPI scaffold, **not the
+product Cap door**. Product create-app is `uxcompose create-app`. Cap
+HTTP door is `mount_channel` (KEEP). Do not gut `asgi/fastapi.py`.
+
+Create a runnable lab channel app with **defaults that work on day 1**.
 
 ## Commands
 

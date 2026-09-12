@@ -80,6 +80,8 @@ Package map: [python/src/ux_channel/LAYERS.md](python/src/ux_channel/LAYERS.md).
 `async def` handlers use `await ch.registry.async_dispatch(...)`. `dispatch()` refuses them — it does not start an event loop.
 
 ```bash
+# leftover lab FastAPI scaffold — not the product Cap door
+# product create-app: uxcompose create-app
 uxchannel create-app myapp
 cd myapp && pip install -r requirements.txt
 uvicorn app.main:app --reload   # click +1 — that is the first morph
@@ -94,7 +96,7 @@ Do **not** ship `development(secret=…)` in production. Five-minute path: [STAR
 | Intent / Result / Cap / args_hash | HTML trees, CSS, Document (`ux-dom`) |
 | Wire codecs (JSON floor, CXB upgrade) | MorphState / `@action` (`ux-behavior`) |
 | Cap Host (cek-runtime; ≠ HTTP Product host), peers, regions protocol | Motion IR (`ux-motion`) |
-| `uxchannel` CLI + conformance vectors | Product serve (`ux-compose`) |
+| `uxchannel` CLI + conformance vectors (leftover lab: `uxchannel create-app`) | Product serve / Clock A (`uxcompose create-app`) |
 
 ## Audience
 

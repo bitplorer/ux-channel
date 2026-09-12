@@ -475,7 +475,8 @@ class Channel:
             "  ch.webrtc → power layer under ch.media (mesh)\n"
             "  ch.bridge.media → removed; use ch.media\n"
             "\n"
-            "Tools: Channel.help() · uxchannel create-app · doctor\n"
+            "Tools: Channel.help() · leftover lab uxchannel create-app "
+            "(not product; uxcompose create-app) · doctor\n"
         )
 
     @classmethod
@@ -526,7 +527,8 @@ class Channel:
             "diagnose": d,
             "hints": hints,
             "next": [
-                "uxchannel create-app myapp --template minimal",
+                "leftover lab: uxchannel create-app myapp --template minimal "
+                "(product: uxcompose create-app)",
                 "uxchannel create-app call --template media",
                 "print(Channel.help())",
                 "uxchannel recipe --tree",

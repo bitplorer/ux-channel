@@ -84,6 +84,7 @@ Think in **five strata**. Never mix them.
 | File/package auto-discovery of Region classes | **RegionDirectory** | `region_directory` / config `regions=` | Assuming core Intent plane needs it (it does **not**) |
 | Scaffold region files from CLI | **region CLI** | `uxchannel region add …` (`scaffold/region_cli.py`; leftover: `host/region_cli.py`) | Confusing CLI with runtime |
 | Console script `uxchannel` | **devtools CLI** | `ux_channel.devtools.cli:main` | Leftover `ux_channel.cli:main` / fashion `cli/` |
+| Lab FastAPI project tree | leftover **`uxchannel create-app`** | `scaffold/` — lab, not the product Cap door | Product `uxcompose create-app` (Clock A); Cap HTTP is `mount_channel` (KEEP). Do not gut `asgi/fastapi.py` |
 | Wave A composition (Op/plan) | **`ops/`** (mapped) | `from ux_channel.ops import Op, plan` | `protocol.ops` wire dicts (homonym) |
 | Additive envelopes | **`enhance/`** (mapped L4) | `ux_channel.enhance` | Dumping onto root `__all__` |
 | Encode Intent/Result bytes (JSON/CXB) | **wire** | `ux_channel.wire` | Cap crypto (that’s `capability`) |

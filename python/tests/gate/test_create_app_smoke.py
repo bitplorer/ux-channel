@@ -1,10 +1,11 @@
-"""create-app smoke in the gate — generated app compiles and is production-shaped."""
+"""create-app smoke in the gate — generated app compiles and is leftover-honest."""
 
 from __future__ import annotations
 
 import tempfile
 from pathlib import Path
 
+from ux_channel.devtools.cli import main as cli_main
 from ux_channel.scaffold import ScaffoldOptions, create_app, validate_scaffold
 
 
@@ -21,6 +22,9 @@ def test_create_app_minimal_compiles_and_teaches():
         readme = (root / "README.md").read_text(encoding="utf-8")
         assert "doctor" in readme.lower()
         assert "upgrade-check" in readme
+        assert "uxcompose create-app" in readme
+        assert "mount_channel" in readme
+        assert "not the product Cap door" in readme.replace("**", "")
         cfg = (root / "app" / "config.py").read_text(encoding="utf-8")
         assert "require_cap=False" not in cfg
         assert "ChannelConfig.production" in cfg
@@ -34,3 +38,28 @@ def test_create_app_prod_template_keeps_require_cap():
         assert "require_cap=False" not in cfg
         # production factory is the deploy path
         assert "ChannelConfig.production" in cfg
+
+
+def test_cli_create_app_help_is_lab_not_product(capsys):
+    """Soft 2: verb kept; help must not claim the product Cap door."""
+    try:
+        cli_main(["--help"])
+    except SystemExit as exc:
+        assert exc.code == 0
+    else:
+        raise AssertionError("argparse --help should SystemExit 0")
+    parent = capsys.readouterr().out
+    assert "uxcompose create-app" in parent
+    assert "lab" in parent.lower()
+    assert "recommended" not in parent.lower()
+
+    try:
+        cli_main(["create-app", "--help"])
+    except SystemExit as exc:
+        assert exc.code == 0
+    else:
+        raise AssertionError("argparse --help should SystemExit 0")
+    out = capsys.readouterr().out
+    assert "uxcompose create-app" in out
+    assert "lab" in out.lower()
+    assert "recommended" not in out.lower()

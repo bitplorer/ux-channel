@@ -76,6 +76,7 @@ Name these as leftovers. Do not teach them live. Do not fashion `cli/`.
 | Silence: `ops/` / `enhance/` unmapped | Mapped. `ops/` = Wave A composition, **not** `protocol.ops` wire dicts. `enhance/` = additive envelopes (L4) |
 | `host/_ch_g0.py` placeholder transport stub | **Absent.** Not a product. Do not map a ghost. |
 | Channel HTML clone (`lower_html` / `to_html` without owner) | ux-dom serialize (`__render__` / `to_html_bytes`) when present; stdlib `html.escape` if absent. Channel does not own HTML. |
+| `uxchannel create-app` fat FastAPI lab scaffold (dual product door vs compose Clock A) | Product create-app is `uxcompose create-app`. Cap HTTP door is `mount_channel` (KEEP). Leftover: not the product Cap door. Do not gut `asgi/fastapi.py`. |
 
 ## Verify before claiming green
 

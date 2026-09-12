@@ -1,5 +1,10 @@
 """
-Plug-and-play app scaffolding for ux-channel.
+Lab FastAPI scaffolding for ux-channel.
+
+Leftover: ``uxchannel create-app`` is a lab FastAPI scaffold, not the
+product Cap door. Product create-app is ``uxcompose create-app``
+(Clock A). Cap HTTP door is ``mount_channel`` (KEEP). Do not gut
+``asgi/fastapi.py``.
 
 Public API
 ----------
@@ -8,11 +13,13 @@ Public API
 * :func:`validate_scaffold` — post-create integrity checks
 * ``region_cli`` — file-based region generator (``uxchannel region``)
 
-CLI::
+CLI (lab, not product)::
 
     uxchannel create-app myapp
     uxchannel create-app myapp --template webrtc
-    uxchannel create-app myapp --template full --uxdom Design goals (low cognitive load)
+    uxchannel create-app myapp --template full --uxdom
+
+Design goals (low cognitive load)
 ---------------------------------
 1. **One default path that works** — development config, memory stores, no Redis.
 2. **Named templates** — pick a shape; do not assemble flags by hand.

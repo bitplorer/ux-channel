@@ -1,3 +1,12 @@
+## 2026-09-12 — Soft 2: create-app honesty (lab, not product)
+
+- Leftover: `uxchannel create-app` is a lab FastAPI scaffold, **not the product Cap door**.
+  Product create-app is `uxcompose create-app` (Clock A). Cap HTTP door is
+  `mount_channel` (KEEP). Do not gut `asgi/fastapi.py`.
+- CLI help / DX strings / generated README leftover-teach. Verb kept.
+  Isolation/`wire/` untouched. Soft 3–4 not in this change.
+- Plan: ux-compose#76 ownership map (KEEP-HEAD) S2 contract.
+
 ## 2026-09-11 — Soft 1: HTML lower via ux-dom when present
 
 - `lower_html` / `to_html` / ChannelComponent HTML paths prefer ux-dom

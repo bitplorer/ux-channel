@@ -60,7 +60,7 @@ def decision_tree() -> str:
         "  → ch.media.plugin(room, mode='mesh')  [recipe: media-mesh]\n"
         "Group calls / production multiparty\n"
         "  → LIVEKIT_* + ch.media.plugin(mode='sfu')  [recipe: media-sfu]\n"
-        "Scaffold a project\n"
+        "Leftover lab FastAPI scaffold (not product; use uxcompose create-app)\n"
         "  → uxchannel create-app myapp [-t media|live|minimal]\n"
         "Deploy checklist\n"
         "  → recipe production + uxchannel check --env production\n"

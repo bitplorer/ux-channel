@@ -93,7 +93,7 @@ def cmd_check(args: argparse.Namespace) -> int:
 # Minimal single-file scaffold (gists/demos)
 _SCAFFOLD = "\n".join(
     [
-        '"""Minimal uxchannel app (single file). Prefer: uxchannel create-app."""',
+        '"""Minimal uxchannel lab file. Leftover: uxchannel create-app is not product (use uxcompose create-app)."""',
         "",
         "from fastapi import FastAPI",
         "from fastapi.responses import HTMLResponse",
@@ -139,7 +139,7 @@ def cmd_new(args: argparse.Namespace) -> int:
     secret = secrets.token_urlsafe(32)
     dest.write_text(_SCAFFOLD.replace("{secret}", secret), encoding="utf-8")
     log.ok("wrote scaffold", path=str(dest))
-    log.info("tip: prefer uxchannel create-app myapp for full projects")
+    log.info("leftover lab: uxchannel create-app (not product; use uxcompose create-app)")
     return 0
 
 
@@ -184,6 +184,8 @@ def cmd_create_app(args: argparse.Namespace) -> int:
         for e in report["errors"]:
             print(f"  error: {e}")
         return 1
+    print("leftover: lab FastAPI scaffold — not the product Cap door.")
+    print("product create-app: uxcompose create-app  (Cap HTTP: mount_channel)")
     print("next:")
     print(f"  cd {root}")
     print("  pip install -r requirements.txt")
@@ -273,7 +275,7 @@ def cmd_dx(_: argparse.Namespace) -> int:
     print("Application names:", ", ".join(Channel.public_api_names()))
     print("Recipes:", ", ".join(RECIPE_NAMES))
     print()
-    print("Scaffold:")
+    print("Leftover lab (not product; use uxcompose create-app):")
     print("  uxchannel create-app myapp")
     print("  uxchannel create-app call --template media")
     print("  uxchannel recipe counter")
@@ -695,6 +697,7 @@ def main(argv: Optional[list[str]] = None) -> int:
         description=(
             "uxchannel — CLI for ux-channel 0.1 "
             "(PyPI: ux-channel · import: ux_channel). "
+            "create-app is leftover lab (not product; use uxcompose create-app). "
             "Scaffold, check, bridge, doctor, profile, dashboard (DxLog: never silent)."
         ),
     )
@@ -734,7 +737,11 @@ def main(argv: Optional[list[str]] = None) -> int:
 
     p = sub.add_parser(
         "create-app",
-        help="plug-and-play project scaffold (recommended)",
+        help="lab FastAPI scaffold (not product; use uxcompose create-app)",
+        description=(
+            "Leftover lab FastAPI scaffold — not the product Cap door. "
+            "Product create-app is uxcompose create-app. Cap HTTP door is mount_channel."
+        ),
     )
     p.add_argument("name", nargs="?", default="myapp", help="app directory / name")
     p.add_argument(

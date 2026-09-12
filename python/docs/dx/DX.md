@@ -9,7 +9,7 @@ Read [../../../START_HERE.md](../../../START_HERE.md) first if you are new. This
 uxchannel dx                 # mental model + decision tree
 uxchannel recipe --tree
 uxchannel recipe counter
-uxchannel create-app myapp
+uxchannel create-app myapp   # leftover lab; product: uxcompose create-app
 uxchannel doctor
 ```
 
@@ -37,7 +37,7 @@ Everything else is a **layer** (import when needed).
 | Live fragment | `@ch.region` + `refresh=[…]` |
 | 1:1 A/V | `ch.media.plugin(..., mode="mesh")` |
 | Group A/V | LiveKit env + `mode="sfu"` |
-| New project | `uxchannel create-app` |
+| New project | leftover lab: `uxchannel create-app` (product: `uxcompose create-app`) |
 
 ## Prefer → not (aliases)
 
