@@ -1,7 +1,7 @@
 """Classic Channel ops → declared-catalog pairs for Host.project_wire.
 
 Channel wire (toast, navigate, …) is the product floor. Only pairs in the
-declared catalog are legal on a CEK Host. Everything else stays on the Channel peer.
+declared catalog are projected by a CEK Host. Everything else stays on the Channel peer.
 
 EffectGraph is not a Cap and is not projected here. Graph → ops is
 L7, after Cap (``cek.effects.project_graph``).
