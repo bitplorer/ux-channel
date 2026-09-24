@@ -2,7 +2,7 @@
 
 Read [START_HERE.md](../START_HERE.md) first if you are new.
 
-HEAD: `ux-channel` @ current `main` · `cek-python` **0.1.3**.
+HEAD: `ux-channel` @ current `main` · `cek-python` **0.2.0**.
 Critic is independent of the author of each loop.
 
 North star:
@@ -34,7 +34,7 @@ SHIP requires every plane ≥ 4, no kill-criteria, `make verify` / gate green.
 | 3 | Explain / CLI | **4** | unchanged |
 | 4 | Scaffold | **4** | unchanged |
 | 5 | Security | **4** | unchanged |
-| 6 | Kernel honesty (cek) | **4** | `[cek]` ≥ 0.1.3. `CekHostCapService` wraps `Host`. Default require (cut #3). `async_verify`. |
+| 6 | Kernel honesty (cek) | **4** | `[cek]` ≥ 0.2.0 (`cek_host.catalog`). `CekHostCapService` wraps `Host`. Default require (cut #3). `async_verify`. |
 | 7 | Test honesty | **4** | `test_async_dispatch.py` + A≡B + D4. |
 | 8 | Flagship | **4** | unchanged |
 | 9 | Operability | **4** | unchanged |

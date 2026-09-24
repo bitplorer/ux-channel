@@ -1,3 +1,12 @@
+## 2026-09-24 — cek-host 0.2.0 floor
+
+- Required deps are `cek-host>=0.2.0` and `cek-surface>=0.2.0`.
+  0.1.3 is `cek_host.legal` and does not install. The git pin of
+  cek-python `0626a10` is gone.
+- `require_cek_min` refuses a Host older than 0.2.0.
+- HMAC `previous_secrets` is still classic CapService only. 0.2.0
+  did not add that API.
+
 ## 2026-09-12 — Soft: Python >=3.14 floor (match compose/dom)
 
 - Pin-lockstep: Poetry `python = ">=3.14,<4"` (compose-open, not ux-dom

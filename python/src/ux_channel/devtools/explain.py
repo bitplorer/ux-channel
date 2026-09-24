@@ -90,7 +90,7 @@ TEACH: dict[str, str] = {
     ),
     "cek_missing": (
         "ChannelConfig.cek is adapt|require but cek-host / cek-surface cannot be imported. "
-        "pip install -U 'cek-host>=0.1.3' 'cek-surface>=0.1.3' "
+        "pip install -U 'cek-host>=0.2.0' 'cek-surface>=0.2.0' "
         "(required deps; extra [cek] is an empty alias) or set cek='off'."
     ),
 }

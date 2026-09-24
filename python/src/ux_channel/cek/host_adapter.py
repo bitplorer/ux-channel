@@ -41,7 +41,7 @@ log = logging.getLogger("ux_channel.cek.host_adapter")
 
 ORACLE_ARGS = {"sku": "abc-123", "qty": 2}
 ORACLE_HASH = "96e4f83e3793b646323a67f314b51044"
-MIN_CEK = (0, 1, 3)
+MIN_CEK = (0, 2, 0)
 
 
 def _cek_version_tuple() -> tuple[int, int, int]:
@@ -63,8 +63,8 @@ def require_cek_min() -> None:
     ver = _cek_version_tuple()
     if ver < MIN_CEK:
         raise RuntimeError(
-            f"ux-channel needs cek-host>=0.1.3 (got {ver[0]}.{ver[1]}.{ver[2]}). "
-            "pip install -U 'cek-host>=0.1.3' 'cek-surface>=0.1.3' "
+            f"ux-channel needs cek-host>=0.2.0 (got {ver[0]}.{ver[1]}.{ver[2]}). "
+            "pip install -U 'cek-host>=0.2.0' 'cek-surface>=0.2.0' "
             "(required deps; extra [cek] is an empty install alias)"
         )
 

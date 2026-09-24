@@ -60,8 +60,8 @@ def require_cek_installed(mode: str) -> None:
     if cek_available():
         return
     raise RuntimeError(
-        f"ChannelConfig.cek={mode!r} needs cek-host + cek-surface (>=0.1.3): "
-        "pip install -U 'cek-host>=0.1.3' 'cek-surface>=0.1.3'. "
+        f"ChannelConfig.cek={mode!r} needs cek-host + cek-surface (>=0.2.0): "
+        "pip install -U 'cek-host>=0.2.0' 'cek-surface>=0.2.0'. "
         "Those packages are required runtime deps; extra [cek] is an empty alias. "
         "Default decide is cek=require (cek-runtime Host). "
         "Bare-install escape: ChannelConfig(..., cek='off') or UX_CHANNEL_CEK=off. "

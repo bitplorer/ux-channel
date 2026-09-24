@@ -1,4 +1,4 @@
-"""Channel dispatch / async_dispatch — same law as cek-python 0.1.3."""
+"""Channel dispatch / async_dispatch — same law as cek-python 0.2.0."""
 
 from __future__ import annotations
 

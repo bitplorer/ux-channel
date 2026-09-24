@@ -40,7 +40,7 @@ This layer **owns the wire**: Intent, Result, Capability, codecs, peers, Cap Hos
 
 ```bash
 pip install "ux-channel[asgi]"
-pip install "ux-channel[cek]"    # default Cap machine: cek-host + cek-surface ≥ 0.1.3
+pip install "ux-channel[cek]"    # default Cap machine: cek-host + cek-surface ≥ 0.2.0
 ```
 
 Extras: `asgi` / `fastapi` / `starlette`, `redis`, `speed`/`serde` (`orjson`), `cek`, `otel`/`devtools`, `full`.
