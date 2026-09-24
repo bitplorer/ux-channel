@@ -1,10 +1,10 @@
-"""Classic Channel ops → S pairs for Host.project_wire.
+"""Classic Channel ops → declared-catalog pairs for Host.project_wire.
 
-Channel wire (toast, navigate, …) is the product floor. Only pairs in S
-are legal on a CEK Host. Everything else stays on the Channel peer.
+Channel wire (toast, navigate, …) is the product floor. Only pairs in the
+declared catalog are legal on a CEK Host. Everything else stays on the Channel peer.
 
-EffectGraph is **not** L1 and is **not** projected here. Graph → ops is
-L7 pre-project after Cap (``after_cek_cut2`` / ``cek.effects.project_graph``).
+EffectGraph is not a Cap and is not projected here. Graph → ops is
+L7, after Cap (``cek.effects.project_graph``).
 """
 
 from __future__ import annotations
@@ -14,8 +14,8 @@ from typing import Any, Sequence
 from ux_channel.ops.translate import from_classic
 
 
-def to_s(ops: Sequence[dict[str, Any]]) -> list[dict[str, Any]]:
-    """Keep only S pairs. ``ui.dom.morph`` payload becomes {target, patch}."""
+def to_catalog(ops: Sequence[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Keep declared-catalog pairs. ``ui.dom.morph`` payload becomes {target, patch}."""
     from cek_host.legal import is_legal
 
     out: list[dict[str, Any]] = []
@@ -33,8 +33,8 @@ def to_s(ops: Sequence[dict[str, Any]]) -> list[dict[str, Any]]:
     return out
 
 
-def project_s(ops: Sequence[dict[str, Any]], stamp: frozenset | None = None) -> list[dict[str, Any]]:
-    """Fail closed on illegal / unstamped pairs. Channel-only ops are dropped first."""
+def project_catalog(ops: Sequence[dict[str, Any]], stamp: frozenset | None = None) -> list[dict[str, Any]]:
+    """Fail closed on pairs outside the session stamp. Channel-only ops are dropped first."""
     from cek_host.legal import LEGAL_PAIRS, project_wire
 
-    return project_wire(to_s(ops), stamp if stamp is not None else LEGAL_PAIRS)
+    return project_wire(to_catalog(ops), stamp if stamp is not None else LEGAL_PAIRS)
