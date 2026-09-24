@@ -123,8 +123,6 @@ def find_runtime_cek_bin() -> Optional[str]:
         candidates.append(which)
     here = Path(__file__).resolve()
     for root in (
-        Path("/tmp/cek-src/cek-runtime"),
-        Path("/workspace/cek-runtime"),
         here.parents[5] / "cek-runtime" if len(here.parents) > 5 else None,
     ):
         if root is None:
