@@ -144,19 +144,19 @@ def test_dispatch_ops_parity_off_vs_require():
     assert _ops(ra) == _ops(rb)
 
 
-def test_classic_channel_ops_are_not_s():
-    """toast/navigate stay Channel wire. Only morph maps into S."""
+def test_classic_channel_ops_are_not_catalog():
+    """toast and navigate stay Channel wire. Only morph is in the declared catalog."""
     from cek_host.legal import is_legal
-    from ux_channel.cek.project import to_s
+    from ux_channel.cek.project import to_catalog
 
     classic = [
         {"op": "morph", "target": "shell", "html": "<b>hi</b>"},
         {"op": "toast", "text": "ok"},
         {"op": "navigate", "path": "/x"},
     ]
-    s = to_s(classic)
-    assert len(s) == 1
-    assert s[0]["ns"] == "ui.dom" and s[0]["name"] == "morph"
+    catalog = to_catalog(classic)
+    assert len(catalog) == 1
+    assert catalog[0]["ns"] == "ui.dom" and catalog[0]["name"] == "morph"
     assert is_legal("ui.dom", "morph")
     assert not is_legal("nav", "navigate")
     assert not is_legal("ui", "toast")
