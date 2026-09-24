@@ -146,7 +146,7 @@ def test_dispatch_ops_parity_off_vs_require():
 
 def test_classic_channel_ops_are_not_catalog():
     """toast and navigate stay Channel wire. Only morph is in the declared catalog."""
-    from cek_host.legal import is_legal
+    from cek_host.catalog import in_catalog
     from ux_channel.cek.project import to_catalog
 
     classic = [
@@ -157,6 +157,6 @@ def test_classic_channel_ops_are_not_catalog():
     catalog = to_catalog(classic)
     assert len(catalog) == 1
     assert catalog[0]["ns"] == "ui.dom" and catalog[0]["name"] == "morph"
-    assert is_legal("ui.dom", "morph")
-    assert not is_legal("nav", "navigate")
-    assert not is_legal("ui", "toast")
+    assert in_catalog("ui.dom", "morph")
+    assert not in_catalog("nav", "navigate")
+    assert not in_catalog("ui", "toast")

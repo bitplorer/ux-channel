@@ -16,11 +16,11 @@ from ux_channel.ops.translate import from_classic
 
 def to_catalog(ops: Sequence[dict[str, Any]]) -> list[dict[str, Any]]:
     """Keep declared-catalog pairs. ``ui.dom.morph`` payload becomes {target, patch}."""
-    from cek_host.legal import is_legal
+    from cek_host.catalog import in_catalog
 
     out: list[dict[str, Any]] = []
     for op in from_classic(list(ops)):
-        if not is_legal(op.ns, op.name):
+        if not in_catalog(op.ns, op.name):
             continue
         payload = dict(op.payload)
         if op.ns == "ui.dom" and op.name == "morph":
@@ -35,6 +35,6 @@ def to_catalog(ops: Sequence[dict[str, Any]]) -> list[dict[str, Any]]:
 
 def project_catalog(ops: Sequence[dict[str, Any]], stamp: frozenset | None = None) -> list[dict[str, Any]]:
     """Fail closed on pairs outside the session stamp. Channel-only ops are dropped first."""
-    from cek_host.legal import LEGAL_PAIRS, project_wire
+    from cek_host.catalog import CATALOG_PAIRS, project_wire
 
-    return project_wire(to_catalog(ops), stamp if stamp is not None else LEGAL_PAIRS)
+    return project_wire(to_catalog(ops), stamp if stamp is not None else CATALOG_PAIRS)
