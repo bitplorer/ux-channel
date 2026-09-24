@@ -160,3 +160,29 @@ def test_classic_channel_ops_are_not_catalog():
     assert in_catalog("ui.dom", "morph")
     assert not in_catalog("nav", "navigate")
     assert not in_catalog("ui", "toast")
+
+
+def test_project_catalog_missing_stamp_honors_strict(monkeypatch):
+    """No stamp is the default catalog. Strict is Baseline only, not the whole catalog."""
+    from cek_host.catalog import BASELINE_PAIRS, UndeclaredPair
+
+    from ux_channel.cek.project import project_catalog
+
+    ops = [
+        {"op": "morph", "target": "shell", "html": "<b>hi</b>"},
+        {"op": "toast", "text": "ok"},
+    ]
+    monkeypatch.delenv("CEK_CATALOG_MODE", raising=False)
+    out = project_catalog(ops)
+    assert len(out) == 1
+    assert out[0]["ns"] == "ui.dom" and out[0]["name"] == "morph"
+    assert out[0]["payload"]["target"] == "shell"
+    assert out[0]["payload"]["patch"]["html"] == "<b>hi</b>"
+
+    monkeypatch.setenv("CEK_CATALOG_MODE", "strict")
+    with pytest.raises(UndeclaredPair):
+        project_catalog(ops)
+
+    monkeypatch.delenv("CEK_CATALOG_MODE", raising=False)
+    with pytest.raises(UndeclaredPair):
+        project_catalog(ops, stamp=BASELINE_PAIRS)
