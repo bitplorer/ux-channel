@@ -35,6 +35,6 @@ def to_catalog(ops: Sequence[dict[str, Any]]) -> list[dict[str, Any]]:
 
 def project_catalog(ops: Sequence[dict[str, Any]], stamp: frozenset | None = None) -> list[dict[str, Any]]:
     """Fail closed on pairs outside the session stamp. Channel-only ops are dropped first."""
-    from cek_host.catalog import CATALOG_PAIRS, project_wire
+    from cek_host.catalog import project_wire
 
-    return project_wire(to_catalog(ops), stamp if stamp is not None else CATALOG_PAIRS)
+    return project_wire(to_catalog(ops), stamp=stamp)
