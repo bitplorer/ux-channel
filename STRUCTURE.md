@@ -19,7 +19,7 @@ ux-channel/
 | Permanent (law / product core) | Moving (replace freely) |
 |--------------------------------|-------------------------|
 | `SPEC/`, `conformance/` | `demos/`, tutorial examples |
-| `python/src/ux_channel/{protocol,host,render,security,api}` | L5 tooling UI, dashboard chrome |
+| `python/src/ux_channel/{protocol,host,render,security,api}` | L5 tooling UI, dashboard pages |
 | `rust/` classic Peer gate (verify-only) | Demo HTML in `uxc_peer` |
 | Public freeze names | Scaffold templates |
 
