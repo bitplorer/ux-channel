@@ -112,7 +112,10 @@ class CekHostCapService:
         return self._host
 
     def hash_args(self, args: Mapping[str, Any] | None = None) -> str:
-        return ChannelCapService.hash_args(args)
+        # Seal canon is the Host's. Channel's hash_args stays on cek=off only.
+        from cek_host import args_hash
+
+        return args_hash(dict(args or {}))
 
     def mint(
         self,

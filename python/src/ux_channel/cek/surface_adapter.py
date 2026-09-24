@@ -43,10 +43,10 @@ def arm(
     static_args: Mapping[str, Any] | None = None,
 ) -> Any:
     """Mint a continuation Cap the way Surface.arm does. Host still verifies."""
-    from cek_surface.surface import Surface
+    from cek_surface.continuation import mint_continuation
 
-    s = Surface(kernel=host, carrier_kind="memory")
-    return s.arm(
+    return mint_continuation(
+        host,
         event,
         action,
         once=once,
