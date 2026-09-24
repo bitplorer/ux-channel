@@ -10,7 +10,7 @@ machine on ``registry._caps``. Channel ``nonce_store`` is not re-consumed on
 require (cut #5A). ``CEK_BIN`` / rust_wrap is kernel reachability only
 (host-json is a fresh Host per call). ``cek_surface`` is compose only.
 
-Channel ops stay classic IR 0.1. S pairs only go through cek.project.
+Channel ops stay classic IR 0.1. Declared-catalog pairs only go through cek.project.
 EffectGraph is L7 pre-project after Cap (see ``after_cek_cut2``).
 """
 

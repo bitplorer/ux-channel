@@ -2,7 +2,7 @@
 
 Handshake /hello, causal, delta, recorder stay Channel-native.
 Continuation type + match/resolve come from cek_surface on require.
-``Surface.arm`` is available via ``arm()``; Channel still mints the Cap.
+``Surface.mint_continuation`` is ``mint_continuation()`` here. Channel still mints the Cap.
 """
 
 from __future__ import annotations
@@ -33,7 +33,7 @@ def continuation_namespace(config: Any) -> Any:
     return cek_cont
 
 
-def arm(
+def mint_continuation(
     host: Any,
     event: str,
     action: str,
@@ -42,10 +42,10 @@ def arm(
     args_from: Mapping[str, str] | None = None,
     static_args: Mapping[str, Any] | None = None,
 ) -> Any:
-    """Mint a continuation Cap the way Surface.arm does. Host still verifies."""
-    from cek_surface.continuation import mint_continuation
+    """Mint a continuation Cap. The Host still verifies it on the event."""
+    from cek_surface.continuation import mint_continuation as mint_host_continuation
 
-    return mint_continuation(
+    return mint_host_continuation(
         host,
         event,
         action,
