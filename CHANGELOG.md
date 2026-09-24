@@ -2,7 +2,7 @@
 
 - Required deps are `cek-host>=0.2.0` and `cek-surface>=0.2.0`.
   Versions before 0.2.0 teach `cek_host.legal`. Do not pin them.
-  They are not yanked on the index yet. PyPI has no yank API.
+  `0.1.0`, `0.1.2`, and `0.1.3` are yanked. An exact pin still installs them.
   The git pin of cek-python `0626a10` is gone.
 - `require_cek_min` refuses a Host older than 0.2.0.
 - HMAC `previous_secrets` is still classic CapService only. 0.2.0
