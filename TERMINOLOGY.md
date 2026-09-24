@@ -549,6 +549,7 @@ These prove the IR works. **Replace them** without an IR major as long as perman
 | **signal_set value** | **morph html** | Raw data vs escaped markup |
 | **once/jti SPEC** | **once/jti Rust** | Required by law; enforced via `mint_once` + `MemoryNonceStore` |
 | **Permanent** | **Moving** | Law/vectors/types vs demos, actions, HTTP mounts |
+| **Product door** | **Not the product** | `mount_channel` and `uxcompose create-app` are the product. A path marked not-the-product (older notes say "leftover") must not be taught as live. |
 
 ---
 
