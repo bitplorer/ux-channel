@@ -98,7 +98,7 @@ Deeper API encyclopedia: `python/docs/`.
 
 1. **Law first.** If Python and Rust disagree, vectors win; fix the bug or cut a major.  
 2. **No business logic in demos.** `demos/python_forward` must not grow into a second host.  
-3. **Peer gate is permanent; actions/HTTP chrome are moving** (see STRUCTURE.md).  
+3. **Peer gate is permanent; actions and HTTP mounts are moving** (see STRUCTURE.md).  
 4. **Secrets fail closed** in any production binary (OPERATIONAL.md).  
 5. **JSON floor forever for IR 0.1**; CXB is opt-in upgrade.  
 6. **CI gate:** `./verify.sh` before merge (includes **Python + Rust** + law); `--http` before release candidates.  

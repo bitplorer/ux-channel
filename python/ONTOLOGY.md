@@ -29,7 +29,7 @@ If two names sound similar, the table here decides which one you mean.
 It sends a signed **Intent** (action + args + optional **cap**).  
 The server runs an **action**, may re-paint **regions**, and returns a **Result** full of ordered **ops** the client applies.
 
-Everything in `ux_channel` exists to serve that loop — or is optional product chrome around it.
+Everything in `ux_channel` exists to serve that loop — or is optional placement around it.
 
 ```mermaid
 flowchart LR
@@ -63,7 +63,7 @@ Think in **five strata**. Never mix them.
 | **1** | **Authority** | Caps, secrets, nonce/idempotency, CSRF helpers | Business rules | “Is this Intent allowed?” |
 | **2** | **Action** | Named handler: mutates **truth/draft**, returns Result | A DOM node | “What happened?” |
 | **3** | **Region** | Stable **DOM slot** the server can re-HTML | An npm widget | “What re-paints?” |
-| **4** | **Host chrome** | ASGI mount, placement attrs, demo HTML | The protocol itself | “How it sits in my app” |
+| **4** | **Placement** | ASGI mount, placement attrs, demo HTML | The protocol itself | “How it sits in my app” |
 
 **Regions live in stratum 3.** They are not actions, not bridges, not wire codecs.
 

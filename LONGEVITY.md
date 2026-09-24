@@ -40,7 +40,7 @@ L6  DEMOS        examples/, demos/, uxc_peer HTML
 | **L5 Tooling** | Free to churn | CLI, audit dashboards, codegen |
 | **L6 Demos** | No production deps | examples |
 
-**Rule:** if a change needs an IR major, it is L0/L1. If only Python apps care, it is L2+. If it is optional product chrome, it is L4+ and **must not** appear on root `__all__`.
+**Rule:** if a change needs an IR major, it is L0/L1. If only Python apps care, it is L2+. If it is optional product UI, it is L4+ and **must not** appear on root `__all__`.
 
 ---
 

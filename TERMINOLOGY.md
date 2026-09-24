@@ -548,7 +548,7 @@ These prove the IR works. **Replace them** without an IR major as long as perman
 | **Peer gate** | **HTTP server** | Gate is permanent logic; HTTP is one moving transport |
 | **signal_set value** | **morph html** | Raw data vs escaped markup |
 | **once/jti SPEC** | **once/jti Rust** | Required by law; enforced via `mint_once` + `MemoryNonceStore` |
-| **Permanent** | **Moving** | Law/vectors/types vs demos/actions/HTTP chrome |
+| **Permanent** | **Moving** | Law/vectors/types vs demos, actions, HTTP mounts |
 
 ---
 
