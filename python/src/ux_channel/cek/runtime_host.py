@@ -27,7 +27,7 @@ log = logging.getLogger("ux_channel.cek.runtime_host")
 KERNEL_SSOT = "cek-runtime"
 KERNEL_SSOT_ADR = "0008"
 
-# cek-host 0.1.3 Host / CapService has no HMAC previous_secrets API.
+# cek-host 0.2.0 Host / CapService has no HMAC previous_secrets API.
 # Channel must not silently drop a rotation window on cek=require (cut #5D).
 PREVIOUS_SECRETS_REQUIRE_MSG = (
     "previous_secrets is not wired on cek=require "

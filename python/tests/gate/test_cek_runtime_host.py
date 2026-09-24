@@ -297,7 +297,7 @@ ROTATION_NEW = "new-secret-key-32chars-minimum!!xx"
 def test_require_previous_secrets_refuses_loudly():
     """cek=require + previous_secrets must not silently drop rotation (cut #5D).
 
-    cek-host 0.1.3 Host/CapService has no HMAC previous_secrets API. Channel
+    cek-host 0.2.0 Host/CapService has no HMAC previous_secrets API. Channel
     must refuse rather than store-and-ignore (no second Cap machine).
     """
     from ux_channel.cek.host_adapter import CekHostCapService
