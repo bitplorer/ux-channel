@@ -44,8 +44,9 @@ def test_cek_wrap_packages_are_required_deps():
     deps = _parse_simple_toml_deps(text)
     assert "cek-host" in deps, deps.keys()
     assert "cek-surface" in deps, deps.keys()
-    assert "0.1.3" in deps["cek-host"]
-    assert "0.1.3" in deps["cek-surface"]
+    rev = "0626a10b36535942f9687dbe2eb298742263a780"
+    assert rev in deps["cek-host"]
+    assert rev in deps["cek-surface"]
 
 
 def test_cek_extra_is_empty_alias():
