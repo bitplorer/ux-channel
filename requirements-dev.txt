@@ -5,7 +5,7 @@ msgpack>=1.0
 hypothesis>=6.100
 pytest-cov>=5.0
 # Default Cap machine (cut #3). Escape: UX_CHANNEL_CEK=off
-# Floor is 0.2.0. Older wheels are yanked; they teach cek_host.legal.
+# Floor is 0.2.0. Older wheels teach cek_host.legal. Do not pin them.
 cek-host>=0.2.0
 cek-surface>=0.2.0
 # Host suite (optional — make test-python-host)

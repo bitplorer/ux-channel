@@ -52,7 +52,7 @@ pydantic = { version = ">=2.0", optional = true }
 opentelemetry-api = { version = ">=1.20", optional = true }
 opentelemetry-sdk = { version = ">=1.20", optional = true }
 orjson = { version = ">=3.9", optional = true }
-# 0.2.0 is the catalog Host. Older wheels are yanked; they teach cek_host.legal.
+# 0.2.0 is the catalog Host. Older wheels teach cek_host.legal. Do not pin them.
 cek-host = ">=0.2.0"
 cek-surface = ">=0.2.0"
 
