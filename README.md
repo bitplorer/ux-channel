@@ -106,7 +106,7 @@ Do **not** ship `development(secret=…)` in production. Five-minute path: [STAR
 | **Python host builder** | [python/docs/start/GOLDEN_PATH.md](python/docs/start/GOLDEN_PATH.md) |
 | **Need frozen names** | [PUBLIC_API_FREEZE.md](PUBLIC_API_FREEZE.md) |
 | **Operator** | [OPERATIONAL.md](OPERATIONAL.md) |
-| **Map** | [docs/INDEX.md](docs/INDEX.md) |
+| **Map** | [docs/INDEX.md](docs/INDEX.md) · [docs/internals/PLACE.md](docs/internals/PLACE.md) |
 | **Security** | [SECURITY.md](SECURITY.md) |
 | **Questions** | [SUPPORT.md](SUPPORT.md) |
 
