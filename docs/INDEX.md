@@ -111,6 +111,7 @@ Stale history: [archive/](archive/) — **do not cite as current law**.
 
 | Doc | Topic |
 |-----|--------|
+| [internals/PLACE.md](internals/PLACE.md) | This library among the others, and the doors it has |
 | [internals/identity.md](internals/identity.md) | What this library is / is not |
 | [internals/implementation-map.md](internals/implementation-map.md) | Where truth lives |
 | [internals/c4.md](internals/c4.md) | C4-style context / containers |
