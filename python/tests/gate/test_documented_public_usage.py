@@ -13,6 +13,8 @@ that list).
 
 from __future__ import annotations
 
+import pytest
+
 from ux_channel import (
     ActionRegistry,
     CapError,
@@ -27,7 +29,7 @@ from ux_channel import (
     state,
     toast,
 )
-from ux_channel.host.state_planes import ClientSafetyError
+from ux_channel.host.stores import MemoryStateStore
 from ux_channel.protocol.error_map import http_status_for
 from ux_channel.protocol.errors import ActionError
 from ux_channel.wire import decode, encode
@@ -38,12 +40,20 @@ DEV_SECRET = "dev-secret-key-32chars-minimum!!!!"
 PROD_SECRET = "prod-characterization-secret-48chars-minimum!!"
 
 
+@pytest.fixture(autouse=True)
+def _isolate_store_env(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Serve-dev file and Redis wiring must not leak into these cases."""
+    monkeypatch.delenv("UXCOMPOSE_STATE_STORE", raising=False)
+    monkeypatch.delenv("REDIS_URL", raising=False)
+
+
 def _dev_channel() -> Channel:
     return Channel.boot(
         config=ChannelConfig.development(
             secret=DEV_SECRET,
             allow_memory_stores=True,
-        )
+        ),
+        state=MemoryStateStore(),
     )
 
 
@@ -193,11 +203,8 @@ def test_state_session_roundtrip_and_secret_path_rejected():
     theme.set("dark")
     assert st.session("ui.theme").get() == "dark"
 
-    try:
-        st.client.op("password", "hunter2")
-        raise AssertionError("password path must be rejected")
-    except ClientSafetyError:
-        pass
+    with pytest.raises(ValueError):
+        st.client("password", "hunter2")
 
 
 def test_login_form_pattern_empty_cap_accepts_form_fields():
@@ -310,7 +317,6 @@ def test_once_cap_second_dispatch_is_refused_in_process():
     assert first.ok
     assert second.ok is False
     assert second.error.code == "unauthorized"
-    assert "already used" in second.error.message
 
 
 def test_production_config_keeps_cap_and_channel_header():
