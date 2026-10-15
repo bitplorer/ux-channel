@@ -19,6 +19,8 @@ from pathlib import Path
 
 import fakeredis
 import pytest
+from redis.exceptions import ConnectionError as RedisConnectionError
+from redis.exceptions import ResponseError
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
@@ -39,6 +41,7 @@ except ImportError:
 from ux_channel.host.live import presence_count, presence_snapshot, touch_presence
 from ux_channel.host.nonce import MemoryNonceStore
 from ux_channel.host.registry import ActionRegistry
+from ux_channel.protocol import serde as _serde
 from ux_channel.host.stores import MemoryStateStore
 from ux_channel.realtime.webrtc import MemoryRtcStore
 
@@ -46,7 +49,11 @@ try:
     from ux_channel.realtime.webrtc import await_rtc_inbox
 except ImportError:
     await_rtc_inbox = None
-from ux_channel.redis_extra import RedisPushBackend, RedisRtcStore
+from ux_channel.redis_extra import (
+    RedisIdempotencyStore,
+    RedisPushBackend,
+    RedisRtcStore,
+)
 from ux_channel.security.push_security import sign_push_ticket
 from ux_channel.security.ratelimit import MemoryRateLimiter, rate_limit_hook
 from ux_channel.security.security import safe_href
@@ -963,3 +970,311 @@ def test_set_only_overwrites_its_own_pending_claim() -> None:
         pass
     assert store.get("k") is not None
     assert store.get("k").get("n") == 1
+
+
+def test_two_redis_registries_run_one_idempotency_key_once() -> None:
+    """Two registries sharing one Redis key run the handler once.
+
+    The second call, while the first is in flight, is unavailable. A later
+    retry returns the stored result and does not run the handler again.
+    """
+    fake = fakeredis.FakeRedis(decode_responses=True)
+    prefix = f"uidch:idem:{uuid.uuid4().hex}:"
+    store_a = RedisIdempotencyStore(fake, prefix=prefix)
+    store_b = RedisIdempotencyStore(fake, prefix=prefix)
+    reg_a = ActionRegistry(_SECRET, require_cap=False, idempotency_store=store_a)
+    reg_b = ActionRegistry(_SECRET, require_cap=False, idempotency_store=store_b)
+    calls = {"n": 0}
+    entered = threading.Event()
+    release = threading.Event()
+    results: dict[str, Result] = {}
+
+    def pay() -> Result:
+        calls["n"] += 1
+        entered.set()
+        release.wait(2)
+        return Result.success()
+
+    reg_a.register("Pay.go", pay)
+    reg_b.register("Pay.go", pay)
+
+    def _run(name: str, reg: ActionRegistry) -> None:
+        results[name] = reg.dispatch(_intent("Pay.go", idempotency_key="order-1"))
+
+    worker_a = threading.Thread(target=_run, args=("a", reg_a), daemon=True)
+    worker_a.start()
+    assert entered.wait(2), "first worker did not enter the handler"
+    worker_b = threading.Thread(target=_run, args=("b", reg_b), daemon=True)
+    worker_b.start()
+    worker_b.join(2)
+    assert calls["n"] == 1
+    assert not worker_b.is_alive(), "second registry ran the in-flight handler"
+    release.set()
+    worker_a.join(2)
+    assert not worker_a.is_alive()
+    assert results["a"].ok, results["a"].error
+    assert results["b"].ok is False
+    assert results["b"].error is not None
+    assert results["b"].error.code == "unavailable"
+    assert results["b"].error.retryable is True
+    assert "in progress" in results["b"].error.message
+    replay = reg_b.dispatch(_intent("Pay.go", idempotency_key="order-1"))
+    assert replay.ok, replay.error
+    assert calls["n"] == 1
+
+
+def test_redis_full_idempotency_map_fails_closed() -> None:
+    fake = fakeredis.FakeRedis(decode_responses=True)
+    store = RedisIdempotencyStore(fake, max_keys=1)
+    reg = ActionRegistry(_SECRET, require_cap=False, idempotency_store=store)
+    calls = {"n": 0}
+
+    def pay() -> Result:
+        calls["n"] += 1
+        return Result.success()
+
+    reg.register("Pay.go", pay)
+    first = reg.dispatch(_intent("Pay.go", idempotency_key="k1"))
+    again = reg.dispatch(_intent("Pay.go", idempotency_key="k1"))
+    assert first.ok and again.ok
+    assert calls["n"] == 1
+    second = reg.dispatch(_intent("Pay.go", idempotency_key="k2"))
+    assert second.ok is False
+    assert second.error is not None
+    assert second.error.code == "unavailable"
+    assert "full" in second.error.message
+    assert calls["n"] == 1
+
+
+def test_redis_failed_idempotent_call_releases_the_slot() -> None:
+    fake = fakeredis.FakeRedis(decode_responses=True)
+    store = RedisIdempotencyStore(fake, max_keys=1)
+    reg = ActionRegistry(_SECRET, require_cap=False, idempotency_store=store)
+    calls = {"n": 0}
+
+    def pay() -> Result:
+        calls["n"] += 1
+        if calls["n"] == 1:
+            raise RuntimeError("payment failed")
+        return Result.success()
+
+    reg.register("Pay.go", pay)
+    failed = reg.dispatch(_intent("Pay.go", idempotency_key="k1"))
+    assert failed.ok is False
+    nxt = reg.dispatch(_intent("Pay.go", idempotency_key="k2"))
+    assert nxt.ok, nxt.error
+    assert calls["n"] == 2
+
+
+def test_redis_nested_same_key_does_not_release_or_double_execute() -> None:
+    fake = fakeredis.FakeRedis(decode_responses=True)
+    store = RedisIdempotencyStore(fake, max_keys=10)
+    reg = ActionRegistry(_SECRET, require_cap=False, idempotency_store=store)
+    calls = {"n": 0}
+
+    def pay() -> Result:
+        calls["n"] += 1
+        inner = reg.dispatch(_intent("Pay.go", idempotency_key="k"))
+        assert inner.ok is False
+        assert inner.error is not None
+        assert inner.error.code == "unavailable"
+        raced = store.claim("k")
+        assert raced[0] == "pending", raced
+        return Result.success()
+
+    reg.register("Pay.go", pay)
+    outer = reg.dispatch(_intent("Pay.go", idempotency_key="k"))
+    assert outer.ok, outer.error
+    assert calls["n"] == 1
+    replay = reg.dispatch(_intent("Pay.go", idempotency_key="k"))
+    assert replay.ok
+    assert calls["n"] == 1
+
+
+def test_redis_store_error_is_retryable_unavailable_before_the_handler() -> None:
+    fake = fakeredis.FakeRedis(decode_responses=True)
+    store = RedisIdempotencyStore(fake)
+    reg = ActionRegistry(_SECRET, require_cap=False, idempotency_store=store)
+    calls = {"n": 0}
+
+    def pay() -> Result:
+        calls["n"] += 1
+        return Result.success()
+
+    reg.register("Pay.go", pay)
+
+    def _crossslot(key: str, *, ttl_s: float = 3600):
+        raise ResponseError("CROSSSLOT Keys in request don't hash to the same slot")
+
+    store.claim = _crossslot  # type: ignore[method-assign]
+    crossed = reg.dispatch(_intent("Pay.go", idempotency_key="k"))
+    assert calls["n"] == 0
+    assert crossed.ok is False
+    assert crossed.error is not None
+    assert crossed.error.code == "unavailable"
+    assert crossed.error.retryable is True
+
+    def _down(key: str, *, ttl_s: float = 3600):
+        raise RedisConnectionError("redis unavailable")
+
+    store.claim = _down  # type: ignore[method-assign]
+    down = reg.dispatch(_intent("Pay.go", idempotency_key="k"))
+    assert calls["n"] == 0
+    assert down.ok is False
+    assert down.error is not None
+    assert down.error.code == "unavailable"
+    assert down.error.retryable is True
+
+    def _claim_ok(key: str, *, ttl_s: float = 3600):
+        return ("reserved", None, "tok")
+
+    def _set_down(
+        key: str,
+        result: dict,
+        *,
+        ttl_s: float = 3600,
+        token: str | None = None,
+    ):
+        raise RedisConnectionError("redis unavailable")
+
+    store.claim = _claim_ok  # type: ignore[method-assign]
+    store.set = _set_down  # type: ignore[method-assign]
+    saved = reg.dispatch(_intent("Pay.go", idempotency_key="k"))
+    assert calls["n"] == 1
+    assert saved.ok is False
+    assert saved.error is not None
+    assert saved.error.code == "unavailable"
+    assert saved.error.retryable is True
+
+
+def test_full_map_legacy_replay_is_ok() -> None:
+    fake = fakeredis.FakeRedis(decode_responses=True)
+    prefix = "uidch:idem:"
+    store = RedisIdempotencyStore(fake, prefix=prefix, max_keys=1)
+    reg = ActionRegistry(_SECRET, require_cap=False, idempotency_store=store)
+    calls = {"n": 0}
+
+    def pay() -> Result:
+        calls["n"] += 1
+        return Result.success()
+
+    reg.register("Pay.go", pay)
+    first = reg.dispatch(_intent("Pay.go", idempotency_key="live"))
+    assert first.ok, first.error
+    assert calls["n"] == 1
+    fake.set(prefix + "old", _serde.dumps(Result.success().to_dict()))
+    replay = reg.dispatch(_intent("Pay.go", idempotency_key="old"))
+    assert replay.ok, replay.error
+    assert calls["n"] == 1
+    assert fake.get("{" + prefix + "}old") is None
+
+
+def test_legacy_expiry_during_replay_stays_ok() -> None:
+    fake = fakeredis.FakeRedis(decode_responses=True)
+    prefix = "uidch:idem:"
+    store = RedisIdempotencyStore(fake, prefix=prefix, max_keys=1)
+    reg = ActionRegistry(_SECRET, require_cap=False, idempotency_store=store)
+    calls = {"n": 0}
+
+    def pay() -> Result:
+        calls["n"] += 1
+        return Result.success()
+
+    reg.register("Pay.go", pay)
+    first = reg.dispatch(_intent("Pay.go", idempotency_key="live"))
+    assert first.ok, first.error
+    fake.set(prefix + "old", _serde.dumps(Result.success().to_dict()))
+
+    def _get_then_expire(key: str):
+        body = RedisIdempotencyStore.get(store, key)
+        fake.delete(prefix + key)
+        return body
+
+    store.get = _get_then_expire  # type: ignore[method-assign]
+    replay = reg.dispatch(_intent("Pay.go", idempotency_key="old"))
+    assert replay.ok, replay.error
+    assert calls["n"] == 1
+    assert fake.get("{" + prefix + "}old") is None
+
+
+def _replace_result(_intent: object, _result: Result) -> Result:
+    """After-hook that drops any attribute carried on the prior Result."""
+    return Result.success()
+
+
+def test_hook_replace_full() -> None:
+    """HOOK_REPLACE_FULL: a replaced replay stays ok when the map is full."""
+    fake = fakeredis.FakeRedis(decode_responses=True)
+    prefix = "uidch:idem:"
+    store = RedisIdempotencyStore(fake, prefix=prefix, max_keys=1)
+    reg = ActionRegistry(_SECRET, require_cap=False, idempotency_store=store)
+    calls = {"n": 0}
+
+    def pay() -> Result:
+        calls["n"] += 1
+        return Result.success()
+
+    reg.register("Pay.go", pay)
+    reg.after(_replace_result)
+    first = reg.dispatch(_intent("Pay.go", idempotency_key="live"))
+    assert first.ok, first.error
+    assert calls["n"] == 1
+    fake.set(prefix + "old", _serde.dumps(Result.success().to_dict()))
+    replay = reg.dispatch(_intent("Pay.go", idempotency_key="old"))
+    assert replay.ok, replay.error
+    assert calls["n"] == 1
+    assert fake.get("{" + prefix + "}old") is None
+
+
+def test_hook_replace_race() -> None:
+    """HOOK_REPLACE_RACE: a replaced replay does not write or go unavailable."""
+    fake = fakeredis.FakeRedis(decode_responses=True)
+    prefix = "uidch:idem:"
+    store = RedisIdempotencyStore(fake, prefix=prefix, max_keys=1)
+    reg = ActionRegistry(_SECRET, require_cap=False, idempotency_store=store)
+    calls = {"n": 0}
+
+    def pay() -> Result:
+        calls["n"] += 1
+        return Result.success()
+
+    reg.register("Pay.go", pay)
+    reg.after(_replace_result)
+    first = reg.dispatch(_intent("Pay.go", idempotency_key="live"))
+    assert first.ok, first.error
+    fake.set(prefix + "old", _serde.dumps(Result.success().to_dict()))
+
+    def _get_then_expire(key: str):
+        body = RedisIdempotencyStore.get(store, key)
+        fake.delete(prefix + key)
+        return body
+
+    store.get = _get_then_expire  # type: ignore[method-assign]
+    replay = reg.dispatch(_intent("Pay.go", idempotency_key="old"))
+    assert replay.ok, replay.error
+    assert calls["n"] == 1
+    assert fake.get("{" + prefix + "}old") is None
+
+
+def test_idempotency_get_error_skips_the_handler() -> None:
+    fake = fakeredis.FakeRedis(decode_responses=True)
+    store = RedisIdempotencyStore(fake)
+    reg = ActionRegistry(_SECRET, require_cap=False, idempotency_store=store)
+    calls = {"n": 0}
+
+    def pay() -> Result:
+        calls["n"] += 1
+        return Result.success()
+
+    reg.register("Pay.go", pay)
+
+    def _get_down(key: str):
+        raise RedisConnectionError("redis unavailable")
+
+    store.get = _get_down  # type: ignore[method-assign]
+    failed = reg.dispatch(_intent("Pay.go", idempotency_key="k"))
+    assert calls["n"] == 0
+    assert failed.ok is False
+    assert failed.error is not None
+    assert failed.error.code == "unavailable"
+    assert failed.error.retryable is True

@@ -1,10 +1,12 @@
 """Redis backends for multi-worker production."""
 from __future__ import annotations
 
-from ux_channel.protocol import serde as _serde
 import threading
-
+import uuid
 from typing import Any, Optional
+
+from ux_channel.host.idempotency import IdempotencyCapacityError
+from ux_channel.protocol import serde as _serde
 
 
 def _client(url: str | Any):
@@ -66,18 +68,259 @@ class RedisNonceStore:
             return False
 
 
+# In-flight reservation. Not a stored Result. ``get`` hides it.
+# The token is appended so compare-and-delete / compare-and-set need no JSON parser.
+_PENDING_PREFIX = "uxidem:v1:pending:"
+
+# SET NX reserves. The ZSET score is the expiry second. Sweep with
+# ZREMRANGEBYSCORE before counting. No per-member EXISTS.
+_IDEM_CLAIM_LUA = """
+local key = KEYS[1]
+local index = KEYS[2]
+local payload = ARGV[1]
+local ttl = tonumber(ARGV[2])
+local max_keys = tonumber(ARGV[3])
+local pending_prefix = ARGV[4]
+local raw = redis.call('GET', key)
+if raw then
+  local n = string.len(pending_prefix)
+  if string.sub(raw, 1, n) == pending_prefix then
+    return {'pending', ''}
+  end
+  return {'hit', raw}
+end
+local now_s = tonumber(redis.call('TIME')[1])
+redis.call('ZREMRANGEBYSCORE', index, '-inf', now_s)
+local count = redis.call('ZCARD', index)
+if count >= max_keys then
+  return {'full', ''}
+end
+local ok = redis.call('SET', key, payload, 'NX', 'EX', ttl)
+if not ok then
+  raw = redis.call('GET', key)
+  if not raw then
+    return {'pending', ''}
+  end
+  local n = string.len(pending_prefix)
+  if string.sub(raw, 1, n) == pending_prefix then
+    return {'pending', ''}
+  end
+  return {'hit', raw}
+end
+redis.call('ZADD', index, now_s + ttl, key)
+return {'reserved', ''}
+"""
+
+# Compare-and-delete. A missing or different token leaves the slot alone.
+_IDEM_RELEASE_LUA = """
+local key = KEYS[1]
+local index = KEYS[2]
+local token = ARGV[1]
+local pending_prefix = ARGV[2]
+if token == '' then
+  return 0
+end
+local raw = redis.call('GET', key)
+if not raw then
+  return 0
+end
+if raw ~= (pending_prefix .. token) then
+  return 0
+end
+redis.call('DEL', key)
+redis.call('ZREM', index, key)
+return 1
+"""
+
+# Compare-and-set. -1 not owner, -2 lost claim, -3 full, 0 left a finished
+# result alone, 1 wrote.
+_IDEM_SET_LUA = """
+local key = KEYS[1]
+local index = KEYS[2]
+local token = ARGV[1]
+local payload = ARGV[2]
+local ttl = tonumber(ARGV[3])
+local max_keys = tonumber(ARGV[4])
+local pending_prefix = ARGV[5]
+local raw = redis.call('GET', key)
+local pending_n = string.len(pending_prefix)
+local is_pending = raw
+  and string.sub(raw, 1, pending_n) == pending_prefix
+if is_pending then
+  if token == '' or raw ~= (pending_prefix .. token) then
+    return -1
+  end
+  local now_s = tonumber(redis.call('TIME')[1])
+  redis.call('SET', key, payload, 'EX', ttl)
+  redis.call('ZADD', index, now_s + ttl, key)
+  return 1
+end
+if token ~= '' then
+  if raw then
+    return 0
+  end
+  return -2
+end
+if raw then
+  redis.call('SET', key, payload, 'KEEPTTL')
+  return 1
+end
+local now_s = tonumber(redis.call('TIME')[1])
+redis.call('ZREMRANGEBYSCORE', index, '-inf', now_s)
+local count = redis.call('ZCARD', index)
+if count >= max_keys then
+  return -3
+end
+redis.call('SET', key, payload, 'EX', ttl)
+redis.call('ZADD', index, now_s + ttl, key)
+return 1
+"""
+
+
+def _idem_text(value: Any) -> str:
+    if isinstance(value, bytes):
+        return value.decode("utf-8")
+    if isinstance(value, str):
+        return value
+    return str(value)
+
+
+def _idem_seconds(ttl_s: float) -> int:
+    """Whole seconds. Redis EX rejects 0, so a shorter window is one second."""
+    seconds = int(ttl_s)
+    return seconds if seconds >= 1 else 1
+
+
+def _idem_index(prefix: str) -> str:
+    """Capacity ZSET. Same hash tag as the data key: ``{prefix}``."""
+    return "{" + prefix + "}.cap"
+
+
+def _idem_pair(reply: Any) -> tuple[str, str]:
+    if not isinstance(reply, (list, tuple)) or len(reply) < 2:
+        raise RuntimeError("idempotency store returned an unexpected reply")
+    return _idem_text(reply[0]), _idem_text(reply[1])
+
+
+def _idem_code(reply: Any) -> int:
+    if isinstance(reply, bool):
+        return int(reply)
+    if isinstance(reply, (bytes, bytearray)):
+        reply = reply.decode("utf-8")
+    return int(reply)
+
+
 class RedisIdempotencyStore:
-    def __init__(self, redis_url: str | Any, *, prefix: str = "uidch:idem:"):
+    """Shared idempotency map for workers on one Redis.
+
+    ``claim`` reserves with ``SET NX`` and an in-flight sentinel plus a
+    token. ``release`` and ``set`` change that slot only when the token
+    matches. ``get`` hides the sentinel. A new key past ``max_keys`` raises
+    ``IdempotencyCapacityError`` instead of dropping a live one.
+
+    Residuals. ``max_keys`` is one cap for the whole prefix, not a cap per
+    principal. Deploy every worker on this store together: a rolling mix is
+    unsafe, because an old worker's ``get`` does not hide the pending
+    sentinel and fails when it reads one. Expiry uses Redis ``EX``, which
+    has whole-second granularity. A ZSET member whose key was removed
+    outside ``release`` stays until its score passes, so the map fails
+    closed. ``KEEPTTL`` needs Redis 6 or newer. A failed ``release`` leaves
+    the slot pending until its TTL.
+    """
+
+    def __init__(
+        self,
+        redis_url: str | Any,
+        *,
+        prefix: str = "uidch:idem:",
+        max_keys: int = 50_000,
+    ):
         self.r = _client(redis_url)
         self.prefix = prefix
+        self.max_keys = max_keys
 
-    def get(self, key: str) -> Optional[dict]:
-        import json
+    def _redis_key(self, key: str) -> str:
+        # Hash tag matches ``_idem_index`` so the script stays in one slot.
+        return "{" + self.prefix + "}" + key
 
-        raw = self.r.get(f"{self.prefix}{key}")
+    def _legacy_key(self, key: str) -> str:
+        return f"{self.prefix}{key}"
+
+    def _finished(self, raw: Any) -> Optional[dict[str, Any]]:
         if not raw:
             return None
-        return _serde.loads(raw)
+        text = _idem_text(raw)
+        if text.startswith(_PENDING_PREFIX):
+            return None
+        body = _serde.loads(text)
+        if not isinstance(body, dict):
+            return None
+        return body
+
+    def get(self, key: str) -> Optional[dict]:
+        raw = self.r.get(self._redis_key(key))
+        if raw:
+            text = _idem_text(raw)
+            if text.startswith(_PENDING_PREFIX):
+                return None
+            return _serde.loads(text)
+        return self._finished(self.r.get(self._legacy_key(key)))
+
+    def claim(
+        self, key: str, *, ttl_s: float = 3600
+    ) -> tuple[str, Optional[dict[str, Any]], Optional[str]]:
+        """Reserve ``key`` before the handler runs.
+
+        Returns ``("hit", result, None)``, ``("pending", None, None)``, or
+        ``("reserved", None, token)``. Only that token may release or
+        finish the slot.
+        """
+        token = uuid.uuid4().hex
+        # Legacy names are untagged, so they must not enter this script.
+        if not self.r.get(self._redis_key(key)):
+            legacy = self._finished(self.r.get(self._legacy_key(key)))
+            if legacy is not None:
+                return "hit", legacy, None
+        reply = self.r.eval(
+            _IDEM_CLAIM_LUA,
+            2,
+            self._redis_key(key),
+            _idem_index(self.prefix),
+            f"{_PENDING_PREFIX}{token}",
+            str(_idem_seconds(ttl_s)),
+            str(int(self.max_keys)),
+            _PENDING_PREFIX,
+        )
+        status, raw = _idem_pair(reply)
+        if status == "reserved":
+            return "reserved", None, token
+        if status == "pending":
+            return "pending", None, None
+        if status == "full":
+            raise IdempotencyCapacityError(self.max_keys)
+        if status == "hit":
+            body = _serde.loads(raw)
+            if not isinstance(body, dict):
+                raise RuntimeError("idempotency hit was not an object")
+            return "hit", body, None
+        raise RuntimeError("idempotency claim returned an unexpected reply")
+
+    def release(self, key: str, token: str | None = None) -> None:
+        """Drop this call's in-flight reservation.
+
+        A missing or different token does not touch the slot, so a nested
+        dispatch cannot release the reservation its parent still owns.
+        """
+        if not token:
+            return
+        self.r.eval(
+            _IDEM_RELEASE_LUA,
+            2,
+            self._redis_key(key),
+            _idem_index(self.prefix),
+            token,
+            _PENDING_PREFIX,
+        )
 
     def set(
         self,
@@ -87,12 +330,36 @@ class RedisIdempotencyStore:
         ttl_s: float = 3600,
         token: str | None = None,
     ) -> None:
-        import json
+        """Store ``result`` for ``key``.
 
-        # Redis idempotency has no in-process claim token. ``token`` is
-        # accepted so callers can pass the memory-store argument unchanged.
-        del token
-        self.r.set(f"{self.prefix}{key}", _serde.dumps(result, default=str), ex=int(ttl_s))
+        A pending claim is overwritten only when ``token`` is the token
+        ``claim`` returned. A different token, or a direct ``set`` with no
+        token, leaves the pending claim and raises. A token does not
+        replace a finished result. ``set`` without a token inserts a
+        missing key. On a finished key it replaces the body and keeps the
+        existing TTL and capacity score (``KEEPTTL``).
+        """
+        reply = self.r.eval(
+            _IDEM_SET_LUA,
+            2,
+            self._redis_key(key),
+            _idem_index(self.prefix),
+            token or "",
+            _serde.dumps(result, default=str),
+            str(_idem_seconds(ttl_s)),
+            str(int(self.max_keys)),
+            _PENDING_PREFIX,
+        )
+        code = _idem_code(reply)
+        if code in (0, 1):
+            return
+        if code == -1:
+            raise RuntimeError("idempotency set does not own the pending claim")
+        if code == -2:
+            raise RuntimeError("idempotency set lost its pending claim")
+        if code == -3:
+            raise IdempotencyCapacityError(self.max_keys)
+        raise RuntimeError("idempotency set returned an unexpected reply")
 
 
 class RedisPushBackend:
