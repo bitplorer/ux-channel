@@ -11,7 +11,9 @@ from __future__ import annotations
 
 from ux_channel.protocol import serde as _serde
 
+import asyncio
 import json
+import queue as queue_mod
 import secrets
 import threading
 import time
@@ -126,6 +128,7 @@ class PeerRecord:
     peer_id: str
     name: str = ""
     last_seen: float = field(default_factory=_now)
+    conn_id: str = ""
 
 
 @dataclass
@@ -147,6 +150,7 @@ class RtcStore(Protocol):
         *,
         name: str = "",
         since: int = 0,
+        conn_id: str | None = None,
     ) -> dict[str, Any]: ...
 
     def signal(
@@ -159,7 +163,9 @@ class RtcStore(Protocol):
         payload: Any,
     ) -> dict[str, Any]: ...
 
-    def leave(self, room: str, peer_id: str) -> dict[str, Any]: ...
+    def leave(
+        self, room: str, peer_id: str, conn_id: str | None = None
+    ) -> dict[str, Any]: ...
 
     def subscribe(self, room: str, peer_id: str, q: Any) -> None: ...
 
@@ -214,6 +220,29 @@ class MemoryRtcStore:
             for p in sorted(peers.values(), key=lambda x: x.peer_id)
         ]
 
+    def _admit_peer(
+        self,
+        room: str,
+        peer_id: str,
+        *,
+        name: str = "",
+        conn_id: str | None = None,
+    ) -> PeerRecord:
+        """Join or refresh a peer. Caller holds ``_lock`` and has run ``_gc``."""
+        peers = self._peers.setdefault(room, {})
+        rec = peers.get(peer_id)
+        if rec is None:
+            if len(peers) >= self.max_peers:
+                raise OverflowError(f"room full (max {self.max_peers} peers)")
+            rec = PeerRecord(peer_id=peer_id)
+            peers[peer_id] = rec
+        if name:
+            rec.name = name[:64]
+        rec.last_seen = _now()
+        if conn_id is not None:
+            rec.conn_id = conn_id
+        return rec
+
     def _fanout(self, room: str, to_peer: str, message: dict[str, Any]) -> None:
         for q in list((self._subs.get(room) or {}).get(to_peer) or []):
             try:
@@ -228,6 +257,7 @@ class MemoryRtcStore:
         *,
         name: str = "",
         since: int = 0,
+        conn_id: str | None = None,
     ) -> dict[str, Any]:
         room = _sanitize_id(room) or DEFAULT_ROOM
         peer_id = _sanitize_id(peer_id)
@@ -235,14 +265,8 @@ class MemoryRtcStore:
             raise ValueError("peer_id required")
         with self._lock:
             self._gc()
-            peers = self._peers.setdefault(room, {})
-            if peer_id not in peers and len(peers) >= self.max_peers:
-                raise OverflowError(f"room full (max {self.max_peers} peers)")
-            peers[peer_id] = PeerRecord(
-                peer_id=peer_id,
-                name=(name or peers.get(peer_id, PeerRecord(peer_id)).name)[:64],
-                last_seen=_now(),
-            )
+            self._admit_peer(room, peer_id, name=name, conn_id=conn_id)
+            peers = self._peers.get(room) or {}
             roster = self._roster(room)
             inbox = [
                 {
@@ -301,11 +325,7 @@ class MemoryRtcStore:
             raise ValueError("payload too large")
         with self._lock:
             self._gc()
-            peers = self._peers.setdefault(room, {})
-            if from_peer not in peers:
-                peers[from_peer] = PeerRecord(peer_id=from_peer, last_seen=_now())
-            else:
-                peers[from_peer].last_seen = _now()
+            self._admit_peer(room, from_peer)
             self._seq += 1
             rec = SignalRecord(
                 id=self._seq,
@@ -334,11 +354,16 @@ class MemoryRtcStore:
                 pass
             return {"ok": True, "id": rec.id}
 
-    def leave(self, room: str, peer_id: str) -> dict[str, Any]:
+    def leave(
+        self, room: str, peer_id: str, conn_id: str | None = None
+    ) -> dict[str, Any]:
         room = _sanitize_id(room) or DEFAULT_ROOM
         peer_id = _sanitize_id(peer_id)
         with self._lock:
             peers = self._peers.get(room)
+            rec = peers.get(peer_id) if peers else None
+            if conn_id is not None and (rec is None or rec.conn_id != conn_id):
+                return {"ok": True, "stale": True}
             if peers and peer_id in peers:
                 del peers[peer_id]
             if room in self._subs:
@@ -375,6 +400,33 @@ class MemoryRtcStore:
                 lst.remove(q)
             if not lst and room in self._subs:
                 self._subs[room].pop(peer_id, None)
+
+
+async def await_rtc_inbox(
+    inbox: Any,
+    *,
+    idle_s: float = 20.0,
+    poll_s: float = 0.05,
+) -> Any | None:
+    """Wait for one signaling message without occupying a thread-pool worker.
+
+    ``queue.Queue.get(timeout=20)`` inside ``run_in_executor`` pins a default
+    executor thread for the whole idle interval. This polls ``get_nowait``
+    and sleeps on the event loop instead. Returns the message, or ``None``
+    when ``idle_s`` elapses so the caller can send a keepalive.
+    """
+    deadline = asyncio.get_running_loop().time() + max(0.0, float(idle_s))
+    pause = max(0.0, float(poll_s))
+    while True:
+        try:
+            return inbox.get_nowait()
+        except queue_mod.Empty:
+            pass
+        loop = asyncio.get_running_loop()
+        remaining = deadline - loop.time()
+        if remaining <= 0:
+            return None
+        await asyncio.sleep(pause if pause < remaining else remaining)
 
 
 # Tickets (HMAC) — optional door for /rtc

@@ -13,7 +13,9 @@ import asyncio
 import contextvars
 import inspect
 import logging
+import threading
 import time
+import weakref
 from typing import Any, Callable, Mapping, Optional, Sequence, TYPE_CHECKING
 
 from ux_channel.protocol.capability import CapError, CapService
@@ -35,7 +37,7 @@ def _trace_api():
 
     return _trace
 
-from ux_channel.host.idempotency import IdempotencyStore
+from ux_channel.host.idempotency import IdempotencyCapacityError, IdempotencyStore
 from ux_channel.security.limits import (
     DEFAULT_MAX_HTML_BYTES,
     DEFAULT_MAX_OPS,
@@ -74,6 +76,20 @@ logger = logging.getLogger("ux_channel.host.registry")
 _request_var: contextvars.ContextVar[Any] = contextvars.ContextVar("ux_channel_request", default=None)
 
 
+class SyncLockTimeout(TimeoutError):
+    """Another thread still holds this action owner's sync lock."""
+
+    def __init__(self, timeout_s: float) -> None:
+        super().__init__(f"sync handler lock timed out after {timeout_s:g}s")
+        self.timeout_s = timeout_s
+
+
+def _sync_owner(handler: ActionHandler) -> Any:
+    """Component instance for a bound method, otherwise the function itself."""
+    component = getattr(handler, "__self__", None)
+    return component if component is not None else handler
+
+
 class ActionRegistry:
     """
     Named action table + capability service + hook pipeline.
@@ -92,6 +108,12 @@ class ActionRegistry:
         Optional request → Principal.
     action_timeout_s:
         Wall-clock limit per action (0 = none).
+    sync_lock_timeout_s:
+        How long a cross-thread re-dispatch waits for the same action
+        owner's sync lock. Default 30s, or ``config.sync_lock_timeout_s``
+        when that attribute is set. The same thread may re-enter. Different
+        owners do not share a lock. On timeout the Result code is
+        ``timeout``. The waiter can still block until that deadline.
 
     Public methods
     --------------
@@ -118,6 +140,7 @@ class ActionRegistry:
         verify_form_in_cap: bool = False,
         expose_internal_errors: bool = False,
         action_timeout_s: float = 0.0,
+        sync_lock_timeout_s: Optional[float] = None,
         config: Optional["ChannelConfig"] = None,
         nonce_store: Optional[NonceStore] = None,
         idempotency_store: Optional[IdempotencyStore] = None,
@@ -151,6 +174,17 @@ class ActionRegistry:
         self.idempotency_store = idempotency_store
         self.auth_resolver = auth_resolver
         self.require_principal = require_principal
+        configured_lock = (
+            getattr(config, "sync_lock_timeout_s", None) if config is not None else None
+        )
+        chosen_lock = (
+            sync_lock_timeout_s if sync_lock_timeout_s is not None else configured_lock
+        )
+        # Per-owner sync lock. Default 30s. Cross-thread re-dispatch to the
+        # same owner waits only this long, then SyncLockTimeout.
+        self.sync_lock_timeout_s = float(30.0 if chosen_lock is None else chosen_lock)
+        self._owner_locks: weakref.WeakKeyDictionary = weakref.WeakKeyDictionary()
+        self._owner_locks_guard = threading.Lock()
         # optional request stashed by host for auth_resolver
 
     def _cek_require_owns_once(self) -> bool:
@@ -641,7 +675,9 @@ class ActionRegistry:
                     "expected_sub": principal.id if principal and getattr(
                         self.config, "bind_cap_to_principal", False
                     ) else None,
-                    "consume_once": True,
+                    # Consume after the rate-limit hook. Burning the nonce here
+                    # makes a 429 retry look like a replay.
+                    "consume_once": False,
                 }
                 if not self._cek_require_owns_once():
                     verify_kw["nonce_store"] = self.nonce_store
@@ -696,10 +732,51 @@ class ActionRegistry:
                     None,
                 )
 
+        if (
+            cap_data
+            and cap_data.get("once")
+            and not self._cek_require_owns_once()
+        ):
+            jti = str(cap_data.get("jti") or "").strip()
+            nonce = self.nonce_store
+            if nonce is None:
+                nonce = getattr(self._caps, "nonce_store", None)
+            if not jti:
+                return (
+                    intent,
+                    args,
+                    Result.failure(
+                        "unauthorized",
+                        "once capability missing jti",
+                        **{k: v for k, v in meta_base.items() if v is not None},
+                    ),
+                    principal,
+                    None,
+                )
+            if nonce is None:
+                return (
+                    intent,
+                    args,
+                    Result.failure(
+                        "unauthorized",
+                        "once capability requires nonce_store "
+                        "(configure MemoryNonceStore or RedisNonceStore)",
+                        **{k: v for k, v in meta_base.items() if v is not None},
+                    ),
+                    principal,
+                    None,
+                )
+
         # before-hooks run in _dispatch_sync / _async_dispatch (sync vs await)
         return intent, args, None, principal, cap_data
 
-    def _finalize(self, intent: Intent, result: Result, t0: float) -> Result:
+    def _finalize(
+        self,
+        intent: Intent,
+        result: Result,
+        t0: float,
+        claim_token: Optional[str] = None,
+    ) -> Result:
         result.meta.setdefault("action", intent.action)
         if intent.request_id:
             result.meta.setdefault("request_id", intent.request_id)
@@ -760,14 +837,42 @@ class ActionRegistry:
                 )
             )
 
-        # store idempotent success/failure
+        # Store a success. The caller's finally releases the slot on every
+        # path that did not replace the pending reservation, including this
+        # failure. A client must not see ok=True while the slot is still pending.
         if intent.idempotency_key and self.idempotency_store and result.ok:
             try:
                 self.idempotency_store.set(
-                    intent.idempotency_key, result.to_dict(), ttl_s=3600
+                    intent.idempotency_key,
+                    result.to_dict(),
+                    ttl_s=3600,
+                    token=claim_token,
+                )
+            except IdempotencyCapacityError:
+                from ux_channel.protocol.error_map import ensure_error_meta
+
+                return ensure_error_meta(
+                    Result.failure(
+                        "unavailable",
+                        "idempotency store is full",
+                        retryable=True,
+                        action=intent.action,
+                        request_id=intent.request_id,
+                    )
                 )
             except Exception:
                 logger.exception("idempotency store failed")
+                from ux_channel.protocol.error_map import ensure_error_meta
+
+                return ensure_error_meta(
+                    Result.failure(
+                        "unavailable",
+                        "idempotency store failed",
+                        retryable=True,
+                        action=intent.action,
+                        request_id=intent.request_id,
+                    )
+                )
 
         # Drop javascript:/data: navigations even if action built raw dicts
         hosts = ()
@@ -1006,7 +1111,7 @@ class ActionRegistry:
             ctx = contextvars.copy_context()
 
             def _run() -> Any:
-                return ctx.run(handler, **bound)
+                return ctx.run(self._run_sync_handler, handler, bound)
 
             with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
                 fut = pool.submit(_run)
@@ -1015,7 +1120,7 @@ class ActionRegistry:
                 except concurrent.futures.TimeoutError as exc:
                     raise TimeoutError("action timed out") from exc
         else:
-            value = handler(**bound)
+            value = self._run_sync_handler(handler, bound)
         if inspect.isawaitable(value):
             raise AsyncDispatchRequired(
                 "handler returned an awaitable; use await registry.async_dispatch(...) "
@@ -1028,6 +1133,178 @@ class ActionRegistry:
             return await asyncio.wait_for(value, timeout=self.action_timeout_s)
         return await value
 
+    def _is_rate_limited(self, result: Result) -> bool:
+        return bool(result.error and result.error.code == "rate_limited")
+
+    def _cap_expected_sub(self, principal: Optional[Principal]) -> Optional[str]:
+        if principal and getattr(self.config, "bind_cap_to_principal", False):
+            return principal.id
+        return None
+
+    def _consume_presented_once(
+        self,
+        intent: Intent,
+        args: dict[str, Any],
+        principal: Optional[Principal],
+        cap_data: Optional[dict],
+    ) -> Optional[Result]:
+        """Burn a once-cap. Call only after the rate-limit check has passed."""
+        if not cap_data or not cap_data.get("once") or not intent.cap:
+            return None
+        meta = {
+            k: v
+            for k, v in {"action": intent.action, "request_id": intent.request_id}.items()
+            if v is not None
+        }
+        verify_args = args if self.verify_form_in_cap else dict(intent.args)
+        try:
+            verify_kw: dict[str, Any] = {
+                "expected_sub": self._cap_expected_sub(principal),
+                "consume_once": True,
+            }
+            if not self._cek_require_owns_once():
+                verify_kw["nonce_store"] = self.nonce_store
+            self._caps.verify(intent.cap, intent.action, verify_args, **verify_kw)
+        except CapError as exc:
+            _sec("cap_fail", action=intent.action, reason=str(exc))
+            return Result.failure("unauthorized", str(exc), **meta)
+        return None
+
+    def _idem_release(self, key: Optional[str], token: Optional[str]) -> None:
+        """Release only the reservation identified by ``token``."""
+        store = self.idempotency_store
+        if not key or not token or store is None:
+            return
+        release = getattr(store, "release", None)
+        if release is not None:
+            release(key, token)
+
+    def _idem_begin(self, intent: Intent) -> tuple[Optional[Result], Optional[str]]:
+        """Reserve an idempotency slot before the handler.
+
+        Returns ``(stop_result, claim_token)``. The token stays a local of
+        this dispatch. It is not stored in a context var, so a nested
+        dispatch of the same key cannot release the parent slot.
+        """
+        key = intent.idempotency_key
+        store = self.idempotency_store
+        if not key or store is None or not hasattr(store, "claim"):
+            return None, None
+        meta = {
+            k: v
+            for k, v in {"action": intent.action, "request_id": intent.request_id}.items()
+            if v is not None
+        }
+        try:
+            claimed = store.claim(key)
+        except IdempotencyCapacityError:
+            return (
+                Result.failure(
+                    "unavailable",
+                    "idempotency store is full",
+                    retryable=True,
+                    **meta,
+                ),
+                None,
+            )
+        status = claimed[0]
+        body = claimed[1] if len(claimed) > 1 else None
+        token = claimed[2] if len(claimed) > 2 else None
+        if status == "hit" and isinstance(body, dict):
+            return Result.from_dict(body), None
+        if status == "pending":
+            return (
+                Result.failure(
+                    "unavailable",
+                    "idempotency key in progress",
+                    retryable=True,
+                    **meta,
+                ),
+                None,
+            )
+        if status == "reserved":
+            return None, token
+        return None, None
+
+    def _admit_after_hooks(
+        self,
+        intent: Intent,
+        args: dict[str, Any],
+        principal: Optional[Principal],
+        cap_data: Optional[dict],
+        early: Optional[Result],
+    ) -> tuple[Optional[Result], Optional[str]]:
+        """Rate-limit, then idempotency reserve, then once-consume.
+
+        A rate-limited request does not burn a once-cap. A full idempotency
+        map refuses the call before the handler and before the nonce burn.
+        """
+        if early is not None:
+            if not self._is_rate_limited(early):
+                burned = self._consume_presented_once(intent, args, principal, cap_data)
+                if burned is not None:
+                    return burned, None
+            return early, None
+        stop, reserved = self._idem_begin(intent)
+        if stop is not None:
+            return stop, None
+        burned = self._consume_presented_once(intent, args, principal, cap_data)
+        if burned is not None:
+            return burned, reserved
+        return None, reserved
+
+    def _lock_for_key(self, key: Any) -> Optional[threading.RLock]:
+        """Return the lock for ``key``, or None when ``key`` cannot be weak."""
+        try:
+            lock = self._owner_locks.get(key)
+        except TypeError:
+            return None
+        if lock is not None:
+            return lock
+        lock = threading.RLock()
+        try:
+            self._owner_locks[key] = lock
+        except TypeError:
+            return None
+        return lock
+
+    def _owner_lock(self, handler: ActionHandler) -> threading.RLock:
+        owner = _sync_owner(handler)
+        with self._owner_locks_guard:
+            lock = self._lock_for_key(owner)
+            if lock is not None:
+                return lock
+            # Slotted instances with no ``__weakref__`` cannot live in a
+            # WeakKeyDictionary. Share one lock per type: coarser, and the
+            # class does not keep the instance alive.
+            lock = self._lock_for_key(type(owner))
+            if lock is None:
+                lock = threading.RLock()
+                self._owner_locks[type(owner)] = lock
+            return lock
+
+    def _run_sync_handler(self, handler: ActionHandler, bound: dict[str, Any]) -> Any:
+        """Run one sync handler under its owner's lock.
+
+        The owner is the bound component (``handler.__self__``) or, for a
+        plain function, the function itself. Different owners do not wait on
+        each other. The lock is re-entrant, so the same thread may dispatch
+        again. A cross-thread re-dispatch to the same owner waits up to
+        ``sync_lock_timeout_s`` (default 30s) and then raises
+        ``SyncLockTimeout`` instead of waiting forever. It can still wait
+        for that timeout. An owner that cannot be weakly referenced (a
+        slotted instance with no ``__weakref__``) shares the lock of its
+        type with every other such instance.
+        """
+        lock = self._owner_lock(handler)
+        timeout = float(self.sync_lock_timeout_s)
+        if not lock.acquire(timeout=max(0.0, timeout)):
+            raise SyncLockTimeout(timeout)
+        try:
+            return handler(**bound)
+        finally:
+            lock.release()
+
     def _dispatch_sync(self, intent_in: Intent | Mapping[str, Any]) -> Result:
         t0 = time.perf_counter()
         intent, args, early, principal, _cap = self._prepare(intent_in)
@@ -1037,12 +1314,16 @@ class ActionRegistry:
         # Soft principal from args must be visible to auth wraps / RegionBook
         # (they read ContextVar; principal= on dispatch already set it).
         soft_token = None
+        claim_token: Optional[str] = None
         if principal is not None and _principal_override.get() is None:
             soft_token = _principal_override.set(principal)
         try:
             early = self._run_before_hooks_sync(intent, args, principal, _cap)
-            if early is not None:
-                return self._finalize(intent, early, t0)
+            stop, claim_token = self._admit_after_hooks(
+                intent, args, principal, _cap, early
+            )
+            if stop is not None:
+                return self._finalize(intent, stop, t0, claim_token=claim_token)
 
             handler = self._actions[intent.action]
             meta = {"action": intent.action, "request_id": intent.request_id}
@@ -1058,9 +1339,20 @@ class ActionRegistry:
                 value = self._call_sync_handler(handler, bound)
             except ActionError as exc:
                 result = _call_encode_result(exc, renderer=self._renderer, meta=meta)
-                return self._finalize(intent, result, t0)
+                return self._finalize(intent, result, t0, claim_token=claim_token)
             except AsyncDispatchRequired:
                 raise
+            except SyncLockTimeout as exc:
+                return self._finalize(
+                    intent,
+                    Result.failure(
+                        "timeout",
+                        str(exc),
+                        retryable=True,
+                        **{k: v for k, v in meta.items() if v is not None},
+                    ),
+                    t0,
+                )
             except TypeError as exc:
                 return self._finalize(
                     intent,
@@ -1108,10 +1400,48 @@ class ActionRegistry:
                     ),
                     t0,
                 )
-            return self._finalize(intent, result, t0)
+            return self._finalize(intent, result, t0, claim_token=claim_token)
         finally:
+            self._idem_release(intent.idempotency_key, claim_token)
             if soft_token is not None:
                 _principal_override.reset(soft_token)
+
+    async def _join_cancelled_thread(self, work: "asyncio.Future[Any]") -> Any:
+        """Wait until a shielded sync worker finishes.
+
+        Another cancellation is cleared so this wait can run to completion.
+        The caller re-raises ``CancelledError`` afterwards.
+        """
+        while not work.done():
+            try:
+                return await work
+            except asyncio.CancelledError:
+                current = asyncio.current_task()
+                if current is None:
+                    raise
+                while current.cancelling():
+                    current.uncancel()
+        return work.result()
+
+    async def _finish_sync_worker_after_cancel(
+        self,
+        work: "asyncio.Future[Any]",
+        intent: Intent,
+        meta: dict[str, Any],
+        t0: float,
+        claim_token: Optional[str],
+    ) -> None:
+        """Store the worker's result, or leave a failure for ``finally`` to release."""
+        try:
+            value = await self._join_cancelled_thread(work)
+            if inspect.isawaitable(value):
+                value = await value
+            result = self._encode(value, intent, meta)
+            self._finalize(intent, result, t0, claim_token=claim_token)
+        except asyncio.CancelledError:
+            raise
+        except Exception:
+            logger.exception("sync handler cancelled action=%s", intent.action)
 
     async def _run_with_timeout(self, handler: ActionHandler, bound: dict[str, Any]) -> Any:
         if self.action_timeout_s and self.action_timeout_s > 0:
@@ -1125,12 +1455,16 @@ class ActionRegistry:
             return self._finalize(intent, early, t0)
 
         soft_token = None
+        claim_token: Optional[str] = None
         if principal is not None and _principal_override.get() is None:
             soft_token = _principal_override.set(principal)
         try:
             early = await self._run_before_hooks_async(intent, args, principal, _cap)
-            if early is not None:
-                return self._finalize(intent, early, t0)
+            stop, claim_token = self._admit_after_hooks(
+                intent, args, principal, _cap, early
+            )
+            if stop is not None:
+                return self._finalize(intent, stop, t0, claim_token=claim_token)
 
             handler = self._actions[intent.action]
             meta = {"action": intent.action, "request_id": intent.request_id}
@@ -1157,7 +1491,22 @@ class ActionRegistry:
                     # Preserve ContextVars (soft/hard principal) across threads
                     # (asyncio.to_thread does not copy context on all Pythons).
                     ctx_run = contextvars.copy_context()
-                    value = await asyncio.to_thread(ctx_run.run, lambda: handler(**bound))
+                    work = asyncio.create_task(
+                        asyncio.to_thread(
+                            ctx_run.run, self._run_sync_handler, handler, bound
+                        )
+                    )
+                    try:
+                        value = await asyncio.shield(work)
+                    except asyncio.CancelledError:
+                        # The worker keeps running after this task is cancelled.
+                        # Wait for it before the finally releases the slot, then
+                        # store a success or leave the slot pending so finally
+                        # can release it. The caller still sees CancelledError.
+                        await self._finish_sync_worker_after_cancel(
+                            work, intent, meta, t0, claim_token
+                        )
+                        raise
                     if inspect.isawaitable(value):
                         value = await value  # type: ignore[misc]
                 tr.emit(
@@ -1171,7 +1520,18 @@ class ActionRegistry:
                 )
             except ActionError as exc:
                 result = _call_encode_result(exc, renderer=self._renderer, meta=meta)
-                return self._finalize(intent, result, t0)
+                return self._finalize(intent, result, t0, claim_token=claim_token)
+            except SyncLockTimeout as exc:
+                return self._finalize(
+                    intent,
+                    Result.failure(
+                        "timeout",
+                        str(exc),
+                        retryable=True,
+                        **{k: v for k, v in meta.items() if v is not None},
+                    ),
+                    t0,
+                )
             except TypeError as exc:
                 return self._finalize(
                     intent,
@@ -1219,8 +1579,9 @@ class ActionRegistry:
                     ),
                     t0,
                 )
-            return self._finalize(intent, result, t0)
+            return self._finalize(intent, result, t0, claim_token=claim_token)
         finally:
+            self._idem_release(intent.idempotency_key, claim_token)
             if soft_token is not None:
                 _principal_override.reset(soft_token)
 

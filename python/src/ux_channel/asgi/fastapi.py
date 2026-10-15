@@ -15,10 +15,16 @@ from ux_channel.wire.negotiate import decode_http_body, encode_http_body
 from ux_channel.wire.core import MEDIA_TYPES
 
 import json
+import secrets
 
 from pathlib import Path
 from typing import Any, Optional, Union
 
+from ux_channel.devtools.ticket_revoke import (
+    bind_ticket_close,
+    cancel_ticket_close,
+    get_revocation_list,
+)
 from ux_channel.host.registry import ActionRegistry
 from ux_channel.security.security import (
     channel_header_ok,
@@ -466,20 +472,54 @@ def mount_channel(
         q: asyncio.Queue = asyncio.Queue(maxsize=64)
         bus = get_push_bus()
         bus.subscribe(topic, q)
+        ticket = str(creds.get("ticket") or "")
+        revoked = {"on": False}
+        close_cb = None
+
+        def _stop_push() -> None:
+            revoked["on"] = True
+            try:
+                bus.unsubscribe(topic, q)
+            except Exception:
+                pass
+            try:
+                q.put_nowait({"__ticket_revoked__": True})
+            except Exception:
+                pass
+
+        # Immediate close is in-process only. Another worker's denylist write
+        # is noticed on each wait timeout below.
+        if ticket:
+            close_cb = bind_ticket_close(ticket, _stop_push)
 
         async def gen():
             try:
                 while True:
+                    if revoked["on"] or (
+                        ticket and get_revocation_list().is_revoked(ticket)
+                    ):
+                        break
                     if await request.is_disconnected():
                         break
                     try:
                         item = await asyncio.wait_for(q.get(), timeout=15.0)
-                        import json
+                        if not isinstance(item, dict) or item.get("__ticket_revoked__"):
+                            break
+                        if ticket and get_revocation_list().is_revoked(ticket):
+                            break
                         yield f"data: {_serde.dumps(item, default=str)}\n\n"
                     except asyncio.TimeoutError:
+                        # Immediate close via bind_ticket_close is in-process
+                        # only. Check the denylist before another keepalive.
+                        if revoked["on"] or (
+                            ticket and get_revocation_list().is_revoked(ticket)
+                        ):
+                            break
                         yield ": keepalive\n\n"
             finally:
                 bus.unsubscribe(topic, q)
+                if close_cb is not None and ticket:
+                    cancel_ticket_close(ticket, close_cb)
 
         return StreamingResponse(gen(), media_type="text/event-stream")
 
@@ -576,6 +616,46 @@ def mount_channel(
         conn_q: asyncio.Queue = asyncio.Queue(maxsize=128)
         topic_queues: dict[str, asyncio.Queue] = {}
         drain_tasks: dict[str, asyncio.Task] = {}
+        loop = asyncio.get_running_loop()
+        revoked_flag = {"on": False}
+        ticket = str(creds.get("ticket") or "")
+        close_cb = None
+        out_holder: dict[str, asyncio.Task | None] = {"task": None}
+
+        def _on_ticket_revoked() -> None:
+            """Drop this socket's subscriptions the moment its ticket is revoked."""
+            revoked_flag["on"] = True
+            for _topic, tq in list(topic_queues.items()):
+                try:
+                    bus.unsubscribe(_topic, tq)
+                except Exception:
+                    pass
+
+            def _close() -> None:
+                task = out_holder["task"]
+                if task is not None and not task.done():
+                    task.cancel()
+
+                async def _ws_close() -> None:
+                    try:
+                        await websocket.close(code=1008, reason="ticket revoked")
+                    except Exception:
+                        pass
+
+                try:
+                    asyncio.create_task(_ws_close())
+                except Exception:
+                    pass
+
+            try:
+                loop.call_soon_threadsafe(_close)
+            except RuntimeError:
+                _close()
+
+        # Immediate close is in-process only. Another worker's denylist write
+        # is noticed on the keepalive branch below.
+        if ticket:
+            close_cb = bind_ticket_close(ticket, _on_ticket_revoked)
         max_subs = int(getattr(live_config, "ws_max_subscriptions", 16) or 16) if live_config else 16
         max_msg = int(getattr(live_config, "ws_max_message_bytes", 256_000) or 256_000) if live_config else 256_000
         allow_actions = bool(getattr(live_config, "ws_allow_actions", True)) if live_config else True
@@ -588,7 +668,17 @@ def mount_channel(
             except asyncio.CancelledError:
                 return
 
+        def _ticket_dead() -> bool:
+            return bool(revoked_flag["on"]) or bool(
+                ticket and get_revocation_list().is_revoked(ticket)
+            )
+
         async def _subscribe(topic: str) -> None:
+            if _ticket_dead():
+                await websocket.send_json(
+                    error_message("unauthorized", "push ticket revoked", topic=topic)
+                )
+                return
             ok_s, why_s = authorize_ws_subscribe(
                 live_config,
                 topic,
@@ -637,14 +727,36 @@ def mount_channel(
         for t0 in initial:
             await _subscribe(t0)
 
+        async def _close_revoked() -> None:
+            """Drop subscriptions and close. In-process hooks already did this."""
+            for topic_name, tq in list(topic_queues.items()):
+                try:
+                    bus.unsubscribe(topic_name, tq)
+                except Exception:
+                    pass
+            try:
+                await websocket.close(code=1008, reason="ticket revoked")
+            except Exception:
+                pass
+
         async def pump_out() -> None:
             try:
                 while True:
+                    if _ticket_dead():
+                        await _close_revoked()
+                        return
                     try:
                         item = await asyncio.wait_for(conn_q.get(), timeout=20.0)
+                        if _ticket_dead():
+                            await _close_revoked()
+                            return
                         await websocket.send_json(result_message(item))
                     except asyncio.TimeoutError:
-                        # keepalive-style ping as JSON
+                        # Immediate close via bind_ticket_close is in-process
+                        # only. A cross-worker revoke is noticed on this ping.
+                        if _ticket_dead():
+                            await _close_revoked()
+                            return
                         try:
                             await websocket.send_json({"type": "ping"})
                         except Exception:
@@ -655,8 +767,11 @@ def mount_channel(
                 return
 
         out_task = asyncio.create_task(pump_out())
+        out_holder["task"] = out_task
         try:
             while True:
+                if _ticket_dead():
+                    break
                 try:
                     raw = await websocket.receive_text()
                     try:
@@ -714,6 +829,8 @@ def mount_channel(
                         error_message("unknown_type", f"unknown type {mtype!r}")
                     )
         finally:
+            if close_cb is not None and ticket:
+                cancel_ticket_close(ticket, close_cb)
             out_task.cancel()
             for topic in list(topic_queues.keys()):
                 try:
@@ -1240,6 +1357,7 @@ def mount_channel(
                 _sanitize_id,
                 allow_rtc_traffic,
                 authorize_rtc,
+                await_rtc_inbox,
                 get_rtc_store,
             )
 
@@ -1291,8 +1409,9 @@ def mount_channel(
             except Exception:
                 pass
             store = get_rtc_store(live_config)
+            conn_id = secrets.token_hex(16)
             try:
-                snap = store.poll(room, peer, name=name, since=0)
+                snap = store.poll(room, peer, name=name, since=0, conn_id=conn_id)
             except Exception as exc:
                 await websocket.send_json({"type": "error", "error": str(exc)})
                 await websocket.close()
@@ -1338,6 +1457,7 @@ def mount_channel(
                                     peer,
                                     name=name,
                                     since=int(body.get("since") or since),
+                                    conn_id=conn_id,
                                 )
                                 for s in out.get("signals") or []:
                                     if s.get("id", 0) > since:
@@ -1365,7 +1485,7 @@ def mount_channel(
                                 )
                             continue
                         if op == "leave":
-                            store.leave(room, peer)
+                            store.leave(room, peer, conn_id)
                             await websocket.close()
                             return
                         if op == "signal":
@@ -1394,21 +1514,21 @@ def mount_channel(
                     return
 
             async def pump_out() -> None:
+                nonlocal since
                 try:
                     while True:
-                        try:
-                            msg = await asyncio.get_event_loop().run_in_executor(
-                                None, lambda: inbox.get(timeout=20.0)
-                            )
-                        except Exception:
-                            # keepalive
+                        msg = await await_rtc_inbox(inbox, idle_s=20.0)
+                        if msg is None:
+                            # keepalive — the wait did not occupy a thread
                             try:
                                 await websocket.send_json({"type": "pong"})
                             except Exception:
                                 return
                             # heartbeat poll to refresh presence TTL
                             try:
-                                store.poll(room, peer, name=name, since=since)
+                                store.poll(
+                                    room, peer, name=name, since=since, conn_id=conn_id
+                                )
                             except Exception:
                                 pass
                             continue
@@ -1435,7 +1555,7 @@ def mount_channel(
             finally:
                 store.unsubscribe(room, peer, inbox)
                 try:
-                    store.leave(room, peer)
+                    store.leave(room, peer, conn_id)
                 except Exception:
                     pass
 

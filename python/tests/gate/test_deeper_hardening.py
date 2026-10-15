@@ -7,7 +7,7 @@ from ux_channel.agent_runtime.runner import AgentRunner, ToolCall
 from ux_channel.agent_runtime.session import AgentSession
 from ux_channel.host.config import ChannelConfig
 from ux_channel.host.context import Principal
-from ux_channel.host.idempotency import MemoryIdempotencyStore
+from ux_channel.host.idempotency import IdempotencyCapacityError, MemoryIdempotencyStore
 from ux_channel.host.registry import ActionRegistry
 from ux_channel.mcp.sessions import MemoryMcpSessionStore
 from ux_channel.protocol.types import Intent
@@ -66,8 +66,13 @@ def test_stores_fail_closed():
     s = MemoryIdempotencyStore(max_keys=2)
     s.set("a", {"ok": 1}, ttl_s=3600)
     s.set("b", {"ok": 1}, ttl_s=3600)
-    s.set("c", {"ok": 1}, ttl_s=3600)
+    try:
+        s.set("c", {"ok": 1}, ttl_s=3600)
+        assert False, "full idempotency map must not drop the save"
+    except IdempotencyCapacityError as exc:
+        assert "full" in str(exc).lower()
     assert s.get("c") is None
+    assert s.get("a") == {"ok": 1}
     lim = MemoryRateLimiter(rate_per_minute=600, burst=5, max_keys=2)
     assert lim.allow("a") and lim.allow("b") and lim.allow("c") is False
 

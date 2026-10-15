@@ -12,6 +12,7 @@ Surfaces covered:
 from __future__ import annotations
 
 import re
+import unicodedata
 import warnings
 from typing import Optional, Sequence
 from urllib.parse import urlparse
@@ -114,6 +115,22 @@ def channel_header_ok(
     return val.strip() in ("1", "true", "yes")
 
 
+def _strip_href_controls(text: str) -> str:
+    """Drop C0/C1 controls and other Unicode 'C' characters (NUL, tab, DEL)."""
+    return "".join(
+        ch for ch in text if not unicodedata.category(ch).startswith("C")
+    )
+
+
+def _scheme_token(text: str) -> str:
+    """Scheme token with whitespace removed (browsers ignore it there)."""
+    return "".join(
+        ch
+        for ch in text
+        if not ch.isspace() and not unicodedata.category(ch).startswith("Z")
+    )
+
+
 def safe_href(
     href: str | None,
     *,
@@ -125,6 +142,11 @@ def safe_href(
     Allows: relative paths, http(s), mailto, tel, and hash/query-only.
     Blocks: javascript:, data:, vbscript:, file:, etc.
 
+    Control characters are removed and whitespace inside the scheme token
+    is collapsed before the scheme check, so ``java\\x00script:`` and
+    ``java script:`` cannot bypass the block. The returned value is that
+    normalized string when the URL is allowed.
+
     If ``allowed_hosts`` is non-empty, absolute http(s) URLs must match
     host (or subdomain of) an allowlisted host (Wave 1 open-redirect control).
     """
@@ -132,7 +154,7 @@ def safe_href(
         return None
     if not isinstance(href, str):
         return None
-    h = href.strip()
+    h = _strip_href_controls(href).strip()
     if not h:
         return None
     # protocol-relative //evil.com — treat as blocked for navigate (open redirect risk)
@@ -141,22 +163,25 @@ def safe_href(
     # Windows/UNC-ish or escaped backslash openers
     if h.startswith("\\") or h.startswith("/\\"):
         return None
-    lower = h.lower()
     # scheme present?
-    if ":" in h.split("?")[0].split("#")[0]:
-        scheme = lower.split(":", 1)[0]
+    path = h.split("?", 1)[0].split("#", 1)[0]
+    if ":" in path:
+        pre, _sep, rest = h.partition(":")
+        scheme = _scheme_token(pre)
+        if scheme != pre:
+            h = scheme + ":" + rest
+        scheme_l = scheme.lower()
+        lower = h.lower()
         # allow http https mailto tel
-        if scheme in _BLOCKED_HREF_SCHEMES:
+        if scheme_l in _BLOCKED_HREF_SCHEMES:
             return None
-        if scheme not in ("http", "https", "mailto", "tel"):
+        if scheme_l not in ("http", "https", "mailto", "tel"):
             # relative with colon in path is rare; block unknown schemes
             if re.match(r"^[a-z][a-z0-9+.-]*:", lower):
                 return None
         # host allowlist for absolute http(s)
         hosts = tuple(allowed_hosts or ())
-        if hosts and scheme in ("http", "https"):
-            from urllib.parse import urlparse
-
+        if hosts and scheme_l in ("http", "https"):
             host = (urlparse(h).hostname or "").lower()
             if not host:
                 return None
