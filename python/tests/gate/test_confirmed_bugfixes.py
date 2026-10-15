@@ -41,6 +41,7 @@ except ImportError:
 from ux_channel.host.live import presence_count, presence_snapshot, touch_presence
 from ux_channel.host.nonce import MemoryNonceStore
 from ux_channel.host.registry import ActionRegistry
+from ux_channel.protocol import serde as _serde
 from ux_channel.host.stores import MemoryStateStore
 from ux_channel.realtime.webrtc import MemoryRtcStore
 
@@ -1144,3 +1145,77 @@ def test_redis_store_error_is_retryable_unavailable_before_the_handler() -> None
     assert saved.error is not None
     assert saved.error.code == "unavailable"
     assert saved.error.retryable is True
+
+
+def test_full_map_legacy_replay_is_ok() -> None:
+    fake = fakeredis.FakeRedis(decode_responses=True)
+    prefix = "uidch:idem:"
+    store = RedisIdempotencyStore(fake, prefix=prefix, max_keys=1)
+    reg = ActionRegistry(_SECRET, require_cap=False, idempotency_store=store)
+    calls = {"n": 0}
+
+    def pay() -> Result:
+        calls["n"] += 1
+        return Result.success()
+
+    reg.register("Pay.go", pay)
+    first = reg.dispatch(_intent("Pay.go", idempotency_key="live"))
+    assert first.ok, first.error
+    assert calls["n"] == 1
+    fake.set(prefix + "old", _serde.dumps(Result.success().to_dict()))
+    replay = reg.dispatch(_intent("Pay.go", idempotency_key="old"))
+    assert replay.ok, replay.error
+    assert calls["n"] == 1
+    assert fake.get("{" + prefix + "}old") is None
+
+
+def test_legacy_expiry_during_replay_stays_ok() -> None:
+    fake = fakeredis.FakeRedis(decode_responses=True)
+    prefix = "uidch:idem:"
+    store = RedisIdempotencyStore(fake, prefix=prefix, max_keys=1)
+    reg = ActionRegistry(_SECRET, require_cap=False, idempotency_store=store)
+    calls = {"n": 0}
+
+    def pay() -> Result:
+        calls["n"] += 1
+        return Result.success()
+
+    reg.register("Pay.go", pay)
+    first = reg.dispatch(_intent("Pay.go", idempotency_key="live"))
+    assert first.ok, first.error
+    fake.set(prefix + "old", _serde.dumps(Result.success().to_dict()))
+
+    def _get_then_expire(key: str):
+        body = RedisIdempotencyStore.get(store, key)
+        fake.delete(prefix + key)
+        return body
+
+    store.get = _get_then_expire  # type: ignore[method-assign]
+    replay = reg.dispatch(_intent("Pay.go", idempotency_key="old"))
+    assert replay.ok, replay.error
+    assert calls["n"] == 1
+    assert fake.get("{" + prefix + "}old") is None
+
+
+def test_idempotency_get_error_skips_the_handler() -> None:
+    fake = fakeredis.FakeRedis(decode_responses=True)
+    store = RedisIdempotencyStore(fake)
+    reg = ActionRegistry(_SECRET, require_cap=False, idempotency_store=store)
+    calls = {"n": 0}
+
+    def pay() -> Result:
+        calls["n"] += 1
+        return Result.success()
+
+    reg.register("Pay.go", pay)
+
+    def _get_down(key: str):
+        raise RedisConnectionError("redis unavailable")
+
+    store.get = _get_down  # type: ignore[method-assign]
+    failed = reg.dispatch(_intent("Pay.go", idempotency_key="k"))
+    assert calls["n"] == 0
+    assert failed.ok is False
+    assert failed.error is not None
+    assert failed.error.code == "unavailable"
+    assert failed.error.retryable is True

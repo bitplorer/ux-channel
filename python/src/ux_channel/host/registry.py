@@ -567,7 +567,22 @@ class ActionRegistry:
 
         # Idempotency short-circuit
         if intent.idempotency_key and self.idempotency_store:
-            cached = self.idempotency_store.get(intent.idempotency_key)
+            try:
+                cached = self.idempotency_store.get(intent.idempotency_key)
+            except _RedisStoreError:
+                logger.exception("idempotency store failed")
+                return (
+                    intent,
+                    {},
+                    Result.failure(
+                        "unavailable",
+                        "idempotency store failed",
+                        retryable=True,
+                        **{k: v for k, v in meta_base.items() if v is not None},
+                    ),
+                    None,
+                    None,
+                )
             if cached is not None:
                 tr.emit(
                     _trace_api().FrameKind.CUSTOM,
@@ -576,7 +591,9 @@ class ActionRegistry:
                     action=intent.action,
                     ok=cached.get("ok"),
                 )
-                return intent, {}, Result.from_dict(cached), None, None
+                cached_result = Result.from_dict(cached)
+                setattr(cached_result, "_idempotency_hit", True)
+                return intent, {}, cached_result, None, None
 
         handler = self._actions.get(intent.action)
         if handler is None:
@@ -847,7 +864,15 @@ class ActionRegistry:
         # Store a success. The caller's finally releases the slot on every
         # path that did not replace the pending reservation, including this
         # failure. A client must not see ok=True while the slot is still pending.
-        if intent.idempotency_key and self.idempotency_store and result.ok:
+        # A replay hit is already stored. Writing it again can turn the hit
+        # into unavailable when the map is full or the legacy key has expired.
+        replay_hit = bool(getattr(result, "_idempotency_hit", False))
+        if (
+            intent.idempotency_key
+            and self.idempotency_store
+            and result.ok
+            and not replay_hit
+        ):
             try:
                 self.idempotency_store.set(
                     intent.idempotency_key,
@@ -1246,7 +1271,9 @@ class ActionRegistry:
         body = claimed[1] if len(claimed) > 1 else None
         token = claimed[2] if len(claimed) > 2 else None
         if status == "hit" and isinstance(body, dict):
-            return Result.from_dict(body), None
+            hit = Result.from_dict(body)
+            setattr(hit, "_idempotency_hit", True)
+            return hit, None
         if status == "pending":
             return (
                 Result.failure(

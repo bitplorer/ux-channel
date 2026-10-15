@@ -222,7 +222,10 @@ class RedisIdempotencyStore:
     principal. Deploy every worker on this store together: a rolling mix is
     unsafe, because an old worker's ``get`` does not hide the pending
     sentinel and fails when it reads one. Expiry uses Redis ``EX``, which
-    has whole-second granularity.
+    has whole-second granularity. A ZSET member whose key was removed
+    outside ``release`` stays until its score passes, so the map fails
+    closed. ``KEEPTTL`` needs Redis 6 or newer. A failed ``release`` leaves
+    the slot pending until its TTL.
     """
 
     def __init__(
