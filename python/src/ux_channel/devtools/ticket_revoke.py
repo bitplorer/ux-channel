@@ -18,9 +18,12 @@ USAGE
 from __future__ import annotations
 
 import hashlib
+import logging
 import threading
 import time
-from typing import Any, Optional, Protocol
+from typing import Any, Callable, Optional, Protocol
+
+logger = logging.getLogger("ux_channel.ticket_revoke")
 
 
 def _token_id(ticket: str) -> str:
@@ -70,16 +73,70 @@ class RedisRevocationStore:
 class TicketRevocationList:
     def __init__(self, store: Optional[RevocationStore] = None) -> None:
         self.store: RevocationStore = store or MemoryRevocationStore()
+        self._hook_lock = threading.Lock()
+        self._hooks: dict[str, list[Callable[[], None]]] = {}
+
+    def on_revoke(self, ticket: str, callback: Callable[[], None]) -> None:
+        """Run ``callback`` on this process when ``ticket`` is revoked.
+
+        ``callback`` should unsubscribe or close the socket. It runs
+        synchronously inside ``revoke``, before ``revoke`` returns.
+        """
+        if not ticket or callback is None:
+            return
+        tid = _token_id(ticket)
+        with self._hook_lock:
+            self._hooks.setdefault(tid, []).append(callback)
+
+    def cancel_on_revoke(self, ticket: str, callback: Callable[[], None]) -> None:
+        if not ticket or callback is None:
+            return
+        tid = _token_id(ticket)
+        with self._hook_lock:
+            hooks = self._hooks.get(tid)
+            if not hooks:
+                return
+            self._hooks[tid] = [h for h in hooks if h is not callback]
+            if not self._hooks[tid]:
+                del self._hooks[tid]
 
     def revoke(self, ticket: str, *, ttl_s: float = 3600) -> None:
         if not ticket:
             return
         self.store.revoke(_token_id(ticket), ttl_s=ttl_s)
+        tid = _token_id(ticket)
+        with self._hook_lock:
+            hooks = self._hooks.pop(tid, [])
+        for hook in hooks:
+            try:
+                hook()
+            except Exception:
+                logger.exception("ticket revoke hook failed")
 
     def is_revoked(self, ticket: str) -> bool:
         if not ticket:
             return False
         return self.store.is_revoked(_token_id(ticket))
+
+
+def bind_ticket_close(ticket: str, close: Callable[[], None]) -> Callable[[], None]:
+    """Unsubscribe or close ``close`` when ``ticket`` is revoked.
+
+    Returns the registered callback so the caller can cancel it on
+    a normal disconnect.
+    """
+    if not ticket:
+        return close
+
+    def _cb() -> None:
+        close()
+
+    get_revocation_list().on_revoke(ticket, _cb)
+    return _cb
+
+
+def cancel_ticket_close(ticket: str, callback: Callable[[], None]) -> None:
+    get_revocation_list().cancel_on_revoke(ticket, callback)
 
 
 _list: Optional[TicketRevocationList] = None

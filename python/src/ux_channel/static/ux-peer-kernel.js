@@ -26,10 +26,27 @@
 
   function safeHref(href) {
     if (!href || typeof href !== "string") return null;
-    var h = href.trim();
+    var h = "";
+    var i;
+    var c;
+    for (i = 0; i < href.length; i++) {
+      c = href.charCodeAt(i);
+      if (c <= 31 || (c >= 127 && c <= 159)) continue;
+      if (c >= 0x200b && c <= 0x200f) continue;
+      if (c >= 0x202a && c <= 0x202e) continue;
+      if (c === 0xfeff) continue;
+      h += href.charAt(i);
+    }
+    h = h.trim();
     if (!h || h.indexOf("//") === 0) return null;
     var path = h.split("?")[0].split("#")[0];
     if (path.indexOf(":") !== -1) {
+      var pre = h.split(":")[0];
+      var schemeChars = pre.replace(/[\s\u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000]/g, "");
+      if (schemeChars !== pre) {
+        h = schemeChars + h.slice(pre.length);
+        path = h.split("?")[0].split("#")[0];
+      }
       var scheme = path.split(":")[0].toLowerCase();
       if (["javascript", "data", "vbscript", "file"].indexOf(scheme) >= 0) return null;
       if (["http", "https", "mailto", "tel"].indexOf(scheme) < 0 && /^[a-z]+$/i.test(scheme))

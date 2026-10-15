@@ -146,32 +146,58 @@ _global_presence: DefaultDict[str, Dict[str, float]] = defaultdict(dict)
 _global_presence_lock = threading.Lock()
 
 
+def _presence_ttl(ttl_s: float) -> float:
+    """Honor the caller TTL. Zero or negative expires on the next read."""
+    try:
+        return max(0.0, float(ttl_s))
+    except (TypeError, ValueError):
+        return 60.0
+
+
+def _purge_expired(bucket: Dict[str, float], now: float) -> None:
+    dead = [k for k, exp in bucket.items() if exp <= now]
+    for k in dead:
+        del bucket[k]
+
+
 def touch_presence(topic: str, client_id: str, *, ttl_s: float = 60) -> int:
     """Record a live subscriber; returns approximate count for topic."""
     now = time.time()
+    ttl = _presence_ttl(ttl_s)
     with _global_presence_lock:
         bucket = _global_presence[topic]
-        bucket[client_id] = now + max(5.0, float(ttl_s))
-        dead = [k for k, exp in bucket.items() if exp < now]
-        for k in dead:
-            del bucket[k]
+        _purge_expired(bucket, now)
+        if ttl > 0:
+            bucket[client_id] = now + ttl
+        else:
+            bucket.pop(client_id, None)
+        if not bucket:
+            _global_presence.pop(topic, None)
+            return 0
         return len(bucket)
 
 
 def presence_count(topic: str) -> int:
     now = time.time()
     with _global_presence_lock:
-        bucket = _global_presence.get(topic, {})
-        return sum(1 for exp in bucket.values() if exp >= now)
+        bucket = _global_presence.get(topic)
+        if not bucket:
+            return 0
+        _purge_expired(bucket, now)
+        if not bucket:
+            _global_presence.pop(topic, None)
+            return 0
+        return len(bucket)
 
 
 def presence_snapshot() -> dict[str, int]:
     now = time.time()
     with _global_presence_lock:
-        return {
-            t: sum(1 for exp in b.values() if exp >= now)
-            for t, b in _global_presence.items()
-        }
+        for topic in list(_global_presence):
+            _purge_expired(_global_presence[topic], now)
+            if not _global_presence[topic]:
+                _global_presence.pop(topic, None)
+        return {t: len(b) for t, b in _global_presence.items()}
 
 
 def attach_live(channel: Any) -> LivePlane:

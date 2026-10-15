@@ -13,6 +13,7 @@ import asyncio
 import contextvars
 import inspect
 import logging
+import threading
 import time
 from typing import Any, Callable, Mapping, Optional, Sequence, TYPE_CHECKING
 
@@ -35,7 +36,7 @@ def _trace_api():
 
     return _trace
 
-from ux_channel.host.idempotency import IdempotencyStore
+from ux_channel.host.idempotency import IdempotencyCapacityError, IdempotencyStore
 from ux_channel.security.limits import (
     DEFAULT_MAX_HTML_BYTES,
     DEFAULT_MAX_OPS,
@@ -72,6 +73,9 @@ ActionHandler = Callable[..., Any]
 _principal_override: contextvars.ContextVar = contextvars.ContextVar("uid_principal", default=None)
 logger = logging.getLogger("ux_channel.host.registry")
 _request_var: contextvars.ContextVar[Any] = contextvars.ContextVar("ux_channel_request", default=None)
+_idem_reserved: contextvars.ContextVar[Optional[str]] = contextvars.ContextVar(
+    "ux_channel_idem_reserved", default=None
+)
 
 
 class ActionRegistry:
@@ -151,6 +155,8 @@ class ActionRegistry:
         self.idempotency_store = idempotency_store
         self.auth_resolver = auth_resolver
         self.require_principal = require_principal
+        # Serializes sync handlers so get-then-set clicks cannot drop increments.
+        self._sync_mutation_lock = threading.RLock()
         # optional request stashed by host for auth_resolver
 
     def _cek_require_owns_once(self) -> bool:
@@ -641,7 +647,9 @@ class ActionRegistry:
                     "expected_sub": principal.id if principal and getattr(
                         self.config, "bind_cap_to_principal", False
                     ) else None,
-                    "consume_once": True,
+                    # Consume after the rate-limit hook. Burning the nonce here
+                    # makes a 429 retry look like a replay.
+                    "consume_once": False,
                 }
                 if not self._cek_require_owns_once():
                     verify_kw["nonce_store"] = self.nonce_store
@@ -690,6 +698,41 @@ class ActionRegistry:
                     Result.failure(
                         "unauthorized",
                         str(exc),
+                        **{k: v for k, v in meta_base.items() if v is not None},
+                    ),
+                    principal,
+                    None,
+                )
+
+        if (
+            cap_data
+            and cap_data.get("once")
+            and not self._cek_require_owns_once()
+        ):
+            jti = str(cap_data.get("jti") or "").strip()
+            nonce = self.nonce_store
+            if nonce is None:
+                nonce = getattr(self._caps, "nonce_store", None)
+            if not jti:
+                return (
+                    intent,
+                    args,
+                    Result.failure(
+                        "unauthorized",
+                        "once capability missing jti",
+                        **{k: v for k, v in meta_base.items() if v is not None},
+                    ),
+                    principal,
+                    None,
+                )
+            if nonce is None:
+                return (
+                    intent,
+                    args,
+                    Result.failure(
+                        "unauthorized",
+                        "once capability requires nonce_store "
+                        "(configure MemoryNonceStore or RedisNonceStore)",
                         **{k: v for k, v in meta_base.items() if v is not None},
                     ),
                     principal,
@@ -760,14 +803,30 @@ class ActionRegistry:
                 )
             )
 
-        # store idempotent success/failure
+        # store idempotent success; release an in-flight slot on failure
+        claimed = _idem_reserved.get()
         if intent.idempotency_key and self.idempotency_store and result.ok:
             try:
                 self.idempotency_store.set(
                     intent.idempotency_key, result.to_dict(), ttl_s=3600
                 )
+            except IdempotencyCapacityError:
+                self._idem_release(claimed)
+                from ux_channel.protocol.error_map import ensure_error_meta
+
+                return ensure_error_meta(
+                    Result.failure(
+                        "unavailable",
+                        "idempotency store is full",
+                        retryable=True,
+                        action=intent.action,
+                        request_id=intent.request_id,
+                    )
+                )
             except Exception:
                 logger.exception("idempotency store failed")
+        elif claimed and claimed == intent.idempotency_key and not result.ok:
+            self._idem_release(claimed)
 
         # Drop javascript:/data: navigations even if action built raw dicts
         hosts = ()
@@ -1006,7 +1065,7 @@ class ActionRegistry:
             ctx = contextvars.copy_context()
 
             def _run() -> Any:
-                return ctx.run(handler, **bound)
+                return ctx.run(self._run_sync_handler, handler, bound)
 
             with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
                 fut = pool.submit(_run)
@@ -1015,7 +1074,7 @@ class ActionRegistry:
                 except concurrent.futures.TimeoutError as exc:
                     raise TimeoutError("action timed out") from exc
         else:
-            value = handler(**bound)
+            value = self._run_sync_handler(handler, bound)
         if inspect.isawaitable(value):
             raise AsyncDispatchRequired(
                 "handler returned an awaitable; use await registry.async_dispatch(...) "
@@ -1028,6 +1087,132 @@ class ActionRegistry:
             return await asyncio.wait_for(value, timeout=self.action_timeout_s)
         return await value
 
+    def _is_rate_limited(self, result: Result) -> bool:
+        return bool(result.error and result.error.code == "rate_limited")
+
+    def _cap_expected_sub(self, principal: Optional[Principal]) -> Optional[str]:
+        if principal and getattr(self.config, "bind_cap_to_principal", False):
+            return principal.id
+        return None
+
+    def _consume_presented_once(
+        self,
+        intent: Intent,
+        args: dict[str, Any],
+        principal: Optional[Principal],
+        cap_data: Optional[dict],
+    ) -> Optional[Result]:
+        """Burn a once-cap. Call only after the rate-limit check has passed."""
+        if not cap_data or not cap_data.get("once") or not intent.cap:
+            return None
+        meta = {
+            k: v
+            for k, v in {"action": intent.action, "request_id": intent.request_id}.items()
+            if v is not None
+        }
+        verify_args = args if self.verify_form_in_cap else dict(intent.args)
+        try:
+            verify_kw: dict[str, Any] = {
+                "expected_sub": self._cap_expected_sub(principal),
+                "consume_once": True,
+            }
+            if not self._cek_require_owns_once():
+                verify_kw["nonce_store"] = self.nonce_store
+            self._caps.verify(intent.cap, intent.action, verify_args, **verify_kw)
+        except CapError as exc:
+            _sec("cap_fail", action=intent.action, reason=str(exc))
+            return Result.failure("unauthorized", str(exc), **meta)
+        return None
+
+    def _idem_release(self, key: Optional[str]) -> None:
+        store = self.idempotency_store
+        if not key or store is None:
+            return
+        release = getattr(store, "release", None)
+        if release is not None:
+            release(key)
+
+    def _idem_begin(self, intent: Intent) -> tuple[Optional[Result], Optional[str]]:
+        """Reserve an idempotency slot before the handler.
+
+        Returns ``(stop_result, reserved_key)``. ``reserved_key`` is set only
+        when this call holds a new in-flight slot.
+        """
+        key = intent.idempotency_key
+        store = self.idempotency_store
+        if not key or store is None or not hasattr(store, "claim"):
+            return None, None
+        meta = {
+            k: v
+            for k, v in {"action": intent.action, "request_id": intent.request_id}.items()
+            if v is not None
+        }
+        try:
+            status, body = store.claim(key)
+        except IdempotencyCapacityError:
+            return (
+                Result.failure(
+                    "unavailable",
+                    "idempotency store is full",
+                    retryable=True,
+                    **meta,
+                ),
+                None,
+            )
+        if status == "hit" and isinstance(body, dict):
+            return Result.from_dict(body), None
+        if status == "pending":
+            return (
+                Result.failure(
+                    "unavailable",
+                    "idempotency key in progress",
+                    retryable=True,
+                    **meta,
+                ),
+                None,
+            )
+        if status == "reserved":
+            return None, key
+        return None, None
+
+    def _admit_after_hooks(
+        self,
+        intent: Intent,
+        args: dict[str, Any],
+        principal: Optional[Principal],
+        cap_data: Optional[dict],
+        early: Optional[Result],
+    ) -> tuple[Optional[Result], Optional[str]]:
+        """Rate-limit, then idempotency reserve, then once-consume.
+
+        A rate-limited request does not burn a once-cap. A full idempotency
+        map refuses the call before the handler and before the nonce burn.
+        """
+        if early is not None:
+            if not self._is_rate_limited(early):
+                burned = self._consume_presented_once(intent, args, principal, cap_data)
+                if burned is not None:
+                    return burned, None
+            return early, None
+        stop, reserved = self._idem_begin(intent)
+        if stop is not None:
+            return stop, None
+        burned = self._consume_presented_once(intent, args, principal, cap_data)
+        if burned is not None:
+            self._idem_release(reserved)
+            return burned, None
+        return None, reserved
+
+    def _run_sync_handler(self, handler: ActionHandler, bound: dict[str, Any]) -> Any:
+        """Run one sync handler under the process lock.
+
+        Concurrent clicks that read-modify-write draft state keep every
+        increment. The lock is re-entrant so a handler may dispatch again
+        on the same thread.
+        """
+        with self._sync_mutation_lock:
+            return handler(**bound)
+
     def _dispatch_sync(self, intent_in: Intent | Mapping[str, Any]) -> Result:
         t0 = time.perf_counter()
         intent, args, early, principal, _cap = self._prepare(intent_in)
@@ -1037,12 +1222,16 @@ class ActionRegistry:
         # Soft principal from args must be visible to auth wraps / RegionBook
         # (they read ContextVar; principal= on dispatch already set it).
         soft_token = None
+        idem_token = None
         if principal is not None and _principal_override.get() is None:
             soft_token = _principal_override.set(principal)
         try:
             early = self._run_before_hooks_sync(intent, args, principal, _cap)
-            if early is not None:
-                return self._finalize(intent, early, t0)
+            stop, reserved = self._admit_after_hooks(intent, args, principal, _cap, early)
+            if stop is not None:
+                return self._finalize(intent, stop, t0)
+            if reserved:
+                idem_token = _idem_reserved.set(reserved)
 
             handler = self._actions[intent.action]
             meta = {"action": intent.action, "request_id": intent.request_id}
@@ -1110,6 +1299,8 @@ class ActionRegistry:
                 )
             return self._finalize(intent, result, t0)
         finally:
+            if idem_token is not None:
+                _idem_reserved.reset(idem_token)
             if soft_token is not None:
                 _principal_override.reset(soft_token)
 
@@ -1125,12 +1316,16 @@ class ActionRegistry:
             return self._finalize(intent, early, t0)
 
         soft_token = None
+        idem_token = None
         if principal is not None and _principal_override.get() is None:
             soft_token = _principal_override.set(principal)
         try:
             early = await self._run_before_hooks_async(intent, args, principal, _cap)
-            if early is not None:
-                return self._finalize(intent, early, t0)
+            stop, reserved = self._admit_after_hooks(intent, args, principal, _cap, early)
+            if stop is not None:
+                return self._finalize(intent, stop, t0)
+            if reserved:
+                idem_token = _idem_reserved.set(reserved)
 
             handler = self._actions[intent.action]
             meta = {"action": intent.action, "request_id": intent.request_id}
@@ -1157,7 +1352,9 @@ class ActionRegistry:
                     # Preserve ContextVars (soft/hard principal) across threads
                     # (asyncio.to_thread does not copy context on all Pythons).
                     ctx_run = contextvars.copy_context()
-                    value = await asyncio.to_thread(ctx_run.run, lambda: handler(**bound))
+                    value = await asyncio.to_thread(
+                        ctx_run.run, self._run_sync_handler, handler, bound
+                    )
                     if inspect.isawaitable(value):
                         value = await value  # type: ignore[misc]
                 tr.emit(
@@ -1221,6 +1418,8 @@ class ActionRegistry:
                 )
             return self._finalize(intent, result, t0)
         finally:
+            if idem_token is not None:
+                _idem_reserved.reset(idem_token)
             if soft_token is not None:
                 _principal_override.reset(soft_token)
 

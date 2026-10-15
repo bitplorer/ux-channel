@@ -384,14 +384,28 @@
 
   function safeHref(href) {
     if (!href || typeof href !== "string") return null;
-    var h = href.trim();
+    var h = "";
+    var i;
+    var c;
+    for (i = 0; i < href.length; i++) {
+      c = href.charCodeAt(i);
+      if (c <= 31 || (c >= 127 && c <= 159)) continue;
+      if (c >= 0x200b && c <= 0x200f) continue;
+      if (c >= 0x202a && c <= 0x202e) continue;
+      if (c === 0xfeff) continue;
+      h += href.charAt(i);
+    }
+    h = h.trim();
     if (!h || h.indexOf("//") === 0) return null;
-    var lower = h.toLowerCase();
     var path = h.split("?")[0].split("#")[0];
     if (path.indexOf(":") !== -1) {
-      var scheme = lower.split(":")[0];
-      if (scheme === "javascript" || scheme === "data" || scheme === "vbscript" || scheme === "file") return null;
-      if (scheme !== "http" && scheme !== "https" && scheme !== "mailto" && scheme !== "tel") {
+      var pre = h.split(":")[0];
+      var scheme = pre.replace(/[\s\u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000]/g, "");
+      if (scheme !== pre) h = scheme + h.slice(pre.length);
+      var lower = h.toLowerCase();
+      var schemeL = scheme.toLowerCase();
+      if (schemeL === "javascript" || schemeL === "data" || schemeL === "vbscript" || schemeL === "file") return null;
+      if (schemeL !== "http" && schemeL !== "https" && schemeL !== "mailto" && schemeL !== "tel") {
         if (/^[a-z][a-z0-9+.-]*:/.test(lower)) return null;
       }
     }

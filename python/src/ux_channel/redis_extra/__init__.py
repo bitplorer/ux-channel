@@ -115,6 +115,7 @@ class RedisPushBackend:
         self._thread: threading.Thread | None = None
         self._started = False
         self._soft_fail = soft_fail
+        self._redis_topics: set[str] = set()
 
     def _ch(self, topic: str) -> str:
         return f"{self.prefix}{topic}"
@@ -126,9 +127,20 @@ class RedisPushBackend:
             return int(r.publish(self._ch(topic), _serde.dumps(payload, default=str)) or 0)
 
         n = self._rr.execute(_pub, default=0)
-        # always deliver to local subscribers in this process
         with self._lock:
             qs = list(self._local.get(topic, ()))
+            listener_alive = self._thread is not None and self._thread.is_alive()
+            # This process is subscribed on Redis, so the listener echoes the
+            # publish back. A second local put would deliver the push twice.
+            echo = (
+                topic in self._redis_topics
+                and self._started
+                and self._pubsub is not None
+                and listener_alive
+                and int(n or 0) > 0
+            )
+        if echo:
+            return int(n)
         for q in qs:
             try:
                 q.put_nowait(payload)
@@ -143,6 +155,8 @@ class RedisPushBackend:
         # subscribe redis channel
         if self._pubsub is not None:
             self._pubsub.subscribe(self._ch(topic))
+            with self._lock:
+                self._redis_topics.add(topic)
 
     def unsubscribe_local(self, topic: str, queue):
         with self._lock:
@@ -414,6 +428,25 @@ class RedisStateStore:
 # WebRTC multi-worker signaling
 
 
+_ADMIT_PEER_LUA = """
+local key = KEYS[1]
+local peer = ARGV[1]
+local maxp = tonumber(ARGV[2])
+local payload = ARGV[3]
+local ttl = tonumber(ARGV[4])
+if redis.call('HEXISTS', key, peer) == 0 then
+  if redis.call('HLEN', key) >= maxp then
+    return 0
+  end
+end
+redis.call('HSET', key, peer, payload)
+if ttl ~= nil and ttl > 0 then
+  redis.call('EXPIRE', key, ttl)
+end
+return 1
+"""
+
+
 class RedisRtcStore:
     """
     Shared WebRTC signaling store for multi-worker deploys.
@@ -518,6 +551,29 @@ class RedisRtcStore:
         out.sort(key=lambda x: x["id"])
         return out
 
+    def _admit_peer(self, key: str, peer_id: str, payload: str, ttl_s: int) -> bool:
+        """Atomic check-and-set. False when admitting a new peer would exceed max."""
+        try:
+            ok = self.r.eval(
+                _ADMIT_PEER_LUA,
+                1,
+                key,
+                peer_id,
+                str(int(self.max_peers)),
+                payload,
+                str(int(ttl_s)),
+            )
+            return int(ok) == 1
+        except Exception:
+            with self._lock:
+                exists = bool(self.r.hexists(key, peer_id))
+                if not exists and int(self.r.hlen(key) or 0) >= self.max_peers:
+                    return False
+                self.r.hset(key, peer_id, payload)
+                if ttl_s > 0:
+                    self.r.expire(key, int(ttl_s))
+                return True
+
     def poll(
         self,
         room: str,
@@ -525,6 +581,7 @@ class RedisRtcStore:
         *,
         name: str = "",
         since: int = 0,
+        conn_id: str | None = None,
     ) -> dict[str, Any]:
         import json
         import time
@@ -535,9 +592,6 @@ class RedisRtcStore:
             raise ValueError("peer_id required")
         self._gc_room(room)
         key = self._pk(room)
-        n = self.r.hlen(key)
-        if not self.r.hexists(key, peer_id) and n >= self.max_peers:
-            raise OverflowError(f"room full (max {self.max_peers} peers)")
         now = time.time()
         prev = {}
         if self.r.hexists(key, peer_id):
@@ -545,12 +599,15 @@ class RedisRtcStore:
                 prev = _serde.loads(self.r.hget(key, peer_id) or "{}")
             except Exception:
                 prev = {}
+        kept_conn = prev.get("conn_id") or ""
         rec = {
             "name": (name or prev.get("name") or "")[:64],
             "last_seen": now,
+            "conn_id": conn_id if conn_id is not None else kept_conn,
         }
-        self.r.hset(key, peer_id, _serde.dumps(rec))
-        self.r.expire(key, int(self.peer_ttl_s * 3))
+        ttl = int(self.peer_ttl_s * 3)
+        if not self._admit_peer(key, peer_id, _serde.dumps(rec), ttl):
+            raise OverflowError(f"room full (max {self.max_peers} peers)")
         roster = self._roster(room)
         # drain inbox after since
         ik = self._ik(room, peer_id)
@@ -642,10 +699,23 @@ class RedisRtcStore:
                     pass
         return {"ok": True, "id": sid}
 
-    def leave(self, room: str, peer_id: str) -> dict[str, Any]:
+    def leave(
+        self, room: str, peer_id: str, conn_id: str | None = None
+    ) -> dict[str, Any]:
         room = str(room or "default")[:64]
         peer_id = str(peer_id or "")[:64]
-        self.r.hdel(self._pk(room), peer_id)
+        key = self._pk(room)
+        if conn_id is not None:
+            raw = self.r.hget(key, peer_id)
+            if not raw:
+                return {"ok": True, "stale": True}
+            try:
+                rec = _serde.loads(raw)
+            except Exception:
+                rec = {}
+            if str(rec.get("conn_id") or "") != conn_id:
+                return {"ok": True, "stale": True}
+        self.r.hdel(key, peer_id)
         self.r.delete(self._ik(room, peer_id))
         roster = self._roster(room)
         for p in roster:
