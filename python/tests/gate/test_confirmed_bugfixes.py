@@ -13,6 +13,7 @@ import queue
 import threading
 import time
 import uuid
+import weakref
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
@@ -506,7 +507,11 @@ def test_redis_publisher_does_not_duplicate_pushes() -> None:
 
 
 def test_redis_leave_compare_and_delete_survives_the_replace_window() -> None:
-    """A peer that reconnects between the conn_id read and the delete must stay."""
+    """WATCH/MULTI must reach EXEC, then keep a peer replaced before the commit.
+
+    Known residual: eight aborted watches in a row give up. Leave then
+    reports stale and the peer stays in the room until its TTL.
+    """
     fake = fakeredis.FakeRedis(decode_responses=True)
     prefix = f"uidch:rtc:{uuid.uuid4().hex}:"
     store = RedisRtcStore(fake, max_peers=4, prefix=prefix)
@@ -523,42 +528,30 @@ def test_redis_leave_compare_and_delete_survives_the_replace_window() -> None:
         return original_eval(*args, **kwargs)
 
     fake.eval = _eval_refuses_leave  # type: ignore[method-assign]
-    at_read = threading.Event()
-    proceed = threading.Event()
     original_hget = fake.hget
-    paused = {"n": 0}
+    original_pipeline = fake.pipeline
+    exec_calls = {"n": 0}
 
-    def _hget(name, field):
-        value = original_hget(name, field)
-        if (
-            str(name) == key
-            and field == "peer"
-            and isinstance(value, str)
-            and '"old"' in value
-            and paused["n"] == 0
-        ):
-            paused["n"] += 1
-            at_read.set()
-            assert proceed.wait(2)
-        return value
+    def _pipeline(*args, **kwargs):
+        pipe = original_pipeline(*args, **kwargs)
+        original_execute = pipe.execute
 
-    fake.hget = _hget  # type: ignore[method-assign]
-    result: dict = {}
+        def _execute(*a, **k):
+            if exec_calls["n"] == 0:
+                exec_calls["n"] += 1
+                current = original_hget(key, "peer")
+                assert isinstance(current, str)
+                assert "old" in current
+                fake.hset(key, "peer", current.replace("old", "new", 1))
+            return original_execute(*a, **k)
 
-    def _leave() -> None:
-        result["v"] = store.leave("room", "peer", conn_id="old")
+        pipe.execute = _execute  # type: ignore[method-assign]
+        return pipe
 
-    worker = threading.Thread(target=_leave)
-    worker.start()
-    assert at_read.wait(2), "leave did not stop inside the compare window"
-    current = original_hget(key, "peer")
-    assert isinstance(current, str)
-    replaced = current.replace("old", "new", 1)
-    fake.hset(key, "peer", replaced)
-    proceed.set()
-    worker.join(3)
-    assert not worker.is_alive()
-    assert result["v"].get("stale") is True
+    fake.pipeline = _pipeline  # type: ignore[method-assign]
+    result = store.leave("room", "peer", conn_id="old")
+    assert exec_calls["n"] >= 1, "WATCH fallback returned before EXEC"
+    assert result.get("stale") is True
     kept = original_hget(key, "peer")
     assert isinstance(kept, str)
     assert "new" in kept
@@ -620,7 +613,7 @@ def test_idempotency_set_failure_is_not_success() -> None:
 
     reg.register("Pay.go", pay)
 
-    def _fail_set(key: str, result: dict, ttl_s: float = 3600) -> None:
+    def _fail_set(key: str, result: dict, ttl_s: float = 3600, token: str | None = None) -> None:
         raise RuntimeError("store down")
 
     store.set = _fail_set  # type: ignore[method-assign]
@@ -628,8 +621,8 @@ def test_idempotency_set_failure_is_not_success() -> None:
     assert first.ok is False
     assert first.error is not None
     assert first.error.code == "unavailable"
-    store.set = lambda key, result, ttl_s=3600: MemoryIdempotencyStore.set(  # type: ignore[method-assign]
-        store, key, result, ttl_s=ttl_s
+    store.set = lambda key, result, ttl_s=3600, token=None: MemoryIdempotencyStore.set(  # type: ignore[method-assign]
+        store, key, result, ttl_s=ttl_s, token=token
     )
     second = reg.dispatch(_intent("Pay.go", idempotency_key="k"))
     assert second.ok, second.error
@@ -835,3 +828,138 @@ def test_sse_keepalive_stops_when_ticket_is_revoked(monkeypatch: pytest.MonkeyPa
     keepalive_at = src.find('yield ": keepalive')
     assert keepalive_at > 0
     assert "is_revoked" in src[keepalive_at - 400 : keepalive_at]
+
+
+def test_cancel_during_sync_thread_runs_the_handler_once() -> None:
+    """Cancelling async_dispatch must not free the slot while to_thread still runs."""
+    store = MemoryIdempotencyStore(max_keys=10)
+    reg = ActionRegistry(_SECRET, require_cap=False, idempotency_store=store)
+    calls = {"n": 0}
+    started = threading.Event()
+    release = threading.Event()
+
+    def pay() -> Result:
+        calls["n"] += 1
+        started.set()
+        assert release.wait(2)
+        return Result.success()
+
+    reg.register("Pay.go", pay)
+
+    async def _run() -> None:
+        task = asyncio.create_task(
+            reg.async_dispatch(_intent("Pay.go", idempotency_key="k"))
+        )
+        while not started.is_set():
+            await asyncio.sleep(0.01)
+        task.cancel()
+        # The handler is still blocked. Cancellation must not finish the task
+        # (and free the slot) before the worker returns.
+        await asyncio.sleep(0.05)
+        assert not task.done(), "slot released while the sync worker was still running"
+        release.set()
+        with pytest.raises(asyncio.CancelledError):
+            await task
+        second = await reg.async_dispatch(_intent("Pay.go", idempotency_key="k"))
+        assert calls["n"] == 1
+        assert second.ok, second.error
+
+    asyncio.run(_run())
+
+
+def test_slotted_owner_lock_is_not_bad_request() -> None:
+    reg = ActionRegistry(_SECRET, require_cap=False)
+    reg.sync_lock_timeout_s = 0.2
+    entered = threading.Event()
+    release = threading.Event()
+
+    class Cart:
+        __slots__ = ("label",)
+
+        def __init__(self, label: str) -> None:
+            self.label = label
+
+        def add(self) -> Result:
+            if self.label == "hold":
+                entered.set()
+                assert release.wait(2)
+            return Result.success()
+
+    hold = Cart("hold")
+    other = Cart("other")
+    with pytest.raises(TypeError):
+        weakref.ref(hold)
+    reg.register("Cart.hold", hold.add)
+    reg.register("Cart.other", other.add)
+    box: queue.Queue = queue.Queue()
+
+    def _hold() -> None:
+        box.put(reg.dispatch(_intent("Cart.hold")))
+
+    threading.Thread(target=_hold, daemon=True).start()
+    assert entered.wait(1), "slotted owner did not enter the handler"
+    other_result = reg.dispatch(_intent("Cart.other"))
+    release.set()
+    held = box.get(timeout=1)
+    assert held.ok, held.error
+    assert other_result.ok is False
+    assert other_result.error is not None
+    assert other_result.error.code == "timeout"
+    assert "lock" in other_result.error.message
+    assert other_result.error.code != "bad_request"
+
+
+def test_slotted_bound_action_self_is_not_bad_request() -> None:
+    """ux-behavior style: the handler's __self__ is a slotted BoundAction."""
+
+    class BoundAction:
+        __slots__ = ("n",)
+
+        def __init__(self) -> None:
+            self.n = 0
+
+        def run(self) -> Result:
+            self.n += 1
+            return Result.success()
+
+    action = BoundAction()
+    with pytest.raises(TypeError):
+        weakref.ref(action)
+    handler = action.run
+    assert handler.__self__ is action
+    reg = ActionRegistry(_SECRET, require_cap=False)
+    reg.register("Go.run", handler)
+    result = reg.dispatch(_intent("Go.run"))
+    assert result.ok, result.error
+    assert result.error is None or result.error.code != "bad_request"
+    assert action.n == 1
+
+
+def test_set_only_overwrites_its_own_pending_claim() -> None:
+    store = MemoryIdempotencyStore(max_keys=10)
+    status, _body, token = store.claim("k")
+    assert status == "reserved"
+    assert token
+    params = inspect.signature(store.set).parameters
+    foreign: dict = {}
+    if "token" in params:
+        foreign["token"] = "someone-else"
+    try:
+        store.set("k", {"ok": True, "ops": [], "n": 9}, **foreign)
+    except Exception:
+        pass
+    raced = store.claim("k")
+    assert raced[0] == "pending", raced
+    own: dict = {}
+    if "token" in params:
+        own["token"] = token
+    store.set("k", {"ok": True, "ops": [], "n": 1}, **own)
+    saved = store.get("k")
+    assert saved is not None
+    assert saved.get("n") == 1
+    try:
+        store.set("k", {"ok": True, "ops": [], "n": 2}, **own)
+    except Exception:
+        pass
+    assert store.get("k") is not None
+    assert store.get("k").get("n") == 1

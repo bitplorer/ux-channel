@@ -19,7 +19,14 @@ class IdempotencyCapacityError(RuntimeError):
 
 class IdempotencyStore(Protocol):
     def get(self, key: str) -> Optional[dict[str, Any]]: ...
-    def set(self, key: str, result: dict[str, Any], *, ttl_s: float = 3600) -> None: ...
+    def set(
+        self,
+        key: str,
+        result: dict[str, Any],
+        *,
+        ttl_s: float = 3600,
+        token: str | None = None,
+    ) -> None: ...
 
 
 class MemoryIdempotencyStore:
@@ -95,11 +102,38 @@ class MemoryIdempotencyStore:
                 return
             self._data.pop(key, None)
 
-    def set(self, key: str, result: dict[str, Any], *, ttl_s: float = 3600) -> None:
+    def set(
+        self,
+        key: str,
+        result: dict[str, Any],
+        *,
+        ttl_s: float = 3600,
+        token: str | None = None,
+    ) -> None:
+        """Store ``result`` for ``key``.
+
+        A pending claim is overwritten only when ``token`` is the token
+        ``claim`` returned for that slot. A different token, or a direct
+        ``set`` with no token, leaves the pending claim in place and raises.
+        A token does not replace a finished result. ``set`` without a token
+        still inserts a missing key and refreshes a finished one.
+        """
         now = time.monotonic()
         with self._lock:
             self._evict_expired(now)
-            if key in self._data:
+            item = self._data.get(key)
+            if item is not None and item[1] is _PENDING:
+                owner = item[2] if len(item) > 2 else ""
+                if not token or owner != token:
+                    raise RuntimeError("idempotency set does not own the pending claim")
+                self._data[key] = (now + ttl_s, result, "")
+                return
+            if token:
+                # Not our pending claim anymore. Do not insert or clobber.
+                if item is not None:
+                    return
+                raise RuntimeError("idempotency set lost its pending claim")
+            if item is not None:
                 self._data[key] = (now + ttl_s, result, "")
                 return
             if len(self._data) >= self.max_keys:

@@ -770,7 +770,13 @@ class ActionRegistry:
         # before-hooks run in _dispatch_sync / _async_dispatch (sync vs await)
         return intent, args, None, principal, cap_data
 
-    def _finalize(self, intent: Intent, result: Result, t0: float) -> Result:
+    def _finalize(
+        self,
+        intent: Intent,
+        result: Result,
+        t0: float,
+        claim_token: Optional[str] = None,
+    ) -> Result:
         result.meta.setdefault("action", intent.action)
         if intent.request_id:
             result.meta.setdefault("request_id", intent.request_id)
@@ -837,7 +843,10 @@ class ActionRegistry:
         if intent.idempotency_key and self.idempotency_store and result.ok:
             try:
                 self.idempotency_store.set(
-                    intent.idempotency_key, result.to_dict(), ttl_s=3600
+                    intent.idempotency_key,
+                    result.to_dict(),
+                    ttl_s=3600,
+                    token=claim_token,
                 )
             except IdempotencyCapacityError:
                 from ux_channel.protocol.error_map import ensure_error_meta
@@ -1244,13 +1253,34 @@ class ActionRegistry:
             return burned, reserved
         return None, reserved
 
+    def _lock_for_key(self, key: Any) -> Optional[threading.RLock]:
+        """Return the lock for ``key``, or None when ``key`` cannot be weak."""
+        try:
+            lock = self._owner_locks.get(key)
+        except TypeError:
+            return None
+        if lock is not None:
+            return lock
+        lock = threading.RLock()
+        try:
+            self._owner_locks[key] = lock
+        except TypeError:
+            return None
+        return lock
+
     def _owner_lock(self, handler: ActionHandler) -> threading.RLock:
         owner = _sync_owner(handler)
         with self._owner_locks_guard:
-            lock = self._owner_locks.get(owner)
+            lock = self._lock_for_key(owner)
+            if lock is not None:
+                return lock
+            # Slotted instances with no ``__weakref__`` cannot live in a
+            # WeakKeyDictionary. Share one lock per type: coarser, and the
+            # class does not keep the instance alive.
+            lock = self._lock_for_key(type(owner))
             if lock is None:
                 lock = threading.RLock()
-                self._owner_locks[owner] = lock
+                self._owner_locks[type(owner)] = lock
             return lock
 
     def _run_sync_handler(self, handler: ActionHandler, bound: dict[str, Any]) -> Any:
@@ -1262,7 +1292,9 @@ class ActionRegistry:
         again. A cross-thread re-dispatch to the same owner waits up to
         ``sync_lock_timeout_s`` (default 30s) and then raises
         ``SyncLockTimeout`` instead of waiting forever. It can still wait
-        for that timeout.
+        for that timeout. An owner that cannot be weakly referenced (a
+        slotted instance with no ``__weakref__``) shares the lock of its
+        type with every other such instance.
         """
         lock = self._owner_lock(handler)
         timeout = float(self.sync_lock_timeout_s)
@@ -1291,7 +1323,7 @@ class ActionRegistry:
                 intent, args, principal, _cap, early
             )
             if stop is not None:
-                return self._finalize(intent, stop, t0)
+                return self._finalize(intent, stop, t0, claim_token=claim_token)
 
             handler = self._actions[intent.action]
             meta = {"action": intent.action, "request_id": intent.request_id}
@@ -1307,7 +1339,7 @@ class ActionRegistry:
                 value = self._call_sync_handler(handler, bound)
             except ActionError as exc:
                 result = _call_encode_result(exc, renderer=self._renderer, meta=meta)
-                return self._finalize(intent, result, t0)
+                return self._finalize(intent, result, t0, claim_token=claim_token)
             except AsyncDispatchRequired:
                 raise
             except SyncLockTimeout as exc:
@@ -1368,11 +1400,48 @@ class ActionRegistry:
                     ),
                     t0,
                 )
-            return self._finalize(intent, result, t0)
+            return self._finalize(intent, result, t0, claim_token=claim_token)
         finally:
             self._idem_release(intent.idempotency_key, claim_token)
             if soft_token is not None:
                 _principal_override.reset(soft_token)
+
+    async def _join_cancelled_thread(self, work: "asyncio.Future[Any]") -> Any:
+        """Wait until a shielded sync worker finishes.
+
+        Another cancellation is cleared so this wait can run to completion.
+        The caller re-raises ``CancelledError`` afterwards.
+        """
+        while not work.done():
+            try:
+                return await work
+            except asyncio.CancelledError:
+                current = asyncio.current_task()
+                if current is None:
+                    raise
+                while current.cancelling():
+                    current.uncancel()
+        return work.result()
+
+    async def _finish_sync_worker_after_cancel(
+        self,
+        work: "asyncio.Future[Any]",
+        intent: Intent,
+        meta: dict[str, Any],
+        t0: float,
+        claim_token: Optional[str],
+    ) -> None:
+        """Store the worker's result, or leave a failure for ``finally`` to release."""
+        try:
+            value = await self._join_cancelled_thread(work)
+            if inspect.isawaitable(value):
+                value = await value
+            result = self._encode(value, intent, meta)
+            self._finalize(intent, result, t0, claim_token=claim_token)
+        except asyncio.CancelledError:
+            raise
+        except Exception:
+            logger.exception("sync handler cancelled action=%s", intent.action)
 
     async def _run_with_timeout(self, handler: ActionHandler, bound: dict[str, Any]) -> Any:
         if self.action_timeout_s and self.action_timeout_s > 0:
@@ -1395,7 +1464,7 @@ class ActionRegistry:
                 intent, args, principal, _cap, early
             )
             if stop is not None:
-                return self._finalize(intent, stop, t0)
+                return self._finalize(intent, stop, t0, claim_token=claim_token)
 
             handler = self._actions[intent.action]
             meta = {"action": intent.action, "request_id": intent.request_id}
@@ -1422,9 +1491,22 @@ class ActionRegistry:
                     # Preserve ContextVars (soft/hard principal) across threads
                     # (asyncio.to_thread does not copy context on all Pythons).
                     ctx_run = contextvars.copy_context()
-                    value = await asyncio.to_thread(
-                        ctx_run.run, self._run_sync_handler, handler, bound
+                    work = asyncio.create_task(
+                        asyncio.to_thread(
+                            ctx_run.run, self._run_sync_handler, handler, bound
+                        )
                     )
+                    try:
+                        value = await asyncio.shield(work)
+                    except asyncio.CancelledError:
+                        # The worker keeps running after this task is cancelled.
+                        # Wait for it before the finally releases the slot, then
+                        # store a success or leave the slot pending so finally
+                        # can release it. The caller still sees CancelledError.
+                        await self._finish_sync_worker_after_cancel(
+                            work, intent, meta, t0, claim_token
+                        )
+                        raise
                     if inspect.isawaitable(value):
                         value = await value  # type: ignore[misc]
                 tr.emit(
@@ -1438,7 +1520,7 @@ class ActionRegistry:
                 )
             except ActionError as exc:
                 result = _call_encode_result(exc, renderer=self._renderer, meta=meta)
-                return self._finalize(intent, result, t0)
+                return self._finalize(intent, result, t0, claim_token=claim_token)
             except SyncLockTimeout as exc:
                 return self._finalize(
                     intent,
@@ -1497,7 +1579,7 @@ class ActionRegistry:
                     ),
                     t0,
                 )
-            return self._finalize(intent, result, t0)
+            return self._finalize(intent, result, t0, claim_token=claim_token)
         finally:
             self._idem_release(intent.idempotency_key, claim_token)
             if soft_token is not None:

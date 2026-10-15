@@ -79,9 +79,19 @@ class RedisIdempotencyStore:
             return None
         return _serde.loads(raw)
 
-    def set(self, key: str, result: dict, *, ttl_s: float = 3600) -> None:
+    def set(
+        self,
+        key: str,
+        result: dict,
+        *,
+        ttl_s: float = 3600,
+        token: str | None = None,
+    ) -> None:
         import json
 
+        # Redis idempotency has no in-process claim token. ``token`` is
+        # accepted so callers can pass the memory-store argument unchanged.
+        del token
         self.r.set(f"{self.prefix}{key}", _serde.dumps(result, default=str), ex=int(ttl_s))
 
 
@@ -734,8 +744,12 @@ class RedisRtcStore:
 
         The Lua script is atomic. If ``EVAL`` is unavailable, ``WATCH`` /
         ``MULTI`` retries the compare-and-delete. A changed key aborts the
-        transaction. Eight failed watches leave the peer in place (the caller
-        reports stale) rather than deleting a conn_id that may have changed.
+        transaction.
+
+        Known residual: after eight aborted watches the fallback gives up,
+        reports stale, and does not delete. The peer stays in the room until
+        its TTL. A busy room can outrun this fallback. The Lua path does not
+        have that limit.
         """
         try:
             deleted = self.r.eval(
