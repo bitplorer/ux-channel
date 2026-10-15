@@ -5,6 +5,7 @@ from __future__ import annotations
 import fakeredis
 import pytest
 
+from ux_channel.host.idempotency import IdempotencyCapacityError
 from ux_channel.redis_extra import (
     RedisIdempotencyStore,
     RedisNonceStore,
@@ -35,6 +36,79 @@ def test_redis_idempotency(r):
     assert store.get("k1") is None
     store.set("k1", {"ok": True, "ops": []}, ttl_s=60)
     assert store.get("k1")["ok"] is True
+
+
+def test_redis_idempotency_claim_is_token_checked(r):
+    store = RedisIdempotencyStore(r, max_keys=1)
+    other = RedisIdempotencyStore(r, max_keys=1)
+    status, body, token = store.claim("k", ttl_s=60)
+    assert status == "reserved"
+    assert body is None
+    assert token
+    assert store.get("k") is None
+
+    raced = other.claim("k")
+    assert raced[0] == "pending"
+    other.release("k", "someone-else")
+    assert store.claim("k")[0] == "pending"
+    with pytest.raises(RuntimeError, match="does not own"):
+        store.set("k", {"ok": True, "ops": [], "n": 9}, token="someone-else")
+    with pytest.raises(RuntimeError, match="does not own"):
+        store.set("k", {"ok": True, "ops": [], "n": 9})
+    assert store.claim("k")[0] == "pending"
+
+    store.set("k", {"ok": True, "ops": [], "n": 1}, ttl_s=60, token=token)
+    saved = store.get("k")
+    assert saved is not None
+    assert saved["n"] == 1
+    store.set("k", {"ok": True, "ops": [], "n": 2}, token=token)
+    assert store.get("k")["n"] == 1
+    store.set("k", {"ok": True, "ops": [], "n": 3}, ttl_s=60)
+    assert store.get("k")["n"] == 3
+    hit, hit_body, hit_token = store.claim("k")
+    assert hit == "hit"
+    assert hit_body is not None and hit_body["n"] == 3
+    assert hit_token is None
+    store.release("k", token)
+    assert store.get("k")["n"] == 3
+    r.set("unrelated", "1")
+
+    with pytest.raises(IdempotencyCapacityError):
+        store.claim("other")
+    with pytest.raises(IdempotencyCapacityError):
+        store.set("fresh", {"ok": True, "ops": []})
+
+    lost = RedisIdempotencyStore(r, prefix="uidch:idem:lost:", max_keys=2)
+    lost_status, _, lost_token = lost.claim("solo", ttl_s=60)
+    assert lost_status == "reserved"
+    assert lost_token
+    lost.release("solo", lost_token)
+    with pytest.raises(RuntimeError, match="lost"):
+        lost.set("solo", {"ok": True, "ops": []}, token=lost_token)
+    assert lost.get("solo") is None
+
+    freed = RedisIdempotencyStore(r, prefix="uidch:idem:cap:", max_keys=1)
+    cap_status, _, cap_token = freed.claim("a", ttl_s=60)
+    assert cap_status == "reserved"
+    assert cap_token
+    with pytest.raises(IdempotencyCapacityError):
+        freed.claim("b")
+    freed.release("a", cap_token)
+    again, _, again_token = freed.claim("b", ttl_s=60)
+    assert again == "reserved"
+    assert again_token
+
+
+def test_redis_idempotency_bytes_client():
+    raw = fakeredis.FakeRedis(decode_responses=False)
+    store = RedisIdempotencyStore(raw, max_keys=2)
+    status, body, token = store.claim("k", ttl_s=30)
+    assert status == "reserved"
+    assert body is None and token
+    store.set("k", {"ok": True, "ops": [], "n": 4}, token=token, ttl_s=30)
+    assert store.get("k")["n"] == 4
+    hit = store.claim("k")
+    assert hit[0] == "hit" and hit[1] is not None and hit[1]["n"] == 4
 
 
 def test_redis_rate_limiter(r):
