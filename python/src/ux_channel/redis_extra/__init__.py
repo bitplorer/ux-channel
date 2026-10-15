@@ -446,6 +446,27 @@ end
 return 1
 """
 
+# Compare-and-delete one peer. KEYS: peers hash, inbox list.
+# ARGV: peer id, conn id. Optional whitespace around the JSON colon so both
+# compact and spaced engines match. Returns 1 when this conn deleted the peer.
+_LEAVE_IF_CONN_LUA = """
+local key = KEYS[1]
+local inbox = KEYS[2]
+local peer = ARGV[1]
+local conn = ARGV[2]
+local raw = redis.call('HGET', key, peer)
+if not raw then
+  return 0
+end
+local found = string.match(raw, '"conn_id"%s*:%s*"([^"]*)"')
+if found ~= conn then
+  return 0
+end
+redis.call('HDEL', key, peer)
+redis.call('DEL', inbox)
+return 1
+"""
+
 
 class RedisRtcStore:
     """
@@ -699,24 +720,79 @@ class RedisRtcStore:
                     pass
         return {"ok": True, "id": sid}
 
+    def _conn_still_here(self, raw: Any, conn_id: str) -> bool:
+        if not raw:
+            return False
+        try:
+            rec = _serde.loads(raw)
+        except Exception:
+            return False
+        return str(rec.get("conn_id") or "") == conn_id
+
+    def _leave_if_conn(self, key: str, peer_id: str, conn_id: str, inbox: str) -> bool:
+        """Delete the peer only when its stored conn_id is still ``conn_id``.
+
+        The Lua script is atomic. If ``EVAL`` is unavailable, ``WATCH`` /
+        ``MULTI`` retries the compare-and-delete. A changed key aborts the
+        transaction. Eight failed watches leave the peer in place (the caller
+        reports stale) rather than deleting a conn_id that may have changed.
+        """
+        try:
+            deleted = self.r.eval(
+                _LEAVE_IF_CONN_LUA, 2, key, inbox, peer_id, conn_id
+            )
+            return int(deleted) == 1
+        except Exception:
+            pass
+        # redis is an optional extra; this module already loads it lazily.
+        from redis.exceptions import WatchError
+
+        for _attempt in range(8):
+            pipe = self.r.pipeline()
+            try:
+                pipe.watch(key)
+                raw = self.r.hget(key, peer_id)
+                if not self._conn_still_here(raw, conn_id):
+                    pipe.unwatch()
+                    return False
+                # The first read can return a value a replace has already
+                # overwritten. Confirm before the transaction.
+                again = self.r.hget(key, peer_id)
+                if not self._conn_still_here(again, conn_id):
+                    pipe.unwatch()
+                    return False
+                pipe.multi()
+                pipe.hdel(key, peer_id)
+                pipe.delete(inbox)
+                executed = pipe.execute()
+                if not executed:
+                    continue
+                return True
+            except WatchError:
+                continue
+            except Exception:
+                return False
+            finally:
+                try:
+                    pipe.reset()
+                except Exception:
+                    pass
+        return False
+
     def leave(
         self, room: str, peer_id: str, conn_id: str | None = None
     ) -> dict[str, Any]:
         room = str(room or "default")[:64]
         peer_id = str(peer_id or "")[:64]
         key = self._pk(room)
+        inbox = self._ik(room, peer_id)
         if conn_id is not None:
-            raw = self.r.hget(key, peer_id)
-            if not raw:
+            if not self._leave_if_conn(key, peer_id, conn_id, inbox):
                 return {"ok": True, "stale": True}
-            try:
-                rec = _serde.loads(raw)
-            except Exception:
-                rec = {}
-            if str(rec.get("conn_id") or "") != conn_id:
-                return {"ok": True, "stale": True}
-        self.r.hdel(key, peer_id)
-        self.r.delete(self._ik(room, peer_id))
+        else:
+            # HTTP leave has no conn_id and still removes the peer.
+            self.r.hdel(key, peer_id)
+            self.r.delete(inbox)
         roster = self._roster(room)
         for p in roster:
             self._publish(

@@ -23,19 +23,28 @@ from fastapi.testclient import TestClient
 
 from ux_channel import ChannelConfig, Result, toast
 from ux_channel.asgi.fastapi import mount_channel
-from ux_channel.devtools.ticket_revoke import (
-    bind_ticket_close,
-    get_revocation_list,
-)
-from ux_channel.host.idempotency import (
-    IdempotencyCapacityError,
-    MemoryIdempotencyStore,
-)
+from ux_channel.devtools.ticket_revoke import get_revocation_list
+
+try:
+    from ux_channel.devtools.ticket_revoke import bind_ticket_close
+except ImportError:  # pre-fix tree: missing symbol must fail the assertion, not collection
+    bind_ticket_close = None
+from ux_channel.host.idempotency import MemoryIdempotencyStore
+
+try:
+    from ux_channel.host.idempotency import IdempotencyCapacityError
+except ImportError:
+    IdempotencyCapacityError = None
 from ux_channel.host.live import presence_count, presence_snapshot, touch_presence
 from ux_channel.host.nonce import MemoryNonceStore
 from ux_channel.host.registry import ActionRegistry
 from ux_channel.host.stores import MemoryStateStore
-from ux_channel.realtime.webrtc import MemoryRtcStore, await_rtc_inbox
+from ux_channel.realtime.webrtc import MemoryRtcStore
+
+try:
+    from ux_channel.realtime.webrtc import await_rtc_inbox
+except ImportError:
+    await_rtc_inbox = None
 from ux_channel.redis_extra import RedisPushBackend, RedisRtcStore
 from ux_channel.security.push_security import sign_push_ticket
 from ux_channel.security.ratelimit import MemoryRateLimiter, rate_limit_hook
@@ -62,6 +71,9 @@ def test_safe_href_strips_controls_before_scheme_check() -> None:
         "javascript\x00:alert(1)",
         "jav\rasc\nript:alert(1)",
         "java\u200bscript:alert(1)",
+        "java\u00adscript:alert(1)",
+        "java\u2060script:alert(1)",
+        "java\U000F0000script:alert(1)",
     )
     for href in blocked:
         assert safe_href(href) is None, href
@@ -84,6 +96,9 @@ def test_js_safe_href_strips_controls_before_scheme_check() -> None:
         ["\x00javascript:alert(1)", None],
         ["javascript\x00:alert(1)", None],
         ["jav\rasc\nript:alert(1)", None],
+        ["java\u00adscript:alert(1)", None],
+        ["java\u2060script:alert(1)", None],
+        ["java\U000F0000script:alert(1)", None],
         ["https://example.com/a b", "https://example.com/a b"],
         ["/ok", "/ok"],
     ]
@@ -192,6 +207,7 @@ def test_full_idempotency_map_fails_closed() -> None:
     assert "full" in second.error.message
     assert calls["n"] == 1
 
+    assert IdempotencyCapacityError is not None
     direct = MemoryIdempotencyStore(max_keys=1)
     direct.set("a", {"ok": True, "ops": []})
     with pytest.raises(IdempotencyCapacityError):
@@ -235,6 +251,7 @@ def test_idle_rtc_wait_does_not_pin_the_default_executor() -> None:
         msg = await asyncio.wait_for(waiter, timeout=0.5)
         assert msg == {"type": "signal"}
 
+    assert await_rtc_inbox is not None
     asyncio.run(_run())
     src = inspect.getsource(mount_channel)
     assert "await_rtc_inbox" in src
@@ -243,6 +260,8 @@ def test_idle_rtc_wait_does_not_pin_the_default_executor() -> None:
 
 def test_reconnect_leave_drops_only_the_stale_connection() -> None:
     store = MemoryRtcStore(max_peers=4, peer_ttl_s=60, signal_ttl_s=60)
+    assert "conn_id" in inspect.signature(store.poll).parameters
+    assert "conn_id" in inspect.signature(store.leave).parameters
     old_q: queue.Queue = queue.Queue()
     new_q: queue.Queue = queue.Queue()
     store.poll("room", "peer", conn_id="old")
@@ -273,6 +292,8 @@ def test_revoked_ticket_unsubscribes_before_the_next_push() -> None:
     ticket = f"ticket-{uuid.uuid4().hex}"
     q: asyncio.Queue = asyncio.Queue()
     bus.subscribe(topic, q)
+
+    assert bind_ticket_close is not None
 
     def _close() -> None:
         bus.unsubscribe(topic, q)
@@ -462,6 +483,7 @@ def test_redis_publisher_does_not_duplicate_pushes() -> None:
     topic = f"public.dup.{uuid.uuid4().hex}"
     inbox: queue.Queue = queue.Queue()
     backend.subscribe_local(topic, inbox)
+    assert hasattr(backend, "_redis_topics")
     deadline = time.time() + 1.0
     while time.time() < deadline and topic not in backend._redis_topics:
         time.sleep(0.01)
@@ -481,3 +503,335 @@ def test_redis_publisher_does_not_duplicate_pushes() -> None:
         except queue.Empty:
             break
     assert got == [{"ok": True, "n": 1}]
+
+
+def test_redis_leave_compare_and_delete_survives_the_replace_window() -> None:
+    """A peer that reconnects between the conn_id read and the delete must stay."""
+    fake = fakeredis.FakeRedis(decode_responses=True)
+    prefix = f"uidch:rtc:{uuid.uuid4().hex}:"
+    store = RedisRtcStore(fake, max_peers=4, prefix=prefix)
+    assert "conn_id" in inspect.signature(store.leave).parameters
+    store.poll("room", "peer", conn_id="old")
+    key = store._pk("room")
+
+    original_eval = fake.eval
+
+    def _eval_refuses_leave(*args, **kwargs):
+        script = args[0] if args else ""
+        if isinstance(script, str) and "HDEL" in script and "conn_id" in script:
+            raise RuntimeError("lua disabled for leave")
+        return original_eval(*args, **kwargs)
+
+    fake.eval = _eval_refuses_leave  # type: ignore[method-assign]
+    at_read = threading.Event()
+    proceed = threading.Event()
+    original_hget = fake.hget
+    paused = {"n": 0}
+
+    def _hget(name, field):
+        value = original_hget(name, field)
+        if (
+            str(name) == key
+            and field == "peer"
+            and isinstance(value, str)
+            and '"old"' in value
+            and paused["n"] == 0
+        ):
+            paused["n"] += 1
+            at_read.set()
+            assert proceed.wait(2)
+        return value
+
+    fake.hget = _hget  # type: ignore[method-assign]
+    result: dict = {}
+
+    def _leave() -> None:
+        result["v"] = store.leave("room", "peer", conn_id="old")
+
+    worker = threading.Thread(target=_leave)
+    worker.start()
+    assert at_read.wait(2), "leave did not stop inside the compare window"
+    current = original_hget(key, "peer")
+    assert isinstance(current, str)
+    replaced = current.replace("old", "new", 1)
+    fake.hset(key, "peer", replaced)
+    proceed.set()
+    worker.join(3)
+    assert not worker.is_alive()
+    assert result["v"].get("stale") is True
+    kept = original_hget(key, "peer")
+    assert isinstance(kept, str)
+    assert "new" in kept
+    assert "old" not in kept
+
+
+def test_limit_exceeded_releases_idempotency_slot() -> None:
+    store = MemoryIdempotencyStore(max_keys=10)
+    reg = ActionRegistry(
+        _SECRET, require_cap=False, idempotency_store=store, max_ops=0
+    )
+    calls = {"n": 0}
+
+    def pay() -> Result:
+        calls["n"] += 1
+        return Result.success(toast("too many"))
+
+    reg.register("Pay.go", pay)
+    first = reg.dispatch(_intent("Pay.go", idempotency_key="k"))
+    assert first.ok is False
+    assert first.error is not None
+    assert first.error.code == "payload_too_large"
+    second = reg.dispatch(_intent("Pay.go", idempotency_key="k"))
+    assert calls["n"] == 2
+    assert second.error is not None
+    assert second.error.code == "payload_too_large"
+
+
+def test_cancelled_error_releases_idempotency_slot() -> None:
+    store = MemoryIdempotencyStore(max_keys=10)
+    reg = ActionRegistry(_SECRET, require_cap=False, idempotency_store=store)
+    calls = {"n": 0}
+
+    async def pay() -> Result:
+        calls["n"] += 1
+        raise asyncio.CancelledError()
+
+    reg.register("Pay.go", pay)
+
+    async def _run() -> None:
+        with pytest.raises(asyncio.CancelledError):
+            await reg.async_dispatch(_intent("Pay.go", idempotency_key="k"))
+        assert calls["n"] == 1
+        with pytest.raises(asyncio.CancelledError):
+            await reg.async_dispatch(_intent("Pay.go", idempotency_key="k"))
+        assert calls["n"] == 2
+
+    asyncio.run(_run())
+
+
+def test_idempotency_set_failure_is_not_success() -> None:
+    store = MemoryIdempotencyStore(max_keys=10)
+    reg = ActionRegistry(_SECRET, require_cap=False, idempotency_store=store)
+    calls = {"n": 0}
+
+    def pay() -> Result:
+        calls["n"] += 1
+        return Result.success()
+
+    reg.register("Pay.go", pay)
+
+    def _fail_set(key: str, result: dict, ttl_s: float = 3600) -> None:
+        raise RuntimeError("store down")
+
+    store.set = _fail_set  # type: ignore[method-assign]
+    first = reg.dispatch(_intent("Pay.go", idempotency_key="k"))
+    assert first.ok is False
+    assert first.error is not None
+    assert first.error.code == "unavailable"
+    store.set = lambda key, result, ttl_s=3600: MemoryIdempotencyStore.set(  # type: ignore[method-assign]
+        store, key, result, ttl_s=ttl_s
+    )
+    second = reg.dispatch(_intent("Pay.go", idempotency_key="k"))
+    assert second.ok, second.error
+    assert calls["n"] == 2
+
+
+def test_nested_same_key_does_not_release_or_double_execute() -> None:
+    store = MemoryIdempotencyStore(max_keys=10)
+    reg = ActionRegistry(_SECRET, require_cap=False, idempotency_store=store)
+    calls = {"n": 0}
+
+    def pay() -> Result:
+        calls["n"] += 1
+        inner = reg.dispatch(_intent("Pay.go", idempotency_key="k"))
+        assert inner.ok is False
+        assert inner.error is not None
+        assert inner.error.code == "unavailable"
+        raced = store.claim("k")
+        assert raced[0] == "pending", raced
+        return Result.success()
+
+    reg.register("Pay.go", pay)
+    outer = reg.dispatch(_intent("Pay.go", idempotency_key="k"))
+    assert outer.ok, outer.error
+    assert calls["n"] == 1
+    replay = reg.dispatch(_intent("Pay.go", idempotency_key="k"))
+    assert replay.ok
+    assert calls["n"] == 1
+
+
+def test_cross_thread_same_owner_lock_errors_instead_of_deadlock() -> None:
+    reg = ActionRegistry(_SECRET, require_cap=False)
+    reg.sync_lock_timeout_s = 0.2
+    done = threading.Event()
+    results: list[Result] = []
+
+    class Cart:
+        def add(self) -> Result:
+            worker = threading.Thread(target=self._other, daemon=True)
+            worker.start()
+            assert done.wait(1.5), "cross-thread re-dispatch deadlocked"
+            return Result.success()
+
+        def _other(self) -> None:
+            results.append(reg.dispatch(_intent("Cart.add")))
+            done.set()
+
+    reg.register("Cart.add", Cart().add)
+    outer = reg.dispatch(_intent("Cart.add"))
+    assert outer.ok, outer.error
+    assert results and results[0].ok is False
+    assert results[0].error is not None
+    assert "lock" in results[0].error.message
+
+
+def test_different_sync_owners_do_not_block_each_other() -> None:
+    reg = ActionRegistry(_SECRET, require_cap=False)
+    entered = threading.Event()
+    release = threading.Event()
+
+    class Hold:
+        def run(self) -> Result:
+            entered.set()
+            assert release.wait(2)
+            return Result.success()
+
+    class Other:
+        def run(self) -> Result:
+            return Result.success()
+
+    reg.register("Hold.run", Hold().run)
+    reg.register("Other.run", Other().run)
+    threading.Thread(
+        target=lambda: reg.dispatch(_intent("Hold.run")), daemon=True
+    ).start()
+    assert entered.wait(1)
+    box: queue.Queue = queue.Queue()
+
+    def _other() -> None:
+        started = time.perf_counter()
+        result = reg.dispatch(_intent("Other.run"))
+        box.put((time.perf_counter() - started, result))
+
+    threading.Thread(target=_other, daemon=True).start()
+    try:
+        elapsed, result = box.get(timeout=0.5)
+    except queue.Empty:
+        release.set()
+        raise AssertionError("different owners blocked each other")
+    release.set()
+    assert result.ok
+    assert elapsed < 0.4
+
+
+def test_cross_worker_revoke_closes_socket_on_keepalive(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A denylist write with no in-process hook is noticed on the ping branch."""
+    real_wait = asyncio.wait_for
+
+    async def _fast_wait(awaitable, timeout=None):
+        if timeout in (15.0, 20.0):
+            timeout = 0.05
+        return await real_wait(awaitable, timeout=timeout)
+
+    monkeypatch.setattr(asyncio, "wait_for", _fast_wait)
+    cfg = ChannelConfig.production(
+        secret="prod-secret-key-32chars-minimum!!!!",
+        allow_memory_stores=True,
+        enforce_same_origin=False,
+        require_channel_header=False,
+        rate_limit_per_minute=0,
+        ws_require_origin=False,
+    )
+    app = FastAPI()
+    reg = ActionRegistry(
+        cfg.secret,
+        config=cfg,
+        require_cap=cfg.require_cap,
+        nonce_store=MemoryNonceStore(),
+    )
+    mount_channel(app, reg, config=cfg)
+    topic = f"shop.keep.{uuid.uuid4().hex[:12]}"
+    ticket = sign_push_ticket(cfg, topic)
+    client = TestClient(app)
+    src = inspect.getsource(mount_channel)
+    assert "is_revoked" in src
+    with client.websocket_connect(f"/ux-channel/ws?ticket={ticket}") as ws:
+        assert ws.receive_json()["type"] == "hello"
+        ws.send_json({"type": "subscribe", "topic": topic})
+        assert ws.receive_json()["type"] == "subscribed"
+        from ux_channel.devtools import ticket_revoke as ticket_mod
+
+        ticket_mod.get_revocation_list().store.revoke(ticket_mod._token_id(ticket))
+        box: queue.Queue = queue.Queue()
+
+        def _reader() -> None:
+            try:
+                while True:
+                    box.put(("msg", ws.receive_json()))
+            except Exception as exc:
+                box.put(("closed", type(exc).__name__))
+
+        threading.Thread(target=_reader, daemon=True).start()
+        closed = False
+        deadline = time.time() + 1.5
+        while time.time() < deadline:
+            try:
+                kind, _payload = box.get(timeout=0.2)
+            except queue.Empty:
+                continue
+            if kind == "closed":
+                closed = True
+                break
+        assert closed, "keepalive branch left the socket open after is_revoked"
+
+
+def test_sse_keepalive_stops_when_ticket_is_revoked(monkeypatch: pytest.MonkeyPatch) -> None:
+    real_wait = asyncio.wait_for
+
+    async def _fast_wait(awaitable, timeout=None):
+        if timeout in (15.0, 20.0):
+            timeout = 0.05
+        return await real_wait(awaitable, timeout=timeout)
+
+    monkeypatch.setattr(asyncio, "wait_for", _fast_wait)
+    cfg = ChannelConfig.production(
+        secret="prod-secret-key-32chars-minimum!!!!",
+        allow_memory_stores=True,
+        enforce_same_origin=False,
+        require_channel_header=False,
+        rate_limit_per_minute=0,
+        ws_require_origin=False,
+    )
+    app = FastAPI()
+    reg = ActionRegistry(
+        cfg.secret,
+        config=cfg,
+        require_cap=cfg.require_cap,
+        nonce_store=MemoryNonceStore(),
+    )
+    mount_channel(app, reg, config=cfg)
+    topic = f"shop.sse.{uuid.uuid4().hex[:12]}"
+    ticket = sign_push_ticket(cfg, topic)
+    client = TestClient(app)
+    chunks: list[str] = []
+
+    def _read() -> None:
+        with client.stream("GET", f"/ux-channel/push/{topic}?ticket={ticket}") as resp:
+            assert resp.status_code == 200
+            for chunk in resp.iter_text():
+                chunks.append(chunk)
+                if sum(len(c) for c in chunks) > 200:
+                    break
+
+    worker = threading.Thread(target=_read, daemon=True)
+    worker.start()
+    time.sleep(0.15)
+    from ux_channel.devtools import ticket_revoke as ticket_mod
+
+    ticket_mod.get_revocation_list().store.revoke(ticket_mod._token_id(ticket))
+    worker.join(1.5)
+    assert not worker.is_alive(), "SSE keepalive continued after is_revoked"
+    src = inspect.getsource(mount_channel)
+    keepalive_at = src.find('yield ": keepalive')
+    assert keepalive_at > 0
+    assert "is_revoked" in src[keepalive_at - 400 : keepalive_at]

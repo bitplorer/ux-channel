@@ -15,6 +15,7 @@ import inspect
 import logging
 import threading
 import time
+import weakref
 from typing import Any, Callable, Mapping, Optional, Sequence, TYPE_CHECKING
 
 from ux_channel.protocol.capability import CapError, CapService
@@ -73,9 +74,20 @@ ActionHandler = Callable[..., Any]
 _principal_override: contextvars.ContextVar = contextvars.ContextVar("uid_principal", default=None)
 logger = logging.getLogger("ux_channel.host.registry")
 _request_var: contextvars.ContextVar[Any] = contextvars.ContextVar("ux_channel_request", default=None)
-_idem_reserved: contextvars.ContextVar[Optional[str]] = contextvars.ContextVar(
-    "ux_channel_idem_reserved", default=None
-)
+
+
+class SyncLockTimeout(TimeoutError):
+    """Another thread still holds this action owner's sync lock."""
+
+    def __init__(self, timeout_s: float) -> None:
+        super().__init__(f"sync handler lock timed out after {timeout_s:g}s")
+        self.timeout_s = timeout_s
+
+
+def _sync_owner(handler: ActionHandler) -> Any:
+    """Component instance for a bound method, otherwise the function itself."""
+    component = getattr(handler, "__self__", None)
+    return component if component is not None else handler
 
 
 class ActionRegistry:
@@ -96,6 +108,12 @@ class ActionRegistry:
         Optional request → Principal.
     action_timeout_s:
         Wall-clock limit per action (0 = none).
+    sync_lock_timeout_s:
+        How long a cross-thread re-dispatch waits for the same action
+        owner's sync lock. Default 30s, or ``config.sync_lock_timeout_s``
+        when that attribute is set. The same thread may re-enter. Different
+        owners do not share a lock. On timeout the Result code is
+        ``timeout``. The waiter can still block until that deadline.
 
     Public methods
     --------------
@@ -122,6 +140,7 @@ class ActionRegistry:
         verify_form_in_cap: bool = False,
         expose_internal_errors: bool = False,
         action_timeout_s: float = 0.0,
+        sync_lock_timeout_s: Optional[float] = None,
         config: Optional["ChannelConfig"] = None,
         nonce_store: Optional[NonceStore] = None,
         idempotency_store: Optional[IdempotencyStore] = None,
@@ -155,8 +174,17 @@ class ActionRegistry:
         self.idempotency_store = idempotency_store
         self.auth_resolver = auth_resolver
         self.require_principal = require_principal
-        # Serializes sync handlers so get-then-set clicks cannot drop increments.
-        self._sync_mutation_lock = threading.RLock()
+        configured_lock = (
+            getattr(config, "sync_lock_timeout_s", None) if config is not None else None
+        )
+        chosen_lock = (
+            sync_lock_timeout_s if sync_lock_timeout_s is not None else configured_lock
+        )
+        # Per-owner sync lock. Default 30s. Cross-thread re-dispatch to the
+        # same owner waits only this long, then SyncLockTimeout.
+        self.sync_lock_timeout_s = float(30.0 if chosen_lock is None else chosen_lock)
+        self._owner_locks: weakref.WeakKeyDictionary = weakref.WeakKeyDictionary()
+        self._owner_locks_guard = threading.Lock()
         # optional request stashed by host for auth_resolver
 
     def _cek_require_owns_once(self) -> bool:
@@ -803,15 +831,15 @@ class ActionRegistry:
                 )
             )
 
-        # store idempotent success; release an in-flight slot on failure
-        claimed = _idem_reserved.get()
+        # Store a success. The caller's finally releases the slot on every
+        # path that did not replace the pending reservation, including this
+        # failure. A client must not see ok=True while the slot is still pending.
         if intent.idempotency_key and self.idempotency_store and result.ok:
             try:
                 self.idempotency_store.set(
                     intent.idempotency_key, result.to_dict(), ttl_s=3600
                 )
             except IdempotencyCapacityError:
-                self._idem_release(claimed)
                 from ux_channel.protocol.error_map import ensure_error_meta
 
                 return ensure_error_meta(
@@ -825,8 +853,17 @@ class ActionRegistry:
                 )
             except Exception:
                 logger.exception("idempotency store failed")
-        elif claimed and claimed == intent.idempotency_key and not result.ok:
-            self._idem_release(claimed)
+                from ux_channel.protocol.error_map import ensure_error_meta
+
+                return ensure_error_meta(
+                    Result.failure(
+                        "unavailable",
+                        "idempotency store failed",
+                        retryable=True,
+                        action=intent.action,
+                        request_id=intent.request_id,
+                    )
+                )
 
         # Drop javascript:/data: navigations even if action built raw dicts
         hosts = ()
@@ -1124,19 +1161,21 @@ class ActionRegistry:
             return Result.failure("unauthorized", str(exc), **meta)
         return None
 
-    def _idem_release(self, key: Optional[str]) -> None:
+    def _idem_release(self, key: Optional[str], token: Optional[str]) -> None:
+        """Release only the reservation identified by ``token``."""
         store = self.idempotency_store
-        if not key or store is None:
+        if not key or not token or store is None:
             return
         release = getattr(store, "release", None)
         if release is not None:
-            release(key)
+            release(key, token)
 
     def _idem_begin(self, intent: Intent) -> tuple[Optional[Result], Optional[str]]:
         """Reserve an idempotency slot before the handler.
 
-        Returns ``(stop_result, reserved_key)``. ``reserved_key`` is set only
-        when this call holds a new in-flight slot.
+        Returns ``(stop_result, claim_token)``. The token stays a local of
+        this dispatch. It is not stored in a context var, so a nested
+        dispatch of the same key cannot release the parent slot.
         """
         key = intent.idempotency_key
         store = self.idempotency_store
@@ -1148,7 +1187,7 @@ class ActionRegistry:
             if v is not None
         }
         try:
-            status, body = store.claim(key)
+            claimed = store.claim(key)
         except IdempotencyCapacityError:
             return (
                 Result.failure(
@@ -1159,6 +1198,9 @@ class ActionRegistry:
                 ),
                 None,
             )
+        status = claimed[0]
+        body = claimed[1] if len(claimed) > 1 else None
+        token = claimed[2] if len(claimed) > 2 else None
         if status == "hit" and isinstance(body, dict):
             return Result.from_dict(body), None
         if status == "pending":
@@ -1172,7 +1214,7 @@ class ActionRegistry:
                 None,
             )
         if status == "reserved":
-            return None, key
+            return None, token
         return None, None
 
     def _admit_after_hooks(
@@ -1199,19 +1241,37 @@ class ActionRegistry:
             return stop, None
         burned = self._consume_presented_once(intent, args, principal, cap_data)
         if burned is not None:
-            self._idem_release(reserved)
-            return burned, None
+            return burned, reserved
         return None, reserved
 
-    def _run_sync_handler(self, handler: ActionHandler, bound: dict[str, Any]) -> Any:
-        """Run one sync handler under the process lock.
+    def _owner_lock(self, handler: ActionHandler) -> threading.RLock:
+        owner = _sync_owner(handler)
+        with self._owner_locks_guard:
+            lock = self._owner_locks.get(owner)
+            if lock is None:
+                lock = threading.RLock()
+                self._owner_locks[owner] = lock
+            return lock
 
-        Concurrent clicks that read-modify-write draft state keep every
-        increment. The lock is re-entrant so a handler may dispatch again
-        on the same thread.
+    def _run_sync_handler(self, handler: ActionHandler, bound: dict[str, Any]) -> Any:
+        """Run one sync handler under its owner's lock.
+
+        The owner is the bound component (``handler.__self__``) or, for a
+        plain function, the function itself. Different owners do not wait on
+        each other. The lock is re-entrant, so the same thread may dispatch
+        again. A cross-thread re-dispatch to the same owner waits up to
+        ``sync_lock_timeout_s`` (default 30s) and then raises
+        ``SyncLockTimeout`` instead of waiting forever. It can still wait
+        for that timeout.
         """
-        with self._sync_mutation_lock:
+        lock = self._owner_lock(handler)
+        timeout = float(self.sync_lock_timeout_s)
+        if not lock.acquire(timeout=max(0.0, timeout)):
+            raise SyncLockTimeout(timeout)
+        try:
             return handler(**bound)
+        finally:
+            lock.release()
 
     def _dispatch_sync(self, intent_in: Intent | Mapping[str, Any]) -> Result:
         t0 = time.perf_counter()
@@ -1222,16 +1282,16 @@ class ActionRegistry:
         # Soft principal from args must be visible to auth wraps / RegionBook
         # (they read ContextVar; principal= on dispatch already set it).
         soft_token = None
-        idem_token = None
+        claim_token: Optional[str] = None
         if principal is not None and _principal_override.get() is None:
             soft_token = _principal_override.set(principal)
         try:
             early = self._run_before_hooks_sync(intent, args, principal, _cap)
-            stop, reserved = self._admit_after_hooks(intent, args, principal, _cap, early)
+            stop, claim_token = self._admit_after_hooks(
+                intent, args, principal, _cap, early
+            )
             if stop is not None:
                 return self._finalize(intent, stop, t0)
-            if reserved:
-                idem_token = _idem_reserved.set(reserved)
 
             handler = self._actions[intent.action]
             meta = {"action": intent.action, "request_id": intent.request_id}
@@ -1250,6 +1310,17 @@ class ActionRegistry:
                 return self._finalize(intent, result, t0)
             except AsyncDispatchRequired:
                 raise
+            except SyncLockTimeout as exc:
+                return self._finalize(
+                    intent,
+                    Result.failure(
+                        "timeout",
+                        str(exc),
+                        retryable=True,
+                        **{k: v for k, v in meta.items() if v is not None},
+                    ),
+                    t0,
+                )
             except TypeError as exc:
                 return self._finalize(
                     intent,
@@ -1299,8 +1370,7 @@ class ActionRegistry:
                 )
             return self._finalize(intent, result, t0)
         finally:
-            if idem_token is not None:
-                _idem_reserved.reset(idem_token)
+            self._idem_release(intent.idempotency_key, claim_token)
             if soft_token is not None:
                 _principal_override.reset(soft_token)
 
@@ -1316,16 +1386,16 @@ class ActionRegistry:
             return self._finalize(intent, early, t0)
 
         soft_token = None
-        idem_token = None
+        claim_token: Optional[str] = None
         if principal is not None and _principal_override.get() is None:
             soft_token = _principal_override.set(principal)
         try:
             early = await self._run_before_hooks_async(intent, args, principal, _cap)
-            stop, reserved = self._admit_after_hooks(intent, args, principal, _cap, early)
+            stop, claim_token = self._admit_after_hooks(
+                intent, args, principal, _cap, early
+            )
             if stop is not None:
                 return self._finalize(intent, stop, t0)
-            if reserved:
-                idem_token = _idem_reserved.set(reserved)
 
             handler = self._actions[intent.action]
             meta = {"action": intent.action, "request_id": intent.request_id}
@@ -1369,6 +1439,17 @@ class ActionRegistry:
             except ActionError as exc:
                 result = _call_encode_result(exc, renderer=self._renderer, meta=meta)
                 return self._finalize(intent, result, t0)
+            except SyncLockTimeout as exc:
+                return self._finalize(
+                    intent,
+                    Result.failure(
+                        "timeout",
+                        str(exc),
+                        retryable=True,
+                        **{k: v for k, v in meta.items() if v is not None},
+                    ),
+                    t0,
+                )
             except TypeError as exc:
                 return self._finalize(
                     intent,
@@ -1418,8 +1499,7 @@ class ActionRegistry:
                 )
             return self._finalize(intent, result, t0)
         finally:
-            if idem_token is not None:
-                _idem_reserved.reset(idem_token)
+            self._idem_release(intent.idempotency_key, claim_token)
             if soft_token is not None:
                 _principal_override.reset(soft_token)
 

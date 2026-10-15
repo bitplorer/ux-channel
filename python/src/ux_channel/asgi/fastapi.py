@@ -487,6 +487,8 @@ def mount_channel(
             except Exception:
                 pass
 
+        # Immediate close is in-process only. Another worker's denylist write
+        # is noticed on each wait timeout below.
         if ticket:
             close_cb = bind_ticket_close(ticket, _stop_push)
 
@@ -507,6 +509,12 @@ def mount_channel(
                             break
                         yield f"data: {_serde.dumps(item, default=str)}\n\n"
                     except asyncio.TimeoutError:
+                        # Immediate close via bind_ticket_close is in-process
+                        # only. Check the denylist before another keepalive.
+                        if revoked["on"] or (
+                            ticket and get_revocation_list().is_revoked(ticket)
+                        ):
+                            break
                         yield ": keepalive\n\n"
             finally:
                 bus.unsubscribe(topic, q)
@@ -644,6 +652,8 @@ def mount_channel(
             except RuntimeError:
                 _close()
 
+        # Immediate close is in-process only. Another worker's denylist write
+        # is noticed on the keepalive branch below.
         if ticket:
             close_cb = bind_ticket_close(ticket, _on_ticket_revoked)
         max_subs = int(getattr(live_config, "ws_max_subscriptions", 16) or 16) if live_config else 16
@@ -717,18 +727,36 @@ def mount_channel(
         for t0 in initial:
             await _subscribe(t0)
 
+        async def _close_revoked() -> None:
+            """Drop subscriptions and close. In-process hooks already did this."""
+            for topic_name, tq in list(topic_queues.items()):
+                try:
+                    bus.unsubscribe(topic_name, tq)
+                except Exception:
+                    pass
+            try:
+                await websocket.close(code=1008, reason="ticket revoked")
+            except Exception:
+                pass
+
         async def pump_out() -> None:
             try:
                 while True:
                     if _ticket_dead():
+                        await _close_revoked()
                         return
                     try:
                         item = await asyncio.wait_for(conn_q.get(), timeout=20.0)
                         if _ticket_dead():
+                            await _close_revoked()
                             return
                         await websocket.send_json(result_message(item))
                     except asyncio.TimeoutError:
-                        # keepalive-style ping as JSON
+                        # Immediate close via bind_ticket_close is in-process
+                        # only. A cross-worker revoke is noticed on this ping.
+                        if _ticket_dead():
+                            await _close_revoked()
+                            return
                         try:
                             await websocket.send_json({"type": "ping"})
                         except Exception:
