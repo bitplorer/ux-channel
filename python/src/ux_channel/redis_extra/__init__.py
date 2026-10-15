@@ -72,9 +72,8 @@ class RedisNonceStore:
 # The token is appended so compare-and-delete / compare-and-set need no JSON parser.
 _PENDING_PREFIX = "uxidem:v1:pending:"
 
-# SET NX reserves. The side ZSET is the live-key count: score is the expiry
-# second, release removes the member, and a full map drops members whose
-# keys are already gone. That stays on this prefix's keys, not KEYS of the DB.
+# SET NX reserves. The ZSET score is the expiry second. Sweep with
+# ZREMRANGEBYSCORE before counting. No per-member EXISTS.
 _IDEM_CLAIM_LUA = """
 local key = KEYS[1]
 local index = KEYS[2]
@@ -93,15 +92,6 @@ end
 local now_s = tonumber(redis.call('TIME')[1])
 redis.call('ZREMRANGEBYSCORE', index, '-inf', now_s)
 local count = redis.call('ZCARD', index)
-if count >= max_keys then
-  local members = redis.call('ZRANGE', index, 0, -1)
-  for i = 1, #members do
-    if redis.call('EXISTS', members[i]) == 0 then
-      redis.call('ZREM', index, members[i])
-    end
-  end
-  count = redis.call('ZCARD', index)
-end
 if count >= max_keys then
   return {'full', ''}
 end
@@ -172,23 +162,12 @@ if token ~= '' then
   return -2
 end
 if raw then
-  local now_s = tonumber(redis.call('TIME')[1])
-  redis.call('SET', key, payload, 'EX', ttl)
-  redis.call('ZADD', index, now_s + ttl, key)
+  redis.call('SET', key, payload, 'KEEPTTL')
   return 1
 end
 local now_s = tonumber(redis.call('TIME')[1])
 redis.call('ZREMRANGEBYSCORE', index, '-inf', now_s)
 local count = redis.call('ZCARD', index)
-if count >= max_keys then
-  local members = redis.call('ZRANGE', index, 0, -1)
-  for i = 1, #members do
-    if redis.call('EXISTS', members[i]) == 0 then
-      redis.call('ZREM', index, members[i])
-    end
-  end
-  count = redis.call('ZCARD', index)
-end
 if count >= max_keys then
   return -3
 end
@@ -213,7 +192,7 @@ def _idem_seconds(ttl_s: float) -> int:
 
 
 def _idem_index(prefix: str) -> str:
-    """Capacity ZSET. Not a data key: it does not start with ``prefix``."""
+    """Capacity ZSET. Same hash tag as the data key: ``{prefix}``."""
     return "{" + prefix + "}.cap"
 
 
@@ -238,6 +217,12 @@ class RedisIdempotencyStore:
     token. ``release`` and ``set`` change that slot only when the token
     matches. ``get`` hides the sentinel. A new key past ``max_keys`` raises
     ``IdempotencyCapacityError`` instead of dropping a live one.
+
+    Residuals. ``max_keys`` is one cap for the whole prefix, not a cap per
+    principal. Deploy every worker on this store together: a rolling mix is
+    unsafe, because an old worker's ``get`` does not hide the pending
+    sentinel and fails when it reads one. Expiry uses Redis ``EX``, which
+    has whole-second granularity.
     """
 
     def __init__(
@@ -252,16 +237,31 @@ class RedisIdempotencyStore:
         self.max_keys = max_keys
 
     def _redis_key(self, key: str) -> str:
+        # Hash tag matches ``_idem_index`` so the script stays in one slot.
+        return "{" + self.prefix + "}" + key
+
+    def _legacy_key(self, key: str) -> str:
         return f"{self.prefix}{key}"
 
-    def get(self, key: str) -> Optional[dict]:
-        raw = self.r.get(self._redis_key(key))
+    def _finished(self, raw: Any) -> Optional[dict[str, Any]]:
         if not raw:
             return None
         text = _idem_text(raw)
         if text.startswith(_PENDING_PREFIX):
             return None
-        return _serde.loads(text)
+        body = _serde.loads(text)
+        if not isinstance(body, dict):
+            return None
+        return body
+
+    def get(self, key: str) -> Optional[dict]:
+        raw = self.r.get(self._redis_key(key))
+        if raw:
+            text = _idem_text(raw)
+            if text.startswith(_PENDING_PREFIX):
+                return None
+            return _serde.loads(text)
+        return self._finished(self.r.get(self._legacy_key(key)))
 
     def claim(
         self, key: str, *, ttl_s: float = 3600
@@ -273,6 +273,11 @@ class RedisIdempotencyStore:
         finish the slot.
         """
         token = uuid.uuid4().hex
+        # Legacy names are untagged, so they must not enter this script.
+        if not self.r.get(self._redis_key(key)):
+            legacy = self._finished(self.r.get(self._legacy_key(key)))
+            if legacy is not None:
+                return "hit", legacy, None
         reply = self.r.eval(
             _IDEM_CLAIM_LUA,
             2,
@@ -327,8 +332,9 @@ class RedisIdempotencyStore:
         A pending claim is overwritten only when ``token`` is the token
         ``claim`` returned. A different token, or a direct ``set`` with no
         token, leaves the pending claim and raises. A token does not
-        replace a finished result. ``set`` without a token still inserts a
-        missing key and refreshes a finished one.
+        replace a finished result. ``set`` without a token inserts a
+        missing key. On a finished key it replaces the body and keeps the
+        existing TTL and capacity score (``KEEPTTL``).
         """
         reply = self.r.eval(
             _IDEM_SET_LUA,

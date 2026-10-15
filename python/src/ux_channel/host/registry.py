@@ -38,6 +38,13 @@ def _trace_api():
     return _trace
 
 from ux_channel.host.idempotency import IdempotencyCapacityError, IdempotencyStore
+
+try:
+    from redis.exceptions import RedisError as _RedisStoreError
+except ImportError:  # pragma: no cover - redis extra is optional
+
+    class _RedisStoreError(Exception):
+        """Stand-in when the redis package is not installed."""
 from ux_channel.security.limits import (
     DEFAULT_MAX_HTML_BYTES,
     DEFAULT_MAX_OPS,
@@ -860,6 +867,19 @@ class ActionRegistry:
                         request_id=intent.request_id,
                     )
                 )
+            except _RedisStoreError:
+                logger.exception("idempotency store failed")
+                from ux_channel.protocol.error_map import ensure_error_meta
+
+                return ensure_error_meta(
+                    Result.failure(
+                        "unavailable",
+                        "idempotency store failed",
+                        retryable=True,
+                        action=intent.action,
+                        request_id=intent.request_id,
+                    )
+                )
             except Exception:
                 logger.exception("idempotency store failed")
                 from ux_channel.protocol.error_map import ensure_error_meta
@@ -1176,8 +1196,12 @@ class ActionRegistry:
         if not key or not token or store is None:
             return
         release = getattr(store, "release", None)
-        if release is not None:
+        if release is None:
+            return
+        try:
             release(key, token)
+        except _RedisStoreError:
+            logger.exception("idempotency release failed")
 
     def _idem_begin(self, intent: Intent) -> tuple[Optional[Result], Optional[str]]:
         """Reserve an idempotency slot before the handler.
@@ -1202,6 +1226,17 @@ class ActionRegistry:
                 Result.failure(
                     "unavailable",
                     "idempotency store is full",
+                    retryable=True,
+                    **meta,
+                ),
+                None,
+            )
+        except _RedisStoreError:
+            logger.exception("idempotency store failed")
+            return (
+                Result.failure(
+                    "unavailable",
+                    "idempotency store failed",
                     retryable=True,
                     **meta,
                 ),

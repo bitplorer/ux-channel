@@ -4,8 +4,12 @@ from __future__ import annotations
 
 import fakeredis
 import pytest
+from redis.crc import key_slot
+from redis.exceptions import ResponseError
 
+import ux_channel.redis_extra as redis_extra
 from ux_channel.host.idempotency import IdempotencyCapacityError
+from ux_channel.protocol import serde as _serde
 from ux_channel.redis_extra import (
     RedisIdempotencyStore,
     RedisNonceStore,
@@ -109,6 +113,63 @@ def test_redis_idempotency_bytes_client():
     assert store.get("k")["n"] == 4
     hit = store.claim("k")
     assert hit[0] == "hit" and hit[1] is not None and hit[1]["n"] == 4
+
+
+def test_redis_idempotency_data_key_shares_slot_with_index():
+    """Hash tag on the data key must match the capacity index slot."""
+    prefix = "uidch:idem:"
+    store = RedisIdempotencyStore(
+        fakeredis.FakeRedis(decode_responses=True), prefix=prefix
+    )
+    data = store._redis_key("order-1")
+    index = redis_extra._idem_index(prefix)
+    assert data == "{" + prefix + "}" + "order-1"
+    assert index == "{" + prefix + "}.cap"
+    assert key_slot(data.encode()) == key_slot(index.encode())
+    assert "EXISTS" not in redis_extra._IDEM_CLAIM_LUA
+    assert "EXISTS" not in redis_extra._IDEM_SET_LUA
+    assert "ZREMRANGEBYSCORE" in redis_extra._IDEM_CLAIM_LUA
+    assert "KEEPTTL" in redis_extra._IDEM_SET_LUA
+
+
+def test_legacy_untagged_result_hits_without_eval():
+    fake = fakeredis.FakeRedis(decode_responses=True)
+    prefix = "uidch:idem:"
+    store = RedisIdempotencyStore(fake, prefix=prefix)
+    fake.set(
+        prefix + "order-1",
+        _serde.dumps({"ok": True, "ops": [], "n": 7}),
+    )
+
+    def _eval_must_not_run(*args, **kwargs):
+        raise AssertionError("legacy hit must stay outside the script")
+
+    fake.eval = _eval_must_not_run  # type: ignore[method-assign]
+    assert store.get("order-1")["n"] == 7
+    status, body, token = store.claim("order-1")
+    assert status == "hit"
+    assert body is not None and body["n"] == 7
+    assert token is None
+    assert fake.get("{" + prefix + "}order-1") is None
+
+
+def test_tokenless_refresh_keeps_ttl_and_score():
+    fake = fakeredis.FakeRedis(decode_responses=True)
+    prefix = "uidch:idem:"
+    store = RedisIdempotencyStore(fake, prefix=prefix)
+    status, _, token = store.claim("k", ttl_s=40)
+    assert status == "reserved" and token
+    store.set("k", {"ok": True, "ops": [], "n": 1}, ttl_s=40, token=token)
+    data = "{" + prefix + "}k"
+    index = "{" + prefix + "}.cap"
+    ttl_before = int(fake.ttl(data))
+    score_before = fake.zscore(index, data)
+    assert ttl_before > 1
+    assert score_before is not None
+    store.set("k", {"ok": True, "ops": [], "n": 2}, ttl_s=4000)
+    assert store.get("k")["n"] == 2
+    assert int(fake.ttl(data)) <= ttl_before
+    assert fake.zscore(index, data) == score_before
 
 
 def test_redis_rate_limiter(r):

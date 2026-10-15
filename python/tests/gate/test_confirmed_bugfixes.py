@@ -19,6 +19,8 @@ from pathlib import Path
 
 import fakeredis
 import pytest
+from redis.exceptions import ConnectionError as RedisConnectionError
+from redis.exceptions import ResponseError
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
@@ -1086,3 +1088,59 @@ def test_redis_nested_same_key_does_not_release_or_double_execute() -> None:
     replay = reg.dispatch(_intent("Pay.go", idempotency_key="k"))
     assert replay.ok
     assert calls["n"] == 1
+
+
+def test_redis_store_error_is_retryable_unavailable_before_the_handler() -> None:
+    fake = fakeredis.FakeRedis(decode_responses=True)
+    store = RedisIdempotencyStore(fake)
+    reg = ActionRegistry(_SECRET, require_cap=False, idempotency_store=store)
+    calls = {"n": 0}
+
+    def pay() -> Result:
+        calls["n"] += 1
+        return Result.success()
+
+    reg.register("Pay.go", pay)
+
+    def _crossslot(key: str, *, ttl_s: float = 3600):
+        raise ResponseError("CROSSSLOT Keys in request don't hash to the same slot")
+
+    store.claim = _crossslot  # type: ignore[method-assign]
+    crossed = reg.dispatch(_intent("Pay.go", idempotency_key="k"))
+    assert calls["n"] == 0
+    assert crossed.ok is False
+    assert crossed.error is not None
+    assert crossed.error.code == "unavailable"
+    assert crossed.error.retryable is True
+
+    def _down(key: str, *, ttl_s: float = 3600):
+        raise RedisConnectionError("redis unavailable")
+
+    store.claim = _down  # type: ignore[method-assign]
+    down = reg.dispatch(_intent("Pay.go", idempotency_key="k"))
+    assert calls["n"] == 0
+    assert down.ok is False
+    assert down.error is not None
+    assert down.error.code == "unavailable"
+    assert down.error.retryable is True
+
+    def _claim_ok(key: str, *, ttl_s: float = 3600):
+        return ("reserved", None, "tok")
+
+    def _set_down(
+        key: str,
+        result: dict,
+        *,
+        ttl_s: float = 3600,
+        token: str | None = None,
+    ):
+        raise RedisConnectionError("redis unavailable")
+
+    store.claim = _claim_ok  # type: ignore[method-assign]
+    store.set = _set_down  # type: ignore[method-assign]
+    saved = reg.dispatch(_intent("Pay.go", idempotency_key="k"))
+    assert calls["n"] == 1
+    assert saved.ok is False
+    assert saved.error is not None
+    assert saved.error.code == "unavailable"
+    assert saved.error.retryable is True
