@@ -506,7 +506,14 @@ class ActionRegistry:
 
     def _prepare(
         self, intent: Intent | Mapping[str, Any]
-    ) -> tuple[Intent, dict[str, Any], Optional[Result], Optional[Principal], Optional[dict]]:
+    ) -> tuple[
+        Intent,
+        dict[str, Any],
+        Optional[Result],
+        Optional[Principal],
+        Optional[dict],
+        bool,
+    ]:
         if not isinstance(intent, Intent):
             try:
                 intent = Intent.from_dict(intent)
@@ -519,6 +526,7 @@ class ActionRegistry:
                     Result.failure("bad_request", f"invalid intent: {exc}"),
                     None,
                     None,
+                    False,
                 )
 
         if not intent.request_id:
@@ -533,6 +541,7 @@ class ActionRegistry:
                 Result.failure("bad_request", str(exc), action=intent.action, request_id=intent.request_id),
                 None,
                 None,
+                False,
             )
 
         try:
@@ -546,6 +555,7 @@ class ActionRegistry:
                 Result.failure("bad_request", str(exc), action=intent.action, request_id=intent.request_id),
                 None,
                 None,
+                False,
             )
 
         tr = _trace_api().get_tracer()
@@ -582,6 +592,7 @@ class ActionRegistry:
                     ),
                     None,
                     None,
+                    False,
                 )
             if cached is not None:
                 tr.emit(
@@ -592,8 +603,7 @@ class ActionRegistry:
                     ok=cached.get("ok"),
                 )
                 cached_result = Result.from_dict(cached)
-                setattr(cached_result, "_idempotency_hit", True)
-                return intent, {}, cached_result, None, None
+                return intent, {}, cached_result, None, None, True
 
         handler = self._actions.get(intent.action)
         if handler is None:
@@ -614,6 +624,7 @@ class ActionRegistry:
                 ),
                 None,
                 None,
+                False,
             )
 
         args = dict(intent.args)
@@ -634,6 +645,7 @@ class ActionRegistry:
                 ),
                 None,
                 None,
+                False,
             )
         soft_from_args = False
         # Soft identity: id only. NEVER take roles/scopes from client Intent args.
@@ -665,6 +677,7 @@ class ActionRegistry:
                 ),
                 None,
                 None,
+                False,
             )
 
         cap_data: Optional[dict] = None
@@ -692,6 +705,7 @@ class ActionRegistry:
                     ),
                     principal,
                     None,
+                    False,
                 )
             verify_args = args if self.verify_form_in_cap else dict(intent.args)
             try:
@@ -754,6 +768,7 @@ class ActionRegistry:
                     ),
                     principal,
                     None,
+                    False,
                 )
 
         if (
@@ -776,6 +791,7 @@ class ActionRegistry:
                     ),
                     principal,
                     None,
+                    False,
                 )
             if nonce is None:
                 return (
@@ -789,10 +805,11 @@ class ActionRegistry:
                     ),
                     principal,
                     None,
+                    False,
                 )
 
         # before-hooks run in _dispatch_sync / _async_dispatch (sync vs await)
-        return intent, args, None, principal, cap_data
+        return intent, args, None, principal, cap_data, False
 
     def _finalize(
         self,
@@ -800,6 +817,7 @@ class ActionRegistry:
         result: Result,
         t0: float,
         claim_token: Optional[str] = None,
+        idempotency_hit: bool = False,
     ) -> Result:
         result.meta.setdefault("action", intent.action)
         if intent.request_id:
@@ -864,14 +882,13 @@ class ActionRegistry:
         # Store a success. The caller's finally releases the slot on every
         # path that did not replace the pending reservation, including this
         # failure. A client must not see ok=True while the slot is still pending.
-        # A replay hit is already stored. Writing it again can turn the hit
-        # into unavailable when the map is full or the legacy key has expired.
-        replay_hit = bool(getattr(result, "_idempotency_hit", False))
+        # A replay hit is already stored. The flag is a dispatch local, so an
+        # after-hook that returns a new Result cannot drop it and rewrite.
         if (
             intent.idempotency_key
             and self.idempotency_store
             and result.ok
-            and not replay_hit
+            and not idempotency_hit
         ):
             try:
                 self.idempotency_store.set(
@@ -1228,17 +1245,20 @@ class ActionRegistry:
         except _RedisStoreError:
             logger.exception("idempotency release failed")
 
-    def _idem_begin(self, intent: Intent) -> tuple[Optional[Result], Optional[str]]:
+    def _idem_begin(
+        self, intent: Intent
+    ) -> tuple[Optional[Result], Optional[str], bool]:
         """Reserve an idempotency slot before the handler.
 
-        Returns ``(stop_result, claim_token)``. The token stays a local of
-        this dispatch. It is not stored in a context var, so a nested
-        dispatch of the same key cannot release the parent slot.
+        Returns ``(stop_result, claim_token, idempotency_hit)``. The token
+        and the hit flag stay locals of this dispatch. The token is not
+        stored in a context var, so a nested dispatch of the same key cannot
+        release the parent slot.
         """
         key = intent.idempotency_key
         store = self.idempotency_store
         if not key or store is None or not hasattr(store, "claim"):
-            return None, None
+            return None, None, False
         meta = {
             k: v
             for k, v in {"action": intent.action, "request_id": intent.request_id}.items()
@@ -1255,6 +1275,7 @@ class ActionRegistry:
                     **meta,
                 ),
                 None,
+                False,
             )
         except _RedisStoreError:
             logger.exception("idempotency store failed")
@@ -1266,14 +1287,13 @@ class ActionRegistry:
                     **meta,
                 ),
                 None,
+                False,
             )
         status = claimed[0]
         body = claimed[1] if len(claimed) > 1 else None
         token = claimed[2] if len(claimed) > 2 else None
         if status == "hit" and isinstance(body, dict):
-            hit = Result.from_dict(body)
-            setattr(hit, "_idempotency_hit", True)
-            return hit, None
+            return Result.from_dict(body), None, True
         if status == "pending":
             return (
                 Result.failure(
@@ -1283,10 +1303,11 @@ class ActionRegistry:
                     **meta,
                 ),
                 None,
+                False,
             )
         if status == "reserved":
-            return None, token
-        return None, None
+            return None, token, False
+        return None, None, False
 
     def _admit_after_hooks(
         self,
@@ -1295,7 +1316,7 @@ class ActionRegistry:
         principal: Optional[Principal],
         cap_data: Optional[dict],
         early: Optional[Result],
-    ) -> tuple[Optional[Result], Optional[str]]:
+    ) -> tuple[Optional[Result], Optional[str], bool]:
         """Rate-limit, then idempotency reserve, then once-consume.
 
         A rate-limited request does not burn a once-cap. A full idempotency
@@ -1305,15 +1326,15 @@ class ActionRegistry:
             if not self._is_rate_limited(early):
                 burned = self._consume_presented_once(intent, args, principal, cap_data)
                 if burned is not None:
-                    return burned, None
-            return early, None
-        stop, reserved = self._idem_begin(intent)
+                    return burned, None, False
+            return early, None, False
+        stop, reserved, hit = self._idem_begin(intent)
         if stop is not None:
-            return stop, None
+            return stop, None, hit
         burned = self._consume_presented_once(intent, args, principal, cap_data)
         if burned is not None:
-            return burned, reserved
-        return None, reserved
+            return burned, reserved, False
+        return None, reserved, False
 
     def _lock_for_key(self, key: Any) -> Optional[threading.RLock]:
         """Return the lock for ``key``, or None when ``key`` cannot be weak."""
@@ -1369,9 +1390,13 @@ class ActionRegistry:
 
     def _dispatch_sync(self, intent_in: Intent | Mapping[str, Any]) -> Result:
         t0 = time.perf_counter()
-        intent, args, early, principal, _cap = self._prepare(intent_in)
+        intent, args, early, principal, _cap, idempotency_hit = self._prepare(
+            intent_in
+        )
         if early is not None:
-            return self._finalize(intent, early, t0)
+            return self._finalize(
+                intent, early, t0, idempotency_hit=idempotency_hit
+            )
 
         # Soft principal from args must be visible to auth wraps / RegionBook
         # (they read ContextVar; principal= on dispatch already set it).
@@ -1381,11 +1406,17 @@ class ActionRegistry:
             soft_token = _principal_override.set(principal)
         try:
             early = self._run_before_hooks_sync(intent, args, principal, _cap)
-            stop, claim_token = self._admit_after_hooks(
+            stop, claim_token, idempotency_hit = self._admit_after_hooks(
                 intent, args, principal, _cap, early
             )
             if stop is not None:
-                return self._finalize(intent, stop, t0, claim_token=claim_token)
+                return self._finalize(
+                    intent,
+                    stop,
+                    t0,
+                    claim_token=claim_token,
+                    idempotency_hit=idempotency_hit,
+                )
 
             handler = self._actions[intent.action]
             meta = {"action": intent.action, "request_id": intent.request_id}
@@ -1512,9 +1543,13 @@ class ActionRegistry:
 
     async def _async_dispatch(self, intent_in: Intent | Mapping[str, Any]) -> Result:
         t0 = time.perf_counter()
-        intent, args, early, principal, _cap = self._prepare(intent_in)
+        intent, args, early, principal, _cap, idempotency_hit = self._prepare(
+            intent_in
+        )
         if early is not None:
-            return self._finalize(intent, early, t0)
+            return self._finalize(
+                intent, early, t0, idempotency_hit=idempotency_hit
+            )
 
         soft_token = None
         claim_token: Optional[str] = None
@@ -1522,11 +1557,17 @@ class ActionRegistry:
             soft_token = _principal_override.set(principal)
         try:
             early = await self._run_before_hooks_async(intent, args, principal, _cap)
-            stop, claim_token = self._admit_after_hooks(
+            stop, claim_token, idempotency_hit = self._admit_after_hooks(
                 intent, args, principal, _cap, early
             )
             if stop is not None:
-                return self._finalize(intent, stop, t0, claim_token=claim_token)
+                return self._finalize(
+                    intent,
+                    stop,
+                    t0,
+                    claim_token=claim_token,
+                    idempotency_hit=idempotency_hit,
+                )
 
             handler = self._actions[intent.action]
             meta = {"action": intent.action, "request_id": intent.request_id}

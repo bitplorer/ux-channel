@@ -1197,6 +1197,65 @@ def test_legacy_expiry_during_replay_stays_ok() -> None:
     assert fake.get("{" + prefix + "}old") is None
 
 
+def _replace_result(_intent: object, _result: Result) -> Result:
+    """After-hook that drops any attribute carried on the prior Result."""
+    return Result.success()
+
+
+def test_hook_replace_full() -> None:
+    """HOOK_REPLACE_FULL: a replaced replay stays ok when the map is full."""
+    fake = fakeredis.FakeRedis(decode_responses=True)
+    prefix = "uidch:idem:"
+    store = RedisIdempotencyStore(fake, prefix=prefix, max_keys=1)
+    reg = ActionRegistry(_SECRET, require_cap=False, idempotency_store=store)
+    calls = {"n": 0}
+
+    def pay() -> Result:
+        calls["n"] += 1
+        return Result.success()
+
+    reg.register("Pay.go", pay)
+    reg.after(_replace_result)
+    first = reg.dispatch(_intent("Pay.go", idempotency_key="live"))
+    assert first.ok, first.error
+    assert calls["n"] == 1
+    fake.set(prefix + "old", _serde.dumps(Result.success().to_dict()))
+    replay = reg.dispatch(_intent("Pay.go", idempotency_key="old"))
+    assert replay.ok, replay.error
+    assert calls["n"] == 1
+    assert fake.get("{" + prefix + "}old") is None
+
+
+def test_hook_replace_race() -> None:
+    """HOOK_REPLACE_RACE: a replaced replay does not write or go unavailable."""
+    fake = fakeredis.FakeRedis(decode_responses=True)
+    prefix = "uidch:idem:"
+    store = RedisIdempotencyStore(fake, prefix=prefix, max_keys=1)
+    reg = ActionRegistry(_SECRET, require_cap=False, idempotency_store=store)
+    calls = {"n": 0}
+
+    def pay() -> Result:
+        calls["n"] += 1
+        return Result.success()
+
+    reg.register("Pay.go", pay)
+    reg.after(_replace_result)
+    first = reg.dispatch(_intent("Pay.go", idempotency_key="live"))
+    assert first.ok, first.error
+    fake.set(prefix + "old", _serde.dumps(Result.success().to_dict()))
+
+    def _get_then_expire(key: str):
+        body = RedisIdempotencyStore.get(store, key)
+        fake.delete(prefix + key)
+        return body
+
+    store.get = _get_then_expire  # type: ignore[method-assign]
+    replay = reg.dispatch(_intent("Pay.go", idempotency_key="old"))
+    assert replay.ok, replay.error
+    assert calls["n"] == 1
+    assert fake.get("{" + prefix + "}old") is None
+
+
 def test_idempotency_get_error_skips_the_handler() -> None:
     fake = fakeredis.FakeRedis(decode_responses=True)
     store = RedisIdempotencyStore(fake)
