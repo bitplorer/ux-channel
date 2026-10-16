@@ -1,3 +1,21 @@
+## 0.1.1 — remove deprecations
+
+- Version bump 0.1.0 → 0.1.1 (patch: no runtime behaviour change; docs, version strings, regenerated conformance provenance and harness) (`pyproject.toml`, `_version.py`, client JS
+  `VERSION` in `static/*.js`).
+- Docs no longer teach removed shims: `ch.button` / `ch.page`
+  DeprecationWarning note (DX.md), root `ux_channel.region_component` /
+  `ux_channel.regions` shims (TERMINOLOGY.md), "legacy shims" (ONTOLOGY.md,
+  NAMING.md). The code paths were already gone.
+- New lock `tests/gate/test_no_deprecations.py`.
+- Conformance: `expected/cxb/index.json` `package_version` is now read from the
+  oracle's `ux_channel.__version__` at regeneration (was hard-coded `0.1.0`).
+  Regenerated with 0.1.1: all 14 `.cxb` blobs are byte-identical; only the
+  provenance field changed. The suite id `ux-channel-cxb-expected-0.1` is the
+  fixture-format version and stays. Harnesses no longer search stale
+  `ux-channel-0.1.0` zip paths; the oracle is in-repo `python/src`
+  (override: `UX_CHANNEL_SRC`).
+- `.gitignore`: `soak-report.json` (written by the soak test).
+
 ## 2026-09-24 — cek-host 0.2.0 floor
 
 - Required deps are `cek-host>=0.2.0` and `cek-surface>=0.2.0`.

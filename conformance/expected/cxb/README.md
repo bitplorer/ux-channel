@@ -12,9 +12,8 @@ CXB oracle (`ux_channel.wire.cxb.encode_cxb_python`).
 ## Regenerate
 
 ```bash
-# extract reference package if needed, then:
-PYTHONPATH=/path/to/ux-channel-0.1.0/src \
-  python3 conformance/harness/regenerate_cxb_expected.py
+# oracle = in-repo python/src (override with UX_CHANNEL_SRC=...)
+python3 conformance/harness/regenerate_cxb_expected.py
 ```
 
 ## Validate
@@ -32,3 +31,6 @@ python3 conformance/harness/validate_cxb_expected.py
 3. Tag numbers / op dense keys are append-only (see package `docs/core/CXB.md`).
 4. Second implementation (Rust peer) should decode every blob and, when encode
    is ready, match sha256 of encode(source JSON).
+
+`index.json` `package_version` records the ux-channel version whose oracle produced
+the bytes; it is read from `ux_channel.__version__` at regeneration time, never hand-edited.

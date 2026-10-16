@@ -7,7 +7,7 @@ This file only explains *what was combined*; it is not a live inventory.
 
 | Source | What we kept |
 |--------|----------------|
-| **Release 0.1.0 host** | `src/` layout, full `docs/`, full `tests/` tree, `examples/`, package `scripts/`, `ux_channel_ux_dom` |
+| **Original release host (pre-monorepo, shipped as 0.1.0)** | `src/` layout, full `docs/`, full `tests/` tree, `examples/`, package `scripts/`, `ux_channel_ux_dom` |
 | **Monorepo evolution** | `catalog/` (generated), `api`, sorted `args_hash`, gate tests, Rust interop, verify/CI |
 
 ## Not lost

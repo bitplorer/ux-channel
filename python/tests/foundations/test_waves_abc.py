@@ -154,6 +154,12 @@ def test_client_js_version():
     assert f'VERSION = "{v}"' in text or f'VERSION="{v}"' in text
 
 
+def test_version_file_matches_package_version():
+    from pathlib import Path
+    from ux_channel import __version__ as v
+    assert Path("VERSION").read_text().strip() == v
+
+
 def test_sparkline_adapter_shipped():
     from ux_channel.asgi.fastapi import static_dir
 

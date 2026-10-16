@@ -31,7 +31,7 @@ Terms are grouped: **big picture → messages → security → wire → HTTP →
 | **Is** | A **protocol + libraries** so different programs speak the same Intent → Result → ops contract. |
 | **Does** | Defines message shapes, caps, JSON floor, optional CXB, and peer implementations. |
 | **Not** | Not “only a Python web framework,” not a full multiplayer game server, not a database. |
-| **Where** | This package root; full Python host also ships as `ux-channel-0.1.0` (zip, not required to understand the peer). |
+| **Where** | This package root; full Python host also ships as `ux-channel-0.1.1` (zip, not required to understand the peer). |
 
 ### Wire-native
 
@@ -178,7 +178,7 @@ Terms are grouped: **big picture → messages → security → wire → HTTP →
 | **Does** | `render(ctx) → HTML` for that single uid. |
 | **Not** | **Not** renamed to RegionBook. **Not** a bridge, action, or whole page. |
 | **Import** | `from ux_channel.host.api import Region` · `from ux_channel import Region` |
-| **Where** | `ux_channel.host.region_component` (shim: `ux_channel.region_component`). |
+| **Where** | `ux_channel.host.region_component`. |
 
 **You almost always mean this word when you say “a region.”**
 
@@ -192,7 +192,7 @@ Terms are grouped: **big picture → messages → security → wire → HTTP →
 | **Does** | After an action, re-runs selected renders and builds **morph** ops. |
 | **Not** | Not a single slot; not a rename of `Region`. |
 | **Import** | Usually via `ch.regions` — you rarely construct it yourself. |
-| **Where** | `ux_channel.host.regions` (shim: `ux_channel.regions`). |
+| **Where** | `ux_channel.host.regions`. |
 
 ```text
 Region     = one chapter (one slot)

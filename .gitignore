@@ -8,3 +8,4 @@ python/reports/
 .coverage
 .coverage.*
 htmlcov/
+soak-report.json
