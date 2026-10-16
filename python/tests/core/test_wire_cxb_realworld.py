@@ -199,11 +199,9 @@ class TestRealworldLiveAsgi(unittest.TestCase):
                 headers=headers,
             )
             self.assertEqual(r.status_code, 200, r.text)
-            if accept and "cxb" in accept:
-                self.assertEqual(r.headers.get("x-channel-wire"), "cxb")
-                body = decode_cxb(r.content)
-            else:
-                body = r.json()
+            # HTTP /action is JSON-only (#27), whatever the Accept.
+            self.assertEqual(r.headers.get("x-channel-wire"), "json")
+            body = r.json()
             self.assertTrue(body["ok"])
             self.assertGreaterEqual(len(body["ops"]), 1)
 

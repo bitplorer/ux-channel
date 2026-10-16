@@ -15,7 +15,7 @@ help:
 	@echo "  make verify-http       - verify + live peer + demo forward"
 	@echo "  make cxb-regen         - rebuild conformance/expected/cxb from oracle"
 	@echo "  make test-rust         - cargo test --lib --tests"
-	@echo "  make test-python-gate  - pytest python/tests/gate"
+	@echo "  make test-python-gate  - pytest python/tests/gate + tests/core"
 	@echo "  make test-python-host  - pytest host regions/state/core"
 	@echo "  make test-python       - full python/tests (heavier)"
 	@echo "  make python-path       - print PYTHONPATH for host package"
@@ -51,7 +51,7 @@ test-rust:
 	cd rust && cargo test --lib --tests
 
 test-python-gate:
-	cd python && PYTHONPATH=src python3 -m pytest tests/gate -q
+	cd python && PYTHONPATH=src python3 -m pytest tests/gate tests/core -q
 
 test-python-host:
 	cd python && PYTHONPATH=src python3 -m pytest tests/regions tests/state tests/core -q --tb=line

@@ -33,10 +33,10 @@ echo "== CXB expected =="
 python3 conformance/harness/validate_cxb_expected.py
 
 echo "== Python host interop (sync with law) =="
-if ! python3 -c "import itsdangerous, pytest" 2>/dev/null; then
+if ! python3 -c "import itsdangerous, pytest, hypothesis, pytest_asyncio" 2>/dev/null; then
   python3 -m pip install -q -r "$ROOT/requirements-dev.txt"
 fi
-PYTHONPATH="$ROOT/python/src${PYTHONPATH:+:$PYTHONPATH}" python3 -m pytest "$ROOT/python/tests/gate" -q --tb=line
+PYTHONPATH="$ROOT/python/src${PYTHONPATH:+:$PYTHONPATH}" python3 -m pytest "$ROOT/python/tests/gate" "$ROOT/python/tests/core" -q --tb=line
 
 echo "== Rust unit tests =="
 cd rust

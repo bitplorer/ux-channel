@@ -35,7 +35,7 @@ MAP_PATH = PKG / "PACKAGE_MAP.json"
 
 _SKIP_STEMS = frozenset({"__init__", "__main__", "__pycache__"})
 
-CATALOG_INIT = '''"""Package catalog — generated navigator (L5 tooling, not an implementation plane).
+CATALOG_INIT = r'''"""Package catalog — generated navigator (L5 tooling, not an implementation plane).
 
 Design
     Machine-readable inventory of packages + modules so agents and humans do
@@ -65,39 +65,28 @@ def help_public() -> str:
     rp = catalog.get("rust_parity", {})
     pkgs = ", ".join(sorted(catalog.get("packages", {})))
     return (
-        f"Public: {pe.get('preferred', 'ux_channel.api')}
-"
-        f"Host API: {', '.join(pe.get('host_api', []))}
-"
-        f"Cap (Rust-parity): {', '.join(pe.get('cap_api', []))}
-"
-        f"Packages: {pkgs}
-"
-        f"Policy: {catalog.get('policy')}
-"
-        f"Rust parity: {rp}
-"
+        f"Public: {pe.get('preferred', 'ux_channel.api')}\n"
+        f"Host API: {', '.join(pe.get('host_api', []))}\n"
+        f"Cap (Rust-parity): {', '.join(pe.get('cap_api', []))}\n"
+        f"Packages: {pkgs}\n"
+        f"Policy: {catalog.get('policy')}\n"
+        f"Rust parity: {rp}\n"
     )
 
 
 def help_package(name: str) -> str:
     members = catalog.get("packages", {}).get(name)
     if not members:
-        return f"unknown package: {name}
-"
+        return f"unknown package: {name}\n"
     docs = (catalog.get("package_docs") or {}).get(name, "")
     strata = (catalog.get("strata") or {}).get(name, "")
     header = f"package={name}"
     if strata:
         header += f"  strata={strata}"
     if docs:
-        header += f"
-  {docs}"
-    rows = "
-".join(f"  {k:28} {v}" for k, v in sorted(members.items()))
-    return f"{header}
-{rows}
-"
+        header += f"\n  {docs}"
+    rows = "\n".join(f"  {k:28} {v}" for k, v in sorted(members.items()))
+    return f"{header}\n{rows}\n"
 '''
 
 

@@ -432,8 +432,9 @@ class TestLiveAsgi(unittest.TestCase):
             accept="application/ux-channel+cxb",
         )
         self.assertEqual(r.status_code, 200, r.text)
-        self.assertEqual(r.headers.get("x-channel-wire"), "cxb")
-        body = decode_cxb(r.content)
+        # HTTP /action is JSON-only (#27); a CXB Accept still answers JSON.
+        self.assertEqual(r.headers.get("x-channel-wire"), "json")
+        body = r.json()
         self.assertTrue(body["ok"])
         self.assertEqual(body["ops"][0]["op"], "toast")
 
@@ -446,7 +447,9 @@ class TestLiveAsgi(unittest.TestCase):
                 accept = "application/ux-channel+cxb" if fmt == "cxb" else None
                 r = self._post(client, reg, n=1, note=fmt, accept=accept)
                 assert r.status_code == 200, r.text
-                body = decode_cxb(r.content) if fmt == "cxb" else r.json()
+                # HTTP /action is JSON-only (#27), whatever the Accept.
+                assert r.headers.get("x-channel-wire") == "json"
+                body = r.json()
                 assert body["ok"] is True
             except Exception as exc:  # noqa: BLE001
                 errors.append(repr(exc))
