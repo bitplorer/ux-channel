@@ -15,7 +15,8 @@ import pytest
 from ux_channel import __version__
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
-SEMVER = re.compile(r"(?<![\w.])\d+\.\d+\.\d+(?!\w|\.\d)")
+# Optional "v" prefix ("runtime v0.1.1") counts as a mention too.
+SEMVER = re.compile(r"(?<![\w.])v?(\d+\.\d+\.\d+)(?!\w|\.\d)")
 
 # file -> X.Y.Z strings in it that are not the library version
 VERSION_FILES: dict[str, frozenset[str]] = {
@@ -31,6 +32,17 @@ VERSION_FILES: dict[str, frozenset[str]] = {
     "python/docs/asgi/SSE.md": frozenset(),
     "python/docs/asgi/WEBSOCKET.md": frozenset(),  # header + hello example
     "python/docs/FEATURES.md": frozenset(),
+    # Shipped artifacts: drift here is visible to installers and on the wire
+    # (the client sends X-Channel-Client-Version).
+    "python/pyproject.toml": frozenset(
+        {"0.2.0", "24.0.0", "1.10.0", "0.6.0", "8.0.0", "0.24.0", "1.9.0"}
+    ),  # cek floor + dev/build tool floors
+    "python/src/ux_channel/static/ux-channel.js": frozenset(),
+    "python/src/ux_channel/static/ux-channel.min.js": frozenset(),
+    "python/src/ux_channel/static/ux-bridge.js": frozenset(),
+    "python/src/ux_channel/static/ux-inspector.js": frozenset(),
+    "python/src/ux_channel/static/ux-webrtc.js": frozenset(),
+    "conformance/expected/cxb/index.json": frozenset(),
 }
 
 # Forms the review found a regex scan missing; pin that they stay covered.
@@ -38,6 +50,12 @@ REQUIRED_FORMS = {
     "python/docs/start/HOW_TO.md": rf"^# How to use ux-channel {re.escape(__version__)}$",
     "python/docs/start/API.md": rf'__version__,\s*#\s*"{re.escape(__version__)}"',
     "README.md": rf"^\| \*\*Version\*\* \| `{re.escape(__version__)}` \|",
+    "python/pyproject.toml": rf'^version = "{re.escape(__version__)}"$',
+    **{
+        f"python/src/ux_channel/static/{js}": rf'VERSION\s*=\s*"{re.escape(__version__)}"'
+        for js in ("ux-channel.js", "ux-channel.min.js")
+    },
+    "conformance/expected/cxb/index.json": rf'"package_version":\s*"{re.escape(__version__)}"',
 }
 
 
