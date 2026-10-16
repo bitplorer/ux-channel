@@ -8,7 +8,7 @@ Client → server
   {"type":"ping"}
 
 Server → client
-  {"type":"hello","v":"1","runtime":"0.1.0"}
+  {"type":"hello","v":"1","runtime":"<ux_channel.__version__>"}
   {"type":"subscribed","topic":"..."}
   {"type":"unsubscribed","topic":"..."}
   {"type":"result", ...Result...}
