@@ -1,4 +1,4 @@
-/* uxchannel 0.1.0 — ux-bridge */
+/* uxchannel 0.1.1 — ux-bridge */
 /**
  * ux-bridge — island mount registry for ux-channel.
  * Load once. A second include is a no-op (keeps adapters + instances).
@@ -165,6 +165,6 @@
     apply: apply,
     scan: scan,
     instances: instances,
-    version: "0.1.0",
+    version: "0.1.1",
   };
 })(typeof window !== "undefined" ? window : globalThis);

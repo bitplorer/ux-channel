@@ -111,8 +111,8 @@ attrs.action         # action name
 ## Demo HTML path (P2)
 
 ```python
-from ux_channel.render.kit import demo_button, demo_page  # preferred
-# ch.button / ch.page → DeprecationWarning (still work)
+from ux_channel.render.kit import demo_button, demo_page
+# ch.button / ch.page were removed; use demo_button / demo_page
 ```
 
 ## Bridges vs media (npm)
