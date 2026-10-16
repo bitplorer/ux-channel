@@ -8,6 +8,7 @@ doc starts stating the version; the release bump then cannot miss it.
 from __future__ import annotations
 
 import re
+import tomllib
 from pathlib import Path
 
 import pytest
@@ -34,9 +35,6 @@ VERSION_FILES: dict[str, frozenset[str]] = {
     "python/docs/FEATURES.md": frozenset(),
     # Shipped artifacts: drift here is visible to installers and on the wire
     # (the client sends X-Channel-Client-Version).
-    "python/pyproject.toml": frozenset(
-        {"0.2.0", "24.0.0", "1.10.0", "0.6.0", "8.0.0", "0.24.0", "1.9.0"}
-    ),  # cek floor + dev/build tool floors
     "python/src/ux_channel/static/ux-channel.js": frozenset(),
     "python/src/ux_channel/static/ux-channel.min.js": frozenset(),
     "python/src/ux_channel/static/ux-bridge.js": frozenset(),
@@ -50,7 +48,6 @@ REQUIRED_FORMS = {
     "python/docs/start/HOW_TO.md": rf"^# How to use ux-channel {re.escape(__version__)}$",
     "python/docs/start/API.md": rf'__version__,\s*#\s*"{re.escape(__version__)}"',
     "README.md": rf"^\| \*\*Version\*\* \| `{re.escape(__version__)}` \|",
-    "python/pyproject.toml": rf'^version = "{re.escape(__version__)}"$',
     **{
         f"python/src/ux_channel/static/{js}": rf'VERSION\s*=\s*"{re.escape(__version__)}"'
         for js in ("ux-channel.js", "ux-channel.min.js")
@@ -81,3 +78,11 @@ def test_diagram_and_book_scripts_read_package_version():
         text = _text(rel)
         assert "_version.py" in text, rel
         assert not re.search(r'LIB_VER\s*=\s*"\d', text), rel
+
+
+def test_pyproject_version_field_matches_package():
+    # Read only the version field: dependency and tool floors in the same
+    # file are not the library version and must not need an allow-list.
+    data = tomllib.loads(_text("python/pyproject.toml"))
+    version = data.get("project", {}).get("version") or data["tool"]["poetry"]["version"]
+    assert version == __version__
