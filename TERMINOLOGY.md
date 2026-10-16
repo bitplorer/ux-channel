@@ -178,7 +178,7 @@ Terms are grouped: **big picture → messages → security → wire → HTTP →
 | **Does** | `render(ctx) → HTML` for that single uid. |
 | **Not** | **Not** renamed to RegionBook. **Not** a bridge, action, or whole page. |
 | **Import** | `from ux_channel.host.api import Region` · `from ux_channel import Region` |
-| **Where** | `ux_channel.host.region_component` (shim: `ux_channel.region_component`). |
+| **Where** | `ux_channel.host.region_component`. |
 
 **You almost always mean this word when you say “a region.”**
 
@@ -192,7 +192,7 @@ Terms are grouped: **big picture → messages → security → wire → HTTP →
 | **Does** | After an action, re-runs selected renders and builds **morph** ops. |
 | **Not** | Not a single slot; not a rename of `Region`. |
 | **Import** | Usually via `ch.regions` — you rarely construct it yourself. |
-| **Where** | `ux_channel.host.regions` (shim: `ux_channel.regions`). |
+| **Where** | `ux_channel.host.regions`. |
 
 ```text
 Region     = one chapter (one slot)

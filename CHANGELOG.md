@@ -1,3 +1,13 @@
+## 0.1.1 — remove deprecations (local, unreleased)
+
+- Version bump 0.1.0 → 0.1.1 (patch: docs-only) (`pyproject.toml`, `_version.py`, client JS
+  `VERSION` in `static/*.js`).
+- Docs no longer teach removed shims: `ch.button` / `ch.page`
+  DeprecationWarning note (DX.md), root `ux_channel.region_component` /
+  `ux_channel.regions` shims (TERMINOLOGY.md), "legacy shims" (ONTOLOGY.md,
+  NAMING.md). The code paths were already gone.
+- New lock `tests/gate/test_no_deprecations.py`.
+
 ## 2026-09-24 — cek-host 0.2.0 floor
 
 - Required deps are `cek-host>=0.2.0` and `cek-surface>=0.2.0`.

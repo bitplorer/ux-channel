@@ -120,7 +120,7 @@ Wire keys are **not** renamed to match prose. Prose maps *to* wire keys in TERMI
 |-----|------|
 | [TERMINOLOGY.md](TERMINOLOGY.md) | Full glossary |
 | [python/ONTOLOGY.md](python/ONTOLOGY.md) | Host concepts |
-| [python/LAYOUT.md](python/LAYOUT.md) | Packages + shims |
+| [python/LAYOUT.md](python/LAYOUT.md) | Packages |
 | [python/docs/start/NAMING.md](python/docs/start/NAMING.md) | Quantity, AX, workplace laws |
 
 
