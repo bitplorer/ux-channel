@@ -8,7 +8,15 @@ Brand lines
 | DOM | ``ux-dom`` | ``ux_dom`` | ``uxdom`` |
 | Glue | *(ships with ux-channel)* | ``ux_channel_ux_dom`` | — |
 
-Neither core package imports the other. Install both, then::
+The two core packages are coupled only through *lazy, optional* imports
+(no import-time dependency; neither declares the other):
+
+* ``ux_channel`` → ``ux_dom``: ``render/html_safe.py`` (escape, serialize)
+  and ``render/response.py`` (serialize), each with a stdlib fallback.
+* ``ux_dom`` → ``ux_channel``: ``ui/channel_bridge.py`` (region/action
+  attrs) and ``cli/doctor.py`` (presence probe).
+
+New interop belongs here, not in either core package. Install both, then::
 
     pip install ux-channel ux-dom
     from ux_channel_ux_dom import control_ux_dom, tree_to_dict, compile_ux_dom
