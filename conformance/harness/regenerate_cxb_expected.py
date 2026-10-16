@@ -22,12 +22,12 @@ def main() -> int:
     for p in [
         PKG / "python" / "src",
         PKG / "src",
-        Path("/tmp/uxc-pkg/ux-channel-0.1.0/src"),
         PKG / "ref" / "src",
     ]:
         if p.is_dir():
             sys.path.insert(0, str(p))
     try:
+        from ux_channel import __version__ as oracle_version  # type: ignore
         from ux_channel.wire.cxb import (  # type: ignore
             MAGIC,
             MAGIC_Z,
@@ -52,7 +52,7 @@ def main() -> int:
     index = {
         "suite": "ux-channel-cxb-expected-0.1",
         "oracle": "ux_channel.wire.cxb.encode_cxb_python",
-        "package_version": "0.1.0",
+        "package_version": oracle_version,  # provenance: oracle that produced the bytes
         "media_type": MEDIA_TYPE,
         "magic": MAGIC.decode(),
         "magic_z": MAGIC_Z.decode(),
