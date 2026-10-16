@@ -5,7 +5,7 @@ Read [../../../START_HERE.md](../../../START_HERE.md) first if you are new. This
 
 # Course correction — long-term architecture (0.1)
 
-**Library version:** 0.1.0 (brand **0.1**).
+**Library version:** 0.1.1 (brand **0.1**).
 
 ## Domain (what this library is for decades)
 

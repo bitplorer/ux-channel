@@ -3,7 +3,7 @@ Read [../../../START_HERE.md](../../../START_HERE.md) first if you are new. This
 
 # Design constitution — uxchannel 0.1
 
-**Library version:** 0.1.0 (brand **0.1**).
+**Library version:** 0.1.1 (brand **0.1**).
 
 ## One sentence
 
