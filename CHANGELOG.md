@@ -1,4 +1,4 @@
-## 0.1.1 — remove deprecations (local, unreleased)
+## 0.1.1 — remove deprecations
 
 - Version bump 0.1.0 → 0.1.1 (patch: docs-only) (`pyproject.toml`, `_version.py`, client JS
   `VERSION` in `static/*.js`).

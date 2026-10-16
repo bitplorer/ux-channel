@@ -31,7 +31,7 @@ Terms are grouped: **big picture → messages → security → wire → HTTP →
 | **Is** | A **protocol + libraries** so different programs speak the same Intent → Result → ops contract. |
 | **Does** | Defines message shapes, caps, JSON floor, optional CXB, and peer implementations. |
 | **Not** | Not “only a Python web framework,” not a full multiplayer game server, not a database. |
-| **Where** | This package root; full Python host also ships as `ux-channel-0.1.0` (zip, not required to understand the peer). |
+| **Where** | This package root; full Python host also ships as `ux-channel-0.1.1` (zip, not required to understand the peer). |
 
 ### Wire-native
 
