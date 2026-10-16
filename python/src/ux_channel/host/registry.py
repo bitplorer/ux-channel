@@ -710,9 +710,7 @@ class ActionRegistry:
             verify_args = args if self.verify_form_in_cap else dict(intent.args)
             try:
                 verify_kw: dict[str, Any] = {
-                    "expected_sub": principal.id if principal and getattr(
-                        self.config, "bind_cap_to_principal", False
-                    ) else None,
+                    "expected_sub": self._cap_expected_sub(principal),
                     # Consume after the rate-limit hook. Burning the nonce here
                     # makes a 429 retry look like a replay.
                     "consume_once": False,
