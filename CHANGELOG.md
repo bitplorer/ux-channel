@@ -7,6 +7,14 @@
   `ux_channel.regions` shims (TERMINOLOGY.md), "legacy shims" (ONTOLOGY.md,
   NAMING.md). The code paths were already gone.
 - New lock `tests/gate/test_no_deprecations.py`.
+- Conformance: `expected/cxb/index.json` `package_version` is now read from the
+  oracle's `ux_channel.__version__` at regeneration (was hard-coded `0.1.0`).
+  Regenerated with 0.1.1: all 14 `.cxb` blobs are byte-identical; only the
+  provenance field changed. The suite id `ux-channel-cxb-expected-0.1` is the
+  fixture-format version and stays. Harnesses no longer search stale
+  `ux-channel-0.1.0` zip paths; the oracle is in-repo `python/src`
+  (override: `UX_CHANNEL_SRC`).
+- `.gitignore`: `soak-report.json` (written by the soak test).
 
 ## 2026-09-24 — cek-host 0.2.0 floor
 

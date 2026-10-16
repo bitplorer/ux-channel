@@ -94,4 +94,4 @@ cd rust && cargo run --bin uxc_check -- ../conformance
 - [`../SPEC/capability.md`](../SPEC/capability.md)
 - [`../SPEC/INVARIANTS.md`](../SPEC/INVARIANTS.md)
 - [`../SPEC/architecture/`](../SPEC/architecture/) — host/peer kernel, project, proofs, flow
-- Package `docs/core/CXB.md` (inside 0.1.0 zip)
+- [`../python/docs/core/CXB.md`](../python/docs/core/CXB.md)
