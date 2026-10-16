@@ -9,6 +9,11 @@ from pathlib import Path
 from fpdf import FPDF
 
 ROOT = Path(__file__).resolve().parents[1]
+LIB_VER = re.search(
+    r'^__version__ = "([^"]+)"',
+    (ROOT / "src" / "ux_channel" / "_version.py").read_text(encoding="utf-8"),
+    re.M,
+).group(1)
 MD = ROOT / "docs/book/UX_CHANNEL_BOOK.md"
 OUT = ROOT / "docs/book/UX_CHANNEL_BOOK.pdf"
 
@@ -19,7 +24,7 @@ class BookPDF(FPDF):
             return
         self.set_font("Helvetica", "I", 8)
         self.set_text_color(100, 100, 100)
-        self.cell(0, 6, "The Ui-Channel Book | v0.1.0", align="L")
+        self.cell(0, 6, f"The Ui-Channel Book | v{LIB_VER}", align="L")
         self.ln(8)
         self.set_text_color(0, 0, 0)
 
@@ -135,7 +140,7 @@ def main() -> int:
         7,
         clean(
             "Intent -> Action -> Result(ops)\n"
-            "Server-driven UI control plane for Python\nVersion 0.1.0"
+            f"Server-driven UI control plane for Python\nVersion {LIB_VER}"
         ),
         align="C",
     )

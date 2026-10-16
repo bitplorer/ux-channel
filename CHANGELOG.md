@@ -1,6 +1,6 @@
 ## 0.1.1 — remove deprecations
 
-- Version bump 0.1.0 → 0.1.1 (patch: docs-only) (`pyproject.toml`, `_version.py`, client JS
+- Version bump 0.1.0 → 0.1.1 (patch: no runtime behaviour change; docs, version strings, regenerated conformance provenance and harness) (`pyproject.toml`, `_version.py`, client JS
   `VERSION` in `static/*.js`).
 - Docs no longer teach removed shims: `ch.button` / `ch.page`
   DeprecationWarning note (DX.md), root `ux_channel.region_component` /

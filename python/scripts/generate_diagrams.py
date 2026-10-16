@@ -12,6 +12,7 @@ Source of truth checked against:
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -20,8 +21,11 @@ from matplotlib.patches import FancyBboxPatch
 OUT = Path(__file__).resolve().parents[1] / "docs" / "book" / "diagrams"
 OUT.mkdir(parents=True, exist_ok=True)
 
-# Keep labels aligned with library version
-LIB_VER = "0.1.0"
+# Labels follow the library version; read it from the single source.
+_VERSION_FILE = Path(__file__).resolve().parents[1] / "src" / "ux_channel" / "_version.py"
+LIB_VER = re.search(
+    r'^__version__ = "([^"]+)"', _VERSION_FILE.read_text(encoding="utf-8"), re.M
+).group(1)
 PROTOCOL = 'uid: "1"'
 
 
