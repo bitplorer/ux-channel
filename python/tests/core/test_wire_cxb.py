@@ -128,8 +128,9 @@ class TestCxbRoundtrip(unittest.TestCase):
             },
         )
         self.assertEqual(r.status_code, 200)
-        self.assertEqual(r.headers.get("x-channel-wire"), "cxb")
-        body = decode_cxb(r.content)
+        # HTTP /action is JSON-only (#27); a CXB Accept still answers JSON.
+        self.assertEqual(r.headers.get("x-channel-wire"), "json")
+        body = r.json()
         self.assertTrue(body["ok"])
         self.assertGreaterEqual(len(body.get("ops") or []), 1)
 

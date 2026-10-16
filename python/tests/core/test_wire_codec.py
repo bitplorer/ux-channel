@@ -232,10 +232,9 @@ class TestAsgiWire(unittest.TestCase):
                 "Accept": "application/ux-channel+msgpack",
             },
         )
-        self.assertEqual(r.status_code, 200)
-        self.assertEqual(r.headers.get("x-channel-wire"), "msgpack")
-        data = msgpack.unpackb(r.content, raw=False)
-        self.assertTrue(data["ok"])
+        # HTTP /action is JSON-only (#27): a binary request body fails closed.
+        self.assertEqual(r.status_code, 400)
+        self.assertFalse(r.json()["ok"])
 
 
 if __name__ == "__main__":
