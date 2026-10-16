@@ -38,7 +38,7 @@
 
   var DEFAULT_ICE = [{ urls: "stun:stun.l.google.com:19302" }];
   /** Keep major aligned with package / ux-channel.js */
-  var WEBRTC_VERSION = "0.1.0";
+  var WEBRTC_VERSION = "0.1.1";
   var POLL_MS = 800;
 
   function peerId() {
