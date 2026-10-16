@@ -526,9 +526,9 @@ class TestAsgiConcurrentWire(unittest.TestCase):
                 },
             )
             assert r.status_code == 200
-            assert r.headers.get("x-channel-wire") == "cxb"
-            body = decode_cxb(r.content)
-            assert body["ok"] is True
+            # HTTP /action is JSON-only (#27); a CXB Accept still answers JSON.
+            assert r.headers.get("x-channel-wire") == "json"
+            assert r.json()["ok"] is True
 
         with ThreadPoolExecutor(max_workers=12) as pool:
             futs = [pool.submit(hit_json) for _ in range(20)] + [

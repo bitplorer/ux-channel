@@ -158,18 +158,20 @@ class ChannelTest:
         principal = _principal_from_args(
             call_args, principal=principal, default_sub=self.sub
         )
-        cap_sub = self.sub
-        if principal is not None:
-            cap_sub = principal.id or cap_sub
-
         if cap is None and self.mint_cap and getattr(self.registry, "require_cap", True):
-            cap = self.registry.mint(
-                action,
-                call_args,
-                once=once,
-                sub=cap_sub,
-                form=dict(form) if form else None,
-            )
+            mint_kw: dict[str, Any] = {"once": once}
+            # Bind the Cap subject exactly as the registry will verify it
+            # (one source of truth: ActionRegistry._cap_expected_sub). A
+            # subject-bound Cap verified without one fails closed.
+            expected_sub = self.registry._cap_expected_sub(principal)
+            if expected_sub is not None:
+                mint_kw["sub"] = expected_sub
+            # Seal the form only when the registry verifies it: it then checks
+            # intent.args merged with form (args win), else intent.args alone.
+            mint_args = dict(call_args)
+            if form and getattr(self.registry, "verify_form_in_cap", False):
+                mint_args = {**dict(form), **call_args}
+            cap = self.registry.mint(action, mint_args, **mint_kw)
         intent = Intent(action=action, args=call_args, form=dict(form or {}), cap=cap)
         result = self.registry.dispatch(intent, principal=principal)
         if hasattr(result, "__await__"):

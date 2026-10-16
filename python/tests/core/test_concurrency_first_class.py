@@ -100,17 +100,24 @@ class TestParallelDispatch(unittest.TestCase):
         release = threading.Event()
         started = threading.Semaphore(0)
 
-        @reg.action("block")
-        def block(ctx):
-            started.release()
-            release.wait(timeout=3)
-            return Result.success()
+        # Sync handlers are serialized per owner (registry._run_sync_handler),
+        # so two in-flight holders need two owners to both enter.
+        def _blocker():
+            def handler(ctx):
+                started.release()
+                release.wait(timeout=3)
+                return Result.success()
 
-        def hold(rid: str):
-            reg.dispatch(Intent(action="block", args={}, request_id=rid))
+            return handler
 
-        t1 = threading.Thread(target=hold, args=("h1",))
-        t2 = threading.Thread(target=hold, args=("h2",))
+        reg.action("block")(_blocker())
+        reg.action("block2")(_blocker())
+
+        def hold(action: str, rid: str):
+            reg.dispatch(Intent(action=action, args={}, request_id=rid))
+
+        t1 = threading.Thread(target=hold, args=("block", "h1"))
+        t2 = threading.Thread(target=hold, args=("block2", "h2"))
         t1.start()
         t2.start()
         # wait until both handlers entered
