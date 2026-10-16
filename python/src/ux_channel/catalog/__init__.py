@@ -12,7 +12,8 @@ Implementation
 
     from ux_channel.catalog import help_public, help_package, catalog
 
-See AUTOMATION.md + LONGEVITY.md.\n"""
+See AUTOMATION.md + LONGEVITY.md.
+"""
 from __future__ import annotations
 
 import json
