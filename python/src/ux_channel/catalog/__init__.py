@@ -1,4 +1,18 @@
-"""Package catalog — generated navigator (L5 tooling, not an implementation plane).\n\nDesign\n    Machine-readable inventory of packages + modules so agents and humans do\n    not re-type layouts. Sourced from PACKAGE_MAP via scripts/sync_python_layout.py.\n\nArchitecture\n    L5 only — never import this for dispatch or trust. Mirror of layout law.\n\nImplementation\n    ``catalog.json`` is GENERATED. Do not hand-edit package lists here.\n\n    from ux_channel.catalog import help_public, help_package, catalog\n\nSee AUTOMATION.md + LONGEVITY.md.\n"""
+"""Package catalog — generated navigator (L5 tooling, not an implementation plane).
+
+Design
+    Machine-readable inventory of packages + modules so agents and humans do
+    not re-type layouts. Sourced from PACKAGE_MAP via scripts/sync_python_layout.py.
+
+Architecture
+    L5 only — never import this for dispatch or trust. Mirror of layout law.
+
+Implementation
+    ``catalog.json`` is GENERATED. Do not hand-edit package lists here.
+
+    from ux_channel.catalog import help_public, help_package, catalog
+
+See AUTOMATION.md + LONGEVITY.md.\n"""
 from __future__ import annotations
 
 import json
