@@ -5,7 +5,7 @@ Read [../../../START_HERE.md](../../../START_HERE.md) first if you are new. This
 
 Server-initiated **Result** delivery for live tickers and boards **without user clicks**.
 
-**Library version:** 0.1.0
+**Library version:** 0.1.1
 
 ---
 
