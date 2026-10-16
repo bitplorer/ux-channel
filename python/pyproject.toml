@@ -113,7 +113,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.pytest.ini_options]
 # Ontological collection order (core → stress). Do not alphabetize packages away.
-testpaths = ["tests/gate"]  # monorepo gate; full suite: pytest tests -o testpaths=tests
+testpaths = ["tests/gate", "tests/core"]  # monorepo gate (verify.sh); full suite: pytest tests -o testpaths=tests
 pythonpath = ["src", "tests"]
 asyncio_mode = "auto"
 filterwarnings = [
