@@ -9,7 +9,7 @@ from __future__ import annotations
 import threading
 import time
 from dataclasses import dataclass, field
-from typing import Any, Iterator, Mapping, Optional, Protocol, Sequence
+from typing import Any, Mapping, Optional, Protocol
 
 from ux_channel.protocol.types import Intent, Result
 
