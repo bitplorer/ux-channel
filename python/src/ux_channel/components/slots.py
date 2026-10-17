@@ -23,7 +23,7 @@ Jinja Markup, strings, and callables plug in equally.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Callable, Iterable, Mapping, Optional, Sequence, Union
+from typing import Any, Callable, Mapping, Optional, Sequence
 
 from ux_channel.components.base import ChannelComponent
 from ux_channel.components.primitive import to_html
