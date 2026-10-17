@@ -8,10 +8,9 @@ Server push bus — server-initiated Results.
 from __future__ import annotations
 
 import asyncio
-import json
 import threading
 from collections import defaultdict
-from typing import Any, DefaultDict, Optional, Protocol, Set
+from typing import DefaultDict, Optional, Protocol, Set
 
 from ux_channel.protocol.types import Result
 

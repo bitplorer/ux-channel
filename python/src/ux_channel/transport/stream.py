@@ -9,8 +9,7 @@ from __future__ import annotations
 
 from ux_channel.protocol import serde as _serde
 
-import json
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any, Iterator, Optional
 
 from ux_channel.protocol.types import PROTOCOL_VERSION, Result
