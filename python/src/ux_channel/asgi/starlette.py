@@ -4,16 +4,13 @@ Starlette host adapter — security parity with FastAPI (next steps).
 
 from __future__ import annotations
 
-from ux_channel.protocol import serde as _serde
 from ux_channel.wire.negotiate import decode_http_body, encode_http_body
 from ux_channel.wire.core import MEDIA_TYPES
 
-import json
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 from ux_channel.host.registry import ActionRegistry
-from ux_channel.security.security import channel_header_ok, content_length_ok, origin_allowed
 from ux_channel.transport.stream import ResultStream, format_sse
 from ux_channel.devtools.trace import FrameKind, get_tracer
 from ux_channel.protocol.types import Intent, Result
