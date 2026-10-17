@@ -3,7 +3,6 @@
 
 from __future__ import annotations
 from dataclasses import dataclass, field
-from typing import Any, Sequence
 from ux_channel.bridges._factory import BridgeFactoryMixin
 
 __all__ = ["SwiperBridge", "SWIPER_PACKAGE"]

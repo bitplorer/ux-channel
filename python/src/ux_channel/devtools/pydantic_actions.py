@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import inspect
-from typing import Any, Callable, Optional, Type
+from typing import Any, Callable, Type
 
 from ux_channel.protocol.errors import ActionError
 from ux_channel.host.registry import ActionRegistry

@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import hashlib
-from typing import Any, Mapping
+from typing import Any
 
 from ux_channel.ops.catalog import Op
 from ux_channel.ops.translate import to_classic

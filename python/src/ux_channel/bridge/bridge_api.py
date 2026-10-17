@@ -29,8 +29,7 @@ from __future__ import annotations
 from ux_channel.protocol import serde as _serde
 
 import html
-import json
-from typing import Any, Mapping, Optional, Sequence
+from typing import Any, Optional, Sequence
 
 from ux_channel.protocol.ops import Op, bridge_call, bridge_destroy, bridge_mount, bridge_update
 from ux_channel.bridge.plugins import BridgeManifest, get_hub

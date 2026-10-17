@@ -11,7 +11,7 @@ from __future__ import annotations
 import threading
 import time
 from dataclasses import dataclass, field
-from typing import Any, Callable, Mapping, Optional, Sequence
+from typing import Any, Mapping, Optional, Sequence
 
 from ux_channel.protocol.types import Result
 
@@ -159,8 +159,6 @@ def attach_enterprise(channel: Any) -> None:
         return channel.audit_log.emit(action, actor=actor, **detail)
 
     channel.audit = audit
-    channel.paginate = staticmethod(paginate) if False else paginate
-    # bind as function
     channel.paginate = paginate
 
     # Patch mint/attrs/button to honor policy.once automatically

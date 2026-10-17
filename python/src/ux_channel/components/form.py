@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Callable, Optional
+from typing import Any, Callable
 
 from ux_channel.components.base import ChannelComponent
 from ux_channel.render.html_safe import esc

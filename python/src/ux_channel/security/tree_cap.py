@@ -7,10 +7,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Iterable, Mapping, Optional, Sequence
+from typing import Any, Mapping, Optional, Sequence
 
 from ux_channel.protocol.capability import CapService
-from ux_channel.security.attenuate import AttenuationError, attenuate, fingerprint_token
+from ux_channel.security.attenuate import AttenuationError
 
 __all__ = [
     "TreeCapError",

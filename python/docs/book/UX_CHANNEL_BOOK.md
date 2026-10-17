@@ -3,7 +3,7 @@ Read [../../../START_HERE.md](../../../START_HERE.md) first if you are new. This
 
 # The ux-channel Book (0.1)
 
-> Library version **0.1.1**. Canonical API: region · on · done · control · draft.edit.
+> Library version **0.1.2**. Canonical API: region · on · done · control · draft.edit.
 
 ## 1. What it is
 

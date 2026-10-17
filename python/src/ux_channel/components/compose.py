@@ -10,17 +10,13 @@ Slots compose **content**, not base classes — that is the decades-stable choic
 
 from __future__ import annotations
 
-from typing import Any, Callable, Mapping, Optional, Sequence
+from typing import Any, Callable, Mapping, Sequence
 
 from ux_channel.components.base import ChannelComponent
 from ux_channel.components.primitive import as_host, region_attrs, region_root
 from ux_channel.components.slots import (
     Slot,
-    SlotContext,
-    SlotList,
     Slots,
-    choose_slot,
-    map_slot,
     nest,
     render_fragment,
 )

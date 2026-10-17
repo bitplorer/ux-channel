@@ -8,14 +8,13 @@ Used by FastAPI/Starlette adapters so host and peer stay aligned:
 """
 from __future__ import annotations
 
-from typing import Any, Mapping, MutableMapping
+from typing import Any, Mapping
 
 from ux_channel.enhance.attach import (
     EnhanceFacade,
     attach_enhance,
     session_id_from_headers,
 )
-from ux_channel.enhance.negotiation import PeerHello
 
 
 def resolve_enhance(

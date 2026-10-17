@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import re
 import time
-from typing import Any, Mapping, Optional, Sequence, Tuple
+from typing import Any, Mapping, Optional, Tuple
 
 from itsdangerous import BadSignature, SignatureExpired, URLSafeTimedSerializer
 
@@ -270,8 +270,6 @@ def authorize_push_subscribe(
         except PushAuthError as exc:
             # fall through to token / deny — but remember failure if require auth
             ticket_err = str(exc)
-        else:
-            ticket_err = None
     else:
         ticket_err = None
 

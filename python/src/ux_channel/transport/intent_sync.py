@@ -13,14 +13,13 @@ from __future__ import annotations
 
 from ux_channel.protocol import serde as _serde
 
-import json
 import logging
 import threading
 import time
 from dataclasses import dataclass, field
 from typing import Any, Callable, List, Optional, Protocol
 
-from ux_channel.protocol.types import Intent, Result
+from ux_channel.protocol.types import Intent
 
 logger = logging.getLogger("ux_channel.transport.intent_sync")
 

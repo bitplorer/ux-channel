@@ -24,7 +24,7 @@ from ux_channel.protocol.ops import morph, navigate
 from ux_channel.protocol.types import Result
 
 
-from ux_channel.protocol.navigate_markers import Go, Navigate  # re-export
+from ux_channel.protocol.navigate_markers import Go, Navigate  # noqa: F401  re-export
 
 
 def encode_result(

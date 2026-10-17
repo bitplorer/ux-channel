@@ -1,11 +1,3 @@
-from ux_channel.bridge.bridge_api import mount_html, mount_ops, update_ops, register_simple_manifest
-from ux_channel.render.kit import (
-    attr_string,
-    demo_button,
-    demo_page,
-    demo_scripts,
-    script_tags,
-)
 """
 ux-dom + uxchannel + three.js (npm 3D via CDN bridge)
 
@@ -30,10 +22,17 @@ from ux_channel import (
     ChannelConfig,
     Region,
     Result,
+)
+from ux_channel.bridge.bridge_api import (
+    mount_html,
     register_simple_manifest,
     update_ops,
 )
 from ux_channel.protocol.ops import bridge_call
+from ux_channel.render.kit import (
+    attr_string,
+    demo_scripts,
+)
 
 STATIC = Path(__file__).resolve().parent / "static"
 

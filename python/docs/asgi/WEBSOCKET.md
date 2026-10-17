@@ -6,7 +6,7 @@ Read [../../../START_HERE.md](../../../START_HERE.md) first if you are new. This
 Duplex channel for **live Results** (same bus as SSE) and optional **Intent** dispatch.
 
 **Endpoint:** `WS {path}/ws` (default `/ux-channel/ws`)  
-**Library version:** 0.1.1
+**Library version:** 0.1.2
 
 ---
 
@@ -71,7 +71,7 @@ Same doors as SSE where applicable:
 ### Server → client
 
 ```json
-{"type":"hello","uid":"1","runtime": "0.1.1"}
+{"type":"hello","uid":"1","runtime": "0.1.2"}
 {"type":"subscribed","topic":"public.rates"}
 {"type":"result","ok":true,"ops":[…],"uid":"1"}
 {"type":"error","code":"unauthorized","message":"…"}

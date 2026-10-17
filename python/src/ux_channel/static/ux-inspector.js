@@ -20,7 +20,7 @@
     return;
   }
 
-  var VERSION = "0.1.1";
+  var VERSION = "0.1.2";
   var frames = [];
   var maxFrames = 400;
   var selectedReq = null;

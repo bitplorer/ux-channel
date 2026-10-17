@@ -17,10 +17,9 @@ import importlib
 import inspect
 import logging
 import pkgutil
-from pathlib import Path
-from typing import Any, Callable, Iterator, Optional, Sequence, Type, Union
+from typing import Any, Callable, Iterator, Optional, Type
 
-from ux_channel.host.region_component import Region, class_to_uid
+from ux_channel.host.region_component import Region
 
 __all__ = [
     "RegionDirectory",

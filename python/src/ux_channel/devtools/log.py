@@ -16,7 +16,6 @@ from __future__ import annotations
 
 from ux_channel.protocol import serde as _serde
 
-import json
 import os
 import sys
 import time

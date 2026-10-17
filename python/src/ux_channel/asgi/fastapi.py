@@ -14,7 +14,6 @@ from ux_channel.protocol import serde as _serde
 from ux_channel.wire.negotiate import decode_http_body, encode_http_body
 from ux_channel.wire.core import MEDIA_TYPES
 
-import json
 import secrets
 
 from pathlib import Path
@@ -189,7 +188,6 @@ def mount_channel(
                         status_code=413,
                         media_type=CHANNEL_JSON,
                     )
-                import json
 
                 body = decode_http_body(raw or b"{}", content_type=request.headers.get("content-type"))
         except Exception:
@@ -1161,7 +1159,6 @@ def mount_channel(
             Auth: agent_token or MCP session ticket (same as other MCP routes).
             """
             import asyncio
-            import json
             from fastapi.responses import StreamingResponse
             from ux_channel.transport.push import get_push_bus
             from ux_channel.mcp.subscribe import (

@@ -16,7 +16,7 @@ import statistics
 import time
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import Any, Callable, Optional, Sequence
+from typing import Any, Callable, Sequence
 
 
 @dataclass

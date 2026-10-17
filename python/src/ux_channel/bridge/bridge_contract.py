@@ -26,10 +26,9 @@ from __future__ import annotations
 
 from ux_channel.protocol import serde as _serde
 
-import json
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Mapping, MutableMapping, Optional, Sequence
+from typing import Any, Mapping, Optional
 
 __all__ = [
     "MethodSpec",

@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from ux_channel.protocol import serde as _serde
 
-from typing import Any, Callable, Mapping, Optional, Sequence
+from typing import Any, Callable, Optional, Sequence
 
 __all__ = ["list_resources", "read_resource"]
 
@@ -87,7 +87,6 @@ def read_resource(
         from ux_channel.mcp.verticals import list_verticals
 
         packs = [p.to_dict() for p in list_verticals() if not verticals or p.id in verticals]
-        import json
 
         return {
             "uri": u,
@@ -95,7 +94,6 @@ def read_resource(
             "text": _serde.dumps({"verticals": packs}, pretty=True),
         }
     if u == "uid://claim":
-        import json
 
         return {
             "uri": u,
@@ -109,7 +107,6 @@ def read_resource(
         r = u.split("/", 3)[-1]
         if room and r != room:
             raise PermissionError("situation room mismatch")
-        import json
 
         facts: dict[str, Any] = {"room": r or room, "scopes": list(scopes)}
         if situation_fn:
@@ -144,7 +141,6 @@ def read_resource(
                         html = reg.render(None)
         return {"uri": u, "mimeType": "text/html", "text": html or f"<!-- empty {uid} -->"}
     if u.startswith("uid://outbox/"):
-        import json
 
         summary: Any = {"pending": 0}
         if outbox_summary_fn:

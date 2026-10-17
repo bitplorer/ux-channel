@@ -133,7 +133,6 @@ def attach_document(channel: Any) -> None:
                         if webrtc_ticket:
                             attrs["data-channel-webrtc-ticket"] = str(webrtc_ticket)
                         ice = plane.default_ice_servers()
-                        import json as _json
 
                         attrs["data-channel-webrtc-ice"] = _serde.dumps(
                             ice

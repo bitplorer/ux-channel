@@ -7,7 +7,7 @@ Modular: does not depend on MCP transport; MCP adapter imports this.
 from __future__ import annotations
 
 import inspect
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any, Callable, Optional
 
 from ux_channel.host.action_catalog import action_catalog

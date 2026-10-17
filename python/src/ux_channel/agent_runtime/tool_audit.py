@@ -4,12 +4,10 @@ Agent audit log — every tool call is attributable in production.
 
 from __future__ import annotations
 
-import json
 import logging
 import threading
-import time
 from dataclasses import asdict, dataclass, field
-from typing import Any, Callable, List, Optional, Protocol
+from typing import Any, List, Optional, Protocol
 
 logger = logging.getLogger("ux_channel.agent_runtime.tool_audit")
 

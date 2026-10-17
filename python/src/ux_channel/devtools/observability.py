@@ -16,7 +16,6 @@ from __future__ import annotations
 from ux_channel.protocol import serde as _serde
 
 import logging
-import time
 from typing import Any, Callable, Optional, Protocol
 
 from ux_channel.protocol.types import Intent, Result
@@ -81,7 +80,6 @@ def observability_after_hook(
     Logs at INFO when slow or failed; DEBUG when log_all=True.
     Set ``json_logs=True`` for one JSON object per line (automation).
     """
-    import json as _json
     import time as _time
 
     m: Metrics = metrics or NullMetrics()

@@ -3,7 +3,6 @@
 
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import Any
 from ux_channel.bridges._factory import BridgeFactoryMixin
 
 __all__ = ["QuillBridge", "QUILL_PACKAGE"]

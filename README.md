@@ -19,7 +19,7 @@ This layer **owns the wire**: Intent, Result, Capability, codecs, peers, Cap Hos
 | **PyPI / pip** | `ux-channel` |
 | **Import** | `ux_channel` |
 | **CLI** | **`uxchannel`** |
-| **Version** | `0.1.1` |
+| **Version** | `0.1.2` |
 | **Python** | ≥ 3.14 |
 | **License** | [MIT](LICENSE) |
 

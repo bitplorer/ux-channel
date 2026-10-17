@@ -18,7 +18,6 @@ from __future__ import annotations
 
 from ux_channel.protocol import serde as _serde
 
-import json
 import time
 from dataclasses import dataclass
 from typing import Any, Mapping, Optional

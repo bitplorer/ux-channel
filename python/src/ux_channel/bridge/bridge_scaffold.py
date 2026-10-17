@@ -16,11 +16,10 @@ from pathlib import Path
 from ux_channel.devtools.errors import (
     DxConflictError,
     DxNotFoundError,
-    DxUsageError,
     DxValidationError,
 )
 from ux_channel.devtools.log import get_log
-from typing import Any, Iterable, Sequence
+from typing import Any, Sequence
 
 CONTRACT_SCHEMA_VERSION = 1
 LIFECYCLE_OPS = ("mount", "update", "call", "destroy")

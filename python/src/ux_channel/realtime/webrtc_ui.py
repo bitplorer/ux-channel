@@ -80,7 +80,6 @@ class RtcPlugin:
     @property
     def client_json(self) -> str:
         """Compact JSON for host-owned <script> embeds (not a UI widget)."""
-        import json
 
         return _serde.dumps(self.client)
 

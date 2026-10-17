@@ -7,12 +7,10 @@ dispatch). Security must cover:
 
 from __future__ import annotations
 
-from typing import Any, Iterable, List, Optional, Sequence, Tuple
-from urllib.parse import urlparse
+from typing import Any, List, Optional, Sequence, Tuple
 
 from ux_channel.security.push_security import (
     authorize_push_subscribe,
-    extract_push_credentials,
     validate_topic,
     PushAuthError,
 )
@@ -109,8 +107,8 @@ def authorize_ws_connect(
     # topic checked again on subscribe)
     if ticket:
         # ticket must be well-formed; topic checked on subscribe
-        from itsdangerous import BadSignature, SignatureExpired, URLSafeTimedSerializer
-        from ux_channel.security.push_security import _PUSH_SALT, _serializer
+        from itsdangerous import BadSignature, SignatureExpired
+        from ux_channel.security.push_security import _serializer
 
         secret = getattr(config, "secret", None)
         if not secret:

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Iterable, Optional
 
 from ux_channel.host.registry import ActionRegistry
 

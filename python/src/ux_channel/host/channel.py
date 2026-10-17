@@ -16,10 +16,9 @@ from dataclasses import dataclass, field
 from typing import Any, Callable, Mapping, Optional, Sequence, Union  # noqa: F401
 
 from ux_channel.host.config import ChannelConfig
-from ux_channel.protocol.navigate_markers import Go, Navigate
+from ux_channel.protocol.navigate_markers import Go
 from ux_channel.host.factory import create_channel
-from ux_channel.render.html import action_attrs
-from ux_channel.render.html_safe import esc, user_content
+from ux_channel.render.html_safe import esc
 from ux_channel.protocol.ops import (
     Op,
     clear_errors,
@@ -28,7 +27,6 @@ from ux_channel.protocol.ops import (
     morph,
     navigate,
     push_url,
-    reload,
     remove,
     scroll,
     set_attr,

@@ -29,8 +29,8 @@ from __future__ import annotations
 import os
 import secrets
 import warnings
-from dataclasses import dataclass, field, replace
-from typing import Optional, Sequence
+from dataclasses import dataclass, replace
+from typing import Optional
 
 from ux_channel.security.limits import (
     DEFAULT_MAX_HTML_BYTES,

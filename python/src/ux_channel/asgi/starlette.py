@@ -4,16 +4,13 @@ Starlette host adapter — security parity with FastAPI (next steps).
 
 from __future__ import annotations
 
-from ux_channel.protocol import serde as _serde
 from ux_channel.wire.negotiate import decode_http_body, encode_http_body
 from ux_channel.wire.core import MEDIA_TYPES
 
-import json
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 from ux_channel.host.registry import ActionRegistry
-from ux_channel.security.security import channel_header_ok, content_length_ok, origin_allowed
 from ux_channel.transport.stream import ResultStream, format_sse
 from ux_channel.devtools.trace import FrameKind, get_tracer
 from ux_channel.protocol.types import Intent, Result
@@ -62,8 +59,6 @@ def channel_routes(
 ) -> list[Any]:
     path = path.rstrip("/") or "/ux-channel"
     max_request = int(getattr(config, "max_request_bytes", 256_000) or 256_000)
-    allowed_origins = tuple(getattr(config, "allowed_origins", ()) or ())
-    enforce_same = bool(getattr(config, "enforce_same_origin", True))
     health_list = bool(getattr(config, "health_list_actions", False))
     ip_rpm = int(getattr(config, "rate_limit_per_minute", 0) or 0)
     ip_burst = float(getattr(config, "rate_limit_burst", 30) or 30)

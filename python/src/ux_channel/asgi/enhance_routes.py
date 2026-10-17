@@ -9,7 +9,7 @@ Or rely on Channel.boot + the hooks below when using the patched fastapi host.
 """
 from __future__ import annotations
 
-from typing import Any, Optional, Union
+from typing import Any
 
 
 def mount_enhance_routes(
@@ -32,7 +32,7 @@ def mount_enhance_routes(
     from ux_channel.protocol.types import Result
     from ux_channel.wire.core import MEDIA_TYPES
     from ux_channel.wire.negotiate import decode_http_body
-    from ux_channel.enhance.asgi_wire import resolve_enhance, handle_hello, project_after_dispatch
+    from ux_channel.enhance.asgi_wire import resolve_enhance, handle_hello
     from ux_channel.enhance.attach import attach_enhance
     from ux_channel.asgi.pipeline import headers_from_starlette
 

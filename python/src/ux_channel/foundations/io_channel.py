@@ -15,7 +15,6 @@ from decimal import Decimal
 from enum import Enum
 from typing import (
     Any,
-    Callable,
     Mapping,
     Optional,
     Protocol,
@@ -25,9 +24,9 @@ from typing import (
 )
 
 from ux_channel.bridge.bridge_contract import MethodSpec
-from ux_channel.bridge.bridge_protocol import BridgeFirewallError, SealedBridgeProtocol
+from ux_channel.bridge.bridge_protocol import SealedBridgeProtocol
 from ux_channel.bridge.guest_runtime import event_to_intent_args
-from ux_channel.foundations.quantity import Quantity, QuantityBudget, QuantityError
+from ux_channel.foundations.quantity import Quantity, QuantityBudget
 
 __all__ = [
     "IO_LAWS",
@@ -505,7 +504,6 @@ def protocol_from_mapping(data: Mapping[str, Any]) -> IoProtocol:
 
 def load_protocol_json(path: Union[str, Any]) -> IoProtocol:
     """Load protocol contract from a JSON file path."""
-    import json
     from pathlib import Path as _Path
 
     p = _Path(path)

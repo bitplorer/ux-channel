@@ -21,7 +21,7 @@ import sqlite3
 import threading
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Callable, Iterator, Mapping, Optional, Protocol, runtime_checkable
+from typing import Any, Callable, Mapping, Protocol, runtime_checkable
 
 Mutator = Callable[[Any], Any]
 

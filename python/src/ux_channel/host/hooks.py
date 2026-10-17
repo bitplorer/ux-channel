@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Callable, Optional, Protocol
+from typing import Any, Optional, Protocol
 
 from ux_channel.protocol.types import Intent, Result
 

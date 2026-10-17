@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ux-channel"
-version = "0.1.1"
+version = "0.1.2"
 description = "ux-channel 0.1 — Intent → Action → Result(ops) (PyPI: ux-channel · import: ux_channel · CLI: uxchannel)"
 authors = ["bitplorer <bitplorer@outlook.com>"]
 license = "MIT"

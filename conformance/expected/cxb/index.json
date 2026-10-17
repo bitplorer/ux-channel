@@ -1,7 +1,7 @@
 {
   "suite": "ux-channel-cxb-expected-0.1",
   "oracle": "ux_channel.wire.cxb.encode_cxb_python",
-  "package_version": "0.1.1",
+  "package_version": "0.1.2",
   "media_type": "application/ux-channel+cxb",
   "magic": "CXB1",
   "magic_z": "CXBZ",

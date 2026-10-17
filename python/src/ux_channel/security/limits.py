@@ -49,7 +49,6 @@ def enforce_result_limits(
         # bridge props rough size
         props = op.get("props")
         if props is not None:
-            import json
 
             try:
                 pn = len(_serde().dumps(props, default=str).encode("utf-8"))
@@ -59,7 +58,6 @@ def enforce_result_limits(
                 raise LimitExceeded(f"op[{i}] props exceed size limit ({pn})")
 
     raw = result.to_dict()
-    import json
 
     encoded = _serde().dumps(raw, default=str).encode("utf-8")
     if len(encoded) > max_result_bytes:

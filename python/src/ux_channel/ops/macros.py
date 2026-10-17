@@ -1,7 +1,7 @@
 """Host-only macros — expand to list[Op]; never appear on the wire."""
 from __future__ import annotations
 
-from typing import Any, Mapping, Sequence
+from typing import Mapping, Sequence
 
 from ux_channel.ops.catalog import Op, plan
 
