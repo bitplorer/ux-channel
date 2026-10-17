@@ -3,7 +3,7 @@
 
 from __future__ import annotations
 from dataclasses import dataclass, field
-from typing import Any, Sequence
+from typing import Sequence
 from ux_channel.bridges._factory import BridgeFactoryMixin
 
 __all__ = ["SortableBridge", "SORTABLE_PACKAGE"]
