@@ -10,7 +10,7 @@ from ux_channel.transport.stream import ResultStream, format_sse
 from ux_channel.devtools.trace import FrameKind, get_tracer
 from ux_channel.protocol.types import Intent, Result
 from ux_channel.wire.core import MEDIA_TYPES
-from ux_channel.wire.negotiate import decode_http_body, encode_http_body, response_headers_for
+from ux_channel.wire.negotiate import decode_http_body, encode_http_body
 
 CHANNEL_JSON = MEDIA_TYPES["json"]
 
