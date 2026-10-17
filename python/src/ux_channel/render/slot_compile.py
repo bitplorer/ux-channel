@@ -13,7 +13,7 @@ from __future__ import annotations
 import hashlib
 import re
 from dataclasses import dataclass, field
-from typing import Any, Mapping, Optional, Sequence
+from typing import Any, Mapping, Optional
 
 __all__ = ["stable_uid", "SlotMap", "compile_tree", "TreeDict"]
 

@@ -7,7 +7,6 @@
 from __future__ import annotations
 
 import hashlib
-import json
 from dataclasses import dataclass, field
 from typing import Any, Mapping, Optional, Sequence
 
