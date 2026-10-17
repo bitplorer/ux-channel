@@ -11,6 +11,9 @@
   `else: ticket_err = None` after a returning `try` in `security/push_security.py`,
   and the no-op `staticmethod(paginate) if False else paginate` assignment in
   `devtools/enterprise.py`.
+- `asgi/starlette.py`: dropped the unused `allowed_origins` / `enforce_same` locals.
+  Origin checks were already enforced (fail closed) by `asgi.pipeline.preflight_action`;
+  new `tests/security/test_starlette_origin.py` locks that for the Starlette adapter.
 - f-strings without placeholders made plain strings (3 sites).
 - Examples: `composites_demo` no longer has the broken `class ux-dom:` rename
   (now `DomNode`); `plugins_demo` and `ux_dom_threejs` import from

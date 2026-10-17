@@ -59,8 +59,6 @@ def channel_routes(
 ) -> list[Any]:
     path = path.rstrip("/") or "/ux-channel"
     max_request = int(getattr(config, "max_request_bytes", 256_000) or 256_000)
-    allowed_origins = tuple(getattr(config, "allowed_origins", ()) or ())
-    enforce_same = bool(getattr(config, "enforce_same_origin", True))
     health_list = bool(getattr(config, "health_list_actions", False))
     ip_rpm = int(getattr(config, "rate_limit_per_minute", 0) or 0)
     ip_burst = float(getattr(config, "rate_limit_burst", 30) or 30)
