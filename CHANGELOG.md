@@ -1,3 +1,24 @@
+## 0.1.2 — dead-code cleanup
+
+- Version bump 0.1.1 → 0.1.2 (patch: no runtime behaviour change; version strings in
+  `pyproject.toml`, `VERSION`, `_version.py`, client JS `VERSION`, docs, and the
+  conformance `package_version` provenance field).
+- Removed unused imports across `python/src` (about 460, all non-`__init__` modules).
+  `__init__.py` re-exports are untouched. `protocol/encode.py` keeps its
+  `Go`/`Navigate` re-export, now marked `# noqa: F401`.
+- Removed unreachable code: the second `raise RuntimeError` after the
+  `try/finally` in `ActionRegistry.dispatch` (`host/registry.py`), the dead
+  `else: ticket_err = None` after a returning `try` in `security/push_security.py`,
+  and the no-op `staticmethod(paginate) if False else paginate` assignment in
+  `devtools/enterprise.py`.
+- f-strings without placeholders made plain strings (3 sites).
+- Examples: `composites_demo` no longer has the broken `class ux-dom:` rename
+  (now `DomNode`); `plugins_demo` and `ux_dom_threejs` import from
+  `bridge_api` after `from __future__` (they failed to import before).
+- Kept on purpose: `tb` in `host/stores.py` `__exit__`/`__aexit__` (protocol
+  signature); the F821 hit in `scaffold/region_cli.py` is inside a template string.
+- New locks: `tests/core/test_no_unused_imports.py`, `tests/core/test_dead_code_removed.py`.
+
 ## 0.1.1 — remove deprecations
 
 - Version bump 0.1.0 → 0.1.1 (patch: no runtime behaviour change; docs, version strings, regenerated conformance provenance and harness) (`pyproject.toml`, `_version.py`, client JS
