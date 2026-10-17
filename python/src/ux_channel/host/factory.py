@@ -11,7 +11,7 @@ import os
 from typing import TYPE_CHECKING, Any, Optional, Tuple
 
 if TYPE_CHECKING:
-    from ux_channel.bridge.plugins import PluginHub
+    pass
 
 from ux_channel.host.registry import ActionRegistry
 
