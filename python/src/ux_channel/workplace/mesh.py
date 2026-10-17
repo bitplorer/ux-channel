@@ -20,7 +20,6 @@ from ux_channel.workplace.ticket import (
     WorkplaceTicketError,
     claim_from_rtc_ticket,
     claim_from_workplace_ticket,
-    revoke_workplace_ticket,
     sign_workplace_ticket,
 )
 

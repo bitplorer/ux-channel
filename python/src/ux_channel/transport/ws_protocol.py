@@ -20,8 +20,7 @@ from __future__ import annotations
 
 from ux_channel.protocol import serde as _serde
 
-import json
-from typing import Any, Mapping, Optional
+from typing import Any, Mapping
 
 from ux_channel._version import __version__
 
