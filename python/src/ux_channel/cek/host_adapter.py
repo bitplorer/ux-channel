@@ -34,7 +34,6 @@ from ux_channel.cek.runtime_host import (
     refuse_previous_secrets_on_require,
 )
 from ux_channel.protocol.capability import CapError
-from ux_channel.protocol.capability import CapService as ChannelCapService
 from ux_channel.protocol.types import ErrorObject, Result
 
 log = logging.getLogger("ux_channel.cek.host_adapter")
