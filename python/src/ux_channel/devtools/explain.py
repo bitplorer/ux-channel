@@ -6,7 +6,7 @@ Long-term: every failure should answer *what to do next*, not only *what broke*.
 
 from __future__ import annotations
 
-from typing import Any, Mapping, Optional
+from typing import Any, Mapping
 
 __all__ = ["explain", "explain_code", "TEACH", "HINTS_BY_CODE"]
 
