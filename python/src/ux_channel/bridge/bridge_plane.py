@@ -70,7 +70,6 @@ class BridgePlane:
         Library-specific style (Chart.js options, Leaflet pane classes) stays in
         ``props`` — only pass what that npm API understands.
         """
-        import json
 
         from ux_channel.bridge.bridge_style import merge_host_style
 
