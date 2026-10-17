@@ -18,7 +18,6 @@ from ux_channel.agent_runtime.runner import AgentRunner
 from ux_channel.agent_runtime.session import AgentSession
 from ux_channel.mcp.adapter import McpToolAdapter
 from ux_channel.mcp.sessions import McpSession, get_session_store
-from ux_channel.mcp.verticals import register_builtin_verticals
 from ux_channel.host.registry import ActionRegistry
 
 
