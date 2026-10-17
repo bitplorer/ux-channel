@@ -12,13 +12,10 @@ from __future__ import annotations
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 
-from ux_channel import Channel, Result
+from ux_channel import Channel
 from ux_channel.render.kit import (
-    attr_string,
     demo_button,
     demo_page,
-    demo_scripts,
-    script_tags,
 )
 from ux_channel.components import (
     AppShell,
@@ -33,7 +30,7 @@ app = FastAPI(title="uxchannel composites")
 ch = Channel.boot(app, secret="dev-secret-key-32chars-minimum!!!!")
 
 
-class ux-dom:
+class DomNode:
     """Stand-in for ux_dom Component / tag trees."""
 
     def __init__(self, html: str):
@@ -64,7 +61,7 @@ table = DataTable(
     loader=table_loader,
     row_cells=lambda r: [
         r["id"],
-        ux-dom(f"<strong>{r['name']}</strong>"),
+        DomNode(f"<strong>{r['name']}</strong>"),
         f"${r['price']}",
     ],
     per_page=5,
@@ -84,7 +81,7 @@ def on_checkout(lines):
     return ch.patch(
         {
             "Cart:panel": cart.render(lines=[]),
-            "Hero:root": hero.render(body=ux-dom("<p>Thanks for your order!</p>")),
+            "Hero:root": hero.render(body=DomNode("<p>Thanks for your order!</p>")),
         },
         notice="Order placed",
     )
@@ -94,16 +91,16 @@ cart = CartPanel(
     ch,
     uid="Cart:panel",
     on_checkout=on_checkout,
-    line_renderer=lambda line: ux-dom(
+    line_renderer=lambda line: DomNode(
         f"<li style='padding:.35rem 0'>{line.get('title')} × {line.get('qty', 1)}</li>"
     ),
-    slots={"header": ux-dom("<strong>Your cart</strong>")},
+    slots={"header": DomNode("<strong>Your cart</strong>")},
 ).install()
 
 hero = Block(
     ch,
     uid="Hero:root",
-    body=ux-dom("<p style='color:#64748b'>Server-driven cart · ux-dom-like media slots</p>"),
+    body=DomNode("<p style='color:#64748b'>Server-driven cart · ux-dom-like media slots</p>"),
 ).install()
 
 card = MediaCard(
@@ -114,7 +111,7 @@ card = MediaCard(
     primary_label="Add featured",
     primary_args={"id": 1, "name": "Product 1"},
     slots={
-        "media": ux-dom(
+        "media": DomNode(
             "<div style='height:100px;background:linear-gradient(135deg,#fbbf24,#f59e0b)'></div>"
         ),
         "title": "Featured product",
@@ -137,11 +134,11 @@ shell = AppShell(
     ch,
     uid="App:shell",
     slots={
-        "brand": ux-dom("<span style='font-weight:700'>uxchannel shop</span>"),
+        "brand": DomNode("<span style='font-weight:700'>uxchannel shop</span>"),
         "nav": "<a href='/' style='color:#2563eb;text-decoration:none'>Home</a>",
         "main": dash,
         "sidebar": cart,
-        "footer": ux-dom("<span>Composites layer · plug any library via to_html / __render__</span>"),
+        "footer": DomNode("<span>Composites layer · plug any library via to_html / __render__</span>"),
     },
 ).install()
 

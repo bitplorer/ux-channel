@@ -1,4 +1,3 @@
-from ux_channel.bridge.bridge_api import mount_html, mount_ops, update_ops, register_simple_manifest
 """
 Multi-library plug-and-play demo.
 
@@ -23,13 +22,15 @@ from ux_channel import (
     Result,
     create_channel,
     morph,
-    mount_ops,
-    register_simple_manifest,
     toast,
+)
+from ux_channel.bridge.bridge_api import (
+    mount_html,
+    register_simple_manifest,
     update_ops,
 )
 from ux_channel.render.html import action_attrs
-from ux_channel.render.renderers import ChainRenderer, HtmlRenderer, StringRenderer
+from ux_channel.render.renderers import ChainRenderer, StringRenderer
 
 # ---------------------------------------------------------------------------
 # Toy \"library\" object — stands in for pandas/polars/ux-dom in real apps

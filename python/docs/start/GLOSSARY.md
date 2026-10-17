@@ -3,7 +3,7 @@ Read [../../../START_HERE.md](../../../START_HERE.md) first if you are new. This
 
 # Glossary — uxchannel 0.1
 
-**Library version:** 0.1.1.
+**Library version:** 0.1.2.
 
 | Term | Definition |
 |------|------------|

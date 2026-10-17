@@ -3,7 +3,7 @@ Read [../../../START_HERE.md](../../../START_HERE.md) first if you are new. This
 
 **First-time users:** [START_HERE.md](../../../START_HERE.md) (mental model, caps, mistakes, checklist).
 
-# How to use ux-channel 0.1.1
+# How to use ux-channel 0.1.2
 
 ### Brand lines
 
@@ -185,7 +185,7 @@ def index():
     { "op": "morph", "target": "[data-channel-id=\"cart_badge\"]", "html": "…" },
     { "op": "toast", "message": "Added sku", "level": "info" }
   ],
-  "meta": { "action": "add", "duration_ms": 1.2, "runtime": "0.1.1" }
+  "meta": { "action": "add", "duration_ms": 1.2, "runtime": "0.1.2" }
 }
 ```
 
