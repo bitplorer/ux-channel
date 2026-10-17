@@ -19,7 +19,6 @@ from dataclasses import dataclass, field
 from typing import Any, Mapping, Sequence
 
 from ux_channel.bridges._factory import BridgeFactoryMixin
-from ux_channel.render.placement import Placement
 
 __all__ = ["GenericBridge"]
 
