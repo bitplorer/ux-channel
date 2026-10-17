@@ -8,10 +8,10 @@ Use this for create-app, tests, and plain-string hosts.
 from __future__ import annotations
 
 from html import escape
-from typing import Any, Mapping, Optional, Sequence, Union
+from typing import Any, Mapping, Optional
 
 from ux_channel.render.html import button as html_button, form_open
-from ux_channel.render.placement import Placement, ScriptRef
+from ux_channel.render.placement import Placement
 
 __all__ = [
     "script_tags",
