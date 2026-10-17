@@ -37,7 +37,7 @@ Everything else is **power / plane** import-by-home.
 
 | Item | Value |
 |------|--------|
-| Version | 0.1.1 (`ux_channel.__version__`) |
+| Version | 0.1.2 (`ux_channel.__version__`) |
 | License | MIT |
 | Peer UI kit | optional **ux-dom** (not required) |
 | Host model | Any ASGI/HTML host; FastAPI helpers first-class |
