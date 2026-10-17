@@ -6,7 +6,7 @@ Application: ``from ux_channel import state``. Not a database; durable stores ar
 
 from __future__ import annotations
 
-from typing import Any, Mapping, Optional, Sequence
+from typing import Any, Optional, Sequence
 
 from ux_channel.host.state_planes import (
     ClientPlane,
@@ -15,7 +15,7 @@ from ux_channel.host.state_planes import (
     RISKY_SEGMENTS,
     path_is_risky,
 )
-from ux_channel.host.ssr_state import Namespace, SessionVar, SsrState, ssr_state
+from ux_channel.host.ssr_state import Namespace, SessionVar, SsrState
 from ux_channel.protocol.types import Result
 
 __all__ = [

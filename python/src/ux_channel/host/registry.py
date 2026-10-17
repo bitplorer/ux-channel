@@ -248,7 +248,7 @@ class ActionRegistry:
         if install_defaults:
             from ux_channel.devtools.observability import observability_after_hook
             from ux_channel.security.ratelimit import MemoryRateLimiter, rate_limit_hook
-            from ux_channel.devtools.trace import TraceConfig, get_tracer
+            from ux_channel.devtools.trace import TraceConfig
 
             # Wave 5: policy engine (no-op until rules registered)
             def _policy_before(intent, args=None, principal=None, **kw):
@@ -464,10 +464,6 @@ class ActionRegistry:
         finally:
             if token is not None:
                 _principal_override.reset(token)
-        raise RuntimeError(
-            "ActionRegistry.dispatch() called from a running event loop; "
-            "use await registry.async_dispatch(intent) instead"
-        )
 
     async def async_dispatch(
         self,

@@ -49,7 +49,6 @@ See: docs/REGIONS.md, docs/COURSE.md.
 
 from __future__ import annotations
 
-import functools
 
 import logging
 
@@ -58,7 +57,7 @@ logger = logging.getLogger("ux_channel.host.regions")
 from dataclasses import dataclass, field
 from typing import Any, Callable, Mapping, Optional, Sequence, Union
 
-from ux_channel.render.html_safe import SafeHtml, esc
+from ux_channel.render.html_safe import SafeHtml
 from ux_channel.protocol.types import Result
 
 
