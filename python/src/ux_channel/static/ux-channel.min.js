@@ -1,5 +1,5 @@
 /**
- * uxchannel client runtime v0.1.1
+ * uxchannel client runtime v0.1.2
  * Intent → POST/SSE → apply Result.ops
  *
  * Closed core. Ops are minted in Python (or a driver). This file only applies
@@ -29,7 +29,7 @@
 
   var ENDPOINT_ATTR = "data-channel-endpoint";
   var DEFAULT_ENDPOINT = "/ux-channel/action";
-  var VERSION = "0.1.1";
+  var VERSION = "0.1.2";
   var active = 0;
   var maxConcurrent = 3;
   var queue = [];
