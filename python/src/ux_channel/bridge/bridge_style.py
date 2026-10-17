@@ -10,7 +10,7 @@ Boundary
 
 from __future__ import annotations
 
-from typing import Any, Mapping, Optional, Union
+from typing import Any, Mapping, Union
 
 __all__ = ["merge_host_style", "normalize_css_vars"]
 
