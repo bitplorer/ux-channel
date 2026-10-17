@@ -22,7 +22,6 @@ def _serde():
 
 
 import html
-import json
 from typing import Any, Mapping, Optional
 
 

@@ -10,7 +10,7 @@ from __future__ import annotations
 import logging
 import threading
 import time
-from typing import Any, Callable, Optional
+from typing import Any, Callable
 
 logger = logging.getLogger("ux_channel.redis")
 

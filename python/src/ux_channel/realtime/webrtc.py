@@ -12,14 +12,12 @@ from __future__ import annotations
 from ux_channel.protocol import serde as _serde
 
 import asyncio
-import json
 import queue as queue_mod
 import secrets
 import threading
 import time
 from dataclasses import dataclass, field
-from typing import Any, Callable, Optional, Protocol
-from urllib.parse import quote
+from typing import Any, Protocol
 
 DEFAULT_ROOM = "default"
 MAX_PAYLOAD_BYTES = 32_768
