@@ -26,8 +26,7 @@ from __future__ import annotations
 
 from ux_channel.protocol import serde as _serde
 
-import json
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from html import escape
 from typing import Any, Literal, Mapping, Optional
 

@@ -23,7 +23,7 @@ from __future__ import annotations
 from ux_channel.protocol import serde as _serde
 
 from dataclasses import dataclass
-from typing import Any, Optional, Protocol
+from typing import Any, Protocol
 
 
 @dataclass
@@ -160,7 +160,6 @@ class LiveKitSfu:
                 "canSubscribe": can_subscribe,
             },
         }
-        import json as _json
 
         h = _b64url(_serde.dumps(header).encode())
         pld = _b64url(_serde.dumps(payload).encode())
