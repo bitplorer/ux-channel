@@ -14,10 +14,10 @@ from __future__ import annotations
 import hashlib
 import logging
 from dataclasses import dataclass, field
-from typing import Any, Mapping, Optional, Sequence
+from typing import Any, Mapping, Sequence
 
 from ux_channel.enhance.continuations import Continuation, attach_continuations
-from ux_channel.enhance.handshake import HandshakeRegistry, PeerSession
+from ux_channel.enhance.handshake import HandshakeRegistry
 from ux_channel.enhance.negotiation import PeerHello
 from ux_channel.enhance.recorder import SessionRecorder
 from ux_channel.enhance.delta import region_hash

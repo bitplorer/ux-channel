@@ -9,14 +9,13 @@ from __future__ import annotations
 
 from ux_channel.protocol import serde as _serde
 
-import json
 import threading
 import time
 import uuid
 from collections import deque
-from dataclasses import asdict, dataclass, field
+from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Callable, Deque, Iterator, Optional, Sequence
+from typing import Any, Callable, Deque, Optional, Sequence
 
 
 class FrameKind(str, Enum):
