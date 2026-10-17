@@ -26,13 +26,6 @@ from pathlib import Path
 from typing import Optional
 
 from ux_channel.devtools.errors import DxError, DxUsageError
-from ux_channel.render.kit import (
-    attr_string,
-    demo_button,
-    demo_page,
-    demo_scripts,
-    script_tags,
-)
 from ux_channel.devtools.log import configure_log, get_log, log_exception
 
 
@@ -332,11 +325,9 @@ def cmd_bridge(args: argparse.Namespace) -> int:
     log = get_log()
     from ux_channel.bridge.bridge_scaffold import (
         add_contract_method,
-        create_bridge_package,
         explain_bridge,
         list_contract_methods,
         remove_contract_method,
-        slugify,
     )
 
     action = (args.bridge_action or "explain").lower().replace("_", "-")
@@ -679,7 +670,7 @@ def cmd_dashboard(args: argparse.Namespace) -> int:
             for lat in perf.get("latencies") or []:
                 print(f"  perf       : {lat.get('name', ''):<24} p95={lat.get('p95_ms')}")
         else:
-            print(f"  perf       : (not sampled)")
+            print("  perf       : (not sampled)")
         inv = sec.get("inventory") or {}
         print(f"  inventory  : actions={inv.get('actions')} regions={inv.get('regions')}")
         print("-" * 40)

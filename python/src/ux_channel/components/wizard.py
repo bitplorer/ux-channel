@@ -3,11 +3,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Callable, Optional
+from typing import Any, Callable
 
 from ux_channel.components.base import ChannelComponent
 from ux_channel.render.html_safe import esc
-from ux_channel.protocol.ops import push_url
 from ux_channel.protocol.types import Result
 
 StepValidator = Callable[[int, dict[str, Any]], dict[str, list[str]]]
