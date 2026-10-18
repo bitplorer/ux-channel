@@ -1,3 +1,9 @@
+# Changelog
+
+## Unreleased
+
+- **Deps:** declare optional ``ux-dom`` peer pinned to ``19af869`` (F-14).
+
 ## 0.1.2 — dead-code cleanup
 
 - Version bump 0.1.1 → 0.1.2 (patch: no runtime behaviour change; version strings in

@@ -44,7 +44,8 @@ include = [
 python = ">=3.14,<4"
 itsdangerous = ">=2.1"
 
-# Optional extras (ux-dom is a peer — install separately for glue tests)
+# Optional extras — ux-dom peer pinned for glue / examples
+ux-dom = { git = "https://github.com/bitplorer/ux-dom.git", rev = "19af869ecbb108f3cf779111838e3359b33a8131", optional = true }
 fastapi = { version = ">=0.100", optional = true }
 starlette = { version = ">=0.27", optional = true }
 redis = { version = ">=5.0", optional = true }
@@ -57,6 +58,8 @@ cek-host = ">=0.2.0"
 cek-surface = ">=0.2.0"
 
 [tool.poetry.extras]
+# Peer render layer
+ux-dom = ["ux-dom"]
 # Door F — host adapters
 asgi = ["fastapi", "starlette"]
 fastapi = ["fastapi", "starlette"]
@@ -79,6 +82,7 @@ otel = ["opentelemetry-api", "opentelemetry-sdk"]
 cek = []
 # Batteries
 full = [
+  "ux-dom",
   "fastapi",
   "starlette",
   "redis",
