@@ -354,7 +354,7 @@ def _http_host(rest: str) -> str | None:
     if authority.startswith("@"):
         return ""
     if "@" in authority:
-        authority = authority.split("@", 1)[0]
+        authority = authority.rsplit("@", 1)[1]
     if authority.startswith("["):
         end = authority.find("]")
         host = authority[1:end] if end > 1 else ""
