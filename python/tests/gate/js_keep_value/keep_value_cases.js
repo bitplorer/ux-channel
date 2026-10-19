@@ -955,4 +955,26 @@ async function runScopeCases(win, doc, check, warns) {
   doc.body.innerHTML = scopeHtml(twoNameless);
   await applyKeepMorph(win, scopeHtml(twoNameless));
   check(keepWarnCount(warns) === 2, "two no-name warnings " + keepWarnCount(warns));
+
+  async function emptyNameEachMorph(label, inner) {
+    var html = scopeHtml(inner);
+    var pass;
+    doc.body.innerHTML = html;
+    for (pass = 1; pass <= 2; pass++) {
+      warns.length = 0;
+      await applyKeepMorph(win, html);
+      check(
+        keepWarnCount(warns) === 1,
+        label + " morph " + pass + " warnings " + keepWarnCount(warns)
+      );
+    }
+  }
+  await emptyNameEachMorph(
+    "empty name in component",
+    '<div data-channel-id="a"><input name="" data-ux-keep-value></div>'
+  );
+  await emptyNameEachMorph(
+    "empty name in named form",
+    '<form id="f"><input name="" data-ux-keep-value></form>'
+  );
 }
