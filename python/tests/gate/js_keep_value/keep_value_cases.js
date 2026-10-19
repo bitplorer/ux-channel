@@ -19,6 +19,7 @@ async function runKeepValueCases(win) {
 }
 
 var KEEP_SECRET = "s3cret-from-visitor";
+var KEEP_MARKUP = '"><img src=x onerror=alert(1)>';
 
 function keepRegionHtml(dropMarked) {
   var drop = dropMarked ? "" : " data-ux-keep-value";
@@ -153,6 +154,34 @@ async function runKeepValuePath(win, path) {
       }
     }
     check(calls === steps.length, "engine calls " + calls + " wanted " + steps.length);
+
+    doc.body.innerHTML =
+      '<div id="region" data-channel-id="login">' +
+      '<input id="payload" name="payload" type="text" data-ux-keep-value value="">' +
+      '<button id="toggle" type="button">Show</button>' +
+      "</div>";
+    var beforeCount = doc.body.querySelectorAll("*").length;
+    doc.getElementById("payload").value = KEEP_MARKUP;
+    doc.getElementById("toggle").focus();
+    await applyKeepMorph(
+      win,
+      '<div id="region" data-channel-id="login">' +
+        '<input id="payload" name="payload" type="text" data-ux-keep-value value="">' +
+        '<button id="toggle" type="button">Show</button>' +
+        "</div>"
+    );
+    var payload = doc.getElementById("payload");
+    check(payload.value === KEEP_MARKUP, "markup value " + JSON.stringify(payload.value));
+    check(
+      payload.getAttribute("value") === "",
+      "markup value attribute " + JSON.stringify(payload.getAttribute("value"))
+    );
+    check(doc.querySelector("img") == null, "markup created an img");
+    check(
+      doc.body.querySelectorAll("*").length === beforeCount,
+      "markup element count " + doc.body.querySelectorAll("*").length
+    );
+    check(calls === steps.length + 1, "markup morph calls " + calls);
 
     var callsBeforeEmpty = calls;
     var region = doc.getElementById("region");
