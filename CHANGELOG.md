@@ -53,6 +53,8 @@
 - `format_sse` applies the outbound policy to a bare Result dict and to a `Result` object under `result`. A stream with no channel is strict.
 - Under `strict`, `navigate`, `push_url`, and `redirect` keep an absolute http(s) URL only when its host is the request `Host` or `navigate_allowed_hosts`. `//x`, `/\t/x`, `\x01//x`, and `javascript:` stay refused. A push has no request. Policy `off` still uses `safe_href`.
 - The client `set_attr` path refuses the same `on*` and `srcdoc` names the server drops.
+- Before the client inserts swap or morph HTML, it refuses `on*`, `srcdoc`, and dangerous URLs (`javascript:`, `vbscript:`, `data:text/html`, and a URL attribute that contains a control character). If that check cannot run, the fragment is not inserted. A `<script>` tag is still carried: off mode does not run the html5lib stripper.
+
 ## 0.1.2 — dead-code cleanup
 
 - Version bump 0.1.1 → 0.1.2 (patch: no runtime behaviour change; version strings in

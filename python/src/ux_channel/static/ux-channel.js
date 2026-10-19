@@ -559,6 +559,7 @@
   }
 
   function applyMorphBody(targetSel, html) {
+    html = guardedHtml(html);
     var target = qs(targetSel);
     if (!target) {
       console.warn("[ux-channel] morph target not found:", targetSel);
@@ -617,6 +618,7 @@
   }
 
   function applySwap(targetSel, html, mode) {
+    html = guardedHtml(html);
     var target = qs(targetSel);
     if (!target) return;
     mode = mode || "outerHTML";
@@ -748,6 +750,131 @@
     if (!isSrcTypeAttr(name)) return false;
     if (/^blob:/i.test(h)) return true;
     return /^data:image\/(png|jpeg|gif|webp|avif)($|[;,])/i.test(h);
+  }
+
+  // Off mode does not run the html5lib stripper, so a swap or morph fragment
+  // may still carry a <script> tag. on*, srcdoc, and dangerous URLs are
+  // removed before insertion. If the fragment cannot be checked, it is refused.
+  function guardedHtml(html) {
+    var raw = String(html == null ? "" : html);
+    if (!raw) return raw;
+    try {
+      if (typeof DOMParser !== "function") return "";
+      var root = guardRoot(raw);
+      if (!root) return "";
+      var stripped = stripRefusedAttrs(root);
+      if (treeHasRefused(root)) return "";
+      // The inert parser and a live innerHTML parse do not agree on noscript.
+      // A string that still looks refused, and that this parse did not strip,
+      // cannot be checked. Refuse it.
+      if (!stripped) return rawHasRefused(raw) ? "" : raw;
+      var cleaned = root.innerHTML;
+      var again = guardRoot(cleaned);
+      if (!again || treeHasRefused(again) || rawHasRefused(cleaned)) return "";
+      return cleaned;
+    } catch (eGuard) {
+      return "";
+    }
+  }
+
+  function guardRoot(raw) {
+    var doc = new DOMParser().parseFromString(
+      '<div id="uxc-guard-9f3c">' + raw + "</div>",
+      "text/html"
+    );
+    var root = doc.getElementById("uxc-guard-9f3c");
+    if (!root || !doc.body) return null;
+    if (doc.body.children.length !== 1) return null;
+    if (doc.body.firstElementChild !== root) return null;
+    return root;
+  }
+
+  function elementList(root) {
+    var out = [root];
+    var found = root.querySelectorAll("*");
+    var i;
+    for (i = 0; i < found.length; i++) out.push(found[i]);
+    return out;
+  }
+
+  function stripRefusedAttrs(root) {
+    var changed = false;
+    var all = elementList(root);
+    var i;
+    var el;
+    var names;
+    var n;
+    var name;
+    for (i = 0; i < all.length; i++) {
+      el = all[i];
+      if (!el.attributes) continue;
+      names = [];
+      for (n = 0; n < el.attributes.length; n++) names.push(el.attributes[n].name);
+      for (n = 0; n < names.length; n++) {
+        name = names[n];
+        if (isEventOrSrcdoc(name) || dangerousUrlValue(name, el.getAttribute(name))) {
+          el.removeAttribute(name);
+          changed = true;
+        }
+      }
+    }
+    return changed;
+  }
+
+  function treeHasRefused(root) {
+    var all = elementList(root);
+    var i;
+    var el;
+    var a;
+    var attr;
+    for (i = 0; i < all.length; i++) {
+      el = all[i];
+      if (!el.attributes) continue;
+      for (a = 0; a < el.attributes.length; a++) {
+        attr = el.attributes[a];
+        if (isEventOrSrcdoc(attr.name) || dangerousUrlValue(attr.name, attr.value)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  function rawHasRefused(raw) {
+    return /srcdoc/i.test(raw)
+      || /(?:^|[\s/])on[a-z]{2,}\s*=/i.test(raw)
+      || /javascript\s*:|vbscript\s*:|data\s*:\s*text\/html/i.test(raw);
+  }
+
+  function hrefHasControl(raw) {
+    var i = 0;
+    var cp;
+    while (i < raw.length) {
+      cp = raw.codePointAt(i);
+      i += cp > 65535 ? 2 : 1;
+      if (cp < 32 || (cp >= 127 && cp <= 159)) return true;
+    }
+    return false;
+  }
+
+  function dangerousUrlValue(name, value) {
+    var raw = String(value == null ? "" : value);
+    if (!raw) return false;
+    if (isUrlAttr(name) && hrefHasControl(raw)) return true;
+    var decoded = decodeUrlEntities(raw);
+    var flat = "";
+    var i = 0;
+    var cp;
+    while (i < decoded.length) {
+      cp = decoded.codePointAt(i);
+      i += cp > 65535 ? 2 : 1;
+      if (cp <= 32 || (cp >= 127 && cp <= 159)) continue;
+      flat += String.fromCodePoint(cp);
+    }
+    var low = flat.toLowerCase();
+    return low.indexOf("javascript:") !== -1
+      || low.indexOf("vbscript:") !== -1
+      || low.indexOf("data:text/html") !== -1;
   }
 
   function decodeUrlEntities(s) {
