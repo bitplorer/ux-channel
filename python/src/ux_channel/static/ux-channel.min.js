@@ -328,12 +328,6 @@
   }
 
   var keepSeen = null;
-  var keepDeferred = null;
-
-  function beginKeepWarns() {
-    keepSeen = Object.create(null);
-    keepDeferred = [];
-  }
 
   function keepFailure(e) {
     var message = "[ux-channel] data-ux-keep-value ignored";
@@ -344,18 +338,6 @@
       message += ": " + key;
     }
     console.warn(message);
-  }
-
-  function deferKeepFailure(e) {
-    if (keepDeferred) keepDeferred.push(e);
-    else keepFailure(e);
-  }
-
-  function flushKeepFailures() {
-    var pending = keepDeferred || [];
-    keepDeferred = [];
-    var i;
-    for (i = 0; i < pending.length; i++) keepFailure(pending[i]);
   }
 
   function keepIgnored(el) {
@@ -393,7 +375,8 @@
       try {
         item = collectOne(el);
       } catch (e) {
-        deferKeepFailure(e);
+        // Reason: the warning is for this read, so it is logged before the morph.
+        keepFailure(e);
         continue;
       }
       if (!item) continue;
@@ -522,13 +505,11 @@
   }
 
   function applyMorph(targetSel, html) {
-    beginKeepWarns();
+    keepSeen = Object.create(null);
     try {
       return applyMorphBody(targetSel, html);
     } finally {
-      flushKeepFailures();
       keepSeen = null;
-      keepDeferred = null;
     }
   }
 
