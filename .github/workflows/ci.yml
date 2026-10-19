@@ -79,17 +79,16 @@ jobs:
       - name: Install Python host test deps
         run: python3 -m pip install -q -r requirements-dev.txt
 
-      # The harness launches Chromium itself (CHROME_PATH). playwright is
-      # installed only in this job so it can download that browser.
-      # Pin: playwright@1.64.1 (Apache-2.0, Microsoft).
-      - name: Install Chromium
+      # jsdom and idiomorph only. The browser is the runner's google-chrome-stable.
+      - name: Test dependencies
         working-directory: python/tests/gate/js_keep_value
+        run: npm install --include=dev --ignore-scripts --no-audit --no-fund
+
+      - name: Chrome
         run: |
-          npm install --include=dev --ignore-scripts --no-audit --no-fund
-          npm install --no-save --ignore-scripts --no-audit --no-fund playwright@1.64.1
-          npx playwright install --with-deps chromium
-          node --input-type=module -e "import { chromium } from 'playwright'; process.stdout.write(chromium.executablePath())" > "$RUNNER_TEMP/chrome-path"
-          echo "CHROME_PATH=$(cat "$RUNNER_TEMP/chrome-path")" >> "$GITHUB_ENV"
+          chrome="$(command -v google-chrome-stable || command -v google-chrome)"
+          test -n "$chrome"
+          echo "Chrome version: $($chrome --version)"
 
       - name: Keep-value Chromium
         working-directory: python
