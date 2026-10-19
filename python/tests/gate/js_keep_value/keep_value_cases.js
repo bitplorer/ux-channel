@@ -1073,10 +1073,22 @@ async function runIsolationCases(win, doc, check, warns, path) {
       throw new Error("value setter rejected");
     },
   });
+  var warnedAt = [];
+  var prevWarn = win.console.warn;
+  win.console.warn = function () {
+    var appliedNow = doc.getElementById("applied");
+    warnedAt.push(appliedNow && appliedNow.textContent);
+    return prevWarn.apply(win.console, arguments);
+  };
   try {
     await applyKeepMorph(win, after);
     checkIsolation(win, doc, check, warns, "getter", path, "value getter rejected");
+    check(
+      warnedAt.length === 1 && warnedAt[0] === "no",
+      "getter warn before morph " + warnedAt.join(",")
+    );
   } finally {
+    win.console.warn = prevWarn;
     delete getterBad.value;
   }
 
