@@ -39,8 +39,6 @@ import logging
 import re
 from typing import Any, Callable, Optional, Sequence, Union
 
-from ux_channel.transport.push import get_push_bus
-
 Handler = Callable[..., Any]
 log = logging.getLogger("ux_channel.region")
 
@@ -52,6 +50,11 @@ def _publish_on_channel(ch: Any, topic: str, result: Any) -> None:
         reg = getattr(ch, "registry", None)
         bus = getattr(reg, "push_bus", None) if reg is not None else None
     if bus is None:
+        # transport/__init__.py imports the outbox, which imports the wire
+        # codec. A module-level import here makes `import ux_channel` load
+        # that stack, which longevity forbids.
+        from ux_channel.transport.push import get_push_bus
+
         bus = get_push_bus()
     bus.publish(topic, result)
 

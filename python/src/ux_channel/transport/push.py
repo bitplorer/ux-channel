@@ -72,6 +72,9 @@ class MemoryPushBackend:
 
 
 class PushBus:
+    # Stamped by a channel. Absent on a bare bus, which is strict.
+    morph_html_policy: str | None
+
     def __init__(self, backend: Optional[PushBackend] = None) -> None:
         self.backend: PushBackend = backend or MemoryPushBackend()
         # Unset means strict. A channel stamps "off" or "strict"; a bare bus does not.
