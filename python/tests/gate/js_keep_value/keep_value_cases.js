@@ -1028,9 +1028,8 @@ function checkIsolation(win, doc, check, warns, label, path, errorName) {
     !!(applied && applied.textContent === "yes"),
     label + " morph " + (applied && applied.textContent)
   );
-  var safeKept = !(path === "idiomorph" && label === "getAttribute");
   check(
-    !!(safe && safe.value === (safeKept ? "kept-safe" : "")),
+    !!(safe && safe.value === "kept-safe"),
     label + " safe " + JSON.stringify(safe && safe.value)
   );
   check(keepWarnCount(warns) === 1, label + " warnings " + keepWarnCount(warns));
@@ -1179,7 +1178,7 @@ async function runIsolationCases(win, doc, check, warns, path) {
     });
     check(named.length === 1, "keepKey warn " + named.length + " " + JSON.stringify(warns));
     check(
-      doc.getElementById("safe").value === "",
+      doc.getElementById("safe").value === "kept-safe",
       "keepKey safe " + JSON.stringify(doc.getElementById("safe") && doc.getElementById("safe").value)
     );
   } finally {
@@ -1188,12 +1187,114 @@ async function runIsolationCases(win, doc, check, warns, path) {
   }
 
   await runSharedKeyCase(win, doc, check);
+  await runOwnElementCase(win, doc, check, warns);
+  await runSiblingTypeCase(win, doc, check, warns);
   await runTypeGuardCase(win, doc, check, warns);
   await runWarnNameCase(win, doc, check, warns);
   await runSurvivorCases(win, doc, check, warns, path);
   if (path === "idiomorph") {
     await runPersistentBreakCase(win, doc, check, warns);
     await runUnmarkedThrowCase(win, doc, check, warns);
+  }
+}
+
+async function runOwnElementCase(win, doc, check, warns) {
+  var before = keepWrap(
+    '<input id="own" name="email" type="email" data-ux-keep-value value="">'
+  );
+  var after = keepWrap(
+    '<input id="own" name="email" type="email" data-ux-keep-value value="">' +
+      '<input id="other" name="email" type="email" data-ux-keep-value value="">'
+  );
+  warns.length = 0;
+  doc.body.innerHTML = before;
+  doc.getElementById("own").value = "secret-own";
+  var savedMorph = win.Idiomorph && win.Idiomorph.morph;
+  var savedReplace = win.Element.prototype.replaceWith;
+  function poison() {
+    var own = doc.getElementById("own");
+    if (!own) return;
+    own.getAttribute = function () {
+      throw new Error("own getAttribute");
+    };
+  }
+  if (savedMorph && win.Idiomorph) {
+    win.Idiomorph.morph = function () {
+      var result = savedMorph.apply(this, arguments);
+      poison();
+      return result;
+    };
+  } else {
+    win.Element.prototype.replaceWith = function () {
+      var result = savedReplace.apply(this, arguments);
+      poison();
+      return result;
+    };
+  }
+  try {
+    await applyKeepMorph(win, after);
+    check(
+      doc.getElementById("other").value === "",
+      "own other " + JSON.stringify(doc.getElementById("other").value)
+    );
+  } finally {
+    if (savedMorph && win.Idiomorph) win.Idiomorph.morph = savedMorph;
+    win.Element.prototype.replaceWith = savedReplace;
+    var own = doc.getElementById("own");
+    if (own) delete own.getAttribute;
+  }
+}
+
+async function runSiblingTypeCase(win, doc, check, warns) {
+  var html = keepWrap(
+    '<input id="left" name="left" type="text" data-ux-keep-value value="">' +
+      '<input id="mid" name="mid" type="text" data-ux-keep-value value="">' +
+      '<input id="right" name="right" type="text" data-ux-keep-value value="">'
+  );
+  warns.length = 0;
+  doc.body.innerHTML = html;
+  doc.getElementById("left").value = "kept-left";
+  doc.getElementById("mid").value = "kept-mid";
+  doc.getElementById("right").value = "kept-right";
+  var savedMorph = win.Idiomorph && win.Idiomorph.morph;
+  var savedReplace = win.Element.prototype.replaceWith;
+  function poison() {
+    var mid = doc.getElementById("mid");
+    Object.defineProperty(mid, "type", {
+      configurable: true,
+      get: function () {
+        throw new Error("sibling type");
+      },
+    });
+  }
+  if (savedMorph && win.Idiomorph) {
+    win.Idiomorph.morph = function () {
+      var result = savedMorph.apply(this, arguments);
+      poison();
+      return result;
+    };
+  } else {
+    win.Element.prototype.replaceWith = function () {
+      var result = savedReplace.apply(this, arguments);
+      poison();
+      return result;
+    };
+  }
+  try {
+    await applyKeepMorph(win, html);
+    check(
+      doc.getElementById("left").value === "kept-left",
+      "sibling type left " + JSON.stringify(doc.getElementById("left").value)
+    );
+    check(
+      doc.getElementById("right").value === "kept-right",
+      "sibling type right " + JSON.stringify(doc.getElementById("right").value)
+    );
+  } finally {
+    if (savedMorph && win.Idiomorph) win.Idiomorph.morph = savedMorph;
+    win.Element.prototype.replaceWith = savedReplace;
+    var mid = doc.getElementById("mid");
+    if (mid) delete mid.type;
   }
 }
 

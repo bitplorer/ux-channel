@@ -86,9 +86,10 @@ otherwise `String(error)`, otherwise `unknown error`. The thrown value is
 the second `console.warn` argument. Two fields that throw the same message
 each log a warning; the same field logs one. If Idiomorph throws, the error is reported the same way as
 any other failed morph, and kept values for the other fields are still
-restored. The partial morph is left in place. If any node throws while a
-saved field is being matched, that field is not restored and the value is
-not written into a different field. The throw logs the same warning.
+restored. The partial morph is left in place. If the saved element throws while it is being matched, or a node's key
+cannot be decided, that field is not restored and the value is not written
+into a different field. A different field's throw does not clear the
+others. The throw logs the same warning.
 It does not set `.checked`, the value
 attribute, parse the text, or insert a node, and it does not send the value
 to the server. A field matches only when both nodes still have the mark, the same `name`,

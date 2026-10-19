@@ -368,7 +368,26 @@
       tagName: el.tagName,
       type: el.type,
       kind: kind,
+      el: el,
+      name: el.getAttribute("name") || "",
     };
+  }
+
+  // A sibling with a different name is not this item. A missing or same name
+  // means the key cannot be decided.
+  function otherKeepField(item, el) {
+    var name = "";
+    try {
+      if (el.name) name = String(el.name);
+    } catch (e) {}
+    if (!name) {
+      try {
+        name = el.getAttribute("name") || "";
+      } catch (e2) {
+        return false;
+      }
+    }
+    return !!(item.name && name && name !== item.name);
   }
 
   // Reason: a throw on one field must not drop the morph or clear the others.
@@ -427,11 +446,14 @@
         try {
           key = keepKey(el, restoreKind(item, el));
         } catch (e) {
-          // Reason: a throw while matching one item means that item must not
-          // be written into this field or any other.
+          // Reason: skip this item when its own element throws, or when this
+          // node's key cannot be decided. A different field must not be blanked.
           keepFailure(e, el);
-          skipItem = true;
-          break;
+          if (el === item.el || !otherKeepField(item, el)) {
+            skipItem = true;
+            break;
+          }
+          continue;
         }
         if (key && key === item.key) matches.push(el);
       }
