@@ -44,6 +44,21 @@ def test_format_sse_filters_outbound_ops() -> None:
     assert "onerror" in json.dumps(envelope).lower()
 
 
+def test_format_sse_filters_a_bare_result() -> None:
+    """A Result with no channel and no ``result`` wrapper is still strict."""
+    bare = _result().to_dict()
+    text = format_sse(bare).decode("utf-8")
+    _assert_clean(text)
+    assert "onerror" in json.dumps(bare).lower()
+
+
+def test_format_sse_filters_a_result_object() -> None:
+    """``{"result": Result}`` is filtered the same way as ``Result.to_dict()``."""
+    result = _result()
+    text = format_sse({"result": result}).decode("utf-8")
+    _assert_clean(text)
+
+
 def test_iter_result_sse_filters_outbound_ops() -> None:
     text = b"".join(iter_result_sse([_result()])).decode("utf-8")
     _assert_clean(text)
