@@ -237,6 +237,20 @@ def test_strict_stripper_payload_has_no_live_vector(
     assert live_vectors(str(via[0]["html"])) == [], (number, via)
 
 
+def test_regex_disagreement_returns_nothing() -> None:
+    """Raw text the regex would edit is refused, not half-stripped."""
+    assert strip_dangerous_html("<textarea><script>alert(1)</script></textarea>") == ""
+    assert strip_dangerous_html("<style>p onerror=alert(1)</style>") == ""
+
+
+def test_parse_error_returns_nothing(monkeypatch: pytest.MonkeyPatch) -> None:
+    def _boom(self, *args, **kwargs):
+        raise RuntimeError("parse")
+
+    monkeypatch.setattr("html5lib.HTMLParser.parseFragment", _boom)
+    assert strip_dangerous_html("<b>ok</b>") == ""
+
+
 def test_inline_svg_icon_without_handlers_is_unchanged() -> None:
     assert strip_dangerous_html(_ICON) == _ICON
     via = apply_morph_policy([swap("#icon", _ICON)], policy="strict")
