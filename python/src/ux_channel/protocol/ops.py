@@ -68,9 +68,11 @@ def set_attr(
 ) -> Op:
     """Set attributes. URL attributes are checked with ``safe_href``.
 
-    ``javascript:``, ``vbscript:``, ``data:``, and the other hrefs
-    ``safe_href`` rejects are omitted, including whitespace and HTML-entity
-    obfuscations of those schemes. Non-None values are stringified the way
+    ``javascript:``, ``vbscript:``, ``file:``, and other script schemes are
+    omitted, including whitespace and HTML-entity obfuscations. Protocol-relative
+    ``//`` URLs are kept. ``blob:`` and ``data:image/png|jpeg|gif|webp|avif``
+    are kept on src-type attributes only. ``data:image/svg+xml`` and
+    ``data:text/html`` are omitted. Non-None values are stringified the way
     ``setAttribute`` does before that check. If that drops every attribute,
     the op is a noop (``reason=unsafe_href``). Relative, http(s), mailto,
     and tel values are kept. Non-URL attributes are copied through.

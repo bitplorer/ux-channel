@@ -728,6 +728,21 @@
     return n.length > 4 && (n.slice(-5) === ":href" || n.slice(-4) === ":src");
   }
 
+  function isSrcTypeAttr(name) {
+    var n = String(name == null ? "" : name).replace(/^\s+|\s+$/g, "").toLowerCase();
+    return n === "src" || (n.length > 4 && n.slice(-4) === ":src");
+  }
+
+  // safeHref blocks these. set_attr keeps them: // on any URL attr, and
+  // blob / safe raster image data on src-type attributes only.
+  function urlAttrKept(name, value) {
+    var h = String(value == null ? "" : value).replace(/^\s+|\s+$/g, "");
+    if (h.indexOf("//") === 0) return true;
+    if (!isSrcTypeAttr(name)) return false;
+    if (/^blob:/i.test(h)) return true;
+    return /^data:image\/(png|jpeg|gif|webp|avif)($|[;,])/i.test(h);
+  }
+
   function decodeUrlEntities(s) {
     return String(s).replace(
       /&(#x[0-9a-f]+|#\d+|colon|tab|newline|amp);?/gi,
@@ -778,9 +793,12 @@
               for (pass = 0; pass < 3; pass++) {
                 if (forms.indexOf(current) !== -1) break;
                 forms.push(current);
+                if (urlAttrKept(k, current)) {
+                  blocked = false;
+                  break;
+                }
                 if (!safeHref(current) && String(current).replace(/^\s+|\s+$/g, "")) {
                   blocked = true;
-                  break;
                 }
                 var decoded = decodeUrlEntities(current);
                 if (decoded === current) break;

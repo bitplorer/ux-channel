@@ -18,6 +18,8 @@ import warnings
 from typing import Any, Optional, Sequence
 from urllib.parse import urlparse
 
+from ux_channel.render.morph_policy import apply_morph_policy
+
 # Schemes blocked in navigate / push_url / set_attr URL attributes (XSS / drive-by)
 _BLOCKED_HREF_SCHEMES = frozenset(
     {
@@ -224,6 +226,33 @@ def safe_href(
     return h
 
 
+# data:image types a browser can paint in img/src without running markup.
+_SAFE_IMAGE_DATA_RE = re.compile(
+    r"^data:image/(png|jpeg|gif|webp|avif)(?:$|[;,])",
+    re.IGNORECASE,
+)
+
+
+def _is_src_type_attr(name: object) -> bool:
+    """True for ``src`` and names ending in ``:src``. ``poster`` is not src-type."""
+    if not isinstance(name, str):
+        return False
+    token = name.strip().lower()
+    return token == "src" or token.endswith(":src")
+
+
+def _url_attr_exception(name: object, value: str) -> bool:
+    """Kept URLs that ``safe_href`` rejects: ``//`` and src image/blob."""
+    cleaned = _strip_href_controls(value).strip()
+    if cleaned.startswith("//"):
+        return True
+    if not _is_src_type_attr(name):
+        return False
+    if cleaned.lower().startswith("blob:"):
+        return True
+    return _SAFE_IMAGE_DATA_RE.match(cleaned) is not None
+
+
 def _is_url_attr(name: object) -> bool:
     """True for href/src/action/formaction/xlink:href and the other URL attributes."""
     if not isinstance(name, str):
@@ -234,25 +263,31 @@ def _is_url_attr(name: object) -> bool:
     return token.endswith(":href") or token.endswith(":src")
 
 
-def _unsafe_url_attr(value: str) -> bool:
-    """True when ``safe_href`` rejects a non-empty URL form of ``value``.
+def _unsafe_url_attr(name: object, value: str) -> bool:
+    """True when a non-empty URL form of ``value`` is refused for ``name``.
 
     HTML entities are decoded (twice, so ``&#38;#106;`` collapses) before the
     scheme check. Empty and whitespace-only strings are not script URLs.
+    Protocol-relative ``//`` URLs are kept. On src-type attributes, ``blob:``
+    and ``data:image/png|jpeg|gif|webp|avif`` are kept. ``data:image/svg+xml``
+    and ``data:text/html`` are refused on every attribute.
     """
     current = value
     seen: list[str] = []
+    refused = False
     for _ in range(3):
         if current in seen:
             break
         seen.append(current)
+        if _url_attr_exception(name, current):
+            return False
         if safe_href(current) is None and current.strip():
-            return True
+            refused = True
         decoded = html.unescape(current)
         if decoded == current:
             break
         current = decoded
-    return False
+    return refused
 
 
 def _dom_attr_string(value: Any) -> str:
@@ -269,7 +304,7 @@ def _dom_attr_string(value: Any) -> str:
     return str(value)
 
 
-def _sanitize_url_attr_value(value: Any) -> tuple[bool, Any]:
+def _sanitize_url_attr_value(name: object, value: Any) -> tuple[bool, Any]:
     """Return ``(keep, value)`` for one URL attribute.
 
     ``None`` removes the attribute. Every other value is turned into a string
@@ -282,7 +317,7 @@ def _sanitize_url_attr_value(value: Any) -> tuple[bool, Any]:
     if value is None:
         return True, None
     text = value if isinstance(value, str) else _dom_attr_string(value)
-    if _unsafe_url_attr(text):
+    if _unsafe_url_attr(name, text):
         return False, None
     normalized = safe_href(text)
     if normalized is None:
@@ -295,7 +330,7 @@ def _sanitize_attr_map(attrs: dict) -> dict | None:
     cleaned: dict[Any, Any] = {}
     for key, value in attrs.items():
         if _is_url_attr(key):
-            keep, safe_value = _sanitize_url_attr_value(value)
+            keep, safe_value = _sanitize_url_attr_value(key, value)
             if not keep:
                 continue
             cleaned[key] = safe_value
@@ -306,44 +341,79 @@ def _sanitize_attr_map(attrs: dict) -> dict | None:
     return cleaned
 
 
+def _as_op_dict(op: Any) -> Any:
+    """Mapping form of an op. Objects with ``to_dict`` are converted."""
+    if isinstance(op, dict):
+        return op
+    to_dict = getattr(op, "to_dict", None)
+    if not callable(to_dict):
+        return op
+    try:
+        body = to_dict()
+    except Exception:
+        return op
+    return body if isinstance(body, dict) else op
+
+
+def _sanitize_one(op: Any, allowed_hosts: tuple[str, ...] | list[str] | None) -> Any:
+    """Href-check one op and every op nested under ``ops``."""
+    op = _as_op_dict(op)
+    if not isinstance(op, dict):
+        return op
+    name = op.get("op")
+    if name == "set_attr" and isinstance(op.get("attrs"), dict):
+        cleaned = _sanitize_attr_map(op["attrs"])
+        if cleaned is None:
+            op = {
+                "op": "noop",
+                "meta": {"dropped": "set_attr", "reason": "unsafe_href"},
+            }
+        else:
+            op = dict(op)
+            op["attrs"] = cleaned
+    elif name in ("navigate", "push_url", "redirect"):
+        href = op.get("href")
+        safe = safe_href(
+            href if isinstance(href, str) else None,
+            allowed_hosts=allowed_hosts,
+        )
+        if safe is None:
+            op = {"op": "noop", "meta": {"dropped": name, "reason": "unsafe_href"}}
+        else:
+            op = dict(op)
+            op["href"] = safe
+    nested = op.get("ops")
+    if isinstance(nested, list):
+        op = dict(op)
+        op["ops"] = [_sanitize_one(child, allowed_hosts) for child in nested]
+    return op
+
+
 def sanitize_op_hrefs(
     ops: list,
     *,
     allowed_hosts: tuple[str, ...] | list[str] | None = None,
 ) -> list:
-    """Drop unsafe navigate/push_url hrefs and set_attr URL attributes."""
-    out = []
-    for op in ops:
-        if not isinstance(op, dict):
-            out.append(op)
-            continue
-        name = op.get("op")
-        if name == "set_attr" and isinstance(op.get("attrs"), dict):
-            cleaned = _sanitize_attr_map(op["attrs"])
-            if cleaned is None:
-                out.append(
-                    {
-                        "op": "noop",
-                        "meta": {"dropped": "set_attr", "reason": "unsafe_href"},
-                    }
-                )
-                continue
-            op = dict(op)
-            op["attrs"] = cleaned
-        elif name in ("navigate", "push_url", "redirect"):
-            href = op.get("href")
-            safe = safe_href(
-                href if isinstance(href, str) else None,
-                allowed_hosts=allowed_hosts,
-            )
-            if safe is None:
-                # convert to noop toast-less drop
-                out.append({"op": "noop", "meta": {"dropped": name, "reason": "unsafe_href"}})
-                continue
-            op = dict(op)
-            op["href"] = safe
-        out.append(op)
-    return out
+    """Drop unsafe navigate/push_url hrefs and set_attr URL attributes.
+
+    Walks ``seq``, ``timer.set``, ``invoke``, and any other op that carries
+    an ``ops`` list.
+    """
+    return [_sanitize_one(op, allowed_hosts) for op in ops]
+
+
+def filter_outbound_ops(
+    ops: list,
+    *,
+    policy: str = "off",
+    allowed_hosts: tuple[str, ...] | list[str] | None = None,
+) -> list:
+    """Href-check ops, then apply the morph/swap/toast policy.
+
+    Action dispatch and ``PushBus.publish`` both go through this function.
+    """
+    cleaned = sanitize_op_hrefs(list(ops), allowed_hosts=allowed_hosts)
+    return apply_morph_policy(cleaned, policy=policy)
 
 
 def validate_action_name(action: str) -> str:
