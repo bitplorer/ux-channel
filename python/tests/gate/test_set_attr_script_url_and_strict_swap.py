@@ -259,6 +259,66 @@ _BLOB_URL = "blob:https://example/uuid"
 _PROTOCOL_RELATIVE = "//cdn.example/a.png"
 
 
+_ALL_URL_ATTRS = (
+    "action",
+    "archive",
+    "background",
+    "cite",
+    "classid",
+    "code",
+    "codebase",
+    "data",
+    "dynsrc",
+    "formaction",
+    "href",
+    "icon",
+    "longdesc",
+    "lowsrc",
+    "manifest",
+    "ping",
+    "poster",
+    "profile",
+    "src",
+    "usemap",
+)
+
+
+def test_url_attr_parity_server_and_client() -> None:
+    """Every URL attribute, poster included, refuses javascript: on both sides."""
+    cases = []
+    for name in _ALL_URL_ATTRS:
+        op = set_attr("#t", {name: "javascript:alert(1)", "class": "keep"})
+        assert name not in (op.get("attrs") or {}), name
+        raw = sanitize_op_hrefs(
+            [
+                {
+                    "op": "set_attr",
+                    "target": "#t",
+                    "attrs": {name: "javascript:alert(1)", "class": "keep"},
+                }
+            ]
+        )
+        assert name not in (raw[0].get("attrs") or {}), name
+        cases.append(
+            {
+                "selector": "#par-" + name,
+                "attr": name,
+                "prime": {name: "/ok"},
+                "attrs": {name: "javascript:alert(1)"},
+                "expect": "/ok",
+            }
+        )
+    _run_client_cases(cases)
+
+
+def test_set_attr_href_trailing_space_is_checked() -> None:
+    """security.py strips the name, so 'href ' is the href URL attribute."""
+    op = set_attr("#t", {"href ": "javascript:alert(1)"})
+    assert op["op"] == "noop", op
+    assert (op.get("meta") or {}).get("reason") == "unsafe_href"
+    assert "javascript:" not in json.dumps(op).lower()
+
+
 def test_set_attr_keeps_protocol_relative_and_src_image_urls() -> None:
     for name in ("href", "src", "poster", "xlink:href"):
         op = set_attr("#t", {name: _PROTOCOL_RELATIVE})
