@@ -110,12 +110,20 @@ def channel_routes(
         if "text/event-stream" in accept or intent.accept_stream:
             stream = ResultStream()
             policy, hosts = stream_filter_args(registry, config)
+            origin = request.headers.get("host")
 
             async def gen():
                 yield format_sse(
-                    stream.chunk(result, done=True, policy=policy, allowed_hosts=hosts),
+                    stream.chunk(
+                        result,
+                        done=True,
+                        policy=policy,
+                        allowed_hosts=hosts,
+                        origin_host=origin,
+                    ),
                     policy=policy,
                     allowed_hosts=hosts,
+                    origin_host=origin,
                 )
 
             return StreamingResponse(gen(), media_type="text/event-stream")

@@ -233,10 +233,18 @@ def mount_channel(
             async def gen():
                 stream = ResultStream()
                 policy, hosts = stream_filter_args(registry)
+                origin = request.headers.get("host")
                 yield format_sse(
-                    stream.chunk(result, done=True, policy=policy, allowed_hosts=hosts),
+                    stream.chunk(
+                        result,
+                        done=True,
+                        policy=policy,
+                        allowed_hosts=hosts,
+                        origin_host=origin,
+                    ),
                     policy=policy,
                     allowed_hosts=hosts,
+                    origin_host=origin,
                 )
 
             return StreamingResponse(gen(), media_type="text/event-stream")

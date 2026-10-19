@@ -129,10 +129,18 @@ async def handle_action_asgi(
     if want_stream:
         stream = ResultStream()
         policy, hosts = stream_filter_args(registry, config)
+        origin = headers.get("host")
         payload = format_sse(
-            stream.chunk(result, done=True, policy=policy, allowed_hosts=hosts),
+            stream.chunk(
+                result,
+                done=True,
+                policy=policy,
+                allowed_hosts=hosts,
+                origin_host=origin,
+            ),
             policy=policy,
             allowed_hosts=hosts,
+            origin_host=origin,
         )
         await send(
             {

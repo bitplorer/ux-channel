@@ -226,6 +226,58 @@ def safe_href(
     return h
 
 
+def _host_on_list(host: str, allowed_hosts: tuple[str, ...] | list[str] | None) -> bool:
+    """True when ``host`` is an allowlisted host or its subdomain."""
+    if not host:
+        return False
+    for allowed in tuple(allowed_hosts or ()):
+        name = str(allowed).lower().lstrip(".")
+        if host == name or host.endswith("." + name):
+            return True
+    return False
+
+
+def _request_hostname(origin_host: str | None) -> str:
+    """Hostname from a ``Host`` header. The port is not part of the name."""
+    if not origin_host:
+        return ""
+    text = origin_host.strip().lower()
+    if text.startswith("["):
+        end = text.find("]")
+        return text[1:end] if end > 1 else ""
+    return text.split(":", 1)[0]
+
+
+def _navigate_href(
+    href: str | None,
+    *,
+    policy: str,
+    allowed_hosts: tuple[str, ...] | list[str] | None,
+    origin_host: str | None,
+) -> str | None:
+    """Href kept for navigate, push_url, and redirect.
+
+    ``off`` is ``safe_href``. Strict also refuses an absolute http(s) URL
+    unless its host is the request host or on ``allowed_hosts``. A push has
+    no request, so only the allowlist can keep an absolute URL.
+    """
+    if policy != "strict":
+        return safe_href(href, allowed_hosts=allowed_hosts)
+    safe = safe_href(href, allowed_hosts=())
+    if safe is None:
+        return None
+    path = safe.split("?", 1)[0].split("#", 1)[0]
+    if ":" not in path:
+        return safe
+    scheme = _scheme_token(safe.partition(":")[0]).lower()
+    if scheme not in ("http", "https"):
+        return safe
+    host = (urlparse(safe).hostname or "").lower()
+    if _host_on_list(host, allowed_hosts) or host == _request_hostname(origin_host):
+        return safe
+    return None
+
+
 # data:image types a browser can paint in img/src without running markup.
 _SAFE_IMAGE_DATA_RE = re.compile(
     r"^data:image/(png|jpeg|gif|webp|avif)(?:$|[;,])",
@@ -381,7 +433,13 @@ def _as_op_dict(op: Any) -> Any:
     return body if isinstance(body, dict) else op
 
 
-def _sanitize_one(op: Any, allowed_hosts: tuple[str, ...] | list[str] | None) -> Any:
+def _sanitize_one(
+    op: Any,
+    allowed_hosts: tuple[str, ...] | list[str] | None,
+    *,
+    policy: str = "off",
+    origin_host: str | None = None,
+) -> Any:
     """Href-check one op and every op nested under ``ops``."""
     op = _as_op_dict(op)
     if not isinstance(op, dict):
@@ -399,9 +457,11 @@ def _sanitize_one(op: Any, allowed_hosts: tuple[str, ...] | list[str] | None) ->
             op["attrs"] = cleaned
     elif name in ("navigate", "push_url", "redirect"):
         href = op.get("href")
-        safe = safe_href(
+        safe = _navigate_href(
             href if isinstance(href, str) else None,
+            policy=policy,
             allowed_hosts=allowed_hosts,
+            origin_host=origin_host,
         )
         if safe is None:
             op = {"op": "noop", "meta": {"dropped": name, "reason": "unsafe_href"}}
@@ -411,7 +471,10 @@ def _sanitize_one(op: Any, allowed_hosts: tuple[str, ...] | list[str] | None) ->
     nested = op.get("ops")
     if isinstance(nested, list):
         op = dict(op)
-        op["ops"] = [_sanitize_one(child, allowed_hosts) for child in nested]
+        op["ops"] = [
+            _sanitize_one(child, allowed_hosts, policy=policy, origin_host=origin_host)
+            for child in nested
+        ]
     return op
 
 
@@ -419,13 +482,18 @@ def sanitize_op_hrefs(
     ops: list,
     *,
     allowed_hosts: tuple[str, ...] | list[str] | None = None,
+    policy: str = "off",
+    origin_host: str | None = None,
 ) -> list:
     """Drop unsafe navigate/push_url hrefs and set_attr URL attributes.
 
     Walks ``seq``, ``timer.set``, ``invoke``, and any other op that carries
-    an ``ops`` list.
+    an ``ops`` list. ``policy="off"`` keeps the historical ``safe_href`` rule.
     """
-    return [_sanitize_one(op, allowed_hosts) for op in ops]
+    return [
+        _sanitize_one(op, allowed_hosts, policy=policy, origin_host=origin_host)
+        for op in ops
+    ]
 
 
 def filter_outbound_ops(
@@ -433,12 +501,19 @@ def filter_outbound_ops(
     *,
     policy: str = "off",
     allowed_hosts: tuple[str, ...] | list[str] | None = None,
+    origin_host: str | None = None,
 ) -> list:
     """Href-check ops, then apply the morph/swap/toast policy.
 
     Action dispatch and ``PushBus.publish`` both go through this function.
+    Strict navigate is same-origin (``origin_host``) or ``allowed_hosts``.
     """
-    cleaned = sanitize_op_hrefs(list(ops), allowed_hosts=allowed_hosts)
+    cleaned = sanitize_op_hrefs(
+        list(ops),
+        allowed_hosts=allowed_hosts,
+        policy=policy,
+        origin_host=origin_host,
+    )
     return apply_morph_policy(cleaned, policy=policy)
 
 

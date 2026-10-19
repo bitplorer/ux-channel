@@ -83,6 +83,18 @@ logger = logging.getLogger("ux_channel.host.registry")
 _request_var: contextvars.ContextVar[Any] = contextvars.ContextVar("ux_channel_request", default=None)
 
 
+def _bound_origin_host(request: Any) -> str | None:
+    """``Host`` header of the request bound for this dispatch, if any."""
+    headers = getattr(request, "headers", None)
+    getter = getattr(headers, "get", None)
+    if not callable(getter):
+        return None
+    host = getter("host")
+    if host is None or host == "":
+        return None
+    return str(host)
+
+
 class SyncLockTimeout(TimeoutError):
     """Another thread still holds this action owner's sync lock."""
 
@@ -943,6 +955,7 @@ class ActionRegistry:
             list(result.ops),
             policy=policy,
             allowed_hosts=hosts,
+            origin_host=_bound_origin_host(_request_var.get()),
         )
 
         tr = _trace_api().get_tracer()

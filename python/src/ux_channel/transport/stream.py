@@ -34,6 +34,7 @@ class ResultStream:
         merge: str = "append",
         policy: str | None = None,
         allowed_hosts: tuple[str, ...] | list[str] | None = None,
+        origin_host: str | None = None,
     ) -> dict[str, Any]:
         """
         Build a stream envelope dict for one SSE ``data:`` line.
@@ -52,6 +53,7 @@ class ResultStream:
                 result.to_dict(),
                 policy=policy,
                 allowed_hosts=allowed_hosts,
+                origin_host=origin_host,
             ),
         }
         self.chunk_index += 1
@@ -75,6 +77,7 @@ def _filter_result_body(
     *,
     policy: str | None,
     allowed_hosts: tuple[str, ...] | list[str] | None,
+    origin_host: str | None = None,
 ) -> dict[str, Any]:
     """Href-check and strict-strip ``result.ops``. No channel policy is strict."""
     ops = body.get("ops")
@@ -85,6 +88,7 @@ def _filter_result_body(
         list(ops),
         policy=resolve_stream_policy(policy),
         allowed_hosts=allowed_hosts,
+        origin_host=origin_host,
     )
     return cleaned
 
@@ -96,6 +100,7 @@ def format_sse(
     event_id: Optional[str] = None,
     policy: str | None = None,
     allowed_hosts: tuple[str, ...] | list[str] | None = None,
+    origin_host: str | None = None,
 ) -> bytes:
     """
     Encode one SSE message (including trailing blank line).
@@ -109,11 +114,22 @@ def format_sse(
         lines.append(f"id: {event_id}")
     payload = dict(envelope)
     result = payload.get("result")
+    if isinstance(result, Result):
+        result = result.to_dict()
     if isinstance(result, dict):
         payload["result"] = _filter_result_body(
             result,
             policy=policy,
             allowed_hosts=allowed_hosts,
+            origin_host=origin_host,
+        )
+    elif isinstance(payload.get("ops"), list):
+        # A bare Result dict has ops and no result wrapper. No channel is strict.
+        payload = _filter_result_body(
+            payload,
+            policy=policy,
+            allowed_hosts=allowed_hosts,
+            origin_host=origin_host,
         )
     data = _serde.dumps(payload, default=str)
     # SSE: each data line; we use a single line JSON payload
@@ -129,6 +145,7 @@ def iter_result_sse(
     final_done: bool = True,
     policy: str | None = None,
     allowed_hosts: tuple[str, ...] | list[str] | None = None,
+    origin_host: str | None = None,
 ) -> Iterator[bytes]:
     """
     Convenience: wrap an iterator of Result into SSE byte chunks.
@@ -145,7 +162,9 @@ def iter_result_sse(
                 done=done,
                 policy=policy,
                 allowed_hosts=allowed_hosts,
+                origin_host=origin_host,
             ),
             policy=policy,
             allowed_hosts=allowed_hosts,
+            origin_host=origin_host,
         )
