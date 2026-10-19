@@ -1192,10 +1192,196 @@ async function runIsolationCases(win, doc, check, warns, path) {
   await runTypeGuardCase(win, doc, check, warns);
   await runWarnNameCase(win, doc, check, warns);
   await runSurvivorCases(win, doc, check, warns, path);
+  await runRestoreErrorCase(win, doc, check, warns, path);
   if (path === "idiomorph") {
     await runPersistentBreakCase(win, doc, check, warns);
     await runUnmarkedThrowCase(win, doc, check, warns);
   }
+}
+
+async function runRestoreErrorCase(win, doc, check, warns, path) {
+  var html = keepWrap(
+    '<input id="keep-mail" name="email" type="email" data-ux-keep-value value="">'
+  );
+  var qsa = win.Element.prototype.querySelectorAll;
+  function armQuery() {
+    var hits = 0;
+    win.Element.prototype.querySelectorAll = function (sel) {
+      if (sel === "[data-ux-keep-value]") {
+        hits += 1;
+        if (hits >= 2) throw new win.Error("restore query");
+      }
+      return qsa.apply(this, arguments);
+    };
+  }
+  function disarmQuery() {
+    win.Element.prototype.querySelectorAll = qsa;
+  }
+  function named(fragment) {
+    return warns.filter(function (line) {
+      return warnText(line).indexOf(fragment) !== -1;
+    });
+  }
+  function quiet(label) {
+    var last = win.uxChannel.lastErrors(1);
+    check(
+      last.length === 0,
+      label + " lastErrors " + last.length + " " + (last[0] && last[0].message)
+    );
+    check(named("restore query").length === 1, label + " warnings " + named("restore query").length);
+  }
+
+  win.uxChannel.clearErrorLog();
+  warns.length = 0;
+  doc.body.innerHTML = html;
+  doc.getElementById("keep-mail").value = "kept-mail";
+  if (doc.activeElement && doc.activeElement.blur) doc.activeElement.blur();
+  armQuery();
+  var tracked = trackChannel(win, ["channel:error", "channel:opError", "channel:afterOp"]);
+  var escaped = null;
+  try {
+    await applyKeepMorph(win, html);
+  } catch (e) {
+    escaped = e;
+  } finally {
+    disarmQuery();
+  }
+  var events = tracked.events;
+  tracked.stop();
+  check(!escaped, "restore-only escaped " + (escaped && escaped.message));
+  quiet("restore-only");
+  check(
+    !events.some(function (ev) { return ev.name === "channel:error"; }),
+    "restore-only channel:error"
+  );
+  check(
+    !events.some(function (ev) { return ev.name === "channel:opError"; }),
+    "restore-only channel:opError"
+  );
+  check(
+    events.some(function (ev) { return ev.name === "channel:afterOp"; }),
+    "restore-only afterOp"
+  );
+
+  win.uxChannel.clearErrorLog();
+  warns.length = 0;
+  doc.body.innerHTML = html;
+  doc.getElementById("keep-mail").value = "kept-mail";
+  if (doc.activeElement && doc.activeElement.blur) doc.activeElement.blur();
+  armQuery();
+  var caller = null;
+  try {
+    win.uxChannel.optimisticMorph("login", html);
+  } catch (e2) {
+    caller = e2;
+  } finally {
+    disarmQuery();
+  }
+  check(!caller, "restore-only optimistic " + (caller && caller.message));
+  quiet("restore-only optimistic");
+
+  var boom = new win.Error(path === "idiomorph" ? "morph boom" : "replace boom");
+  var savedMorph = win.Idiomorph && win.Idiomorph.morph;
+  var savedReplace = win.Element.prototype.replaceWith;
+  function armBoom() {
+    if (path === "idiomorph" && savedMorph) {
+      win.Idiomorph.morph = function () { throw boom; };
+    } else {
+      win.Element.prototype.replaceWith = function () { throw boom; };
+    }
+  }
+  function disarmBoom() {
+    if (path === "idiomorph" && savedMorph) win.Idiomorph.morph = savedMorph;
+    else win.Element.prototype.replaceWith = savedReplace;
+  }
+  win.uxChannel.clearErrorLog();
+  warns.length = 0;
+  doc.body.innerHTML = html;
+  doc.getElementById("keep-mail").value = "kept-mail";
+  if (doc.activeElement && doc.activeElement.blur) doc.activeElement.blur();
+  armQuery();
+  armBoom();
+  var trackedBoom = trackChannel(win, [
+    "channel:error",
+    "channel:opError",
+    "channel:afterOp",
+    "channel:afterApply",
+    "channel:applied",
+  ]);
+  var escapedBoom = null;
+  try {
+    await applyKeepMorph(win, html);
+  } catch (e3) {
+    escapedBoom = e3;
+  } finally {
+    disarmQuery();
+    disarmBoom();
+  }
+  var boomEvents = trackedBoom.events;
+  trackedBoom.stop();
+  var opError = null;
+  var channelError = null;
+  var i;
+  for (i = 0; i < boomEvents.length; i++) {
+    if (boomEvents[i].name === "channel:opError") opError = boomEvents[i].detail;
+    if (boomEvents[i].name === "channel:error") channelError = boomEvents[i].detail;
+  }
+  var reported = (win.uxChannel.lastErrors(1)[0]) || null;
+  check(!escapedBoom, "morph-throw apply escaped " + (escapedBoom && escapedBoom.message));
+  check(
+    !!(reported && reported.kind === "op" && reported.source === "apply" && reported.message === "Op failed: morph — " + boom.message),
+    "morph-throw lastErrors " + (reported && reported.message)
+  );
+  check(
+    !!(opError && opError.error === boom),
+    "morph-throw opError " + (opError && opError.error && opError.error.message)
+  );
+  check(
+    !!(channelError && channelError.kind === "op" && channelError.entry && channelError.entry.message === "Op failed: morph — " + boom.message),
+    "morph-throw channel:error " + (channelError && channelError.entry && channelError.entry.message)
+  );
+  check(
+    !boomEvents.some(function (ev) { return ev.name === "channel:afterOp"; }),
+    "morph-throw afterOp"
+  );
+  check(
+    boomEvents.some(function (ev) { return ev.name === "channel:afterApply"; }),
+    "morph-throw afterApply"
+  );
+  check(
+    boomEvents.some(function (ev) { return ev.name === "channel:applied"; }),
+    "morph-throw applied"
+  );
+  check(
+    named("restore query").length === 1,
+    "morph-throw warnings " + named("restore query").length
+  );
+
+  win.uxChannel.clearErrorLog();
+  warns.length = 0;
+  doc.body.innerHTML = html;
+  doc.getElementById("keep-mail").value = "kept-mail";
+  if (doc.activeElement && doc.activeElement.blur) doc.activeElement.blur();
+  armQuery();
+  armBoom();
+  var optCaller = null;
+  try {
+    win.uxChannel.optimisticMorph("login", html);
+  } catch (e4) {
+    optCaller = e4;
+  } finally {
+    disarmQuery();
+    disarmBoom();
+  }
+  check(optCaller === boom, "morph-throw optimistic " + (optCaller && optCaller.message));
+  check(
+    win.uxChannel.lastErrors(1).length === 0,
+    "morph-throw optimistic lastErrors " + win.uxChannel.lastErrors(1).length
+  );
+  check(
+    named("restore query").length === 1,
+    "morph-throw optimistic warnings " + named("restore query").length
+  );
 }
 
 async function runOwnElementCase(win, doc, check, warns) {
