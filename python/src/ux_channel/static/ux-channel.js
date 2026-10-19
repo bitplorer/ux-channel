@@ -823,7 +823,17 @@
       for (n = 0; n < el.attributes.length; n++) names.push(el.attributes[n].name);
       for (n = 0; n < names.length; n++) {
         name = names[n];
-        if (isEventOrSrcdoc(name) || dangerousUrlValue(name, el.getAttribute(name))) {
+        // The attribute node, not getAttribute. A throwing getter is how a
+        // keep-value field is skipped, and it must not blank the fragment.
+        var attrValue = null;
+        var ai;
+        for (ai = 0; ai < el.attributes.length; ai++) {
+          if (el.attributes[ai].name === name) {
+            attrValue = el.attributes[ai].value;
+            break;
+          }
+        }
+        if (isEventOrSrcdoc(name) || dangerousUrlValue(name, attrValue)) {
           el.removeAttribute(name);
           changed = true;
         }
