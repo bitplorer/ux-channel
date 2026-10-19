@@ -1190,7 +1190,155 @@ async function runIsolationCases(win, doc, check, warns, path) {
   await runSharedKeyCase(win, doc, check);
   await runTypeGuardCase(win, doc, check, warns);
   await runWarnNameCase(win, doc, check, warns);
+  await runSurvivorCases(win, doc, check, warns, path);
   if (path === "idiomorph") await runUnmarkedThrowCase(win, doc, check, warns);
+}
+
+async function runSurvivorCases(win, doc, check, warns, path) {
+  var trio = keepWrap(
+    '<input id="left" name="left" type="text" data-ux-keep-value value="">' +
+      '<input id="mid" name="mid" type="text" data-ux-keep-value value="">' +
+      '<input id="right" name="right" type="text" data-ux-keep-value value="">'
+  );
+  var savedMorph = win.Idiomorph && win.Idiomorph.morph;
+  var savedReplace = win.Element.prototype.replaceWith;
+
+  warns.length = 0;
+  doc.body.innerHTML = trio;
+  doc.getElementById("left").value = "kept-left";
+  doc.getElementById("right").value = "kept-right";
+  Object.defineProperty(doc.getElementById("mid"), "value", {
+    configurable: true,
+    get: function () { throw new Error("collect rejected"); },
+  });
+  if (savedMorph && win.Idiomorph) {
+    win.Idiomorph.morph = function () {
+      delete doc.getElementById("mid").value;
+      return savedMorph.apply(this, arguments);
+    };
+  } else {
+    win.Element.prototype.replaceWith = function () {
+      var mid = doc.getElementById("mid");
+      if (mid) delete mid.value;
+      return savedReplace.apply(this, arguments);
+    };
+  }
+  try {
+    await applyKeepMorph(win, trio);
+    check(
+      doc.getElementById("left").value === "kept-left",
+      "survivor collect left " + JSON.stringify(doc.getElementById("left").value)
+    );
+    check(
+      doc.getElementById("right").value === "kept-right",
+      "survivor collect right " + JSON.stringify(doc.getElementById("right").value)
+    );
+    var collectWarns = warns.filter(function (line) {
+      return warnText(line).indexOf("collect rejected") !== -1;
+    });
+    check(collectWarns.length === 1, "survivor collect warn " + collectWarns.length);
+  } finally {
+    var mid = doc.getElementById("mid");
+    if (mid) delete mid.value;
+    if (savedMorph && win.Idiomorph) win.Idiomorph.morph = savedMorph;
+    win.Element.prototype.replaceWith = savedReplace;
+  }
+
+  warns.length = 0;
+  doc.body.innerHTML = trio;
+  doc.getElementById("left").value = "kept-left";
+  doc.getElementById("mid").value = "kept-mid";
+  doc.getElementById("right").value = "kept-right";
+  var matchReads = 0;
+  function poisonMatch() {
+    var node = doc.getElementById("mid");
+    Object.defineProperty(node, "type", {
+      configurable: true,
+      get: function () {
+        matchReads += 1;
+        if (matchReads === 2) throw new Error("match rejected");
+        return "text";
+      },
+    });
+  }
+  if (savedMorph && win.Idiomorph) {
+    win.Idiomorph.morph = function () {
+      var result = savedMorph.apply(this, arguments);
+      poisonMatch();
+      return result;
+    };
+  } else {
+    win.Element.prototype.replaceWith = function () {
+      var result = savedReplace.apply(this, arguments);
+      poisonMatch();
+      return result;
+    };
+  }
+  try {
+    await applyKeepMorph(win, trio);
+    check(
+      doc.getElementById("left").value === "kept-left",
+      "survivor match left " + JSON.stringify(doc.getElementById("left").value) + " reads " + matchReads
+    );
+    check(
+      doc.getElementById("right").value === "kept-right",
+      "survivor match right " + JSON.stringify(doc.getElementById("right").value) + " reads " + matchReads
+    );
+  } finally {
+    if (savedMorph && win.Idiomorph) win.Idiomorph.morph = savedMorph;
+    win.Element.prototype.replaceWith = savedReplace;
+    var node = doc.getElementById("mid");
+    if (node) delete node.type;
+  }
+
+  var twiceHtml = keepWrap('<input id="twice" name="twice" type="text" data-ux-keep-value value="">');
+  doc.body.innerHTML = twiceHtml;
+  doc.getElementById("twice").value = "kept-twice";
+  var proto = win.HTMLInputElement.prototype;
+  var desc = Object.getOwnPropertyDescriptor(proto, "value");
+  var writes = 0;
+  Object.defineProperty(proto, "value", {
+    configurable: true,
+    enumerable: desc.enumerable,
+    get: function () { return desc.get.call(this); },
+    set: function (v) {
+      if (this.getAttribute("name") === "twice" && v === "kept-twice") writes += 1;
+      desc.set.call(this, v);
+    },
+  });
+  try {
+    await applyKeepMorph(win, twiceHtml);
+    check(writes === 1, "survivor restore writes " + writes);
+    check(
+      doc.getElementById("twice").value === "kept-twice",
+      "survivor restore value " + JSON.stringify(doc.getElementById("twice").value)
+    );
+  } finally {
+    Object.defineProperty(proto, "value", desc);
+  }
+
+  if (path === "idiomorph") {
+    var before = keepWrap(
+      '<input id="safe" name="safe" type="text" data-ux-keep-value value="">' +
+        '<input id="plain" name="plain" type="text" value="x">'
+    );
+    doc.body.innerHTML = before;
+    doc.getElementById("safe").value = "kept-safe";
+    doc.getElementById("plain").getAttribute = function (name) {
+      if (name === "value") throw new Error("morph rejected");
+      return win.Element.prototype.getAttribute.call(this, name);
+    };
+    try {
+      await applyKeepMorph(win, before);
+      check(
+        doc.getElementById("safe").value === "kept-safe",
+        "survivor morph throw " + JSON.stringify(doc.getElementById("safe").value)
+      );
+    } finally {
+      var plain = doc.getElementById("plain");
+      if (plain) delete plain.getAttribute;
+    }
+  }
 }
 
 async function runWarnNameCase(win, doc, check, warns) {
