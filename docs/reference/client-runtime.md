@@ -84,7 +84,8 @@ field skips that field and logs one warning that names the error; the other
 fields continue. The name is `error.message` when that is a string,
 otherwise `String(error)`, otherwise `unknown error`. The thrown value is
 the second `console.warn` argument. Two fields that throw the same message
-each log a warning; the same field logs one. If Idiomorph throws, the error is
+each log a warning; the same field logs one, including when a nested morph
+runs during this one. If Idiomorph throws, the error is
 reported the same way as any other failed morph, and kept values for the
 other fields are still restored. The partial morph is left in place. A throw
 while restoring kept values, including while listing the marked fields, only

@@ -536,11 +536,14 @@
   }
 
   function applyMorph(targetSel, html) {
+    // Reason: a morph started from a connectedCallback must not wipe the
+    // outer list, or one field warns again for the same throw.
+    var previous = keepFailed;
     keepFailed = [];
     try {
       return applyMorphBody(targetSel, html);
     } finally {
-      keepFailed = null;
+      keepFailed = previous;
     }
   }
 
