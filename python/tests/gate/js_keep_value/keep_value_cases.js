@@ -251,6 +251,7 @@ async function runKeepValuePath(win, path) {
     await runLeakCases(win, doc, check);
     await runComponentCases(win, doc, check, warns);
     await runScopeCases(win, doc, check, warns);
+    await runIsolationCases(win, doc, check, warns);
 
     var callsBeforeEmpty = calls;
     var region = doc.getElementById("region");
@@ -977,4 +978,87 @@ async function runScopeCases(win, doc, check, warns) {
     "empty name in named form",
     '<form id="f"><input name="" data-ux-keep-value></form>'
   );
+}
+
+function isolationHtml(marker) {
+  return keepWrap(
+    '<span id="applied">' + marker + "</span>" +
+      '<input id="safe" name="safe" type="text" data-ux-keep-value value="">' +
+      '<input name="bad" type="text" data-ux-keep-value value="">'
+  );
+}
+
+function checkIsolation(doc, check, warns, label) {
+  var applied = doc.getElementById("applied");
+  var safe = doc.getElementById("safe");
+  check(
+    !!(applied && applied.textContent === "yes"),
+    label + " morph " + (applied && applied.textContent)
+  );
+  check(
+    !!(safe && safe.value === "kept-safe"),
+    label + " safe " + JSON.stringify(safe && safe.value)
+  );
+  check(keepWarnCount(warns) === 1, label + " warnings " + keepWarnCount(warns));
+}
+
+async function runIsolationCases(win, doc, check, warns) {
+  var proto = win.HTMLInputElement.prototype;
+  var valueDesc = Object.getOwnPropertyDescriptor(proto, "value");
+
+  warns.length = 0;
+  doc.body.innerHTML = isolationHtml("no");
+  doc.getElementById("safe").value = "kept-safe";
+  var getterBad = doc.querySelector('[name="bad"]');
+  Object.defineProperty(getterBad, "value", {
+    configurable: true,
+    get: function () {
+      throw new Error("value getter rejected");
+    },
+    set: function () {
+      throw new Error("value setter rejected");
+    },
+  });
+  try {
+    await applyKeepMorph(win, isolationHtml("yes"));
+    checkIsolation(doc, check, warns, "getter");
+  } finally {
+    delete getterBad.value;
+  }
+
+  warns.length = 0;
+  doc.body.innerHTML = isolationHtml("no");
+  doc.getElementById("safe").value = "kept-safe";
+  var attrBad = doc.querySelector('[name="bad"]');
+  attrBad.getAttribute = function () {
+    throw new Error("getAttribute rejected");
+  };
+  try {
+    await applyKeepMorph(win, isolationHtml("yes"));
+    checkIsolation(doc, check, warns, "getAttribute");
+  } finally {
+    delete attrBad.getAttribute;
+  }
+
+  warns.length = 0;
+  doc.body.innerHTML = isolationHtml("no");
+  doc.getElementById("safe").value = "kept-safe";
+  doc.querySelector('[name="bad"]').value = "boom";
+  Object.defineProperty(proto, "value", {
+    configurable: true,
+    enumerable: valueDesc.enumerable,
+    get: function () {
+      return valueDesc.get.call(this);
+    },
+    set: function (v) {
+      if (this.getAttribute("name") === "bad") throw new Error("value setter rejected");
+      valueDesc.set.call(this, v);
+    },
+  });
+  try {
+    await applyKeepMorph(win, isolationHtml("yes"));
+    checkIsolation(doc, check, warns, "setter");
+  } finally {
+    Object.defineProperty(proto, "value", valueDesc);
+  }
 }
