@@ -19,7 +19,11 @@
   a named form or inside a component, does not log that warning. `id` is not the key. Shared keys restore nothing.
   After the fragment is in the DOM, the client writes `el.value` inside its
   own try/catch. A throw while reading or writing one marked field skips
-  that field and logs one warning; the morph and the other fields continue.
+  that field and logs one warning that names the error; the other fields
+  continue. If Idiomorph throws, that warning is logged and the whole
+  target is replaced with the server fragment, then kept values are
+  restored on that path. A throw while matching a kept field logs the
+  same warning.
   It does not set the value attribute, parse the value, or
   insert a node, and it does not send the value to the server. Focus restore
   is unchanged. The server should paint `value=""` for secrets.

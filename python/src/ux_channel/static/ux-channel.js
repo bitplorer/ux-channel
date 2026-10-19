@@ -327,6 +327,37 @@
     return JSON.stringify([parts[0], parts[1], parts[2], kind]);
   }
 
+  var keepSeen = null;
+  var keepDeferred = null;
+
+  function beginKeepWarns() {
+    keepSeen = Object.create(null);
+    keepDeferred = [];
+  }
+
+  function keepFailure(e) {
+    var message = "[ux-channel] data-ux-keep-value ignored";
+    var key = e && e.message ? String(e.message) : "";
+    if (key) {
+      if (keepSeen && keepSeen[key]) return;
+      if (keepSeen) keepSeen[key] = 1;
+      message += ": " + key;
+    }
+    console.warn(message);
+  }
+
+  function deferKeepFailure(e) {
+    if (keepDeferred) keepDeferred.push(e);
+    else keepFailure(e);
+  }
+
+  function flushKeepFailures() {
+    var pending = keepDeferred || [];
+    keepDeferred = [];
+    var i;
+    for (i = 0; i < pending.length; i++) keepFailure(pending[i]);
+  }
+
   function keepIgnored(el) {
     if (!keepKind(el)) return true;
     // Reason: no name is ignored, and every ignored field warns once.
@@ -362,7 +393,7 @@
       try {
         item = collectOne(el);
       } catch (e) {
-        console.warn("[ux-channel] data-ux-keep-value ignored");
+        deferKeepFailure(e);
         continue;
       }
       if (!item) continue;
@@ -392,7 +423,7 @@
     try {
       el.value = value;
     } catch (e) {
-      console.warn("[ux-channel] data-ux-keep-value ignored");
+      keepFailure(e);
     }
   }
 
@@ -400,7 +431,7 @@
     try {
       el.value = value;
     } catch (e) {
-      console.warn("[ux-channel] data-ux-keep-value ignored");
+      keepFailure(e);
     }
   }
 
@@ -417,6 +448,9 @@
         try {
           key = keepKey(el, restoreKind(item, el));
         } catch (e) {
+          // Reason: a throw while matching one field must name the error,
+          // and the other fields still restore.
+          keepFailure(e);
           continue;
         }
         if (key && key === item.key) matches.push(el);
@@ -485,6 +519,17 @@
   }
 
   function applyMorph(targetSel, html) {
+    beginKeepWarns();
+    try {
+      return applyMorphBody(targetSel, html);
+    } finally {
+      flushKeepFailures();
+      keepSeen = null;
+      keepDeferred = null;
+    }
+  }
+
+  function applyMorphBody(targetSel, html) {
     var target = qs(targetSel);
     if (!target) {
       console.warn("[ux-channel] morph target not found:", targetSel);
@@ -509,11 +554,17 @@
       next.setAttribute("data-channel-id", target.getAttribute("data-channel-id"));
     }
     if (global.Idiomorph && typeof global.Idiomorph.morph === "function") {
-      // A setter throw inside the morph must not skip the other fields.
       try {
         global.Idiomorph.morph(target, next);
-      } catch (e) {}
-      restoreKeepValues(target, keepSnap, writeKeepIdio);
+        restoreKeepValues(target, keepSnap, writeKeepIdio);
+      } catch (e) {
+        // Reason: a throw inside Idiomorph leaves every node after the broken
+        // field stale. Warn once, naming the error, then replace the whole
+        // target so the server HTML lands.
+        keepFailure(e);
+        if (target.parentNode) target.replaceWith(next);
+        restoreKeepValues(next, keepSnap, writeKeepReplace);
+      }
     } else {
       target.replaceWith(next);
       restoreKeepValues(next, keepSnap, writeKeepReplace);
