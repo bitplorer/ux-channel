@@ -24,6 +24,7 @@ from pathlib import Path
 from typing import Any, Callable, Mapping
 
 logger = logging.getLogger("ux_channel.render.morph_policy")
+_html5lib_missing_logged = False
 
 # One list for the scrubber, the regex pass, and the client arrays.
 _DROP_NAMES = json.loads(
@@ -283,13 +284,22 @@ def _import_html5lib() -> tuple[Any, Any, Any, Any]:
     """Load html5lib. Raises when the package is missing.
 
     html5lib 1.1 was last released on 2020-06-22 and is tracked as a
-    dependency to watch. Both modes import it for HTML fragments.
+    dependency to watch. Both modes import it for HTML fragments. The
+    first ImportError in a process logs once. Later refusals stay quiet.
     """
-    from html5lib import HTMLParser
-    from html5lib.serializer import HTMLSerializer
-    from html5lib.treebuilders import getTreeBuilder
-    from html5lib.treewalkers import getTreeWalker
-
+    global _html5lib_missing_logged
+    try:
+        from html5lib import HTMLParser
+        from html5lib.serializer import HTMLSerializer
+        from html5lib.treebuilders import getTreeBuilder
+        from html5lib.treewalkers import getTreeWalker
+    except ImportError:
+        if not _html5lib_missing_logged:
+            _html5lib_missing_logged = True
+            logging.getLogger("ux_channel.render.morph_policy.html5lib").error(
+                "HTML patches refused until installed"
+            )
+        raise
     return HTMLParser, HTMLSerializer, getTreeBuilder, getTreeWalker
 
 
