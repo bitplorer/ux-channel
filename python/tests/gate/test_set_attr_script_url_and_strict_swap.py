@@ -23,6 +23,7 @@ from ux_channel import (
     Intent,
     Result,
     esc,
+    mark_safe,
     morph,
     set_attr,
     swap,
@@ -465,6 +466,73 @@ def test_client_set_attr_refuses_non_string_script_urls() -> None:
                 "attrs": {"href": ["https://example.com/a"]},
                 "expect": "https://example.com/a",
             },
+        ]
+    )
+
+
+def test_set_attr_refuses_event_handlers_and_srcdoc_unless_markup() -> None:
+    for name, value in (
+        ("onclick", "alert(1)"),
+        ("onerror", "alert(1)"),
+        ("ONLOAD", "alert(1)"),
+        ("srcdoc", "<script>alert(1)</script>"),
+    ):
+        op = set_attr("#a", {name: value, "class": "keep"})
+        assert op["op"] == "noop", (name, op)
+        assert (op.get("meta") or {}).get("reason") == "unsafe_attr"
+        assert "alert" not in json.dumps(op).lower()
+
+    raw = sanitize_op_hrefs(
+        [
+            {
+                "op": "set_attr",
+                "target": "#a",
+                "attrs": {"onclick": "alert(1)", "class": "keep"},
+            }
+        ]
+    )
+    assert raw[0]["op"] == "noop"
+    assert (raw[0].get("meta") or {}).get("reason") == "unsafe_attr"
+
+    signed = _dispatch(
+        "off",
+        "probe.onclick",
+        {"op": "set_attr", "target": "#a", "attrs": {"onclick": "alert(1)"}},
+    )
+    assert signed[0]["op"] == "noop"
+
+    class _Markup(str):
+        def __html__(self) -> str:
+            return str(self)
+
+    for value in (mark_safe("alert(1)"), _Markup("alert(1)")):
+        allowed = set_attr("#a", {"onclick": value, "class": "keep"})
+        assert allowed["op"] == "set_attr", allowed
+        landed = sanitize_op_hrefs([allowed])
+        assert landed[0]["op"] == "set_attr"
+        assert landed[0]["attrs"]["onclick"] == "alert(1)"
+        assert landed[0]["attrs"]["class"] == "keep"
+
+    srcdoc = sanitize_op_hrefs(
+        [set_attr("#frame", {"srcdoc": mark_safe("<b>ok</b>")})]
+    )
+    assert srcdoc[0]["op"] == "set_attr"
+    assert srcdoc[0]["attrs"]["srcdoc"] == "<b>ok</b>"
+
+    data_on = set_attr("#a", {"data-onclick": "alert(1)"})
+    assert data_on["op"] == "set_attr"
+    assert data_on["attrs"]["data-onclick"] == "alert(1)"
+
+
+def test_client_applies_onclick_string() -> None:
+    _run_client_cases(
+        [
+            {
+                "selector": "#btn",
+                "attr": "onclick",
+                "attrs": {"onclick": "alert(1)"},
+                "expect": "alert(1)",
+            }
         ]
     )
 
