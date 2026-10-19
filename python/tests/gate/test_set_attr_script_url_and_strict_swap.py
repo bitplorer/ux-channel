@@ -31,7 +31,7 @@ from ux_channel import (
 )
 from ux_channel.components.primitive import to_html
 from ux_channel.protocol import invoke, seq, timer_set
-from ux_channel.render.morph_policy import apply_morph_policy
+from ux_channel.render.morph_policy import apply_morph_policy, strip_dangerous_html
 from ux_channel.security.security import sanitize_op_hrefs
 from ux_channel.transport.push import get_push_bus
 
@@ -610,6 +610,24 @@ def test_strict_policy_still_strips_morph_and_toast() -> None:
         policy="strict",
     )
     assert "onerror" not in str(toast_ops[0].get("message") or "").lower()
+
+
+def test_strict_stripper_catches_svg_unquoted_and_entity_schemes() -> None:
+    svg = "<svg/onload=alert(1)>"
+    unquoted = "<a href=javascript:alert(1)>x</a>"
+    entity = '<a href="java&#115;cript:alert(1)">x</a>'
+    for html in (svg, unquoted, entity):
+        stripped = strip_dangerous_html(html)
+        assert "onload" not in stripped.lower(), stripped
+        assert "javascript:" not in stripped.lower(), stripped
+        assert "&#115;" not in stripped.lower(), stripped
+        via = apply_morph_policy([swap("#t", html)], policy="strict")
+        body = via[0]["html"].lower()
+        assert "onload" not in body, via
+        assert "javascript:" not in body, via
+        assert "&#115;" not in body, via
+    assert "x" in strip_dangerous_html(unquoted)
+    assert "x" in strip_dangerous_html(entity)
 
 
 def test_strict_policy_strips_swap_onerror() -> None:
