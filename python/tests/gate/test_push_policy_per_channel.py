@@ -19,6 +19,7 @@ from ux_channel.transport.push import PushBus, get_push_bus, set_push_bus
 
 _SECRET = "push-policy-per-channel-32chars!!"
 _HTML = '<img src="x" onerror="alert(1)">'
+_SCRIPT = "<script>alert(1)</script><b>keep</b>"
 _topic_seq = 0
 
 
@@ -63,7 +64,13 @@ def test_two_channels_keep_their_own_push_policies() -> None:
     assert allowed["ops"][0]["href"].startswith("https://app.test/")
 
     open_swap = _publish(bus_b, swap("#t", _HTML))
-    assert "onerror" in open_swap["ops"][0]["html"].lower()
+    assert "onerror" not in open_swap["ops"][0]["html"].lower()
+    assert "<img" in open_swap["ops"][0]["html"].lower()
+    open_script = _publish(bus_b, swap("#t", _SCRIPT))
+    assert "<script" in open_script["ops"][0]["html"].lower()
+    strict_script = _publish(bus_a, swap("#t", _SCRIPT))
+    assert "<script" not in strict_script["ops"][0]["html"].lower()
+    assert "keep" in strict_script["ops"][0]["html"]
 
     # A later default boot must not open the first channel.
     _boot("off")
@@ -71,8 +78,8 @@ def test_two_channels_keep_their_own_push_policies() -> None:
     assert "onerror" not in json.dumps(again).lower()
     evil_again = _publish(bus_a, {"op": "navigate", "href": "https://evil.test/x"})
     assert evil_again["ops"][0]["op"] == "noop"
-    still_open = _publish(bus_b, swap("#t", _HTML))
-    assert "onerror" in still_open["ops"][0]["html"].lower()
+    still_open = _publish(bus_b, swap("#t", _SCRIPT))
+    assert "<script" in still_open["ops"][0]["html"].lower()
 
 
 def test_set_push_bus_after_boot_keeps_that_channels_policy() -> None:

@@ -149,6 +149,20 @@ def _refused_attr(name: str, value: str | None) -> bool:
     )
 
 
+def _off_refused_attr(name: str, value: str | None) -> bool:
+    """on*, srcdoc, and dangerous URL attributes. Other attributes stay.
+
+    ``data-channel-id="Counter:root"`` is not a URL attribute. The strict
+    scrubber's extra ``_js_url_value`` pass would drop it.
+    """
+    token = name.strip().lower()
+    if _event_handler(name) or token == "srcdoc":
+        return True
+    if _attr_url_refused(name, value):
+        return True
+    return token == "srcset" and _js_url_value(name, value)
+
+
 def _scrub_attrs(node: Any) -> None:
     """Remove on*, srcdoc, and dangerous URLs. Keep script and other elements."""
     for child in list(node):
@@ -162,7 +176,7 @@ def _scrub_attrs(node: Any) -> None:
             _drop_element(node, child)
             continue
         for key, value in attrs:
-            if _refused_attr(_local_name(key), value):
+            if _off_refused_attr(_local_name(key), value):
                 del child.attrib[key]
         _scrub_attrs(child)
 
