@@ -176,8 +176,10 @@ kind class. The walk starts at the parent, so an element's own
 that component. A form id that moves from component a to component b does
 not keep the value. An unnamed form with no component root restores nothing
 and logs one console warning, the same as a field with no form and no such
-ancestor. One warning is logged per ignored field per morph. A field inside
-a named form, or inside a component, does not log that warning. `id` is
+ancestor. One warning is logged per ignored field per morph. A marked
+field with no `name` restores nothing and logs one warning, including
+inside a form or a component. A field that has a name, inside a named
+form or inside a component, does not log that warning. `id` is
 never the key. Both elements must still carry the mark, and the class must
 still match. Two elements on the same key (duplicate names, nested
 components, clashing `form=` owners) restore nothing for that key. A type

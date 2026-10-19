@@ -337,7 +337,11 @@
         console.warn("[ux-channel] data-ux-keep-value ignored");
         continue;
       }
-      if (!el.getAttribute || !el.getAttribute("name")) continue;
+      // Reason: no name is ignored, and every ignored field warns once.
+      if (!el.getAttribute || !el.getAttribute("name")) {
+        console.warn("[ux-channel] data-ux-keep-value ignored");
+        continue;
+      }
       form = el.form || null;
       unnamed = !!(form && !(form.getAttribute && (form.getAttribute("id") || form.getAttribute("name"))));
       if (!keepComponentId(el) && !form) {

@@ -14,8 +14,9 @@
   not keep the value. An unnamed form with no component root restores
   nothing and logs one warning, the same as a field with no form and no
   component root. One warning is logged per ignored field per morph. A
-  field inside a named form, or inside a component, does not log that
-  warning. `id` is not the key. Shared keys restore nothing.
+  marked field with no `name` restores nothing and logs one warning,
+  including inside a form or a component. A field that has a name, inside
+  a named form or inside a component, does not log that warning. `id` is not the key. Shared keys restore nothing.
   After the fragment is in the DOM, the client writes `el.value` inside its
   own try/catch. It does not set the value attribute, parse the value, or
   insert a node, and it does not send the value to the server. Focus restore

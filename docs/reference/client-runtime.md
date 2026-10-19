@@ -88,8 +88,10 @@ or `none`), the field `name`, and the kind class. Every form is scoped by
 that component, so a form moving from component a to component b does not
 keep the value. An unnamed form with no component root restores nothing and
 logs one console warning, the same as a field with no form and no component
-root. One warning is logged per ignored field per morph. A field inside a
-named form, or inside a component, does not log that warning. `id` is
+root. One warning is logged per ignored field per morph. A marked field
+with no `name` restores nothing and logs one warning, including inside a
+form or a component. A field that has a name, inside a named form or
+inside a component, does not log that warning. `id` is
 not the key. Shared keys restore nothing. The server should paint
 `value=""` for secrets.
 
