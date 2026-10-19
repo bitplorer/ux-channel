@@ -294,44 +294,59 @@
     return null;
   }
 
-  function keepNoFormToken(el) {
+  function keepComponentId(el) {
     var root = closestChannelRoot(el);
     var id = root && root.getAttribute("data-channel-id");
-    if (!id) return "";
-    return "4" + id;
+    return id || "";
   }
 
-  function keepFormToken(el) {
+  function keepFormPart(el) {
     var form = el.form || null;
-    if (!form) return keepNoFormToken(el);
+    if (!form) return "none";
     var id = form.getAttribute && form.getAttribute("id");
-    if (id) return "1" + id;
+    if (id) return "id:" + id;
     var name = form.getAttribute && form.getAttribute("name");
-    if (name) return "2" + name;
-    return "3";
+    if (name) return "name:" + name;
+    return "unnamed";
   }
 
-  function keepIdentity(el) {
-    if (!el || !el.hasAttribute || !el.hasAttribute("data-ux-keep-value")) return "";
+  // Reason: an unnamed form was one shared token, so a value crossed components.
+  function keepParts(el) {
+    if (!el || !el.hasAttribute || !el.hasAttribute("data-ux-keep-value")) return null;
     var name = el.getAttribute("name");
-    if (!name) return "";
-    var token = keepFormToken(el);
-    if (!token) return "";
-    return token + "\0" + name;
+    if (!name) return null;
+    var component = keepComponentId(el);
+    var formPart = keepFormPart(el);
+    if (!component && (formPart === "none" || formPart === "unnamed")) return null;
+    return [component, formPart, name];
+  }
+
+  function keepKey(el, kind) {
+    var parts = keepParts(el);
+    if (!parts || !kind) return "";
+    return JSON.stringify([parts[0], parts[1], parts[2], kind]);
   }
 
   function warnIgnoredKeep(root) {
     if (!root || typeof root.querySelectorAll !== "function") return;
     var nodes = root.querySelectorAll("[data-ux-keep-value]");
-    var i, el;
+    var i, el, form, unnamed;
     for (i = 0; i < nodes.length; i++) {
       el = nodes[i];
       if (!keepKind(el)) {
         console.warn("[ux-channel] data-ux-keep-value ignored");
         continue;
       }
-      if (!el.getAttribute || !el.getAttribute("name") || el.form) continue;
-      if (!closestChannelRoot(el)) console.warn("[ux-channel] data-ux-keep-value ignored");
+      if (!el.getAttribute || !el.getAttribute("name")) continue;
+      form = el.form || null;
+      unnamed = !!(form && !(form.getAttribute && (form.getAttribute("id") || form.getAttribute("name"))));
+      if (!keepComponentId(el) && !form) {
+        console.warn("[ux-channel] data-ux-keep-value ignored");
+        continue;
+      }
+      if (!keepComponentId(el) && unnamed) {
+        console.warn("[ux-channel] data-ux-keep-value ignored");
+      }
     }
   }
 
@@ -342,7 +357,7 @@
     var i, el, key;
     for (i = 0; i < nodes.length; i++) {
       el = nodes[i];
-      key = keepIdentity(el);
+      key = keepKey(el, keepKind(el));
       if (!key) continue;
       if (!groups[key]) groups[key] = [];
       groups[key].push(el);
@@ -355,26 +370,44 @@
     warnIgnoredKeep(root);
     var groups = groupMarked(root);
     var keys = Object.keys(groups);
-    var i, list, el;
+    var i, list, el, kind;
     for (i = 0; i < keys.length; i++) {
       list = groups[keys[i]];
       if (list.length !== 1) continue;
       el = list[0];
-      if (!keepKind(el)) continue;
-      saved.push({ key: keys[i], value: el.value, tagName: el.tagName, type: el.type });
+      kind = keepKind(el);
+      if (!kind) continue;
+      saved.push({
+        key: keys[i],
+        value: el.value,
+        tagName: el.tagName,
+        type: el.type,
+        kind: kind,
+      });
     }
     return saved;
   }
 
+  function restoreKind(item, el) {
+    if (sameKeepKind(item, el)) return item.kind;
+    return keepKind(el);
+  }
+
   function restoreKeepValues(root, saved) {
     if (!root || !saved || !saved.length) return;
-    var groups = groupMarked(root);
-    var i, item, list, el;
+    if (typeof root.querySelectorAll !== "function") return;
+    var nodes = root.querySelectorAll("[data-ux-keep-value]");
+    var i, item, j, el, key, matches;
     for (i = 0; i < saved.length; i++) {
       item = saved[i];
-      list = groups[item.key];
-      if (!list || list.length !== 1) continue;
-      el = list[0];
+      matches = [];
+      for (j = 0; j < nodes.length; j++) {
+        el = nodes[j];
+        key = keepKey(el, restoreKind(item, el));
+        if (key && key === item.key) matches.push(el);
+      }
+      if (matches.length !== 1) continue;
+      el = matches[0];
       if (!sameKeepKind(item, el)) continue;
       try {
         el.value = item.value;

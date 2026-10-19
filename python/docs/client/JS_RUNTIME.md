@@ -166,10 +166,18 @@ textarea. `hidden`, `checkbox`, `radio`, `file`, `select`, and any other
 control ignore the mark, log one console warning, and stay as the server
 painted them. `.checked` is not copied.
 
-The match is the form owner (`el.form`) plus `name`. A field with no form
-matches only inside the closest ancestor that carries `data-channel-id`, the
-component root this client already stamps on a morph target. With no form and
-no such ancestor, the mark does nothing and logs one console warning. `id` is
+The key is `JSON.stringify` of four strings: the closest ancestor
+`data-channel-id` (or `""`), the form identity, the field `name`, and the
+kind class. The walk starts at the parent, so an element's own
+`data-channel-id` is not its component root, and an empty
+`data-channel-id` is not a root. Form identity is `id:` plus `el.form.id`,
+`name:` plus the form's name, `unnamed` when the form has neither, or
+`none` when there is no form. Every form, named or unnamed, is scoped by
+that component. A form id that moves from component a to component b does
+not keep the value. An unnamed form with no component root restores nothing
+and logs one console warning, the same as a field with no form and no such
+ancestor. One warning is logged per ignored field per morph. A field inside
+a named form, or inside a component, does not log that warning. `id` is
 never the key. Both elements must still carry the mark, and the class must
 still match. Two elements on the same key (duplicate names, nested
 components, clashing `form=` owners) restore nothing for that key. A type

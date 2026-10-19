@@ -6,10 +6,16 @@
   can switch `password` to `text` and the value stays. Textarea matches only
   textarea. A change into or out of the class (`hidden`, `checkbox`, `radio`,
   `file`, `select`, and anything else) restores nothing, and each ignored mark
-  logs one console warning. The match is the form owner (`el.form`) plus
-  `name`. With no form, the match is the closest ancestor `data-channel-id`.
-  With neither a form nor that ancestor, the mark is ignored and one warning
-  is logged. `id` is not the key. Shared keys restore nothing.
+  logs one console warning. The key is `JSON.stringify` of four strings:
+  the closest ancestor `data-channel-id` (or `""`), the form identity, the
+  field `name`, and the kind class. Form identity is `id:` plus the form id,
+  `name:` plus the form name, `unnamed`, or `none`. Every form is scoped by
+  its component, so a form id moving from component a to component b does
+  not keep the value. An unnamed form with no component root restores
+  nothing and logs one warning, the same as a field with no form and no
+  component root. One warning is logged per ignored field per morph. A
+  field inside a named form, or inside a component, does not log that
+  warning. `id` is not the key. Shared keys restore nothing.
   After the fragment is in the DOM, the client writes `el.value` inside its
   own try/catch. It does not set the value attribute, parse the value, or
   insert a node, and it does not send the value to the server. Focus restore
