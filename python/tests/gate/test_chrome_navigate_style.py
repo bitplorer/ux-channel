@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import shutil
 import subprocess
 import tempfile
@@ -19,7 +20,9 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
+from gate.test_review_r7_navigate_mutants import _TRANSPORTS, _deliver
 from ux_channel import Channel, ChannelConfig, Result
+from ux_channel.security.security import filter_outbound_ops
 
 _SECRET = "chrome-nav-secret-32chars-minimum!"
 _TOPIC = "board"
@@ -264,3 +267,296 @@ def test_chrome_safe_href_blocks_empty_at_userinfo(script_name: str) -> None:
     assert len(score["blocked"]) == len(_EMPTY_AT), (script_name, score)
     for item in score["blocked"]:
         assert item["stayed"] is True, (script_name, item)
+
+
+# The host is the label after the last "@". These three must get the same
+# keep/drop verdict as the bare host, on the client and on every server mode
+# the suite already runs. An empty "@" is the exception pinned below.
+_BARE = "https://evil.test/"
+_EMPTY = "https://@evil.test/"
+_USERINFO = (
+    "https://user@evil.test/",
+    "https://app.test@evil.test/",
+    _EMPTY,
+)
+_FILTER_MODES = {
+    "off": {"policy": "off"},
+    "off-app": {"policy": "off", "allowed_hosts": ("app.test",)},
+    "strict-app": {"policy": "strict", "allowed_hosts": ("app.test",)},
+    "strict-app-origin": {
+        "policy": "strict",
+        "allowed_hosts": ("app.test",),
+        "origin_host": "app.test",
+    },
+    # Q7: evil.test itself is allowed, and an empty "@" is still refused.
+    "strict-evil": {
+        "policy": "strict",
+        "allowed_hosts": ("evil.test",),
+        "origin_host": "evil.test",
+    },
+}
+_JSDOM_ROOT = Path(__file__).resolve().parent / "js_keep_value"
+_JS_CACHE: dict[str, dict[str, dict]] = {}
+_CHROME_CACHE: dict[tuple[str, str], tuple[str, str]] = {}
+_TITLE = re.compile(r"<title>([^<]*)</title>", re.IGNORECASE)
+_JS_RUNNER = r"""
+const { JSDOM } = require(process.argv[1]);
+const fs = require("fs");
+const src = fs.readFileSync(process.argv[2], "utf8");
+const hrefs = JSON.parse(process.argv[3]);
+
+function extractSafeHref(source) {
+  const start = source.indexOf("function safeHref");
+  if (start < 0) throw new Error("missing safeHref");
+  const brace = source.indexOf("{", start);
+  let depth = 0;
+  let end = -1;
+  for (let n = brace; n < source.length; n++) {
+    if (source[n] === "{") depth++;
+    else if (source[n] === "}") {
+      depth--;
+      if (depth === 0) { end = n + 1; break; }
+    }
+  }
+  if (end < 0) throw new Error("safeHref did not close");
+  const fn = source.slice(source.lastIndexOf("\n", start) + 1, end);
+  return new Function(fn + "\nreturn safeHref;")();
+}
+
+const safeHref = extractSafeHref(src);
+const dom = new JSDOM("<!doctype html><html><body></body></html>", {
+  url: "https://app.test/start",
+  runScripts: "dangerously",
+});
+const win = dom.window;
+const warns = [];
+win.console.warn = function (...args) {
+  warns.push(args.map((item) => String(item)).join(" "));
+};
+win.eval(src);
+if (!win.uxChannel || typeof win.uxChannel.applyResult !== "function") {
+  console.error("client did not load");
+  process.exit(1);
+}
+
+(async function () {
+  const out = [];
+  for (const href of hrefs) {
+    const mark = warns.length;
+    await Promise.race([
+      win.uxChannel.applyResult({ ok: true, ops: [{ op: "navigate", href: href }] }),
+      new Promise(function (resolve) { setTimeout(resolve, 40); }),
+    ]);
+    const fresh = warns.slice(mark).join("\n");
+    out.push({
+      href: href,
+      safeHref: safeHref(href),
+      blocked: fresh.indexOf("blocked unsafe navigate") !== -1,
+    });
+  }
+  process.stdout.write(JSON.stringify(out));
+  dom.window.close();
+})().catch(function (err) {
+  console.error(err && err.stack || err);
+  process.exit(1);
+});
+"""
+
+
+def _slug(href: str) -> str:
+    return {
+        "https://user@evil.test/": "user",
+        "https://app.test@evil.test/": "app",
+        _EMPTY: "empty",
+    }[href]
+
+
+def _userinfo_cases():
+    for mode in (*_FILTER_MODES, *_TRANSPORTS):
+        for href in _USERINFO:
+            yield pytest.param(
+                "server", mode, href, id=f"server-{mode}-{_slug(href)}"
+            )
+    for script in ("ux-channel.js", "ux-channel.min.js"):
+        for href in _USERINFO:
+            yield pytest.param("js", script, href, id=f"js-{script}-{_slug(href)}")
+            yield pytest.param(
+                "chrome", script, href, id=f"chrome-{script}-{_slug(href)}"
+            )
+
+
+def _browser_host(href: str) -> str:
+    """Host a browser navigates: the label after the last ``@``, without a port."""
+    authority = href.split("://", 1)[1].split("/", 1)[0].split("?", 1)[0].split("#", 1)[0]
+    if "@" in authority:
+        authority = authority.rsplit("@", 1)[1]
+    if authority.startswith("["):
+        end = authority.find("]")
+        return authority[1:end].lower() if end > 1 else ""
+    return authority.split(":", 1)[0].lower()
+
+
+def _kept(href: str) -> tuple[str, str]:
+    return ("keep", _browser_host(href))
+
+
+def _server_verdict(mode: str, href: str) -> tuple[str, str]:
+    if mode in _FILTER_MODES:
+        op = filter_outbound_ops(
+            [{"op": "navigate", "href": href}],
+            **_FILTER_MODES[mode],
+        )[0]
+    else:
+        op = _deliver(
+            mode,
+            href,
+            hosts=("app.test",),
+            request_host="app.test",
+        )
+    if op.get("op") != "navigate":
+        return ("drop", "")
+    return _kept(str(op["href"]))
+
+
+def _jsdom_api() -> Path:
+    entry = _JSDOM_ROOT / "node_modules" / "jsdom" / "lib" / "api.js"
+    if entry.is_file():
+        return entry
+    npm = shutil.which("npm")
+    if shutil.which("node") is None or npm is None:
+        pytest.skip("node is not installed")
+    proc = subprocess.run(
+        [npm, "ci", "--ignore-scripts", "--no-audit", "--no-fund"],
+        cwd=_JSDOM_ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert proc.returncode == 0, proc.stdout + proc.stderr
+    assert entry.is_file()
+    return entry
+
+
+def _js_table(script_name: str) -> dict[str, dict]:
+    cached = _JS_CACHE.get(script_name)
+    if cached is not None:
+        return cached
+    node = shutil.which("node")
+    if node is None:
+        pytest.skip("node is not installed")
+    hrefs = [_BARE, *_USERINFO]
+    proc = subprocess.run(
+        [
+            node,
+            "-e",
+            _JS_RUNNER,
+            str(_jsdom_api()),
+            str(_STATIC.parent / script_name),
+            json.dumps(hrefs),
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert proc.returncode == 0, proc.stdout + proc.stderr
+    table = {row["href"]: row for row in json.loads(proc.stdout)}
+    _JS_CACHE[script_name] = table
+    return table
+
+
+def _js_verdict(script_name: str, href: str) -> tuple[str, str]:
+    row = _js_table(script_name)[href]
+    value = row["safeHref"]
+    assert (value is None) == bool(row["blocked"]), (script_name, href, row)
+    if value is None:
+        return ("drop", "")
+    return _kept(str(value))
+
+
+def _chrome_verdict(script_name: str, href: str) -> tuple[str, str]:
+    key = (script_name, href)
+    cached = _CHROME_CACHE.get(key)
+    if cached is not None:
+        return cached
+    binary = _chrome()
+    script = (_STATIC.parent / script_name).resolve().as_uri()
+    page = f"""<!doctype html><html><body>
+<pre id="score">PENDING</pre>
+<script src="{script}"></script>
+<script>
+const href = {json.dumps(href)};
+const before = location.href;
+Promise.race([
+  window.uxChannel.applyResult({{ok:true, ops:[{{op:"navigate", href:href}}]}}),
+  new Promise(function (resolve) {{ setTimeout(resolve, 200); }})
+]).then(function () {{
+  document.getElementById("score").textContent = JSON.stringify({{
+    stayed: location.href === before
+  }});
+}});
+</script></body></html>"""
+    with tempfile.TemporaryDirectory() as tmp:
+        path = Path(tmp) / "nav.html"
+        path.write_text(page, encoding="utf-8")
+        proc = subprocess.run(
+            [
+                "timeout",
+                "40",
+                binary,
+                "--headless=new",
+                "--no-sandbox",
+                "--disable-gpu",
+                f"--user-data-dir={Path(tmp) / 'profile'}",
+                "--virtual-time-budget=8000",
+                "--dump-dom",
+                path.as_uri(),
+            ],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+    text = proc.stdout
+    marker = '<pre id="score">'
+    if marker in text and '"stayed":true' in text:
+        verdict = ("drop", "")
+    else:
+        found = _TITLE.search(text)
+        assert found, text[-500:]
+        verdict = ("keep", found.group(1).strip().lower())
+    _CHROME_CACHE[key] = verdict
+    return verdict
+
+
+def _verdict(surface: str, mode: str, href: str) -> tuple[str, str]:
+    if surface == "server":
+        return _server_verdict(mode, href)
+    if surface == "js":
+        return _js_verdict(mode, href)
+    if surface == "chrome":
+        return _chrome_verdict(mode, href)
+    raise AssertionError(surface)
+
+
+def _empty_at_is_stricter(surface: str, mode: str) -> bool:
+    """Empty ``@`` is dropped while ``https://evil.test/`` is kept.
+
+    The client always drops it. Strict drops it even when ``evil.test`` is
+    the allowed host. Off keeps it, the same verdict as the bare host.
+    """
+    if surface != "server":
+        return True
+    return mode == "strict-evil"
+
+
+@pytest.mark.parametrize(("surface", "mode", "href"), _userinfo_cases())
+def test_userinfo_verdict_matches_the_bare_host(
+    surface: str, mode: str, href: str
+) -> None:
+    """Userinfo does not choose the host. The label after the last ``@`` does."""
+    got = _verdict(surface, mode, href)
+    bare = _verdict(surface, mode, _BARE)
+    if href == _EMPTY and _empty_at_is_stricter(surface, mode):
+        assert got == ("drop", ""), (surface, mode, got, bare)
+        assert bare == ("keep", "evil.test"), (surface, mode, bare)
+        return
+    assert got == bare, (surface, mode, href, got, bare)

@@ -710,6 +710,8 @@
         var rest = h.slice(h.indexOf(":"));
         if (rest.slice(0, 3) !== "://") return null;
         var authority = rest.slice(3).split("/")[0].split("?")[0].split("#")[0];
+        var at = authority.indexOf("@");
+        if (at > 0) return h.slice(0, h.indexOf("://") + 3) + authority.slice(0, at) + "/";
         if (!authority || authority.charAt(0) === "/" || authority.charAt(0) === "@") return null;
       }
       if (schemeL === "javascript" || schemeL === "data" || schemeL === "vbscript" || schemeL === "file") return null;
