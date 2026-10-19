@@ -314,7 +314,6 @@
   function keepParts(el) {
     if (!el || !el.hasAttribute || !el.hasAttribute("data-ux-keep-value")) return null;
     var name = el.getAttribute("name");
-    if (!name) return null;
     var component = keepComponentId(el);
     var formPart = keepFormPart(el);
     if (!component && (formPart === "none" || formPart === "unnamed")) return null;
@@ -388,7 +387,6 @@
         keepFailure(e, el);
         continue;
       }
-      if (!item) continue;
       if (item.warn) {
         console.warn("[ux-channel] data-ux-keep-value ignored");
         continue;
@@ -411,15 +409,7 @@
     return keepKind(el);
   }
 
-  function writeKeepReplace(el, value) {
-    try {
-      el.value = value;
-    } catch (e) {
-      keepFailure(e, el);
-    }
-  }
-
-  function writeKeepIdio(el, value) {
+  function writeKeep(el, value) {
     try {
       el.value = value;
     } catch (e) {
@@ -559,11 +549,11 @@
       try {
         global.Idiomorph.morph(target, next);
       } finally {
-        if (target.parentNode) restoreKeepValues(target, keepSnap, writeKeepIdio);
+        if (target.parentNode) restoreKeepValues(target, keepSnap, writeKeep);
       }
     } else {
       target.replaceWith(next);
-      restoreKeepValues(next, keepSnap, writeKeepReplace);
+      restoreKeepValues(next, keepSnap, writeKeep);
     }
     restoreFocus(focusSnap);
     restoreScroll(scrollSnap);
