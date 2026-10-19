@@ -728,6 +728,13 @@
     return n.length > 4 && (n.slice(-5) === ":href" || n.slice(-4) === ":src");
   }
 
+  // Same drop list as the server's _event_or_srcdoc: srcdoc, or on* longer than "on".
+  function isEventOrSrcdoc(name) {
+    var token = String(name == null ? "" : name).replace(/^\s+|\s+$/g, "").toLowerCase();
+    if (token === "srcdoc") return true;
+    return token.length > 2 && token.indexOf("on") === 0;
+  }
+
   function isSrcTypeAttr(name) {
     var n = String(name == null ? "" : name).replace(/^\s+|\s+$/g, "").toLowerCase();
     return n === "src" || (n.length > 4 && n.slice(-4) === ":src");
@@ -779,6 +786,10 @@
         if (ae && op.attrs) {
           Object.keys(op.attrs).forEach(function (k) {
             var v = op.attrs[k];
+            if (isEventOrSrcdoc(k)) {
+              console.warn("[ux-channel] blocked unsafe set_attr", k, v);
+              return;
+            }
             if (v === null || v === undefined) {
               ae.removeAttribute(k);
               return;
