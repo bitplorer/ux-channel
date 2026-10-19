@@ -79,7 +79,7 @@ Read [../../../START_HERE.md](../../../START_HERE.md) first if you are new. This
 
 | Sev | Risk | Owner | Mitigation |
 |-----|------|-------|------------|
-| **HIGH** | **Morph / toast XSS** if user strings embedded raw | App + lib | **Mitigated (opt-in)** — `morph_html_policy="strict"` strips script/on*/javascript: hrefs. Default **off** so ux-dom is not broken. `doctor()` warns when off in production. Tests: `tests/security/test_morph_policy.py`. |
+| **HIGH** | **Morph / swap / toast XSS** if user strings embedded raw | App + lib | **Mitigated (opt-in)** — `morph_html_policy="strict"` strips script/on*/javascript: hrefs from morph, swap, and toast. Default **off** so ux-dom is not broken. `doctor()` warns when off in production. Tests: `tests/security/test_morph_policy.py`. |
 | **MED** | **Open redirect** via `https://evil.example` navigate | App | Allowlist hosts before `navigate()` / encode `Go` |
 | **MED** | **Stolen `data-channel-cap`** until expiry | App + lib | Short TTL, HTTPS, `bind_cap_to_principal`, `once` for money actions |
 | **MED** | **Multi-worker** once/idempotency/rate/state | Deploy | Redis (or equivalent); do not use memory stores in multi-worker prod |

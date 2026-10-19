@@ -1,8 +1,8 @@
-"""Opt-in strict HTML policy for morph / toast (SECURITY_AUDIT HIGH residual).
+"""Opt-in strict HTML policy for morph / swap / toast (SECURITY_AUDIT HIGH residual).
 
 Default is off — ux-dom fragments and app-owned markup stay intact.
 ``ChannelConfig.morph_html_policy = "strict"`` strips script/iframe/object
-and inline event handlers from morph HTML and toast display text.
+and inline event handlers from morph and swap HTML and from toast text.
 
 Must not break ux-dom: data-* attributes, custom elements, and region
 slots are preserved. This is not a full sanitizer; it is a fail-closed
@@ -45,7 +45,7 @@ def strip_dangerous_html(html: str) -> str:
 
 
 def apply_morph_policy(ops: list[Any], *, policy: str = "off") -> list[Any]:
-    """Filter morph/toast ops in place when policy=strict."""
+    """Filter morph/swap/toast ops when policy=strict. ``off`` returns ops unchanged."""
     if (policy or "off").lower() != "strict":
         return ops
     out: list[Any] = []
@@ -58,7 +58,7 @@ def apply_morph_policy(ops: list[Any], *, policy: str = "off") -> list[Any]:
                 body = op
         if isinstance(body, Mapping):
             name = str(body.get("op") or "")
-            if name == "morph" and "html" in body:
+            if name in ("morph", "swap") and "html" in body:
                 cloned = dict(body)
                 cloned["html"] = strip_dangerous_html(str(cloned.get("html") or ""))
                 out.append(cloned)

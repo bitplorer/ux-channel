@@ -204,7 +204,7 @@ class ChannelConfig:
     # adapt = extra live, Channel CapService stays authority.
     # off = classic CapService (explicit escape; imports nothing).
     cek: str = "require"
-    # Morph / toast HTML policy: off (default, ux-dom safe) | strict (strip script/on*).
+    # Morph / swap / toast HTML policy: off (default) | strict (strip script/on*).
     # Production factory leaves this off so ux-dom is not broken; doctor warns.
     morph_html_policy: str = "off"
 

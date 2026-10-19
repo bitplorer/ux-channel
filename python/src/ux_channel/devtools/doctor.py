@@ -96,7 +96,8 @@ def production_go_nogo(config: Any) -> dict[str, Any]:
             "morph_html_policy",
             True,
             "morph_html_policy=off: app must escape user strings "
-            "(HIGH residual). Set morph_html_policy='strict' to strip script/on*.",
+            "(HIGH residual). Set morph_html_policy='strict' to strip script/on* "
+            "from morph, swap, and toast.",
             fatal=False,
         )
         if morph == "off":
