@@ -933,4 +933,26 @@ async function runScopeCases(win, doc, check, warns) {
     doc.querySelector("textarea").value === "ta",
     "textarea beside text " + JSON.stringify(doc.querySelector("textarea").value)
   );
+
+  var nameless =
+    '<div data-channel-id="a"><form id="f">' +
+    '<input id="only" type="text" data-ux-keep-value value="">' +
+    "</form></div>";
+  warns.length = 0;
+  doc.body.innerHTML = scopeHtml(nameless);
+  doc.querySelector("input").value = "nameless";
+  await applyKeepMorph(win, scopeHtml(nameless));
+  check(
+    doc.querySelector("input").value === "",
+    "no name kept " + JSON.stringify(doc.querySelector("input").value)
+  );
+  check(keepWarnCount(warns) === 1, "no name warnings " + keepWarnCount(warns));
+
+  var twoNameless =
+    '<input id="one" type="text" data-ux-keep-value value="">' +
+    '<input id="two" type="text" data-ux-keep-value value="">';
+  warns.length = 0;
+  doc.body.innerHTML = scopeHtml(twoNameless);
+  await applyKeepMorph(win, scopeHtml(twoNameless));
+  check(keepWarnCount(warns) === 2, "two no-name warnings " + keepWarnCount(warns));
 }
