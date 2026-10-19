@@ -414,7 +414,7 @@ def test_client_keeps_protocol_relative_and_src_image_urls() -> None:
 
 
 def test_set_attr_refuses_non_string_script_urls() -> None:
-    """Lists and other objects are stringified like setAttribute, then checked."""
+    """Dict and list values are refused. They are never stringified."""
 
     class _ScriptUrl:
         def __str__(self) -> str:
@@ -438,9 +438,20 @@ def test_set_attr_refuses_non_string_script_urls() -> None:
     assert "href" not in (obj_op.get("attrs") or {})
     assert "javascript:" not in json.dumps(obj_op).lower()
 
-    kept = set_attr("#a", {"href": ["https://example.com/a"]})
-    assert kept["op"] == "set_attr"
-    assert kept["attrs"]["href"] == "https://example.com/a"
+    # A list is not stringified. Joining it would hide a script URL in one
+    # entry and would not match the client's "[object Object]" / refusal.
+    listed = set_attr("#a", {"href": ["https://example.com/a"], "class": "keep"})
+    assert listed["op"] == "set_attr", listed
+    assert "href" not in listed["attrs"]
+    assert listed["attrs"]["class"] == "keep"
+    assert "https://example.com/a" not in json.dumps(listed)
+
+    mapped = set_attr("#a", {"href": {"a": 1}, "class": "keep"})
+    assert "href" not in (mapped.get("attrs") or {})
+    blob = json.dumps(mapped)
+    assert "{'a'" not in blob
+    assert "[object Object]" not in blob
+    assert mapped["attrs"]["class"] == "keep"
 
 
 def test_client_set_attr_refuses_non_string_script_urls() -> None:
@@ -463,8 +474,50 @@ def test_client_set_attr_refuses_non_string_script_urls() -> None:
             {
                 "selector": "#link",
                 "attr": "href",
+                "prime": {"href": "/ok"},
                 "attrs": {"href": ["https://example.com/a"]},
-                "expect": "https://example.com/a",
+                "expect": "/ok",
+            },
+            {
+                "selector": "#link",
+                "attr": "href",
+                "prime": {"href": "/ok"},
+                "attrs": {"href": {"a": 1}},
+                "expect": "/ok",
+            },
+        ]
+    )
+
+
+def test_set_attr_refuses_control_prefixed_protocol_relative() -> None:
+    """``//`` is kept only after a whitespace trim, not a control-character strip."""
+    for value in ("\x01//x", "/\t/x"):
+        op = set_attr("#a", {"href": value, "class": "keep"})
+        assert "href" not in (op.get("attrs") or {}), (repr(value), op)
+        assert op["attrs"]["class"] == "keep"
+    kept = set_attr("#a", {"href": "  //cdn.example/a.png"})
+    assert kept["attrs"]["href"].lstrip().startswith("//")
+    _run_client_cases(
+        [
+            {
+                "selector": "#link",
+                "attr": "href",
+                "prime": {"href": "/ok"},
+                "attrs": {"href": "\x01//x"},
+                "expect": "/ok",
+            },
+            {
+                "selector": "#link",
+                "attr": "href",
+                "prime": {"href": "/ok"},
+                "attrs": {"href": "/\t/x"},
+                "expect": "/ok",
+            },
+            {
+                "selector": "#img",
+                "attr": "src",
+                "attrs": {"src": "  //cdn.example/a.png"},
+                "expect": "  //cdn.example/a.png",
             },
         ]
     )
