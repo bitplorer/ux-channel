@@ -443,18 +443,21 @@
     for (i = 0; i < saved.length; i++) {
       item = saved[i];
       matches = [];
+      var skipItem = false;
       for (j = 0; j < nodes.length; j++) {
         el = nodes[j];
         try {
           key = keepKey(el, restoreKind(item, el));
         } catch (e) {
-          // Reason: a throw while matching one field must name the error,
-          // and the other fields still restore.
+          // Reason: a throw while matching one item means that item must not
+          // be written into this field or any other.
           keepFailure(e);
-          continue;
+          skipItem = true;
+          break;
         }
         if (key && key === item.key) matches.push(el);
       }
+      if (skipItem) continue;
       if (matches.length !== 1) continue;
       el = matches[0];
       if (!sameKeepKind(item, el)) continue;

@@ -22,8 +22,9 @@
   that field and logs one warning that names the error; the other fields
   continue. If Idiomorph throws, the error is reported the same way as
   any other failed morph, and kept values for the other fields are still
-  restored. The partial morph is left in place. A throw while matching a
-  kept field logs the same warning.
+  restored. The partial morph is left in place. If any node throws while
+  a saved field is being matched, that field is not restored and the value
+  is not written into a different field. The throw logs the same warning.
   It does not set the value attribute, parse the value, or
   insert a node, and it does not send the value to the server. Focus restore
   is unchanged. The server should paint `value=""` for secrets.

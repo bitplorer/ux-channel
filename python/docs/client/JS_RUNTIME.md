@@ -190,8 +190,9 @@ each match inside its own try/catch. A throw while reading or writing one
 marked field skips that field and logs one warning that names the error.
 The other fields continue. If Idiomorph throws, the error is reported the
 same way as any other failed morph, and kept values for the other fields
-are still restored. The partial morph is left in place. A throw while
-matching a kept field logs the same warning. It does not set the value attribute,
+are still restored. The partial morph is left in place. If any node throws
+while a saved field is being matched, that field is not restored and the
+value is not written into a different field. The throw logs the same warning. It does not set the value attribute,
 parse the typed text, or insert a node. Focus restore is the same path as
 on main.
 

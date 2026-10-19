@@ -83,8 +83,9 @@ element at a time inside try/catch. A throw while reading or writing one
 field skips that field and logs one warning that names the error; the other
 fields continue. If Idiomorph throws, the error is reported the same way as
 any other failed morph, and kept values for the other fields are still
-restored. The partial morph is left in place. A throw while matching a kept
-field logs the same warning.
+restored. The partial morph is left in place. If any node throws while a
+saved field is being matched, that field is not restored and the value is
+not written into a different field. The throw logs the same warning.
 It does not set `.checked`, the value
 attribute, parse the text, or insert a node, and it does not send the value
 to the server. A field matches only when both nodes still have the mark, the same `name`,
