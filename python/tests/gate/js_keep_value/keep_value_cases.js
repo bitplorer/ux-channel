@@ -1179,7 +1179,7 @@ async function runIsolationCases(win, doc, check, warns, path) {
     check(named.length === 1, "keepKey warn " + named.length + " " + JSON.stringify(warns));
     check(
       doc.getElementById("safe").value === "kept-safe",
-      "keepKey safe " + JSON.stringify(doc.getElementById("safe") && doc.getElementById("safe").value)
+      "P10 keepKey safe " + JSON.stringify(doc.getElementById("safe") && doc.getElementById("safe").value)
     );
   } finally {
     if (path === "idiomorph" && savedMorph) win.Idiomorph.morph = savedMorph;
@@ -1194,9 +1194,241 @@ async function runIsolationCases(win, doc, check, warns, path) {
   await runSurvivorCases(win, doc, check, warns, path);
   await runRestoreErrorCase(win, doc, check, warns, path);
   await runUnmarkedThrowCase(win, doc, check, warns);
+  await runC1Case(win, doc, check);
+  await runP11Case(win, doc, check);
+  await runK5xCase(win, doc, check, warns);
+  await runK11xCase(win, doc, check, warns);
+  await runF6Case(win, doc, check, warns);
   if (path === "idiomorph") {
     await runPersistentBreakCase(win, doc, check, warns);
     await runNestedKeepCase(win, doc, check, warns);
+    await runK3xCase(win, doc, check, warns);
+  }
+}
+
+function armAfterEngine(win, doc, poison) {
+  var savedMorph = win.Idiomorph && win.Idiomorph.morph;
+  var savedReplace = win.Element.prototype.replaceWith;
+  if (savedMorph && win.Idiomorph) {
+    win.Idiomorph.morph = function () {
+      var result = savedMorph.apply(this, arguments);
+      poison();
+      return result;
+    };
+  } else {
+    win.Element.prototype.replaceWith = function () {
+      var result = savedReplace.apply(this, arguments);
+      poison();
+      return result;
+    };
+  }
+  return function disarm() {
+    if (savedMorph && win.Idiomorph) win.Idiomorph.morph = savedMorph;
+    win.Element.prototype.replaceWith = savedReplace;
+  };
+}
+
+async function runC1Case(win, doc, check) {
+  var html = keepWrap(
+    '<input id="s1" name="s1" type="text" data-ux-keep-value value="">' +
+      '<input id="bad" name="bad" type="text" data-ux-keep-value value="">'
+  );
+  doc.body.innerHTML = html;
+  doc.getElementById("s1").value = "kept-s1";
+  var disarm = armAfterEngine(win, doc, function () {
+    var bad = doc.getElementById("bad");
+    var reads = 0;
+    Object.defineProperty(bad, "type", {
+      configurable: true,
+      get: function () {
+        reads += 1;
+        if (reads === 1) throw new Error("C1 type");
+        return "text";
+      },
+    });
+  });
+  try {
+    await applyKeepMorph(win, html);
+    check(
+      doc.getElementById("s1").value === "kept-s1",
+      "C1 s1 " + JSON.stringify(doc.getElementById("s1") && doc.getElementById("s1").value)
+    );
+  } finally {
+    disarm();
+    var bad = doc.getElementById("bad");
+    if (bad) delete bad.type;
+  }
+}
+
+async function runP11Case(win, doc, check) {
+  var html = keepWrap(
+    '<input id="safe" name="safe" type="text" data-ux-keep-value value="">' +
+      '<input id="bad" name="bad" type="text" data-ux-keep-value value="">' +
+      '<input id="s2" name="s2" type="text" data-ux-keep-value value="">'
+  );
+  doc.body.innerHTML = html;
+  doc.getElementById("safe").value = "kept-safe";
+  doc.getElementById("s2").value = "kept-s2";
+  var disarm = armAfterEngine(win, doc, function () {
+    var bad = doc.getElementById("bad");
+    var reads = 0;
+    Object.defineProperty(bad, "type", {
+      configurable: true,
+      get: function () {
+        reads += 1;
+        if (reads >= 2) throw new Error("P11 type");
+        return "text";
+      },
+    });
+  });
+  try {
+    await applyKeepMorph(win, html);
+    check(
+      doc.getElementById("safe").value === "kept-safe",
+      "P11 safe " + JSON.stringify(doc.getElementById("safe") && doc.getElementById("safe").value)
+    );
+    check(
+      doc.getElementById("s2").value === "kept-s2",
+      "P11 s2 " + JSON.stringify(doc.getElementById("s2") && doc.getElementById("s2").value)
+    );
+  } finally {
+    disarm();
+    var bad = doc.getElementById("bad");
+    if (bad) delete bad.type;
+  }
+}
+
+async function runK5xCase(win, doc, check, warns) {
+  var html = keepWrap(
+    '<input id="k5" name="k5" type="text" data-ux-keep-value value="">' +
+      '<input id="keep" name="keep" type="text" data-ux-keep-value value="">'
+  );
+  warns.length = 0;
+  doc.body.innerHTML = html;
+  doc.getElementById("keep").value = "kept-keep";
+  Object.defineProperty(doc.getElementById("k5"), "value", {
+    configurable: true,
+    get: function () { throw new win.TypeError("E text"); },
+  });
+  try {
+    await applyKeepMorph(win, html);
+    var heads = warns.filter(function (line) {
+      var head = line && line.args && line.args[0] != null ? String(line.args[0]) : "";
+      return head.indexOf("data-ux-keep-value ignored:") !== -1;
+    });
+    var head = heads[0] && heads[0].args ? String(heads[0].args[0]) : "";
+    check(
+      head === "[ux-channel] data-ux-keep-value ignored: E text",
+      "K5x text " + head
+    );
+    check(head.indexOf("TypeError:") === -1, "K5x not TypeError " + head);
+  } finally {
+    var el = doc.getElementById("k5");
+    if (el) delete el.value;
+  }
+}
+
+async function runK11xCase(win, doc, check, warns) {
+  var html = keepWrap(
+    '<input id="left" name="left" type="text" data-ux-keep-value value="">' +
+      '<input id="mid" name="mid" type="text" data-ux-keep-value value="">' +
+      '<input id="right" name="right" type="text" data-ux-keep-value value="">'
+  );
+  warns.length = 0;
+  doc.body.innerHTML = html;
+  doc.getElementById("left").value = "kept-left";
+  doc.getElementById("right").value = "kept-right";
+  var thrown = 0;
+  var disarm = armAfterEngine(win, doc, function () {
+    var mid = doc.getElementById("mid");
+    var reads = 0;
+    Object.defineProperty(mid, "type", {
+      configurable: true,
+      get: function () {
+        reads += 1;
+        if (reads === 1 || reads === 3) {
+          thrown += 1;
+          throw new Error("K11x type");
+        }
+        return "text";
+      },
+    });
+  });
+  try {
+    await applyKeepMorph(win, html);
+    var named = warns.filter(function (line) {
+      return warnText(line).indexOf("K11x type") !== -1;
+    });
+    check(thrown === 2, "K11x throws " + thrown);
+    check(named.length === 1, "K11x warnings " + named.length);
+  } finally {
+    disarm();
+    var mid = doc.getElementById("mid");
+    if (mid) delete mid.type;
+  }
+}
+
+async function runF6Case(win, doc, check, warns) {
+  var before =
+    '<div id="region" data-channel-id="login">' +
+    '<input name="quiet" type="text" data-ux-keep-value value="">' +
+    '<input name="boom" type="text" data-ux-keep-value value="">' +
+    "</div>";
+  var after =
+    '<section id="region" data-channel-id="login">' +
+    '<input name="quiet" type="text" data-ux-keep-value value="">' +
+    '<input name="boom" type="text" data-ux-keep-value value="">' +
+    "</section>";
+  warns.length = 0;
+  if (win.uxChannel.clearErrorLog) win.uxChannel.clearErrorLog();
+  doc.body.innerHTML = before;
+  if (doc.activeElement && doc.activeElement.blur) doc.activeElement.blur();
+  var boom = doc.querySelector('[name="boom"]');
+  var old = doc.getElementById("region");
+  var disarm = armAfterEngine(win, doc, function () {
+    boom.getAttribute = function () { throw new Error("detached keep"); };
+  });
+  var tracked = trackChannel(win, ["channel:opError"]);
+  try {
+    await applyKeepMorph(win, after);
+    var region = doc.getElementById("region");
+    check(!!(region && region.tagName === "SECTION"), "F6 tag " + (region && region.tagName));
+    check(boom.parentNode === old && !old.isConnected, "F6 detached");
+    check(keepWarnCount(warns) === 0, "F6 warnings " + keepWarnCount(warns) + " " + warns.map(warnText).join(" | "));
+    check(
+      win.uxChannel.lastErrors(1).length === 0,
+      "F6 op errors " + win.uxChannel.lastErrors(1).length + " " + ((win.uxChannel.lastErrors(1)[0] || {}).message || "")
+    );
+    check(
+      !tracked.events.some(function (ev) { return ev.name === "channel:opError"; }),
+      "F6 channel:opError"
+    );
+  } finally {
+    tracked.stop();
+    disarm();
+    if (boom) delete boom.getAttribute;
+  }
+}
+
+async function runK3xCase(win, doc, check, warns) {
+  var html = keepWrap(
+    '<input id="e-persist" name="email" type="email" data-ux-keep-value value="">'
+  );
+  warns.length = 0;
+  doc.body.innerHTML = html;
+  var el = doc.getElementById("e-persist");
+  el.value = "kept-persist";
+  el.getAttribute = function () { throw new Error("persist keep"); };
+  try {
+    await applyKeepMorph(win, html);
+    await applyKeepMorph(win, html);
+    var named = warns.filter(function (line) {
+      return warnText(line).indexOf("persist keep") !== -1;
+    });
+    check(named.length === 2, "K3x warnings " + named.length);
+  } finally {
+    el = doc.getElementById("e-persist");
+    if (el) delete el.getAttribute;
   }
 }
 
