@@ -26,9 +26,11 @@ def _maybe_redis_stores(redis_url: str | None):
             RedisPushBus,
             RedisRateLimiter,
         )
-        from ux_channel.transport.push import set_push_bus
+        from ux_channel.transport.push import _live_buses, set_push_bus
 
-        set_push_bus(RedisPushBus(redis_url))
+        # A second channel must not replace the bus the first one already owns.
+        if not _live_buses():
+            set_push_bus(RedisPushBus(redis_url))
         return (
             RedisNonceStore(redis_url),
             RedisIdempotencyStore(redis_url),
@@ -306,14 +308,19 @@ def create_channel(
     # which pulls the outbox and the wire codec. Keep this local.
     from ux_channel.transport.push import (
         PushBus,
+        _live_buses,
         attach_push_bus,
         get_push_bus,
         set_push_bus,
     )
 
-    bus = get_push_bus()
-    # A bus already owned by another channel stays untouched.
-    if getattr(bus, "_owner", None) is not None:
+    # mount_channel may already have attached a bus. A bus owned by another
+    # channel stays untouched; this channel gets a new one. get_push_bus()
+    # raises once two channels are live, so don't call it in that case.
+    bus = getattr(reg, "push_bus", None)
+    if not isinstance(bus, PushBus):
+        bus = PushBus() if _live_buses() else get_push_bus()
+    elif getattr(bus, "_owner", None) not in (None, id(reg)):
         bus = PushBus()
     cfg_bus = mount_config or config
     if cfg_bus is None:
@@ -333,8 +340,11 @@ def create_channel(
         )
     bus._policy_bound = True
     bus._owner = id(reg)
-    if get_push_bus() is not bus:
-        set_push_bus(bus)
+    # Only the first live channel installs the process bus. A second call to
+    # set_push_bus would make get_push_bus() point at the newcomer.
+    if not any(other is not bus for other in _live_buses()):
+        if get_push_bus() is not bus:
+            set_push_bus(bus)
     attach_push_bus(reg, bus)
 
     set_hub(hub)

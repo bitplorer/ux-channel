@@ -39,8 +39,21 @@ import logging
 import re
 from typing import Any, Callable, Optional, Sequence, Union
 
+from ux_channel.transport.push import get_push_bus
+
 Handler = Callable[..., Any]
 log = logging.getLogger("ux_channel.region")
+
+
+def _publish_on_channel(ch: Any, topic: str, result: Any) -> None:
+    """Publish on this channel's bus. The process bus is only for no channel."""
+    bus = getattr(ch, "push_bus", None)
+    if bus is None:
+        reg = getattr(ch, "registry", None)
+        bus = getattr(reg, "push_bus", None) if reg is not None else None
+    if bus is None:
+        bus = get_push_bus()
+    bus.publish(topic, result)
 
 
 def class_to_uid(cls_or_name: Any) -> str:
@@ -258,9 +271,7 @@ class Region:
                 if live is not None:
                     live.publish(topic, *refresh_uids)
                 else:
-                    from ux_channel.transport.push import get_push_bus
-
-                    get_push_bus().publish(topic, self.ch.refresh(*refresh_uids))
+                    _publish_on_channel(self.ch, topic, self.ch.refresh(*refresh_uids))
             except Exception:
                 log.warning(
                     "region push publish failed topic=%s region=%s",
@@ -353,9 +364,7 @@ class Region:
                         if live is not None:
                             live.publish(topic, *rev)
                         else:
-                            from ux_channel.transport.push import get_push_bus
-
-                            get_push_bus().publish(topic, owner.ch.refresh(*rev))
+                            _publish_on_channel(owner.ch, topic, owner.ch.refresh(*rev))
                     except Exception:
                         log.warning(
                             "region action push failed topic=%s action=%s",

@@ -19,7 +19,7 @@ from fastapi.testclient import TestClient
 
 from ux_channel import Channel, ChannelConfig, Result, swap
 from ux_channel.transport import push as push_mod
-from ux_channel.transport.push import get_push_bus
+from ux_channel.transport.push import PushBus, get_push_bus, set_push_bus
 
 _SECRET = "route-bus-secret-32chars-minimum!"
 _TOPIC = "board"
@@ -218,6 +218,22 @@ def test_get_push_bus_raises_when_two_channels_are_booted() -> None:
     assert get_push_bus(ch_a) is ch_a.registry.push_bus
     assert get_push_bus(ch_b) is ch_b.registry.push_bus
     assert get_push_bus(ch_a) is not get_push_bus(ch_b)
+
+
+def test_set_push_bus_repoints_the_open_route() -> None:
+    """``/push`` reads the registry bus, so ``set_push_bus`` must move it."""
+    app, ch = _boot("off")
+    replacement = PushBus()
+    set_push_bus(replacement)
+    client = TestClient(app)
+    sink, thread, _ = _start_sse(client, _TOPIC)
+    body = Result.success(swap("#t", f"<b>{_A_MARK}</b>")).to_dict()
+    replacement.publish(_TOPIC, body)
+    _kick(ch.registry.push_bus, replacement)
+    got = _wait_blob(sink, _A_MARK)
+    thread.join(0.1)
+    assert ch.registry.push_bus is replacement
+    assert _A_MARK in got, got
 
 
 def test_one_channel_get_push_bus_matches_main() -> None:

@@ -8,6 +8,7 @@ Server push bus — server-initiated Results.
 from __future__ import annotations
 
 import asyncio
+import gc
 import threading
 import weakref
 from collections import defaultdict
@@ -114,11 +115,89 @@ _bus: Optional[PushBus] = None
 _owners: list[weakref.ReferenceType[Any]] = []
 
 
-def get_push_bus() -> PushBus:
+def _live_buses() -> list[PushBus]:
+    """Distinct buses still held by a live owner.
+
+    A registry and its Channel both attach the same bus, so they count once.
+    Dead owners are dropped and do not keep a collected channel's bus alive.
+    """
+    found: list[PushBus] = []
+    seen: set[int] = set()
+    alive: list[weakref.ReferenceType[Any]] = []
+    for ref in list(_owners):
+        owner = ref()
+        if owner is None:
+            continue
+        alive.append(ref)
+        bus = getattr(owner, "push_bus", None)
+        if not isinstance(bus, PushBus) or id(bus) in seen:
+            continue
+        seen.add(id(bus))
+        found.append(bus)
+    _owners[:] = alive
+    return found
+
+
+def get_push_bus(channel: Any = None) -> PushBus:
+    """Process bus when at most one channel is booted.
+
+    With two or more live channels this raises. Pass ``channel`` to take
+    that channel's bus. A bare bus with no channel is unchanged.
+    """
     global _bus
+    if channel is not None:
+        bus = getattr(channel, "push_bus", None)
+        if not isinstance(bus, PushBus):
+            reg = getattr(channel, "registry", None)
+            reg_bus = getattr(reg, "push_bus", None) if reg is not None else None
+            bus = reg_bus if isinstance(reg_bus, PushBus) else None
+        if not isinstance(bus, PushBus):
+            raise RuntimeError("channel has no push bus")
+        return bus
+    live = _live_buses()
+    if len(live) > 1:
+        # Finished tests can leave a registry in a cycle until collection.
+        # Channels the caller still holds stay, and still raise.
+        gc.collect()
+        live = _live_buses()
+    if len(live) > 1:
+        raise RuntimeError(
+            "more than one channel is booted; pass the channel to get_push_bus(channel)"
+        )
+    if len(live) == 1:
+        return live[0]
+    # A collected channel must not leave its bus as the process singleton.
+    if _bus is not None and getattr(_bus, "_owner", None) is not None:
+        _bus = None
     if _bus is None:
         _bus = PushBus()
     return _bus
+
+
+def registry_push_bus(registry: Any) -> PushBus:
+    """The bus mounted for this registry. No process-bus fallback."""
+    bus = getattr(registry, "push_bus", None)
+    if not isinstance(bus, PushBus):
+        raise RuntimeError("channel has no push bus")
+    return bus
+
+
+def ensure_registry_push_bus(registry: Any) -> PushBus:
+    """Attach a bus when ``mount_channel`` did not go through the factory.
+
+    The first mount shares the process bus, which is main's one-channel
+    behaviour. A later mount gets its own bus and does not borrow another
+    channel's.
+    """
+    existing = getattr(registry, "push_bus", None)
+    if isinstance(existing, PushBus):
+        return existing
+    if _live_buses():
+        bus = PushBus()
+    else:
+        bus = get_push_bus()
+    attach_push_bus(registry, bus)
+    return bus
 
 
 def attach_push_bus(owner: Any, bus: PushBus) -> None:

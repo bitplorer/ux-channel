@@ -25,6 +25,7 @@ from ux_channel.devtools.ticket_revoke import (
     get_revocation_list,
 )
 from ux_channel.host.registry import ActionRegistry
+from ux_channel.transport.push import ensure_registry_push_bus, registry_push_bus
 from ux_channel.security.security import (
     channel_header_ok,
     content_length_ok,
@@ -126,6 +127,7 @@ def mount_channel(
 
         ip_limiter = MemoryRateLimiter(rate_per_minute=ip_rpm, burst=ip_burst)
 
+    ensure_registry_push_bus(registry)
     router = APIRouter(prefix=path, tags=["ux-channel"])
 
     @router.post("/action")
@@ -443,7 +445,6 @@ def mount_channel(
         Production defaults fail closed unless public / ticket / token.
         """
         import asyncio
-        from ux_channel.transport.push import get_push_bus
         from ux_channel.security.push_security import (
             authorize_push_subscribe,
             extract_push_credentials,
@@ -468,7 +469,7 @@ def mount_channel(
             )
 
         q: asyncio.Queue = asyncio.Queue(maxsize=64)
-        bus = get_push_bus()
+        bus = registry_push_bus(registry)
         bus.subscribe(topic, q)
         ticket = str(creds.get("ticket") or "")
         revoked = {"on": False}
@@ -532,7 +533,6 @@ def mount_channel(
         Actions over WS still require normal capability verification on the registry.
         """
         import asyncio
-        from ux_channel.transport.push import get_push_bus
         from ux_channel.security.push_security import extract_push_credentials
         from ux_channel.security.ws_security import (
             authorize_ws_connect,
@@ -609,7 +609,7 @@ def mount_channel(
         await websocket.accept()
         await websocket.send_json(hello_message())
 
-        bus = get_push_bus()
+        bus = registry_push_bus(registry)
         # fan-in: each topic queue drained into conn_q by helper tasks
         conn_q: asyncio.Queue = asyncio.Queue(maxsize=128)
         topic_queues: dict[str, asyncio.Queue] = {}
@@ -1160,7 +1160,6 @@ def mount_channel(
             """
             import asyncio
             from fastapi.responses import StreamingResponse
-            from ux_channel.transport.push import get_push_bus
             from ux_channel.mcp.subscribe import (
                 resource_topic_for_room,
                 resource_topic_for_session,
@@ -1188,7 +1187,7 @@ def mount_channel(
                     return JSONResponse({"error": "topic not allowed for session"}, status_code=403)
 
             q: asyncio.Queue = asyncio.Queue(maxsize=64)
-            bus = get_push_bus()
+            bus = registry_push_bus(registry)
             bus.subscribe(topic, q)
 
             async def gen():

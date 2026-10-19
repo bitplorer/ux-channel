@@ -32,8 +32,10 @@ def _boot(policy: str | None = "off", hosts: tuple[str, ...] = ()) -> PushBus:
     if policy is not None:
         kwargs["morph_html_policy"] = policy
     cfg = ChannelConfig.development(**kwargs)  # type: ignore[arg-type]
-    Channel.boot(app, config=cfg)
-    return get_push_bus()
+    ch = Channel.boot(app, config=cfg)
+    bus = ch.registry.push_bus
+    assert isinstance(bus, PushBus)
+    return bus
 
 
 def _publish(bus: PushBus, op: dict) -> dict:
