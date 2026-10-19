@@ -556,7 +556,6 @@
     if (global.Idiomorph && typeof global.Idiomorph.morph === "function") {
       try {
         global.Idiomorph.morph(target, next);
-        restoreKeepValues(target, keepSnap, writeKeepIdio);
       } catch (e) {
         // Reason: a throw inside Idiomorph leaves every node after the broken
         // field stale. Warn once, naming the error, then replace the whole
@@ -565,6 +564,7 @@
         if (target.parentNode) target.replaceWith(next);
         restoreKeepValues(next, keepSnap, writeKeepReplace);
       }
+      if (target.parentNode) restoreKeepValues(target, keepSnap, writeKeepIdio);
     } else {
       target.replaceWith(next);
       restoreKeepValues(next, keepSnap, writeKeepReplace);
