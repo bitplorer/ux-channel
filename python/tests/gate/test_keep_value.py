@@ -90,6 +90,13 @@ def test_data_ux_keep_value_survives_morph() -> None:
         assert payload["chrome"]["skipped"] is True or payload["chrome"]["ok"] is True
 
 
+def test_keep_value_node_engine_is_22() -> None:
+    pkg = json.loads((CASE_DIR / "package.json").read_text(encoding="utf-8"))
+    ci = (ROOT / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
+    assert pkg.get("engines", {}).get("node") == ">=22"
+    assert 'node-version: "22"' in ci
+
+
 def test_keep_value_is_documented() -> None:
     for rel in DOCS:
         text = rel.read_text(encoding="utf-8")
