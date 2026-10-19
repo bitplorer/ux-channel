@@ -257,6 +257,66 @@
     setTimeout(function () { if (el.parentNode) el.remove(); }, durationMs || 4000);
   }
 
+  // Opt-in live value. Copies onto an element the morph already left in the
+  // document. Property write only: never setAttribute, never parse or insert.
+  function keepValueKey(el) {
+    if (!el || !el.hasAttribute || !el.hasAttribute("data-ux-keep-value")) return "";
+    var tag = String(el.tagName || "").toLowerCase();
+    if (tag !== "input" && tag !== "textarea") return "";
+    if (el.id) return "id:" + el.id;
+    var name = el.getAttribute("name");
+    if (name) return "name:" + name;
+    return "";
+  }
+
+  function keepValueCheckable(el) {
+    var type = String(el.type || "").toLowerCase();
+    return type === "checkbox" || type === "radio";
+  }
+
+  function snapshotKeepValues(root) {
+    var saved = [];
+    if (!root || typeof root.querySelectorAll !== "function") return saved;
+    var nodes = root.querySelectorAll("input, textarea");
+    var i, el, key;
+    for (i = 0; i < nodes.length; i++) {
+      el = nodes[i];
+      key = keepValueKey(el);
+      if (!key) continue;
+      saved.push({
+        key: key,
+        value: el.value,
+        checked: !!el.checked,
+        checkable: keepValueCheckable(el),
+      });
+    }
+    return saved;
+  }
+
+  function restoreKeepValues(root, saved) {
+    if (!root || !saved || !saved.length || typeof root.querySelectorAll !== "function") return;
+    var nodes = root.querySelectorAll("input, textarea");
+    var byKey = Object.create(null);
+    var i, el, key, item, matches, j;
+    for (i = 0; i < nodes.length; i++) {
+      el = nodes[i];
+      key = keepValueKey(el);
+      if (!key) continue;
+      if (!byKey[key]) byKey[key] = [];
+      byKey[key].push(el);
+    }
+    for (i = 0; i < saved.length; i++) {
+      item = saved[i];
+      matches = byKey[item.key];
+      if (!matches) continue;
+      for (j = 0; j < matches.length; j++) {
+        el = matches[j];
+        el.value = item.value;
+        if (item.checkable && keepValueCheckable(el)) el.checked = item.checked;
+      }
+    }
+  }
+
   function snapshotFocus() {
     var ae = document.activeElement;
     if (!ae || ae === document.body) return null;
@@ -321,11 +381,13 @@
     }
     var focusSnap = snapshotFocus();
     var scrollSnap = snapshotScroll(targetSel);
+    var keepSnap = snapshotKeepValues(target);
     var tpl = document.createElement("template");
     tpl.innerHTML = String(html).trim();
     var next = tpl.content.firstElementChild;
     if (!next) {
       target.innerHTML = html;
+      restoreKeepValues(target, keepSnap);
       restoreFocus(focusSnap);
       restoreScroll(scrollSnap);
       return target;
@@ -338,8 +400,10 @@
     }
     if (global.Idiomorph && typeof global.Idiomorph.morph === "function") {
       global.Idiomorph.morph(target, next);
+      restoreKeepValues(target, keepSnap);
     } else {
       target.replaceWith(next);
+      restoreKeepValues(next, keepSnap);
     }
     restoreFocus(focusSnap);
     restoreScroll(scrollSnap);

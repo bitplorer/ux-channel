@@ -156,6 +156,21 @@ On `morph` / outer `swap`, JS snapshots `document.activeElement` and
 selection, then restores after the patch so a live field keeps the caret.
 No body attribute. No `configure` knob. Not written to localStorage.
 
+### `data-ux-keep-value` — live value, this document only
+
+An `input` or `textarea` with `data-ux-keep-value` keeps the visitor's
+live `.value` across that morph. Checkbox and radio also keep `.checked`.
+The field is matched by `id`, or by `name` when it has no `id`. After the
+fragment is already in the DOM, the client writes those properties onto the
+matching element only if that element still has the attribute. It does not
+set the value attribute, parse the typed text, or insert a node.
+
+The value stays in the visitor's own document. This attribute does not put
+it in a signal, a request, or the painted HTML. The server should paint
+`value=""` for secrets so a fragment never carries one to another visitor.
+An unmarked field, or a field whose next fragment drops the attribute, is
+left as the server painted it.
+
 ### Security (chrome only)
 
 `localStorage` is origin-visible plaintext. XSS on the page can read and

@@ -1,3 +1,12 @@
+## Unreleased
+
+- `data-ux-keep-value` on an `input` or `textarea` keeps the visitor's live
+  `.value` across a morph or outer swap, and `.checked` for checkbox and radio.
+  After the fragment is in the DOM, the client copies those properties onto the
+  matching element only when it still has the attribute. The copy does not set
+  the value attribute, parse the value, or insert a node, and it does not send
+  the value to the server. The server should paint `value=""` for secrets.
+
 ## 0.1.2 — dead-code cleanup
 
 - Version bump 0.1.1 → 0.1.2 (patch: no runtime behaviour change; version strings in

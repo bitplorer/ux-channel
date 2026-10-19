@@ -72,6 +72,14 @@ class from the bag reads `uxChannel.signals` after this file has booted.
 Focus and scroll restore on morph stay as they were on main — always on,
 not a second public switch, not written to `localStorage`.
 
+`data-ux-keep-value` is a separate opt-in. On morph (and outer swap, which
+calls the same path), the client copies the live `.value` — and `.checked`
+for checkbox and radio — onto the matching element that the fragment
+already inserted, and only when that element still carries the attribute.
+The copy is the DOM property (`el.value`, `el.checked`). It does not set
+the value attribute, parse the text, or insert a node, and it does not send
+the value to the server. The server should paint `value=""` for secrets.
+
 ### What persist is not
 
 | Want | Use |
@@ -80,6 +88,7 @@ not a second public switch, not written to `localStorage`.
 | Money, stock, dose, roles | your DB + `Quantity.from_store` |
 | Secret / token / cap | never the client bag |
 | Caret after morph | already on — `restoreFocus` inside applyMorph |
+| Live value across morph | `data-ux-keep-value` on that input or textarea |
 
 ### Client-storage threat model
 
