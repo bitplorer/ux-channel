@@ -78,6 +78,9 @@ class PushBus:
         self.navigate_allowed_hosts: tuple[str, ...] = ()
         self._policy_bound = False
         self._owner: int | None = None
+        bind = getattr(self.backend, "bind_outbound_filter", None)
+        if callable(bind):
+            bind(self.filter_payload)
 
     def outbound_policy(self) -> str:
         """Policy for this bus.
@@ -101,16 +104,24 @@ class PushBus:
     def unsubscribe(self, topic: str, queue: asyncio.Queue) -> None:
         self.backend.unsubscribe_local(topic, queue)
 
+    def filter_payload(self, body: dict) -> dict:
+        """Same outbound filter local ``publish`` uses, for a Redis echo."""
+        if not isinstance(body, dict):
+            return body
+        ops = body.get("ops")
+        if not isinstance(ops, list):
+            return body
+        cleaned = dict(body)
+        cleaned["ops"] = filter_outbound_ops(
+            list(ops),
+            policy=self.outbound_policy(),
+            allowed_hosts=tuple(getattr(self, "navigate_allowed_hosts", ()) or ()),
+        )
+        return cleaned
+
     def publish(self, topic: str, result: Result | dict) -> int:
         body = result.to_dict() if isinstance(result, Result) else dict(result)
-        ops = body.get("ops")
-        if isinstance(ops, list):
-            body["ops"] = filter_outbound_ops(
-                ops,
-                policy=self.outbound_policy(),
-                allowed_hosts=tuple(getattr(self, "navigate_allowed_hosts", ()) or ()),
-            )
-        return self.backend.publish(topic, body)
+        return self.backend.publish(topic, self.filter_payload(body))
 
     def topics(self) -> list[str]:
         b = self.backend
