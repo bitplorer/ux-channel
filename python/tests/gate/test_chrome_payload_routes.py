@@ -27,7 +27,11 @@ _SECRET = "chrome-payload-secret-32chars-min!"
 _TOPIC = "board"
 _MCP_TOPIC = "mcp.resource.board"
 _STATIC_JS = (
-    Path(__file__).resolve().parents[2] / "src" / "ux_channel" / "static" / "ux-channel.js"
+    Path(__file__).resolve().parents[2]
+    / "src"
+    / "ux_channel"
+    / "static"
+    / "ux-channel.js"
 )
 
 
@@ -151,7 +155,10 @@ def _push_htmls(client: TestClient, ch: Channel, payloads: list[str]) -> list[st
     assert ready.wait(2), "push stream did not open"
     bus = ch.registry.push_bus
     for index, html in enumerate(payloads, start=1):
-        ch.live.publish(_TOPIC, result=Result.success(swap("#slot", html, swap="innerHTML")))
+        ch.live.publish(
+            _TOPIC,
+            result=Result.success(swap("#slot", html, swap="innerHTML")),
+        )
         deadline = time.time() + 2
         while time.time() < deadline and "".join(sink).count("data: ") < index:
             _kick(bus)
@@ -179,11 +186,11 @@ def _ws_htmls(client: TestClient, ch: Channel, payloads: list[str]) -> list[str]
             _kick(bus)
             box: dict[str, object] = {}
 
-            def _recv() -> None:
+            def _recv(inbox: dict[str, object] = box) -> None:
                 try:
-                    box["msg"] = ws.receive_json()
+                    inbox["msg"] = ws.receive_json()
                 except Exception as exc:  # noqa: BLE001
-                    box["err"] = exc
+                    inbox["err"] = exc
 
             thread = threading.Thread(target=_recv, daemon=True)
             thread.start()

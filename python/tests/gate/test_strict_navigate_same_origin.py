@@ -103,4 +103,6 @@ def test_strict_dispatch_uses_the_request_host() -> None:
     assert "javascript:" not in blob.lower()
     hrefs = [op.get("href") for op in result.ops if op.get("op") == "navigate"]
     assert hrefs == ["https://app.test/ok"]
-    assert all(op.get("op") == "noop" for op in result.ops if op.get("op") != "navigate")
+    others = [op for op in result.ops if op.get("op") != "navigate"]
+    assert others
+    assert all(op.get("op") == "noop" for op in others)

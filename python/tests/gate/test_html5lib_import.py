@@ -24,7 +24,9 @@ def _restore_morph_policy() -> None:
     security_mod.apply_morph_policy = morph_policy.apply_morph_policy
 
 
-def test_off_mode_patch_runs_when_html5lib_is_missing(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_off_mode_patch_runs_when_html5lib_is_missing(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """Block the import. An off patch must still go through."""
     import ux_channel.render.morph_policy as morph_policy
 
