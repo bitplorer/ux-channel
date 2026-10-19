@@ -1195,7 +1195,68 @@ async function runIsolationCases(win, doc, check, warns, path) {
   await runRestoreErrorCase(win, doc, check, warns, path);
   if (path === "idiomorph") {
     await runPersistentBreakCase(win, doc, check, warns);
+    await runNestedKeepCase(win, doc, check, warns);
     await runUnmarkedThrowCase(win, doc, check, warns);
+  }
+}
+
+async function runNestedKeepCase(win, doc, check, warns) {
+  if (!win.customElements.get("keep-nest")) {
+    var Nest = class extends win.HTMLElement {
+      connectedCallback() {
+        var brk = this.ownerDocument.getElementById("e-brk");
+        if (brk) {
+          var orig = win.Element.prototype.getAttribute;
+          brk.getAttribute = function (name) {
+            if (name === "name") throw new win.Error("nested keep");
+            return orig.call(this, name);
+          };
+        }
+        win.uxChannel.optimisticMorph(
+          "side",
+          '<div id="side" data-channel-id="side"><span id="side-mark">new</span></div>'
+        );
+      }
+    };
+    win.customElements.define("keep-nest", Nest);
+  }
+  var before =
+    keepWrap(
+      '<input id="e-email" name="email" type="email" data-ux-keep-value value="">' +
+        '<input id="e-nick" name="nick" type="text" data-ux-keep-value value="">' +
+        '<input id="e-brk" name="brk" type="text" data-ux-keep-value value="">'
+    ) +
+    '<div id="side" data-channel-id="side"><span id="side-mark">old</span></div>';
+  var after = keepWrap(
+    '<keep-nest id="nest"></keep-nest>' +
+      '<input id="e-email" name="email" type="email" data-ux-keep-value value="">' +
+      '<input id="e-nick" name="nick" type="text" data-ux-keep-value value="">' +
+      '<input id="e-brk" name="brk" type="text" data-ux-keep-value value="">'
+  );
+  warns.length = 0;
+  doc.body.innerHTML = before;
+  doc.getElementById("e-email").value = "alice@x.test";
+  doc.getElementById("e-nick").value = "nick-e";
+  if (doc.activeElement && doc.activeElement.blur) doc.activeElement.blur();
+  try {
+    await applyKeepMorph(win, after);
+    var mark = doc.getElementById("side-mark");
+    check(!!(mark && mark.textContent === "new"), "nested morph " + (mark && mark.textContent));
+    check(
+      doc.getElementById("e-email").value === "alice@x.test",
+      "nested email " + JSON.stringify(doc.getElementById("e-email") && doc.getElementById("e-email").value)
+    );
+    check(
+      doc.getElementById("e-nick").value === "nick-e",
+      "nested nick " + JSON.stringify(doc.getElementById("e-nick") && doc.getElementById("e-nick").value)
+    );
+    var named = warns.filter(function (line) {
+      return warnText(line).indexOf("nested keep") !== -1;
+    });
+    check(named.length === 1, "nested warnings " + named.length);
+  } finally {
+    var brk = doc.getElementById("e-brk");
+    if (brk) delete brk.getAttribute;
   }
 }
 
