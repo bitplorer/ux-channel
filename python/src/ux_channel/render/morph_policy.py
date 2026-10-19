@@ -16,8 +16,12 @@ elements the browser does not treat the way ``html.parser`` does.
 from __future__ import annotations
 
 import re
-from html.parser import HTMLParser
 from typing import Any, Mapping
+
+from html5lib import HTMLParser
+from html5lib.serializer import HTMLSerializer
+from html5lib.treebuilders import getTreeBuilder
+from html5lib.treewalkers import getTreeWalker
 
 __all__ = ["apply_morph_policy", "strip_dangerous_html"]
 
@@ -39,8 +43,9 @@ _DROP_CONTENT = frozenset(
 )
 # Void elements that should not swallow the rest of the fragment.
 _DROP_TAG = frozenset({"embed", "link", "meta", "base"})
-_FOREIGN = frozenset({"svg", "math"})
-_WS = " \t\n\r\f"
+_SVG = "http://www.w3.org/2000/svg"
+_MATH = "http://www.w3.org/1998/Math/MathML"
+_TAG_NAME = re.compile(r"^[a-z][a-z0-9:-]*$")
 
 # Main's regex stripper (83a580a). Second pass: anything it removes stays
 # removed, including shapes the parser rewrote into a match.
@@ -111,175 +116,70 @@ def _attr_url_refused(name: str, value: str | None) -> bool:
     return _unsafe_url_attr(name, value)
 
 
-def _excise_attrs(raw: str, drop: set[str]) -> str:
-    """Remove attributes whose names are in ``drop`` from one start tag."""
-    if not raw.startswith("<") or ">" not in raw:
-        return raw
-    i = 1
-    while i < len(raw) and raw[i] not in _WS + "/>":
-        i += 1
-    parts = [raw[:i]]
-    while i < len(raw):
-        ws_at = i
-        while i < len(raw) and raw[i] in _WS:
-            i += 1
-        ws = raw[ws_at:i]
-        if i >= len(raw):
-            parts.append(ws)
-            break
-        if raw[i] == ">":
-            parts.append(">")
-            break
-        if raw[i] == "/" and i + 1 < len(raw) and raw[i + 1] == ">":
-            parts.append("/>")
-            break
-        if raw[i] == "/":
-            # <svg/onload=...> — solidus before the attribute name.
-            i += 1
+def _local_name(tag: str) -> str:
+    if tag.startswith("{") and "}" in tag:
+        return tag.split("}", 1)[1]
+    return tag
+
+
+def _namespace(tag: str) -> str:
+    if tag.startswith("{") and "}" in tag:
+        return tag[1:tag.index("}")]
+    return "http://www.w3.org/1999/xhtml"
+
+
+def _drop_element(parent: Any, child: Any) -> None:
+    """Remove ``child`` and keep text that followed it."""
+    tail = child.tail
+    index = list(parent).index(child)
+    parent.remove(child)
+    if not tail:
+        return
+    if index == 0:
+        parent.text = (parent.text or "") + tail
+    else:
+        prev = list(parent)[index - 1]
+        prev.tail = (prev.tail or "") + tail
+
+
+def _refused_attr(name: str, value: str | None) -> bool:
+    return (
+        _event_handler(name)
+        or _attr_url_refused(name, value)
+        or _js_url_value(name, value)
+    )
+
+
+def _scrub(node: Any) -> None:
+    """Drop dangerous elements and attributes in an html5lib tree."""
+    for child in list(node):
+        tag = getattr(child, "tag", None)
+        if not isinstance(tag, str):
+            _drop_element(node, child)
             continue
-        name_at = i
-        while i < len(raw) and raw[i] not in _WS + "=/>":
-            i += 1
-        name = raw[name_at:i]
-        if i < len(raw) and raw[i] in _WS:
-            j = i
-            while j < len(raw) and raw[j] in _WS:
-                j += 1
-            if j < len(raw) and raw[j] == "=":
-                i = j
-        if i < len(raw) and raw[i] == "=":
-            i += 1
-            while i < len(raw) and raw[i] in _WS:
-                i += 1
-            if i < len(raw) and raw[i] in "\"'":
-                quote = raw[i]
-                i += 1
-                while i < len(raw) and raw[i] != quote:
-                    i += 1
-                if i < len(raw):
-                    i += 1
-            else:
-                while i < len(raw) and raw[i] not in _WS + ">":
-                    i += 1
-        if name.lower() in drop:
+        local = _local_name(tag).lower()
+        ns = _namespace(tag)
+        if not _TAG_NAME.match(local) or local in _DROP_CONTENT or local in _DROP_TAG:
+            _drop_element(node, child)
             continue
-        parts.append(ws)
-        parts.append(raw[name_at:i])
-    return "".join(parts)
-
-
-class _StrictHTMLParser(HTMLParser):
-    """Rebuild a fragment with dangerous elements and attributes removed.
-
-    ``style`` is raw text for ``html.parser`` in every namespace. A browser
-    does that only in the HTML namespace, so an ``<img>`` inside
-    ``<svg><style>`` is a real element. ``noscript`` (scripting on) ends at
-    the first ``</noscript>``, including one hidden in an attribute.
-    """
-
-    # ``style`` is omitted on purpose. ``noscript`` is raw text because
-    # scripting=True, which is how a browser with scripts enabled parses it.
-    # typeshed marks this Final; overriding it is the documented extension.
-    CDATA_CONTENT_ELEMENTS = ("script", "xmp", "iframe", "noembed", "noframes")  # type: ignore[misc]
-
-    def __init__(self) -> None:
-        super().__init__(convert_charrefs=False, scripting=True)
-        self._out: list[str] = []
-        self._open: list[str] = []
-        self._drop_stack: list[str] = []
-
-    def _in_foreign(self) -> bool:
-        return any(tag in _FOREIGN for tag in self._open)
-
-    def _opens_drop(self, tag: str) -> bool:
-        if tag in _DROP_CONTENT:
-            return True
-        return tag == "style" and self._in_foreign()
-
-    def _pop_open(self, tag: str) -> None:
-        if tag not in self._open:
-            return
-        while self._open:
-            found = self._open.pop()
-            if found == tag:
-                return
-
-    def _dropped_names(self, attrs: list[tuple[str, str | None]]) -> set[str]:
-        drop: set[str] = set()
-        for name, value in attrs:
-            if (
-                _event_handler(name)
-                or _attr_url_refused(name, value)
-                or _js_url_value(name, value)
-            ):
-                drop.add(name.lower())
-        return drop
-
-    def _emit_start(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
-        raw = self.get_starttag_text() or ""
-        drop = self._dropped_names(attrs)
-        if drop:
-            self._out.append(_excise_attrs(raw, drop))
-        else:
-            self._out.append(raw)
-
-    def handle_starttag(
-        self, tag: str, attrs: list[tuple[str, str | None]]
-    ) -> None:
-        # Push first so a child can see svg/math already open.
-        self._open.append(tag)
-        if self._drop_stack:
-            if self._opens_drop(tag):
-                self._drop_stack.append(tag)
-            return
-        if self._opens_drop(tag) or (
-            tag in ("set", "animate") and _anim_sets_handler(attrs)
+        if local == "style" and ns in (_SVG, _MATH):
+            _drop_element(node, child)
+            continue
+        attrs = list(child.attrib.items())
+        if local in ("set", "animate") and _anim_sets_handler(
+            [(_local_name(key), value) for key, value in attrs]
         ):
-            self._drop_stack.append(tag)
-            return
-        if tag in _DROP_TAG:
-            return
-        self._emit_start(tag, attrs)
+            _drop_element(node, child)
+            continue
+        for key, value in attrs:
+            if _refused_attr(_local_name(key), value):
+                del child.attrib[key]
+        _scrub(child)
 
-    def handle_startendtag(
-        self, tag: str, attrs: list[tuple[str, str | None]]
-    ) -> None:
-        if self._drop_stack:
-            return
-        if tag in _DROP_CONTENT or tag in _DROP_TAG:
-            return
-        if tag == "style" and self._in_foreign():
-            return
-        if tag in ("set", "animate") and _anim_sets_handler(attrs):
-            return
-        self._emit_start(tag, attrs)
 
-    def handle_endtag(self, tag: str) -> None:
-        self._pop_open(tag)
-        if self._drop_stack:
-            if self._drop_stack[-1] == tag:
-                self._drop_stack.pop()
-            return
-        self._out.append("</" + tag + ">")
-
-    def handle_data(self, data: str) -> None:
-        if not self._drop_stack:
-            self._out.append(data)
-
-    def handle_entityref(self, name: str) -> None:
-        if not self._drop_stack:
-            self._out.append("&" + name + ";")
-
-    def handle_charref(self, name: str) -> None:
-        if not self._drop_stack:
-            self._out.append("&#" + name + ";")
-
-    def handle_comment(self, data: str) -> None:
-        if not self._drop_stack:
-            self._out.append("<!--" + data + "-->")
-
-    def result(self) -> str:
-        return "".join(self._out)
+def _serialize(fragment: Any) -> str:
+    serializer = HTMLSerializer(omit_optional_tags=False, quote_attr_values="always")
+    return serializer.render(getTreeWalker("etree")(fragment))
 
 
 def _regex_strip(html: str) -> str:
@@ -297,21 +197,40 @@ def _regex_strip(html: str) -> str:
 def strip_dangerous_html(html: str) -> str:
     """Remove script-shaped markup. Leaves ux-dom data-* and custom tags.
 
-    The parser pass sees ``<svg/onload=...>``, unquoted ``href=javascript:``,
-    and entity-encoded schemes. It drops ``noscript`` (scripting on) and
-    ``style`` inside svg or math, plus the other raw-text elements. The regex
-    pass then removes anything main's stripper would still match. A fragment
-    is kept only when both passes accept it. A parse failure drops it.
+    The tree is built with an HTML5 parser (scripting on, so ``noscript`` is
+    raw text and svg/math are foreign content). Dangerous elements and
+    attributes are removed, then the fragment is serialized. If main's regex
+    pass would still change that serialization, the fragment is refused.
+    A parse failure drops it.
     """
     if not html:
         return html
-    parser = _StrictHTMLParser()
     try:
-        parser.feed(html)
-        parser.close()
+        parser = HTMLParser(tree=getTreeBuilder("etree"))
+        fragment = parser.parseFragment(html, container="div", scripting=True)
     except Exception:
         return ""
-    return _regex_strip(parser.result())
+    _scrub(fragment)
+    if _raw_text_disagrees(fragment):
+        return ""
+    rendered = _serialize(fragment)
+    if _regex_strip(rendered) != rendered:
+        return ""
+    return rendered
+
+
+def _raw_text_disagrees(node: Any) -> bool:
+    """True when raw text still matches main's regex.
+
+    ``<textarea>`` and HTML ``<style>`` keep their contents as text. If that
+    text is something the regex would edit, the fragment is refused instead
+    of half-stripped.
+    """
+    for child in node.iter():
+        for text in (getattr(child, "text", None), getattr(child, "tail", None)):
+            if isinstance(text, str) and text and _regex_strip(text) != text:
+                return True
+    return False
 
 
 def _strict_one(op: Any) -> Any:
@@ -346,6 +265,8 @@ def apply_morph_policy(ops: list[Any], *, policy: str = "off") -> list[Any]:
     Strict mode walks ``seq``, ``timer.set``, ``invoke``, and any other op
     that carries an ``ops`` list.
     """
-    if (policy or "off").lower() != "strict":
+    if policy == "off":
         return ops
+    if policy != "strict":
+        raise ValueError('morph_html_policy must be "off" or "strict"')
     return [_strict_one(op) for op in ops]

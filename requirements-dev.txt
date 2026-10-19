@@ -1,5 +1,6 @@
 # Minimal deps for monorepo gate (./verify.sh / CI)
 itsdangerous>=2.1
+html5lib>=1.1,<2
 pytest>=8.0
 msgpack>=1.0
 hypothesis>=6.100

@@ -237,6 +237,15 @@ def test_strict_stripper_payload_has_no_live_vector(
     assert live_vectors(str(via[0]["html"])) == [], (number, via)
 
 
+@pytest.mark.parametrize("tag", ["xmp", "noembed", "noframes", "plaintext"])
+@pytest.mark.parametrize("wrap", ["svg", "math"])
+def test_foreign_raw_text_element_is_dropped(tag: str, wrap: str) -> None:
+    html = f'<{wrap}><{tag}><img src="x" onerror="alert(1)"></{tag}></{wrap}>'
+    out = strip_dangerous_html(html)
+    assert tag not in out.lower(), out
+    assert "onerror" not in out.lower(), out
+
+
 def test_regex_disagreement_returns_nothing() -> None:
     """Raw text the regex would edit is refused, not half-stripped."""
     assert strip_dangerous_html("<textarea><script>alert(1)</script></textarea>") == ""
