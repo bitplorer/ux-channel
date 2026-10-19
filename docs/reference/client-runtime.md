@@ -73,12 +73,18 @@ Focus and scroll restore on morph stay as they were on main — always on,
 not a second public switch, not written to `localStorage`.
 
 `data-ux-keep-value` is a separate opt-in. On morph (and outer swap, which
-calls the same path), the client copies the live `.value` — and `.checked`
-for checkbox and radio — onto the matching element that the fragment
-already inserted, and only when that element still carries the attribute.
-The copy is the DOM property (`el.value`, `el.checked`). It does not set
-the value attribute, parse the text, or insert a node, and it does not send
-the value to the server. The server should paint `value=""` for secrets.
+calls the same path), the client copies the live `.value` onto a `textarea`,
+or onto an `input` of type `password`, `text`, `email`, `search`, `tel`, or
+`url`. Those six types are one class, so a password field can become `text`
+on Show and keep what was typed. Textarea matches only textarea. Any other
+control (`hidden`, `checkbox`, `radio`, `file`, `select`) ignores the mark
+and logs one console warning. The copy is the DOM property `el.value`, one
+element at a time inside try/catch. It does not set `.checked`, the value
+attribute, parse the text, or insert a node, and it does not send the value
+to the server. A field matches only when both nodes still have the mark, the
+same form owner (`el.form`, or none for both), the same `name`, and the same
+class. `id` is not the key. Shared keys restore nothing. The server should
+paint `value=""` for secrets.
 
 ### What persist is not
 
@@ -88,7 +94,7 @@ the value to the server. The server should paint `value=""` for secrets.
 | Money, stock, dose, roles | your DB + `Quantity.from_store` |
 | Secret / token / cap | never the client bag |
 | Caret after morph | already on — `restoreFocus` inside applyMorph |
-| Live value across morph | `data-ux-keep-value` on that input or textarea |
+| Live value across morph | `data-ux-keep-value` on a textarea or a text-like input (`password`, `text`, `email`, `search`, `tel`, `url`) |
 
 ### Client-storage threat model
 

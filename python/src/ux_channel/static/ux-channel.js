@@ -352,7 +352,9 @@
       if (!list || list.length !== 1) continue;
       el = list[0];
       if (!sameKeepKind(item, el)) continue;
-      el.value = item.value;
+      try {
+        el.value = item.value;
+      } catch (e) {}
     }
   }
 

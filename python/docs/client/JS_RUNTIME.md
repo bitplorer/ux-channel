@@ -158,12 +158,24 @@ No body attribute. No `configure` knob. Not written to localStorage.
 
 ### `data-ux-keep-value` — live value, this document only
 
-An `input` or `textarea` with `data-ux-keep-value` keeps the visitor's
-live `.value` across that morph. Checkbox and radio also keep `.checked`.
-The field is matched by `id`, or by `name` when it has no `id`. After the
-fragment is already in the DOM, the client writes those properties onto the
-matching element only if that element still has the attribute. It does not
-set the value attribute, parse the typed text, or insert a node.
+A `textarea`, or an `input` of type `password`, `text`, `email`, `search`,
+`tel`, or `url`, with `data-ux-keep-value` keeps the visitor's live `.value`
+across that morph. Those six input types are one class (`sameKeepKind`): Show
+may switch `password` to `text` and the value stays. Textarea matches only
+textarea. `hidden`, `checkbox`, `radio`, `file`, `select`, and any other
+control ignore the mark, log one console warning, and stay as the server
+painted them. `.checked` is not copied.
+
+The match is the form owner (`el.form`, or none for both) plus `name`. `id`
+is never the key. Both elements must still carry the mark, and the class must
+still match. Two elements on the same key (duplicate names, nested
+components, clashing `form=` owners) restore nothing for that key. A type
+change out of the class restores nothing.
+
+After the fragment is already in the DOM, the client writes `el.value` for
+each match inside its own try/catch. It does not set the value attribute,
+parse the typed text, or insert a node. Focus restore is the same path as
+on main.
 
 The value stays in the visitor's own document. This attribute does not put
 it in a signal, a request, or the painted HTML. The server should paint

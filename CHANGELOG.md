@@ -1,11 +1,17 @@
 ## Unreleased
 
-- `data-ux-keep-value` on an `input` or `textarea` keeps the visitor's live
-  `.value` across a morph or outer swap, and `.checked` for checkbox and radio.
-  After the fragment is in the DOM, the client copies those properties onto the
-  matching element only when it still has the attribute. The copy does not set
-  the value attribute, parse the value, or insert a node, and it does not send
-  the value to the server. The server should paint `value=""` for secrets.
+- `data-ux-keep-value` keeps the visitor's live `.value` across a morph or
+  outer swap for a `textarea`, or for an `input` of type `password`, `text`,
+  `email`, `search`, `tel`, or `url`. Those six types are one class, so Show
+  can switch `password` to `text` and the value stays. Textarea matches only
+  textarea. A change into or out of the class (`hidden`, `checkbox`, `radio`,
+  `file`, `select`, and anything else) restores nothing, and each ignored mark
+  logs one console warning. The match is the form owner (`el.form`, or none
+  for both) plus `name`; `id` is not the key. Shared keys restore nothing.
+  After the fragment is in the DOM, the client writes `el.value` inside its
+  own try/catch. It does not set the value attribute, parse the value, or
+  insert a node, and it does not send the value to the server. Focus restore
+  is unchanged. The server should paint `value=""` for secrets.
 
 ## 0.1.2 — dead-code cleanup
 
