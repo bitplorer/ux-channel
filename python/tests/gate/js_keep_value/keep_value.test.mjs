@@ -1,0 +1,224 @@
+/**
+ * jsdom always. Chromium when a Chrome/Chromium binary is on PATH.
+ * GitHub Actions verify does not install a browser, so the chrome half skips.
+ */
+import { spawn } from "node:child_process";
+import fs from "node:fs";
+import net from "node:net";
+import os from "node:os";
+import path from "node:path";
+import { pathToFileURL } from "node:url";
+import { fileURLToPath } from "node:url";
+
+import { JSDOM } from "jsdom";
+
+const here = path.dirname(fileURLToPath(import.meta.url));
+const channelPath = path.resolve(here, "../../../src/ux_channel/static/ux-channel.js");
+const idiomorphPath = path.join(here, "node_modules/idiomorph/dist/idiomorph.js");
+const casesPath = path.join(here, "keep_value_cases.js");
+
+function read(file) {
+  return fs.readFileSync(file, "utf8");
+}
+
+async function runJsdom() {
+  const dom = new JSDOM("<!DOCTYPE html><html><body></body></html>", {
+    url: "http://127.0.0.1/",
+    pretendToBeVisual: true,
+    runScripts: "dangerously",
+  });
+  const win = dom.window;
+  win.eval(read(channelPath));
+  win.eval(read(idiomorphPath));
+  win.eval(read(casesPath));
+  // jsdom throws on scrollTo. The product always restores scroll after morph.
+  win.scrollTo = function () {};
+  const failures = await win.runKeepValueCases(win);
+  dom.window.close();
+  return failures;
+}
+
+function chromeBinary() {
+  const env = process.env.CHROME_PATH;
+  if (env && fs.existsSync(env)) return env;
+  const names = ["google-chrome", "google-chrome-stable", "chromium", "chromium-browser"];
+  const dirs = (process.env.PATH || "").split(path.delimiter);
+  for (const name of names) {
+    for (const dir of dirs) {
+      const candidate = path.join(dir, name);
+      if (fs.existsSync(candidate)) return candidate;
+    }
+  }
+  return null;
+}
+
+function freePort() {
+  return new Promise((resolve, reject) => {
+    const srv = net.createServer();
+    srv.once("error", reject);
+    srv.listen(0, "127.0.0.1", () => {
+      const port = srv.address().port;
+      srv.close(() => resolve(port));
+    });
+  });
+}
+
+function withTimeout(promise, ms, label) {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(label + " timed out")), ms);
+    promise.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (err) => {
+        clearTimeout(timer);
+        reject(err);
+      },
+    );
+  });
+}
+
+async function waitForJson(url) {
+  const started = Date.now();
+  let last = "";
+  while (Date.now() - started < 10000) {
+    try {
+      const res = await fetch(url);
+      if (res.ok) return await res.json();
+      last = String(res.status);
+    } catch (err) {
+      last = String(err && err.message ? err.message : err);
+    }
+    await new Promise((r) => setTimeout(r, 100));
+  }
+  throw new Error("devtools not ready: " + last);
+}
+
+function cdp(wsUrl) {
+  const ws = new WebSocket(wsUrl);
+  let id = 0;
+  const pending = new Map();
+  const opened = new Promise((resolve, reject) => {
+    ws.addEventListener("open", () => resolve());
+    ws.addEventListener("error", () => reject(new Error("devtools websocket failed")));
+  });
+  ws.addEventListener("message", (ev) => {
+    const msg = JSON.parse(ev.data);
+    if (!msg.id || !pending.has(msg.id)) return;
+    const slot = pending.get(msg.id);
+    pending.delete(msg.id);
+    if (msg.error) slot.reject(new Error(JSON.stringify(msg.error)));
+    else slot.resolve(msg.result);
+  });
+  return {
+    ready: opened,
+    send(method, params) {
+      const msgId = ++id;
+      return new Promise((resolve, reject) => {
+        pending.set(msgId, { resolve, reject });
+        ws.send(JSON.stringify({ id: msgId, method, params }));
+      });
+    },
+    close() {
+      ws.close();
+    },
+  };
+}
+
+function inlinePage() {
+  const escape = (src) => src.replace(/<\/script/gi, "<\\/script");
+  return (
+    "<!DOCTYPE html><html><head><meta charset=\"utf-8\"></head><body>" +
+    "<script>" + escape(read(channelPath)) + "</script>" +
+    "<script>" + escape(read(idiomorphPath)) + "</script>" +
+    "<script>" + escape(read(casesPath)) + "</script>" +
+    "</body></html>"
+  );
+}
+
+async function runChrome(binary) {
+  const port = await freePort();
+  const profile = fs.mkdtempSync(path.join(os.tmpdir(), "ux-keep-"));
+  const htmlPath = path.join(profile, "keep-value.html");
+  fs.writeFileSync(htmlPath, inlinePage());
+  const url = pathToFileURL(htmlPath).href;
+  const chrome = spawn(
+    binary,
+    [
+      "--headless=new",
+      "--disable-gpu",
+      "--no-sandbox",
+      "--disable-dev-shm-usage",
+      `--remote-debugging-port=${port}`,
+      `--user-data-dir=${profile}`,
+      "about:blank",
+    ],
+    { stdio: ["ignore", "ignore", "pipe"] },
+  );
+  let stderr = "";
+  chrome.stderr.on("data", (buf) => {
+    stderr += buf.toString();
+    if (stderr.length > 4000) stderr = stderr.slice(-4000);
+  });
+  try {
+    await waitForJson(`http://127.0.0.1:${port}/json/version`);
+    const created = await fetch(`http://127.0.0.1:${port}/json/new?${encodeURIComponent(url)}`, {
+      method: "PUT",
+    });
+    if (!created.ok) {
+      throw new Error("json/new " + created.status + " " + (await created.text()));
+    }
+    const target = await created.json();
+    const client = cdp(target.webSocketDebuggerUrl);
+    await client.ready;
+    await client.send("Runtime.enable");
+    const evaluated = await withTimeout(
+      client.send("Runtime.evaluate", {
+        expression: "runKeepValueCases(window)",
+        awaitPromise: true,
+        returnByValue: true,
+      }),
+      20000,
+      "runKeepValueCases",
+    );
+    client.close();
+    if (evaluated.exceptionDetails) {
+      throw new Error(JSON.stringify(evaluated.exceptionDetails));
+    }
+    const value = evaluated.result && evaluated.result.value;
+    if (!Array.isArray(value)) throw new Error("chrome returned " + JSON.stringify(evaluated.result));
+    return value;
+  } catch (err) {
+    const detail = stderr ? "\n" + stderr : "";
+    throw new Error(String(err && err.message ? err.message : err) + detail);
+  } finally {
+    chrome.kill("SIGKILL");
+    fs.rmSync(profile, { recursive: true, force: true });
+  }
+}
+
+const jsdomFailures = await runJsdom();
+const binary = chromeBinary();
+let chrome;
+if (!binary) {
+  chrome = { skipped: true, ok: true, failures: [] };
+} else {
+  try {
+    const failures = await runChrome(binary);
+    chrome = { skipped: false, ok: failures.length === 0, failures, binary };
+  } catch (err) {
+    chrome = {
+      skipped: false,
+      ok: false,
+      failures: [String(err && err.stack ? err.stack : err)],
+      binary,
+    };
+  }
+}
+const payload = {
+  jsdom: { ok: jsdomFailures.length === 0, failures: jsdomFailures },
+  chrome,
+};
+console.log("KEEP_VALUE_RESULT " + JSON.stringify(payload));
+if (!payload.jsdom.ok || !payload.chrome.ok) process.exit(1);

@@ -1,0 +1,9 @@
+{
+  "name": "ux-channel-keep-value-tests",
+  "private": true,
+  "description": "Dev-only tests for data-ux-keep-value. Not a product runtime dependency.",
+  "devDependencies": {
+    "idiomorph": "0.7.3",
+    "jsdom": "24.1.3"
+  }
+}
