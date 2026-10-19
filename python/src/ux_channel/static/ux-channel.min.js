@@ -443,8 +443,15 @@
       if (skipItem) continue;
       if (matches.length !== 1) continue;
       el = matches[0];
-      if (!sameKeepKind(item, el)) continue;
-      write(el, item.value);
+      try {
+        // Reason: a throw while reading this field's type must skip the item
+        // and still restore the fields after it.
+        if (!sameKeepKind(item, el)) continue;
+        write(el, item.value);
+      } catch (e) {
+        keepFailure(e);
+        continue;
+      }
     }
   }
 
