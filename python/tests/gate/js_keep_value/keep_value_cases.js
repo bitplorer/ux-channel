@@ -1019,8 +1019,9 @@ function checkIsolation(win, doc, check, warns, label, path, errorName) {
     !!(applied && applied.textContent === "yes"),
     label + " morph " + (applied && applied.textContent)
   );
+  var safeKept = !(path === "idiomorph" && label === "getAttribute");
   check(
-    !!(safe && safe.value === "kept-safe"),
+    !!(safe && safe.value === (safeKept ? "kept-safe" : "")),
     label + " safe " + JSON.stringify(safe && safe.value)
   );
   check(keepWarnCount(warns) === 1, label + " warnings " + keepWarnCount(warns));
@@ -1157,7 +1158,7 @@ async function runIsolationCases(win, doc, check, warns, path) {
     });
     check(named.length === 1, "keepKey warn " + named.length + " " + JSON.stringify(warns));
     check(
-      doc.getElementById("safe").value === "kept-safe",
+      doc.getElementById("safe").value === "",
       "keepKey safe " + JSON.stringify(doc.getElementById("safe") && doc.getElementById("safe").value)
     );
   } finally {
@@ -1165,7 +1166,68 @@ async function runIsolationCases(win, doc, check, warns, path) {
     else win.Element.prototype.replaceWith = savedReplace;
   }
 
+  await runSharedKeyCase(win, doc, check);
   if (path === "idiomorph") await runUnmarkedThrowCase(win, doc, check, warns);
+}
+
+async function runSharedKeyCase(win, doc, check) {
+  var both = keepWrap(
+    '<input id="y" name="shared" type="text" data-ux-keep-value value="">' +
+      '<input id="x" name="shared" type="text" data-ux-keep-value value="">'
+  );
+  doc.body.innerHTML = both;
+  doc.getElementById("y").value = "kept-y";
+  var orig = win.Element.prototype.getAttribute;
+  win.Element.prototype.getAttribute = function (name) {
+    if (this.id === "x") throw new Error("shared getAttribute");
+    return orig.call(this, name);
+  };
+  try {
+    await applyKeepMorph(win, both);
+    check(
+      doc.getElementById("y").value === "",
+      "shared normal y " + JSON.stringify(doc.getElementById("y").value)
+    );
+  } finally {
+    win.Element.prototype.getAttribute = orig;
+  }
+
+  doc.body.innerHTML = keepWrap(
+    '<input id="y" name="shared" type="text" data-ux-keep-value value="">'
+  );
+  doc.getElementById("y").value = "kept-y";
+  var after = both;
+  var savedMorph = win.Idiomorph && win.Idiomorph.morph;
+  var savedReplace = win.Element.prototype.replaceWith;
+  function poison() {
+    var x = doc.getElementById("x");
+    if (x) {
+      x.getAttribute = function () { throw new Error("shared keepKey"); };
+    }
+  }
+  if (savedMorph && typeof savedMorph === "function" && win.Idiomorph) {
+    win.Idiomorph.morph = function () {
+      var result = savedMorph.apply(this, arguments);
+      poison();
+      return result;
+    };
+  } else {
+    win.Element.prototype.replaceWith = function () {
+      var result = savedReplace.apply(this, arguments);
+      poison();
+      return result;
+    };
+  }
+  try {
+    await applyKeepMorph(win, after);
+    check(
+      doc.getElementById("y").value === "",
+      "shared keepKey y " + JSON.stringify(doc.getElementById("y") && doc.getElementById("y").value)
+    );
+  } finally {
+    if (savedMorph && win.Idiomorph) win.Idiomorph.morph = savedMorph;
+    win.Element.prototype.replaceWith = savedReplace;
+  }
 }
 
 function unmarkedBefore() {
