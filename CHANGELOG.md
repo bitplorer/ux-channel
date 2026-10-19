@@ -6,8 +6,10 @@
   can switch `password` to `text` and the value stays. Textarea matches only
   textarea. A change into or out of the class (`hidden`, `checkbox`, `radio`,
   `file`, `select`, and anything else) restores nothing, and each ignored mark
-  logs one console warning. The match is the form owner (`el.form`, or none
-  for both) plus `name`; `id` is not the key. Shared keys restore nothing.
+  logs one console warning. The match is the form owner (`el.form`) plus
+  `name`. With no form, the match is the closest ancestor `data-channel-id`.
+  With neither a form nor that ancestor, the mark is ignored and one warning
+  is logged. `id` is not the key. Shared keys restore nothing.
   After the fragment is in the DOM, the client writes `el.value` inside its
   own try/catch. It does not set the value attribute, parse the value, or
   insert a node, and it does not send the value to the server. Focus restore

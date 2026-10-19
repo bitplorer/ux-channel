@@ -166,8 +166,11 @@ textarea. `hidden`, `checkbox`, `radio`, `file`, `select`, and any other
 control ignore the mark, log one console warning, and stay as the server
 painted them. `.checked` is not copied.
 
-The match is the form owner (`el.form`, or none for both) plus `name`. `id`
-is never the key. Both elements must still carry the mark, and the class must
+The match is the form owner (`el.form`) plus `name`. A field with no form
+matches only inside the closest ancestor that carries `data-channel-id`, the
+component root this client already stamps on a morph target. With no form and
+no such ancestor, the mark does nothing and logs one console warning. `id` is
+never the key. Both elements must still carry the mark, and the class must
 still match. Two elements on the same key (duplicate names, nested
 components, clashing `form=` owners) restore nothing for that key. A type
 change out of the class restores nothing.

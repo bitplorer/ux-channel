@@ -81,10 +81,12 @@ control (`hidden`, `checkbox`, `radio`, `file`, `select`) ignores the mark
 and logs one console warning. The copy is the DOM property `el.value`, one
 element at a time inside try/catch. It does not set `.checked`, the value
 attribute, parse the text, or insert a node, and it does not send the value
-to the server. A field matches only when both nodes still have the mark, the
-same form owner (`el.form`, or none for both), the same `name`, and the same
-class. `id` is not the key. Shared keys restore nothing. The server should
-paint `value=""` for secrets.
+to the server. A field matches only when both nodes still have the mark, the same `name`,
+and the same class. Inside a form, the form owner (`el.form`) is part of the
+match. With no form, the match is the closest ancestor `data-channel-id`.
+With neither, the mark is ignored and one console warning is logged. `id` is
+not the key. Shared keys restore nothing. The server should paint
+`value=""` for secrets.
 
 ### What persist is not
 

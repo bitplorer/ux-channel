@@ -285,9 +285,25 @@
     return !!ka && ka === kb;
   }
 
+  function closestChannelRoot(el) {
+    var node = el && el.parentNode;
+    while (node && node.nodeType === 1) {
+      if (node.getAttribute && node.getAttribute("data-channel-id")) return node;
+      node = node.parentNode;
+    }
+    return null;
+  }
+
+  function keepNoFormToken(el) {
+    var root = closestChannelRoot(el);
+    var id = root && root.getAttribute("data-channel-id");
+    if (!id) return "";
+    return "4" + id;
+  }
+
   function keepFormToken(el) {
     var form = el.form || null;
-    if (!form) return "0";
+    if (!form) return keepNoFormToken(el);
     var id = form.getAttribute && form.getAttribute("id");
     if (id) return "1" + id;
     var name = form.getAttribute && form.getAttribute("name");
@@ -299,15 +315,23 @@
     if (!el || !el.hasAttribute || !el.hasAttribute("data-ux-keep-value")) return "";
     var name = el.getAttribute("name");
     if (!name) return "";
-    return keepFormToken(el) + "\0" + name;
+    var token = keepFormToken(el);
+    if (!token) return "";
+    return token + "\0" + name;
   }
 
   function warnIgnoredKeep(root) {
     if (!root || typeof root.querySelectorAll !== "function") return;
     var nodes = root.querySelectorAll("[data-ux-keep-value]");
-    var i;
+    var i, el;
     for (i = 0; i < nodes.length; i++) {
-      if (!keepKind(nodes[i])) console.warn("[ux-channel] data-ux-keep-value ignored");
+      el = nodes[i];
+      if (!keepKind(el)) {
+        console.warn("[ux-channel] data-ux-keep-value ignored");
+        continue;
+      }
+      if (!el.getAttribute || !el.getAttribute("name") || el.form) continue;
+      if (!closestChannelRoot(el)) console.warn("[ux-channel] data-ux-keep-value ignored");
     }
   }
 
