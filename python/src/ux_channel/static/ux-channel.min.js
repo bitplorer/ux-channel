@@ -410,11 +410,7 @@
   }
 
   function writeKeep(el, value) {
-    try {
-      el.value = value;
-    } catch (e) {
-      keepFailure(e, el);
-    }
+    el.value = value;
   }
 
   function restoreKeepValues(root, saved, write) {
