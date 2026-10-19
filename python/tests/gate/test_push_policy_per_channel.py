@@ -82,6 +82,21 @@ def test_two_channels_keep_their_own_push_policies() -> None:
     assert "<script" in still_open["ops"][0]["html"].lower()
 
 
+def test_set_push_bus_inherits_off_policy_and_hosts() -> None:
+    """A replacement bus keeps an off channel's policy.
+
+    Booting strict cannot see a mutant that skips the policy copy: a bare
+    ``PushBus`` with no attribute is already strict. Hosts are copied by the
+    following lines and stay on the replacement.
+    """
+    hosts = ("app.test", "cdn.test")
+    _boot("off", hosts)
+    set_push_bus(PushBus())
+    bus = get_push_bus()
+    assert bus.outbound_policy() == "off"
+    assert bus.navigate_allowed_hosts == hosts
+
+
 def test_set_push_bus_after_boot_keeps_that_channels_policy() -> None:
     _boot("strict", ("app.test",))
     set_push_bus(PushBus())

@@ -172,10 +172,10 @@ def _push_op(client: TestClient, ch: Channel, href: str) -> dict:
     raise AssertionError("".join(sink))
 
 
-def _score(cases: list[dict]) -> dict:
+def _score(cases: list[dict], script: Path | None = None) -> dict:
     binary = _chrome()
     encoded = json.dumps(cases).replace("<", "\\u003c")
-    page = _PAGE.format(js=_STATIC.resolve().as_uri(), cases=encoded)
+    page = _PAGE.format(js=(script or _STATIC).resolve().as_uri(), cases=encoded)
     with tempfile.TemporaryDirectory() as tmp:
         path = Path(tmp) / "nav.html"
         path.write_text(page, encoding="utf-8")
@@ -237,3 +237,30 @@ def test_chrome_json_and_push_block_open_redirects_and_svg_style() -> None:
     assert score["styles"] == 0
     for item in score["blocked"]:
         assert item["stayed"] is True, item
+
+
+# Authority that starts with "@" is an empty userinfo. Chrome reads the host
+# after that "@" (https://@evil.test/ is evil.test). A named user is not this
+# check: safeHref returns https://user@evil.test/ unchanged.
+_EMPTY_AT = (
+    "https://@evil.test/",
+    "https://@app.test@evil.test/",
+)
+
+
+@pytest.mark.parametrize("script_name", ("ux-channel.js", "ux-channel.min.js"))
+def test_chrome_safe_href_blocks_empty_at_userinfo(script_name: str) -> None:
+    script = _STATIC.parent / script_name
+    cases = [
+        {
+            "route": href,
+            "href": href,
+            "op": {"op": "navigate", "href": href},
+        }
+        for href in _EMPTY_AT
+    ]
+    score = _score(cases, script)
+    assert score["left"] is False, (script_name, score)
+    assert len(score["blocked"]) == len(_EMPTY_AT), (script_name, score)
+    for item in score["blocked"]:
+        assert item["stayed"] is True, (script_name, item)
