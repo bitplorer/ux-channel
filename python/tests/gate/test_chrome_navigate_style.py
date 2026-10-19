@@ -1,12 +1,13 @@
 """Chrome: strict navigate tricks and svg/math style, on JSON and push.
 
-Skips when Chrome is not installed. CI's Ubuntu image has no Chrome, so
-this test does not run there.
+Skips when Chrome is not installed. ``UX_CHANNEL_REQUIRE_CHROME=1`` fails
+instead, so the gated CI job cannot pass with a skip.
 """
 
 from __future__ import annotations
 
 import json
+import os
 import shutil
 import subprocess
 import tempfile
@@ -87,9 +88,12 @@ def _chrome() -> str:
         if Path(candidate).is_file():
             return candidate
     found = shutil.which("google-chrome") or shutil.which("chrome")
-    if not found:
-        pytest.skip("chrome is not installed")
-    return found
+    if found:
+        return found
+    if os.environ.get("UX_CHANNEL_REQUIRE_CHROME") == "1":
+        pytest.fail("chrome is not installed")
+    pytest.skip("chrome is not installed")
+    return ""
 
 
 def _boot():

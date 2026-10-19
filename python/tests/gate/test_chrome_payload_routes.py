@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import os
 import re
 import shutil
 import subprocess
@@ -57,6 +58,8 @@ def _chrome_bin() -> str:
     found = shutil.which("google-chrome") or shutil.which("chrome")
     if found:
         return found
+    if os.environ.get("UX_CHANNEL_REQUIRE_CHROME") == "1":
+        pytest.fail("chrome is not installed")
     pytest.skip("chrome is not installed")
     return ""
 
