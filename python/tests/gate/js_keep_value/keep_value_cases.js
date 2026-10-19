@@ -46,6 +46,10 @@ function keepRegionHtml(dropMarked) {
   );
 }
 
+function keepWrap(inner) {
+  return '<div id="region" data-channel-id="login">' + inner + "</div>";
+}
+
 async function applyKeepMorph(win, html) {
   var pending = win.uxChannel.applyResult({
     ok: true,
@@ -242,6 +246,8 @@ async function runKeepValuePath(win, path) {
     );
     check(calls === steps.length + 2, "file switch calls " + calls);
 
+    await runIdentityCases(win, doc, check);
+
     var callsBeforeEmpty = calls;
     var region = doc.getElementById("region");
     await applyKeepMorph(win, "no-element");
@@ -256,4 +262,250 @@ async function runKeepValuePath(win, path) {
     restoreSpy();
   }
   return { failures: failures, checks: checks };
+}
+
+async function runIdentityCases(win, doc, check) {
+  var show =
+    '<input id="password" name="password" type="password" data-ux-keep-value value="">' +
+    '<button id="toggle" type="button">Show</button>';
+  doc.body.innerHTML = keepWrap(show);
+  doc.getElementById("password").value = KEEP_SECRET;
+  doc.getElementById("toggle").focus();
+  await applyKeepMorph(
+    win,
+    keepWrap(
+      '<input id="password" name="password" type="text" data-ux-keep-value value="">' +
+        '<button id="toggle" type="button">Show</button>'
+    )
+  );
+  check(doc.getElementById("password").type === "text", "show type");
+  check(
+    doc.getElementById("password").value === KEEP_SECRET,
+    "password to text " + JSON.stringify(doc.getElementById("password").value)
+  );
+  await applyKeepMorph(win, keepWrap(show));
+  check(doc.getElementById("password").type === "password", "hide type");
+  check(
+    doc.getElementById("password").value === KEEP_SECRET,
+    "text to password " + JSON.stringify(doc.getElementById("password").value)
+  );
+
+  doc.body.innerHTML = keepWrap(
+    '<input id="q" name="q" type="text" data-ux-keep-value value="">'
+  );
+  doc.getElementById("q").value = "visible";
+  await applyKeepMorph(
+    win,
+    keepWrap('<input id="q" name="q" type="hidden" data-ux-keep-value value="">')
+  );
+  check(
+    doc.getElementById("q").value === "",
+    "text to hidden " + JSON.stringify(doc.getElementById("q").value)
+  );
+
+  doc.body.innerHTML = keepWrap(
+    '<input id="q" name="q" type="text" data-ux-keep-value value="">'
+  );
+  doc.getElementById("q").value = "secret.txt";
+  await applyKeepMorph(
+    win,
+    keepWrap('<input id="q" name="q" type="file" data-ux-keep-value>')
+  );
+  check(doc.getElementById("q").type === "file", "text to file type");
+  check(
+    doc.getElementById("q").value === "",
+    "text to file " + JSON.stringify(doc.getElementById("q").value)
+  );
+
+  doc.body.innerHTML = keepWrap(
+    '<textarea name="note" data-ux-keep-value></textarea>'
+  );
+  doc.querySelector("textarea").value = "hello note";
+  await applyKeepMorph(
+    win,
+    keepWrap('<input name="note" type="text" data-ux-keep-value value="">')
+  );
+  check(
+    doc.querySelector("input").value === "",
+    "textarea to text " + JSON.stringify(doc.querySelector("input").value)
+  );
+
+  var kinds =
+    '<input name="email" type="email" data-ux-keep-value value="">' +
+    '<input name="search" type="search" data-ux-keep-value value="">' +
+    '<input name="tel" type="tel" data-ux-keep-value value="">' +
+    '<input name="url" type="url" data-ux-keep-value value="">';
+  doc.body.innerHTML = keepWrap(kinds);
+  doc.querySelector('[name="email"]').value = "a@b.c";
+  doc.querySelector('[name="search"]').value = "find";
+  doc.querySelector('[name="tel"]').value = "555";
+  doc.querySelector('[name="url"]').value = "https://e";
+  await applyKeepMorph(win, keepWrap(kinds));
+  check(doc.querySelector('[name="email"]').value === "a@b.c", "email kept");
+  check(doc.querySelector('[name="search"]').value === "find", "search kept");
+  check(doc.querySelector('[name="tel"]').value === "555", "tel kept");
+  check(doc.querySelector('[name="url"]').value === "https://e", "url kept");
+
+  doc.body.innerHTML = keepWrap(
+    '<input id="pan" name="pan" type="text" data-ux-keep-value value="">' +
+      '<input id="nick" name="nick" type="text" data-ux-keep-value value="">'
+  );
+  doc.getElementById("pan").value = "4111-SECRET";
+  doc.getElementById("nick").value = "sam";
+  await applyKeepMorph(
+    win,
+    keepWrap(
+      '<input id="nick" name="pan" type="text" data-ux-keep-value value="">' +
+        '<input id="pan" name="nick" type="text" data-ux-keep-value value="">'
+    )
+  );
+  check(
+    doc.querySelector('[name="nick"]').value !== "4111-SECRET",
+    "4111-SECRET landed in nick"
+  );
+  check(
+    doc.querySelector('[name="nick"]').value === "sam",
+    "nick " + doc.querySelector('[name="nick"]').value
+  );
+  check(
+    doc.querySelector('[name="pan"]').value === "4111-SECRET",
+    "pan " + doc.querySelector('[name="pan"]').value
+  );
+
+  var forms =
+    '<form id="f1"><input name="user" type="text" data-ux-keep-value value=""></form>' +
+    '<form id="f2"><input name="user" type="text" data-ux-keep-value value=""></form>';
+  doc.body.innerHTML = keepWrap(forms);
+  doc.querySelector("#f1 input").value = "alice";
+  doc.querySelector("#f2 input").value = "bob";
+  await applyKeepMorph(win, keepWrap(forms));
+  check(
+    doc.querySelector("#f1 input").value === "alice",
+    "f1 " + doc.querySelector("#f1 input").value
+  );
+  check(
+    doc.querySelector("#f2 input").value === "bob",
+    "alice crossed into f2 " + doc.querySelector("#f2 input").value
+  );
+
+  var owners =
+    '<form id="f1"></form><form id="f2"></form>' +
+    '<input form="f1" name="user" type="text" data-ux-keep-value value="">' +
+    '<input form="f2" name="user" type="text" data-ux-keep-value value="">';
+  doc.body.innerHTML = keepWrap(owners);
+  doc.querySelectorAll('[name="user"]')[0].value = "alice";
+  doc.querySelectorAll('[name="user"]')[1].value = "bob";
+  await applyKeepMorph(win, keepWrap(owners));
+  check(
+    doc.querySelector('[form="f1"]').value === "alice",
+    "form= f1 " + doc.querySelector('[form="f1"]').value
+  );
+  check(
+    doc.querySelector('[form="f2"]').value === "bob",
+    "form= f2 " + doc.querySelector('[form="f2"]').value
+  );
+
+  var clash =
+    '<form id="f1"></form>' +
+    '<input id="a" form="f1" name="user" type="text" data-ux-keep-value value="">' +
+    '<input id="b" form="f1" name="user" type="text" data-ux-keep-value value="">';
+  doc.body.innerHTML = keepWrap(clash);
+  doc.getElementById("a").value = "alice";
+  doc.getElementById("b").value = "bob";
+  await applyKeepMorph(win, keepWrap(clash));
+  check(doc.getElementById("a").value === "", "clashing form= a " + doc.getElementById("a").value);
+  check(doc.getElementById("b").value === "", "clashing form= b " + doc.getElementById("b").value);
+
+  var nested =
+    '<form id="outer">' +
+    '<input id="out" name="title" type="text" data-ux-keep-value value="">' +
+    '<div class="nested"><input id="inn" name="title" type="text" data-ux-keep-value value=""></div>' +
+    "</form>";
+  doc.body.innerHTML = keepWrap(nested);
+  doc.getElementById("out").value = "outer-title";
+  doc.getElementById("inn").value = "inner-title";
+  await applyKeepMorph(win, keepWrap(nested));
+  check(doc.getElementById("out").value === "", "nested outer " + doc.getElementById("out").value);
+  check(doc.getElementById("inn").value === "", "nested inner " + doc.getElementById("inn").value);
+
+  doc.body.innerHTML = keepWrap(
+    '<input id="dup" name="alpha" type="text" data-ux-keep-value value="">' +
+      '<input id="dup" name="beta" type="text" data-ux-keep-value value="">'
+  );
+  doc.querySelector('[name="alpha"]').value = "one";
+  doc.querySelector('[name="beta"]').value = "two";
+  await applyKeepMorph(
+    win,
+    keepWrap(
+      '<input id="dup" name="alpha" type="text" data-ux-keep-value value="">' +
+        '<input id="dup" name="beta" type="text" data-ux-keep-value value="">'
+    )
+  );
+  check(
+    doc.querySelector('[name="alpha"]').value === "one",
+    "dup id alpha " + doc.querySelector('[name="alpha"]').value
+  );
+  check(
+    doc.querySelector('[name="beta"]').value === "two",
+    "dup id beta " + doc.querySelector('[name="beta"]').value
+  );
+
+  doc.body.innerHTML = keepWrap('<input id="only" type="text" data-ux-keep-value value="">');
+  doc.getElementById("only").value = "nameless";
+  await applyKeepMorph(win, keepWrap('<input id="only" type="text" data-ux-keep-value value="">'));
+  check(
+    doc.getElementById("only").value === "",
+    "id without name " + doc.getElementById("only").value
+  );
+
+  doc.body.innerHTML = keepWrap('<input name="q" type="text" data-ux-keep-value value="">');
+  doc.querySelector('[name="q"]').value = "only";
+  await applyKeepMorph(
+    win,
+    keepWrap(
+      '<input name="q" type="text" data-ux-keep-value value="">' +
+        '<input name="q" type="text" data-ux-keep-value value="">'
+    )
+  );
+  var dupNew = doc.querySelectorAll('[name="q"]');
+  check(dupNew[0].value === "", "duplicate new first " + dupNew[0].value);
+  check(dupNew[1].value === "", "duplicate new second " + dupNew[1].value);
+
+  var namedForms =
+    '<form id="same"><input name="user" type="text" data-ux-keep-value value=""></form>' +
+    '<form name="same"><input name="user" type="text" data-ux-keep-value value=""></form>';
+  doc.body.innerHTML = keepWrap(namedForms);
+  doc.querySelector('form[id="same"] input').value = "alice";
+  doc.querySelector('form[name="same"] input').value = "bob";
+  await applyKeepMorph(win, keepWrap(namedForms));
+  check(
+    doc.querySelector('form[id="same"] input').value === "alice",
+    "form id vs name id-side " + doc.querySelector('form[id="same"] input').value
+  );
+  check(
+    doc.querySelector('form[name="same"] input').value === "bob",
+    "form id vs name name-side " + doc.querySelector('form[name="same"] input').value
+  );
+
+  doc.body.innerHTML = keepWrap(
+    '<form id="f1"><input name="user" type="text" data-ux-keep-value value=""></form>' +
+      '<input name="user" type="text" data-ux-keep-value value="">'
+  );
+  doc.querySelector("#f1 input").value = "alice";
+  doc.querySelectorAll('[name="user"]')[1].value = "outside";
+  await applyKeepMorph(
+    win,
+    keepWrap(
+      '<form id="f1"><input name="user" type="text" data-ux-keep-value value=""></form>' +
+        '<input name="user" type="text" data-ux-keep-value value="">'
+    )
+  );
+  check(
+    doc.querySelector("#f1 input").value === "alice",
+    "form vs none form " + doc.querySelector("#f1 input").value
+  );
+  check(
+    doc.querySelectorAll('[name="user"]')[1].value === "outside",
+    "form vs none outside " + doc.querySelectorAll('[name="user"]')[1].value
+  );
 }
