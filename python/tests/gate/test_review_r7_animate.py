@@ -115,6 +115,37 @@ def test_animation_url_element_is_dropped_on_the_wire(
     _assert_dropped(blob, tag, label=f"{policy} {transport} {number}")
 
 
+# attributeName is fill/cx, not href or on*. Only the ';' split can drop these.
+_SEMICOLON_SPLIT: tuple[tuple[str, str], ...] = (
+    (
+        "animate",
+        '<svg><animate attributeName="fill" values="x;javascript:alert(1)">'
+        "</animate></svg>",
+    ),
+    (
+        "set",
+        '<svg><set attributeName="cx" to="x;javascript:alert(1)"></set></svg>',
+    ),
+)
+
+
+@pytest.mark.parametrize("policy", ("off", "strict"))
+@pytest.mark.parametrize("transport", _TRANSPORTS)
+@pytest.mark.parametrize(
+    ("tag", "html"),
+    _SEMICOLON_SPLIT,
+    ids=[item[0] for item in _SEMICOLON_SPLIT],
+)
+def test_semicolon_split_animation_urls_are_dropped_on_every_transport(
+    policy: str, transport: str, tag: str, html: str
+) -> None:
+    """``values="x;javascript:alert(1)"`` and the set ``to`` form, MCP included."""
+    blob = _deliver(policy, transport, html + f"<b>{_KEEP}</b>")
+    assert _KEEP in blob, (policy, transport, tag)
+    assert not _has_tag(blob, tag), (policy, transport, tag, blob)
+    assert "javascript:" not in _flat(blob), (policy, transport, tag, blob)
+
+
 def _chrome_bin() -> str:
     if os.environ.get("UX_CHANNEL_REQUIRE_CHROME") == "1":
         missing = "chrome is not installed"
