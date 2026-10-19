@@ -186,7 +186,9 @@ components, clashing `form=` owners) restore nothing for that key. A type
 change out of the class restores nothing.
 
 After the fragment is already in the DOM, the client writes `el.value` for
-each match inside its own try/catch. It does not set the value attribute,
+each match inside its own try/catch. A throw while reading or writing one
+marked field skips that field and logs one warning. The morph and the other
+fields continue. It does not set the value attribute,
 parse the typed text, or insert a node. Focus restore is the same path as
 on main.
 

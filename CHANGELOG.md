@@ -18,7 +18,9 @@
   including inside a form or a component. A field that has a name, inside
   a named form or inside a component, does not log that warning. `id` is not the key. Shared keys restore nothing.
   After the fragment is in the DOM, the client writes `el.value` inside its
-  own try/catch. It does not set the value attribute, parse the value, or
+  own try/catch. A throw while reading or writing one marked field skips
+  that field and logs one warning; the morph and the other fields continue.
+  It does not set the value attribute, parse the value, or
   insert a node, and it does not send the value to the server. Focus restore
   is unchanged. The server should paint `value=""` for secrets.
 

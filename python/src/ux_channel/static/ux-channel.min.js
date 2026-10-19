@@ -327,67 +327,58 @@
     return JSON.stringify([parts[0], parts[1], parts[2], kind]);
   }
 
-  function warnIgnoredKeep(root) {
-    if (!root || typeof root.querySelectorAll !== "function") return;
-    var nodes = root.querySelectorAll("[data-ux-keep-value]");
-    var i, el, form, unnamed;
-    for (i = 0; i < nodes.length; i++) {
-      el = nodes[i];
-      if (!keepKind(el)) {
-        console.warn("[ux-channel] data-ux-keep-value ignored");
-        continue;
-      }
-      // Reason: no name is ignored, and every ignored field warns once.
-      if (!el.getAttribute || !el.getAttribute("name")) {
-        console.warn("[ux-channel] data-ux-keep-value ignored");
-        continue;
-      }
-      form = el.form || null;
-      unnamed = !!(form && !(form.getAttribute && (form.getAttribute("id") || form.getAttribute("name"))));
-      if (!keepComponentId(el) && !form) {
-        console.warn("[ux-channel] data-ux-keep-value ignored");
-        continue;
-      }
-      if (!keepComponentId(el) && unnamed) {
-        console.warn("[ux-channel] data-ux-keep-value ignored");
-      }
-    }
+  function keepIgnored(el) {
+    if (!keepKind(el)) return true;
+    // Reason: no name is ignored, and every ignored field warns once.
+    if (!el.getAttribute || !el.getAttribute("name")) return true;
+    var form = el.form || null;
+    var unnamed = !!(form && !(form.getAttribute && (form.getAttribute("id") || form.getAttribute("name"))));
+    if (!keepComponentId(el) && !form) return true;
+    if (!keepComponentId(el) && unnamed) return true;
+    return false;
   }
 
-  function groupMarked(root) {
-    var groups = Object.create(null);
-    if (!root || typeof root.querySelectorAll !== "function") return groups;
-    var nodes = root.querySelectorAll("[data-ux-keep-value]");
-    var i, el, key;
-    for (i = 0; i < nodes.length; i++) {
-      el = nodes[i];
-      key = keepKey(el, keepKind(el));
-      if (!key) continue;
-      if (!groups[key]) groups[key] = [];
-      groups[key].push(el);
-    }
-    return groups;
+  function collectOne(el) {
+    if (keepIgnored(el)) return { warn: 1 };
+    var kind = keepKind(el);
+    return {
+      key: keepKey(el, kind),
+      value: el.value,
+      tagName: el.tagName,
+      type: el.type,
+      kind: kind,
+    };
   }
 
+  // Reason: a throw on one field must not drop the morph or clear the others.
   function snapshotKeepValues(root) {
     var saved = [];
-    warnIgnoredKeep(root);
-    var groups = groupMarked(root);
-    var keys = Object.keys(groups);
-    var i, list, el, kind;
-    for (i = 0; i < keys.length; i++) {
-      list = groups[keys[i]];
+    var groups = Object.create(null);
+    if (!root || typeof root.querySelectorAll !== "function") return saved;
+    var nodes = root.querySelectorAll("[data-ux-keep-value]");
+    var i, el, item, keys, k, list;
+    for (i = 0; i < nodes.length; i++) {
+      el = nodes[i];
+      try {
+        item = collectOne(el);
+      } catch (e) {
+        console.warn("[ux-channel] data-ux-keep-value ignored");
+        continue;
+      }
+      if (!item) continue;
+      if (item.warn) {
+        console.warn("[ux-channel] data-ux-keep-value ignored");
+        continue;
+      }
+      if (!item.key) continue;
+      if (!groups[item.key]) groups[item.key] = [];
+      groups[item.key].push(item);
+    }
+    keys = Object.keys(groups);
+    for (k = 0; k < keys.length; k++) {
+      list = groups[keys[k]];
       if (list.length !== 1) continue;
-      el = list[0];
-      kind = keepKind(el);
-      if (!kind) continue;
-      saved.push({
-        key: keys[i],
-        value: el.value,
-        tagName: el.tagName,
-        type: el.type,
-        kind: kind,
-      });
+      saved.push(list[0]);
     }
     return saved;
   }
@@ -397,8 +388,24 @@
     return keepKind(el);
   }
 
-  function restoreKeepValues(root, saved) {
-    if (!root || !saved || !saved.length) return;
+  function writeKeepReplace(el, value) {
+    try {
+      el.value = value;
+    } catch (e) {
+      console.warn("[ux-channel] data-ux-keep-value ignored");
+    }
+  }
+
+  function writeKeepIdio(el, value) {
+    try {
+      el.value = value;
+    } catch (e) {
+      console.warn("[ux-channel] data-ux-keep-value ignored");
+    }
+  }
+
+  function restoreKeepValues(root, saved, write) {
+    if (!root || !saved || !saved.length || !write) return;
     if (typeof root.querySelectorAll !== "function") return;
     var nodes = root.querySelectorAll("[data-ux-keep-value]");
     var i, item, j, el, key, matches;
@@ -407,15 +414,17 @@
       matches = [];
       for (j = 0; j < nodes.length; j++) {
         el = nodes[j];
-        key = keepKey(el, restoreKind(item, el));
+        try {
+          key = keepKey(el, restoreKind(item, el));
+        } catch (e) {
+          continue;
+        }
         if (key && key === item.key) matches.push(el);
       }
       if (matches.length !== 1) continue;
       el = matches[0];
       if (!sameKeepKind(item, el)) continue;
-      try {
-        el.value = item.value;
-      } catch (e) {}
+      write(el, item.value);
     }
   }
 
@@ -500,11 +509,14 @@
       next.setAttribute("data-channel-id", target.getAttribute("data-channel-id"));
     }
     if (global.Idiomorph && typeof global.Idiomorph.morph === "function") {
-      global.Idiomorph.morph(target, next);
-      restoreKeepValues(target, keepSnap);
+      // A setter throw inside the morph must not skip the other fields.
+      try {
+        global.Idiomorph.morph(target, next);
+      } catch (e) {}
+      restoreKeepValues(target, keepSnap, writeKeepIdio);
     } else {
       target.replaceWith(next);
-      restoreKeepValues(next, keepSnap);
+      restoreKeepValues(next, keepSnap, writeKeepReplace);
     }
     restoreFocus(focusSnap);
     restoreScroll(scrollSnap);

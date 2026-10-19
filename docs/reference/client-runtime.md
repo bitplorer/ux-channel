@@ -79,7 +79,9 @@ or onto an `input` of type `password`, `text`, `email`, `search`, `tel`, or
 on Show and keep what was typed. Textarea matches only textarea. Any other
 control (`hidden`, `checkbox`, `radio`, `file`, `select`) ignores the mark
 and logs one console warning. The copy is the DOM property `el.value`, one
-element at a time inside try/catch. It does not set `.checked`, the value
+element at a time inside try/catch. A throw while reading or writing one
+field skips that field and logs one warning; the morph and the other fields
+continue. It does not set `.checked`, the value
 attribute, parse the text, or insert a node, and it does not send the value
 to the server. A field matches only when both nodes still have the mark, the same `name`,
 and the same class. The key is `JSON.stringify` of the closest ancestor
