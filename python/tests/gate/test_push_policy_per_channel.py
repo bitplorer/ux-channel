@@ -1,6 +1,7 @@
 """Push HTML policy lives on each channel's bus, not on the process.
 
-A second boot must not relax the first channel. A missing policy is strict.
+A second boot must not relax the first channel. A bare bus with no
+policy attribute is strict. A channel with no policy is off.
 ``strict `` (with the trailing space) is not a known value and raises when
 the config is validated.
 """

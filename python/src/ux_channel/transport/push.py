@@ -74,17 +74,25 @@ class MemoryPushBackend:
 class PushBus:
     def __init__(self, backend: Optional[PushBackend] = None) -> None:
         self.backend: PushBackend = backend or MemoryPushBackend()
-        # Stamped from this channel's config. Unset means strict (fail closed).
-        self.morph_html_policy = "off"
+        # Unset means strict. A channel stamps "off" or "strict"; a bare bus does not.
         self.navigate_allowed_hosts: tuple[str, ...] = ()
         self._policy_bound = False
         self._owner: int | None = None
 
     def outbound_policy(self) -> str:
-        """Policy for this bus. A missing value is strict."""
+        """Policy for this bus.
+
+        A missing value is strict (bare ``PushBus`` or a stream with no
+        channel). A blank value is off, which is what a channel stamps when
+        it has no policy. Any other value must be exactly ``off`` or ``strict``.
+        """
         raw = getattr(self, "morph_html_policy", None)
-        if raw is None or str(raw).strip() == "":
+        if raw is None:
             return "strict"
+        if isinstance(raw, str) and raw.strip() == "":
+            return "off"
+        if raw not in ("off", "strict"):
+            raise ValueError('morph_html_policy must be "off" or "strict"')
         return str(raw)
 
     def subscribe(self, topic: str, queue: asyncio.Queue) -> None:
@@ -174,6 +182,31 @@ def get_push_bus(channel: Any = None) -> PushBus:
     return _bus
 
 
+def stream_filter_args(
+    registry: Any, config: Any = None
+) -> tuple[str, tuple[str, ...]]:
+    """Policy and navigate hosts the action stream must use for this channel.
+
+    The bus stamp wins. A channel with no bus and no config is off.
+    """
+    bus = getattr(registry, "push_bus", None)
+    if isinstance(bus, PushBus):
+        hosts = tuple(getattr(bus, "navigate_allowed_hosts", ()) or ())
+        return bus.outbound_policy(), hosts
+    cfg = getattr(registry, "config", None) or config
+    if cfg is None:
+        return "off", ()
+    raw = getattr(cfg, "morph_html_policy", None)
+    if raw is None or (isinstance(raw, str) and str(raw).strip() == ""):
+        policy = "off"
+    elif raw not in ("off", "strict"):
+        raise ValueError('morph_html_policy must be "off" or "strict"')
+    else:
+        policy = str(raw)
+    hosts = tuple(getattr(cfg, "navigate_allowed_hosts", ()) or ())
+    return policy, hosts
+
+
 def registry_push_bus(registry: Any) -> PushBus:
     """The bus mounted for this registry. No process-bus fallback."""
     bus = getattr(registry, "push_bus", None)
@@ -196,6 +229,9 @@ def ensure_registry_push_bus(registry: Any) -> PushBus:
         bus = PushBus()
     else:
         bus = get_push_bus()
+    # Attaching makes this a channel bus. No policy yet means off, not strict.
+    if not getattr(bus, "_policy_bound", False) and not hasattr(bus, "morph_html_policy"):
+        bus.morph_html_policy = "off"
     attach_push_bus(registry, bus)
     return bus
 

@@ -227,10 +227,12 @@ class ChannelConfig:
         from ux_channel.cek.config import parse_cek
 
         object.__setattr__(self, "cek", parse_cek(self.cek))
-        policy = (self.morph_html_policy or "off").lower()
-        if policy not in ("off", "strict"):
+        raw_policy = self.morph_html_policy
+        if raw_policy is None or (isinstance(raw_policy, str) and raw_policy.strip() == ""):
+            raw_policy = "off"
+        if raw_policy not in ("off", "strict"):
             raise ValueError('morph_html_policy must be "off" or "strict"')
-        object.__setattr__(self, "morph_html_policy", policy)
+        object.__setattr__(self, "morph_html_policy", raw_policy)
         if self.proof_secret is not None:
             if self.proof_secret == self.secret:
                 raise ValueError("proof_secret must differ from cap secret")

@@ -58,20 +58,32 @@ class ResultStream:
         return env
 
 
+def resolve_stream_policy(policy: str | None) -> str:
+    """A stream with no channel (``policy is None``) is strict.
+
+    A channel passes ``off`` or ``strict`` exactly. Anything else raises.
+    """
+    if policy is None:
+        return "strict"
+    if policy not in ("off", "strict"):
+        raise ValueError('morph_html_policy must be "off" or "strict"')
+    return policy
+
+
 def _filter_result_body(
     body: dict[str, Any],
     *,
     policy: str | None,
     allowed_hosts: tuple[str, ...] | list[str] | None,
 ) -> dict[str, Any]:
-    """Href-check and strict-strip ``result.ops``. A missing policy is strict."""
+    """Href-check and strict-strip ``result.ops``. No channel policy is strict."""
     ops = body.get("ops")
     if not isinstance(ops, list):
         return body
     cleaned = dict(body)
     cleaned["ops"] = filter_outbound_ops(
         list(ops),
-        policy="strict" if policy is None else policy,
+        policy=resolve_stream_policy(policy),
         allowed_hosts=allowed_hosts,
     )
     return cleaned

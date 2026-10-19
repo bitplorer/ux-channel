@@ -155,7 +155,7 @@ CI expectation: **gate green** (`make verify`). Security residuals: **`make veri
 
 ## Recommended next hardening (post-0.1)
 
-1. ~~Optional **HTML sanitizer policy** for morph (strict mode) without breaking ux-dom.~~ **Done (opt-in)** — `ChannelConfig.morph_html_policy = "strict"`. Default off; doctor warns.  
+1. ~~Optional **HTML sanitizer policy** for morph (strict mode) without breaking ux-dom.~~ **Done (opt-in)** — `ChannelConfig.morph_html_policy = "strict"`. A channel with no policy, including `create_channel()` without a config, is `off` for patches and pushes on JSON and SSE. A bare `PushBus()` or a stream with no channel is strict. Doctor warns when a channel is off.  
 2. ~~**Navigate host allowlist** config.~~ **Done** — `navigate_allowed_hosts` + production derives from `allowed_origins`.  
 3. Cap **binding to session cookie** / CSRF double-submit beyond custom header.  
 4. ~~First-class **Redis** rate limit + nonce in default production factory.~~ **Done** — `REDIS_URL` auto-wires nonce/rate/idempotency/push; `production()` default TTL 900s; `doctor --fail` refuses silent memory stores.  

@@ -324,17 +324,17 @@ def create_channel(
         bus = PushBus()
     cfg_bus = mount_config or config
     if cfg_bus is None:
-        # No config is a missing policy: publish fails closed.
-        if hasattr(bus, "morph_html_policy"):
-            del bus.morph_html_policy
+        # A channel with no policy is off. Strict is opt-in.
+        bus.morph_html_policy = "off"
         bus.navigate_allowed_hosts = ()
     else:
         raw_policy = getattr(cfg_bus, "morph_html_policy", None)
-        if raw_policy is None or str(raw_policy).strip() == "":
-            if hasattr(bus, "morph_html_policy"):
-                del bus.morph_html_policy
+        if raw_policy is None or (isinstance(raw_policy, str) and raw_policy.strip() == ""):
+            bus.morph_html_policy = "off"
+        elif raw_policy not in ("off", "strict"):
+            raise ValueError('morph_html_policy must be "off" or "strict"')
         else:
-            bus.morph_html_policy = str(raw_policy)
+            bus.morph_html_policy = raw_policy
         bus.navigate_allowed_hosts = tuple(
             getattr(cfg_bus, "navigate_allowed_hosts", ()) or ()
         )

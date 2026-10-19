@@ -6,6 +6,7 @@ from typing import Any, Callable, Optional
 
 from ux_channel.host.registry import ActionRegistry
 from ux_channel.security.security import content_length_ok, origin_allowed
+from ux_channel.transport.push import stream_filter_args
 from ux_channel.transport.stream import ResultStream, format_sse
 from ux_channel.devtools.trace import FrameKind, get_tracer
 from ux_channel.protocol.types import Intent, Result
@@ -127,7 +128,12 @@ async def handle_action_asgi(
 
     if want_stream:
         stream = ResultStream()
-        payload = format_sse(stream.chunk(result, done=True))
+        policy, hosts = stream_filter_args(registry, config)
+        payload = format_sse(
+            stream.chunk(result, done=True, policy=policy, allowed_hosts=hosts),
+            policy=policy,
+            allowed_hosts=hosts,
+        )
         await send(
             {
                 "type": "http.response.start",

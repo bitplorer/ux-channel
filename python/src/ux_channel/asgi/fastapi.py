@@ -25,7 +25,11 @@ from ux_channel.devtools.ticket_revoke import (
     get_revocation_list,
 )
 from ux_channel.host.registry import ActionRegistry
-from ux_channel.transport.push import ensure_registry_push_bus, registry_push_bus
+from ux_channel.transport.push import (
+    ensure_registry_push_bus,
+    registry_push_bus,
+    stream_filter_args,
+)
 from ux_channel.security.security import (
     channel_header_ok,
     content_length_ok,
@@ -228,7 +232,12 @@ def mount_channel(
 
             async def gen():
                 stream = ResultStream()
-                yield format_sse(stream.chunk(result, done=True))
+                policy, hosts = stream_filter_args(registry)
+                yield format_sse(
+                    stream.chunk(result, done=True, policy=policy, allowed_hosts=hosts),
+                    policy=policy,
+                    allowed_hosts=hosts,
+                )
 
             return StreamingResponse(gen(), media_type="text/event-stream")
 

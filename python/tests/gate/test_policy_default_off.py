@@ -10,10 +10,13 @@ from __future__ import annotations
 import threading
 import time
 
+import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from ux_channel import Channel, ChannelConfig, Result, create_channel, swap
+from ux_channel.transport.push import PushBus
+from ux_channel.transport.stream import resolve_stream_policy
 
 _SECRET = "policy-off-secret-32chars-minimum!"
 _TOPIC = "board"
@@ -112,6 +115,32 @@ def _read_push(client: TestClient, ch: Channel, op: dict) -> str:
         time.sleep(0.02)
     thread.join(0.1)
     return "".join(sink)
+
+
+def test_unknown_policy_strings_raise_and_bare_bus_is_strict() -> None:
+    for bad in ("strict ", " strict", "strcit", "on", "Strict"):
+        with pytest.raises(ValueError):
+            ChannelConfig.development(
+                secret=_SECRET,
+                morph_html_policy=bad,
+                observe="off",
+                allow_memory_stores=True,
+            )
+        bus = PushBus()
+        bus.morph_html_policy = bad
+        with pytest.raises(ValueError):
+            bus.outbound_policy()
+        with pytest.raises(ValueError):
+            resolve_stream_policy(bad)
+    blank = ChannelConfig.development(
+        secret=_SECRET,
+        morph_html_policy="",
+        observe="off",
+        allow_memory_stores=True,
+    )
+    assert blank.morph_html_policy == "off"
+    assert PushBus().outbound_policy() == "strict"
+    assert resolve_stream_policy(None) == "strict"
 
 
 def test_no_config_is_off_for_json_sse_and_push() -> None:
