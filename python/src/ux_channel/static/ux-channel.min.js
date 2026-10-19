@@ -278,13 +278,28 @@
     return "";
   }
 
-  function keepValueKey(el) {
+  // Final class check. One line switches this to strict same-type.
+  function sameKeepKind(a, b) {
+    var ka = keepKind(a);
+    var kb = keepKind(b);
+    return !!ka && ka === kb;
+  }
+
+  function keepFormToken(el) {
+    var form = el.form || null;
+    if (!form) return "0";
+    var id = form.getAttribute && form.getAttribute("id");
+    if (id) return "1" + id;
+    var name = form.getAttribute && form.getAttribute("name");
+    if (name) return "2" + name;
+    return "3";
+  }
+
+  function keepIdentity(el) {
     if (!el || !el.hasAttribute || !el.hasAttribute("data-ux-keep-value")) return "";
-    if (!keepKind(el)) return "";
-    if (el.id) return "id:" + el.id;
     var name = el.getAttribute("name");
-    if (name) return "name:" + name;
-    return "";
+    if (!name) return "";
+    return keepFormToken(el) + "\0" + name;
   }
 
   function warnIgnoredKeep(root) {
@@ -296,41 +311,48 @@
     }
   }
 
-  function snapshotKeepValues(root) {
-    var saved = [];
-    warnIgnoredKeep(root);
-    if (!root || typeof root.querySelectorAll !== "function") return saved;
-    var nodes = root.querySelectorAll("input, textarea");
+  function groupMarked(root) {
+    var groups = Object.create(null);
+    if (!root || typeof root.querySelectorAll !== "function") return groups;
+    var nodes = root.querySelectorAll("[data-ux-keep-value]");
     var i, el, key;
     for (i = 0; i < nodes.length; i++) {
       el = nodes[i];
-      key = keepValueKey(el);
+      key = keepIdentity(el);
       if (!key) continue;
-      saved.push({ key: key, value: el.value });
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(el);
+    }
+    return groups;
+  }
+
+  function snapshotKeepValues(root) {
+    var saved = [];
+    warnIgnoredKeep(root);
+    var groups = groupMarked(root);
+    var keys = Object.keys(groups);
+    var i, list, el;
+    for (i = 0; i < keys.length; i++) {
+      list = groups[keys[i]];
+      if (list.length !== 1) continue;
+      el = list[0];
+      if (!keepKind(el)) continue;
+      saved.push({ key: keys[i], value: el.value, tagName: el.tagName, type: el.type });
     }
     return saved;
   }
 
   function restoreKeepValues(root, saved) {
-    if (!root || !saved || !saved.length || typeof root.querySelectorAll !== "function") return;
-    var nodes = root.querySelectorAll("input, textarea");
-    var byKey = Object.create(null);
-    var i, el, key, item, matches, j;
-    for (i = 0; i < nodes.length; i++) {
-      el = nodes[i];
-      key = keepValueKey(el);
-      if (!key) continue;
-      if (!byKey[key]) byKey[key] = [];
-      byKey[key].push(el);
-    }
+    if (!root || !saved || !saved.length) return;
+    var groups = groupMarked(root);
+    var i, item, list, el;
     for (i = 0; i < saved.length; i++) {
       item = saved[i];
-      matches = byKey[item.key];
-      if (!matches) continue;
-      for (j = 0; j < matches.length; j++) {
-        el = matches[j];
-        el.value = item.value;
-      }
+      list = groups[item.key];
+      if (!list || list.length !== 1) continue;
+      el = list[0];
+      if (!sameKeepKind(item, el)) continue;
+      el.value = item.value;
     }
   }
 
@@ -404,7 +426,6 @@
     var next = tpl.content.firstElementChild;
     if (!next) {
       target.innerHTML = html;
-      restoreKeepValues(target, keepSnap);
       restoreFocus(focusSnap);
       restoreScroll(scrollSnap);
       return target;
