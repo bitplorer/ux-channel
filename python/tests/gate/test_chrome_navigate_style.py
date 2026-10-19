@@ -50,12 +50,17 @@ const start = location.href;
   const blocked = [];
   for (const item of cases) {{
     const before = location.href;
-    await window.uxChannel.applyResult({{ ok: true, ops: [item.op] }});
+    // applyResult never settles a navigate op, blocked or not.
+    await Promise.race([
+      window.uxChannel.applyResult({{ ok: true, ops: [item.op] }}),
+      new Promise(function (resolve) {{ setTimeout(resolve, 200); }})
+    ]);
     blocked.push({{
       route: item.route,
       href: item.href || "",
       stayed: location.href === before
     }});
+    if (location.href !== before) break;
   }}
   const styles = document.querySelectorAll("svg style, math style").length;
   document.getElementById("score").textContent = JSON.stringify({{
@@ -200,7 +205,7 @@ def _score(cases: list[dict]) -> dict:
 
 def test_chrome_json_and_push_block_open_redirects_and_svg_style() -> None:
     app, ch, holder = _boot()
-    client = TestClient(app)
+    client = TestClient(app, base_url="http://app.test")
     cases = []
     for href in _TRICKS:
         for route, op in (

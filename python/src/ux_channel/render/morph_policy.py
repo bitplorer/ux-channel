@@ -17,41 +17,46 @@ and non-HTML ops do not need the parser.
 
 from __future__ import annotations
 
+import json
+import logging
 import re
+from pathlib import Path
 from typing import Any, Callable, Mapping
+
+logger = logging.getLogger("ux_channel.render.morph_policy")
+
+# One list for the scrubber, the regex pass, and the client arrays.
+_DROP_NAMES = json.loads(
+    (Path(__file__).with_name("drop_names.json")).read_text(encoding="utf-8")
+)
 
 __all__ = ["apply_morph_policy", "strip_dangerous_html"]
 
 # Elements whose contents are script, raw text, or navigation context.
 # ``style`` is not in this set: a browser treats it as raw text only in the
 # HTML namespace. Inside svg/math it is dropped separately.
-_DROP_CONTENT = frozenset(
-    {
-        "script",
-        "iframe",
-        "object",
-        "noscript",
-        "xmp",
-        "noembed",
-        "noframes",
-        "plaintext",
-        "template",
-    }
-)
+_DROP_CONTENT = frozenset(_DROP_NAMES["content"])
 # Void elements that should not swallow the rest of the fragment.
-_DROP_TAG = frozenset({"embed", "link", "meta", "base"})
+_DROP_TAG = frozenset(_DROP_NAMES["void"])
+_MAX_NESTING = 256
 _SVG = "http://www.w3.org/2000/svg"
 _MATH = "http://www.w3.org/1998/Math/MathML"
 _TAG_NAME = re.compile(r"^[a-z][a-z0-9:-]*$")
 
 # Main's regex stripper (83a580a). Second pass: anything it removes stays
 # removed, including shapes the parser rewrote into a match.
+def _drop_pattern() -> str:
+    names = sorted(_DROP_CONTENT | _DROP_TAG, key=len, reverse=True)
+    return "|".join(re.escape(name) for name in names)
+
+
+_DROP_RE = _drop_pattern()
 _SCRIPTISH = re.compile(
-    r"<(script|iframe|object|embed|link|meta|base)\b[^>]*>.*?</\1\s*>",
+    rf"<({_DROP_RE})\b[^>]*>.*?</\1\s*>",
     re.I | re.S,
 )
 _SCRIPTISH_EMPTY = re.compile(
-    r"<(script|iframe|object|embed|link|meta|base)\b[^>]*/\s*>",
+    rf"<({_DROP_RE})\b[^>]*/\s*>",
     re.I,
 )
 _ON_ATTR = re.compile(r"""\s+on[a-z]+\s*=\s*(['"]).*?\1""", re.I | re.S)
@@ -267,6 +272,9 @@ def _checked_fragment(html: str, *, drop_elements: bool) -> str:
         return html
     if not drop_elements and "<" not in html:
         return html
+    if _nesting_depth(html) > _MAX_NESTING:
+        logger.error("morph html nesting refused")
+        return ""
     try:
         html_parser, html_serializer, get_tree_builder, get_tree_walker = (
             _import_html5lib()
@@ -283,7 +291,11 @@ def _checked_fragment(html: str, *, drop_elements: bool) -> str:
             return ""
     else:
         _scrub_attrs(fragment)
-    rendered = _render(fragment, html_serializer, get_tree_walker)
+    try:
+        rendered = _render(fragment, html_serializer, get_tree_walker)
+    except Exception:
+        logger.error("morph html serialize failed")
+        return ""
     if drop_elements and _regex_strip(rendered) != rendered:
         return ""
     try:
@@ -315,6 +327,33 @@ def strip_dangerous_html(html: str) -> str:
     the fragment is refused. A parse failure drops it.
     """
     return _checked_fragment(html, drop_elements=True)
+
+
+def _nesting_depth(html: str) -> int:
+    """Rough open-tag depth. A serializer stack that deep is refused."""
+    depth = 0
+    deepest = 0
+    index = 0
+    size = len(html)
+    while index < size:
+        if html.startswith("</", index):
+            depth = max(0, depth - 1)
+            end = html.find(">", index)
+            index = size if end < 0 else end + 1
+            continue
+        if html.startswith("<", index) and index + 1 < size and html[index + 1] not in "!/?":
+            end = html.find(">", index)
+            if end < 0:
+                break
+            token = html[index : end + 1]
+            if not token.endswith("/>"):
+                depth += 1
+                if depth > deepest:
+                    deepest = depth
+            index = end + 1
+            continue
+        index += 1
+    return deepest
 
 
 def _raw_text_disagrees(node: Any) -> bool:

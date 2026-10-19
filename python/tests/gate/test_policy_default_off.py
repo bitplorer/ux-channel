@@ -132,13 +132,13 @@ def test_unknown_policy_strings_raise_and_bare_bus_is_strict() -> None:
             bus.outbound_policy()
         with pytest.raises(ValueError):
             resolve_stream_policy(bad)
-    blank = ChannelConfig.development(
-        secret=_SECRET,
-        morph_html_policy="",
-        observe="off",
-        allow_memory_stores=True,
-    )
-    assert blank.morph_html_policy == "off"
+    with pytest.raises(ValueError):
+        ChannelConfig.development(
+            secret=_SECRET,
+            morph_html_policy="",
+            observe="off",
+            allow_memory_stores=True,
+        )
     assert PushBus().outbound_policy() == "strict"
     assert resolve_stream_policy(None) == "strict"
 

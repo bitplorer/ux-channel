@@ -1,0 +1,14 @@
+{
+  "content": [
+    "iframe",
+    "noembed",
+    "noframes",
+    "noscript",
+    "object",
+    "plaintext",
+    "script",
+    "template",
+    "xmp"
+  ],
+  "void": ["base", "embed", "link", "meta"]
+}

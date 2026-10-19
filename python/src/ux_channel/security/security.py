@@ -263,19 +263,71 @@ def _navigate_href(
     """
     if policy != "strict":
         return safe_href(href, allowed_hosts=allowed_hosts)
+    if href is None or not isinstance(href, str):
+        return None
+    # urlparse treats ``\`` and an empty authority differently from a browser.
+    # Refuse those shapes before any host comparison.
+    if _navigate_forbidden(href):
+        return None
     safe = safe_href(href, allowed_hosts=())
     if safe is None:
         return None
     path = safe.split("?", 1)[0].split("#", 1)[0]
+    origin = _request_hostname(origin_host)
     if ":" not in path:
+        if not origin and not _single_slash_path(safe):
+            return None
         return safe
-    scheme = _scheme_token(safe.partition(":")[0]).lower()
-    if scheme not in ("http", "https"):
+    scheme, _sep, rest = safe.partition(":")
+    scheme_l = _scheme_token(scheme).lower()
+    if scheme_l not in ("http", "https"):
         return safe
-    host = (urlparse(safe).hostname or "").lower()
-    if _host_on_list(host, allowed_hosts) or host == _request_hostname(origin_host):
+    host = _http_host(rest)
+    if host is None or host == "":
+        return None
+    if _host_on_list(host, allowed_hosts) or (origin and host == origin):
         return safe
     return None
+
+
+def _navigate_forbidden(href: str) -> bool:
+    """Backslash, tab, newline, or any other control character."""
+    for ch in href:
+        if ch == "\\":
+            return True
+        if unicodedata.category(ch).startswith("C"):
+            return True
+    return False
+
+
+def _single_slash_path(href: str) -> bool:
+    """A same-site path. ``//`` and ``/\\`` are not relative."""
+    if not href.startswith("/"):
+        return False
+    if href.startswith("//") or href.startswith("/\\"):
+        return False
+    return True
+
+
+def _http_host(rest: str) -> str | None:
+    """Host after an http(s) scheme, or None when the authority is not ``//host``.
+
+    ``http:evil.test/`` and ``https:///evil.test/`` are not ``scheme://host``.
+    An empty host is ``""`` so the caller can refuse it.
+    """
+    if not rest.startswith("//"):
+        return None
+    authority = rest[2:].split("/", 1)[0].split("?", 1)[0].split("#", 1)[0]
+    if authority.startswith("@"):
+        return ""
+    if "@" in authority:
+        authority = authority.rsplit("@", 1)[1]
+    if authority.startswith("["):
+        end = authority.find("]")
+        host = authority[1:end] if end > 1 else ""
+    else:
+        host = authority.split(":", 1)[0]
+    return host.strip().lower()
 
 
 # data:image types a browser can paint in img/src without running markup.

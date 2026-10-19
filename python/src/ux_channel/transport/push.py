@@ -89,14 +89,13 @@ class PushBus:
         """Policy for this bus.
 
         A missing value is strict (bare ``PushBus`` or a stream with no
-        channel). A blank value is off, which is what a channel stamps when
-        it has no policy. Any other value must be exactly ``off`` or ``strict``.
+        channel). A channel stamps ``off`` or ``strict``. A blank value, or
+        any other string, is a configuration error.
         """
         raw = getattr(self, "morph_html_policy", None)
+        # No channel stamped this bus. Strict is the unbound default.
         if raw is None:
             return "strict"
-        if isinstance(raw, str) and raw.strip() == "":
-            return "off"
         if raw not in ("off", "strict"):
             raise ValueError('morph_html_policy must be "off" or "strict"')
         return str(raw)
@@ -211,7 +210,7 @@ def stream_filter_args(
     if cfg is None:
         return "off", ()
     raw = getattr(cfg, "morph_html_policy", None)
-    if raw is None or (isinstance(raw, str) and str(raw).strip() == ""):
+    if raw is None:
         policy = "off"
     elif raw not in ("off", "strict"):
         raise ValueError('morph_html_policy must be "off" or "strict"')

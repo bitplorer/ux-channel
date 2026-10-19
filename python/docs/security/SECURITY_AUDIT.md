@@ -20,7 +20,7 @@ Read [../../../START_HERE.md](../../../START_HERE.md) first if you are new. This
 | Async hooks on sync dispatch | **Fixed** — await when no event loop (no crash / dropped coro) |
 | Rate limit / once-caps | **OK** in-process; **multi-worker needs Redis** |
 | Morph HTML / toast content | **App must escape** — library does not HTML-sanitize fragments |
-| Absolute `https://` navigations | **Allowed** — open-redirect policy is app-owned |
+| Absolute `https://` navigations | **`off` allows a safe http(s) URL.** `strict` keeps it only for the request host or `navigate_allowed_hosts`, and refuses a backslash, a control character, an empty host, and an http(s) scheme that is not exactly `//` |
 
 **Bottom line:** Safe to ship interactive UIs behind production config **if** morph HTML is escaped, secrets are strong, and multi-worker deploys use shared nonce/rate/state stores.
 
@@ -80,13 +80,13 @@ Read [../../../START_HERE.md](../../../START_HERE.md) first if you are new. This
 | Sev | Risk | Owner | Mitigation |
 |-----|------|-------|------------|
 | **HIGH** | **Morph / swap / toast XSS** if user strings embedded raw | App + lib | **Partly mitigated.** Both modes remove `on*`, `srcdoc`, and dangerous URLs (`javascript:`, `vbscript:`, `data:text/html`, control characters in URL attributes) on every transport. This is a security fix against main `83a580a`, where off left that markup unchanged. Off still carries `<script>` and other markup and is **not a sanitizer**. `morph_html_policy="strict"` applies the full drop list. Escape user HTML or use strict. `doctor()` warns when off in production. |
-| **MED** | **Open redirect** via `https://evil.example` navigate | App | Allowlist hosts before `navigate()` / encode `Go` |
+| **MED** | **Open redirect** via `https://evil.example` navigate | App + lib | `off` still follows `safe_href`. `strict` keeps an absolute http(s) URL only for the request host or `navigate_allowed_hosts`, and refuses `https://evil.test\@app.test/`, a backslash, a control character, and an http(s) scheme that is not exactly `//`. |
 | **MED** | **Stolen `data-channel-cap`** until expiry | App + lib | Short TTL, HTTPS, `bind_cap_to_principal`, `once` for money actions |
 | **MED** | **Multi-worker** once/idempotency/rate/state | Deploy | Redis (or equivalent); do not use memory stores in multi-worker prod |
 | **MED** | **`trusted_proxy` + XFF spoof** | Deploy | Only behind proxy that overwrites `X-Forwarded-For` |
 | **LOW** | Missing `Origin` allowed | By design | Pair with channel header in prod |
 | **LOW** | Agent prompt injection | App | Allowlist tools, confirm secrets, budgets |
-| **INFO** | Absolute http(s) navigations not host-restricted | Policy | App policy layer |
+| **INFO** | Absolute http(s) navigations under `off` are not host-restricted | Policy | Set `morph_html_policy="strict"` or allowlist hosts |
 
 ---
 

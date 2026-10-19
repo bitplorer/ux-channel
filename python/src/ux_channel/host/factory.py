@@ -329,7 +329,7 @@ def create_channel(
         bus.navigate_allowed_hosts = ()
     else:
         raw_policy = getattr(cfg_bus, "morph_html_policy", None)
-        if raw_policy is None or (isinstance(raw_policy, str) and raw_policy.strip() == ""):
+        if raw_policy is None:
             bus.morph_html_policy = "off"
         elif raw_policy not in ("off", "strict"):
             raise ValueError('morph_html_policy must be "off" or "strict"')

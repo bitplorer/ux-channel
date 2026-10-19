@@ -228,9 +228,11 @@ class ChannelConfig:
 
         object.__setattr__(self, "cek", parse_cek(self.cek))
         raw_policy = self.morph_html_policy
-        if raw_policy is None or (isinstance(raw_policy, str) and raw_policy.strip() == ""):
+        # None is main's default: off. Blank, whitespace, and any other
+        # string are a configuration error, including from the env var.
+        if raw_policy is None:
             raw_policy = "off"
-        if raw_policy not in ("off", "strict"):
+        elif raw_policy not in ("off", "strict"):
             raise ValueError('morph_html_policy must be "off" or "strict"')
         object.__setattr__(self, "morph_html_policy", raw_policy)
         if self.proof_secret is not None:

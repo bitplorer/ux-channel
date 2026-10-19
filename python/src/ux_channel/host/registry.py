@@ -950,7 +950,13 @@ class ActionRegistry:
             hosts = tuple(getattr(cfg, "navigate_allowed_hosts", ()) or ())
         policy = "off"
         if cfg is not None:
-            policy = str(getattr(cfg, "morph_html_policy", "off") or "off")
+            raw_policy = getattr(cfg, "morph_html_policy", None)
+            if raw_policy is None:
+                policy = "off"
+            elif raw_policy not in ("off", "strict"):
+                raise ValueError('morph_html_policy must be "off" or "strict"')
+            else:
+                policy = str(raw_policy)
         result.ops = filter_outbound_ops(
             list(result.ops),
             policy=policy,

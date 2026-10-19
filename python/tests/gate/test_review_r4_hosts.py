@@ -54,7 +54,7 @@ def _post_fastapi(href: str) -> dict:
     def _go(href: str = "/ok") -> Result:
         return Result.success({"op": "navigate", "href": href})
 
-    client = TestClient(app)
+    client = TestClient(app, base_url="http://app.test")
     response = client.post(
         "/ux-channel/action",
         json={"v": "1", "action": "Go.there", "args": {"href": href}},
@@ -68,11 +68,10 @@ def _post_starlette(href: str) -> dict:
     app = Starlette()
     reg = _registry()
     mount_channel_starlette(app, reg, config=reg.config)
-    client = StarletteClient(app)
+    client = StarletteClient(app, base_url="http://app.test")
     response = client.post(
         "/ux-channel/action",
         json={"v": "1", "action": "Go.there", "args": {"href": href}},
-        headers={"host": "app.test"},
     )
     assert response.status_code == 200, response.text
     return response.json()
@@ -84,11 +83,10 @@ def _post_asgi(href: str) -> dict:
     async def app(scope, receive, send):  # type: ignore[no-untyped-def]
         await handle_action_asgi(scope, receive, send, reg, config=reg.config)
 
-    client = StarletteClient(app)
+    client = StarletteClient(app, base_url="http://app.test")
     response = client.post(
         "/ux-channel/action",
         json={"v": "1", "action": "Go.there", "args": {"href": href}},
-        headers={"host": "app.test"},
     )
     assert response.status_code == 200, response.text
     return response.json()

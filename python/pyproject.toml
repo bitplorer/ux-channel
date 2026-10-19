@@ -32,6 +32,7 @@ packages = [
 ]
 include = [
   "src/ux_channel/py.typed",
+  "src/ux_channel/render/drop_names.json",
   "src/ux_channel/static/**/*",
   "src/ux_channel/io_adapters/contracts/**/*",
   "src/ux_channel/scaffold/**/*",

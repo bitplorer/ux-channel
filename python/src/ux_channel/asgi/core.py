@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from types import SimpleNamespace
 from typing import Any, Callable, Optional
 
 from ux_channel.host.registry import ActionRegistry
@@ -28,6 +29,16 @@ async def read_body(receive: Callable, max_bytes: int) -> bytes:
             raise ValueError("payload_too_large")
         more = message.get("more_body", False)
     return body
+
+
+class _ScopeHeaders:
+    """``headers.get`` for a raw ASGI scope, so strict navigate sees ``Host``."""
+
+    def __init__(self, headers: dict[str, str]) -> None:
+        self._headers = headers
+
+    def get(self, name: str, default: str | None = None) -> str | None:
+        return self._headers.get(name.lower(), default)
 
 
 def status_for(result: Result) -> int:
@@ -124,6 +135,7 @@ async def handle_action_asgi(
     want_stream = "text/event-stream" in accept or intent.accept_stream
     want_html = "text/html" in accept and CHANNEL_JSON not in accept and not want_stream
 
+    registry.bind_request(SimpleNamespace(headers=_ScopeHeaders(headers)))
     result = await registry.async_dispatch(intent)
 
     if want_stream:
