@@ -77,6 +77,7 @@ class PushBus:
         self.morph_html_policy = "off"
         self.navigate_allowed_hosts: tuple[str, ...] = ()
         self._policy_bound = False
+        self._owner: int | None = None
 
     def outbound_policy(self) -> str:
         """Policy for this bus. A missing value is strict."""

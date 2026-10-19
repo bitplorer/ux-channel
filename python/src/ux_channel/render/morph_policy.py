@@ -179,7 +179,8 @@ class _StrictHTMLParser(HTMLParser):
 
     # ``style`` is omitted on purpose. ``noscript`` is raw text because
     # scripting=True, which is how a browser with scripts enabled parses it.
-    CDATA_CONTENT_ELEMENTS = ("script", "xmp", "iframe", "noembed", "noframes")
+    # typeshed marks this Final; overriding it is the documented extension.
+    CDATA_CONTENT_ELEMENTS = ("script", "xmp", "iframe", "noembed", "noframes")  # type: ignore[misc]
 
     def __init__(self) -> None:
         super().__init__(convert_charrefs=False, scripting=True)
