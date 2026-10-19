@@ -1,0 +1,17 @@
+{
+  "content": [
+    "iframe",
+    "noembed",
+    "noframes",
+    "noscript",
+    "object",
+    "plaintext",
+    "script",
+    "template",
+    "xmp"
+  ],
+  "void": ["base", "embed", "link", "meta"],
+  "animate": ["animate", "animatemotion", "animatetransform", "set"],
+  "animate_name": ["href", "xlink:href"],
+  "animate_url": ["by", "from", "to", "values"]
+}

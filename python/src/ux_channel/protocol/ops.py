@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from typing import Any, Mapping, MutableMapping, Optional, Sequence
 
-from ux_channel.security.security import safe_href
+from ux_channel.security.security import _sanitize_attr_map, safe_href
 
 Op = dict[str, Any]
 
@@ -66,7 +66,36 @@ def remove(target: str, *, meta: Optional[Mapping[str, Any]] = None) -> Op:
 def set_attr(
     target: str, attrs: Mapping[str, Any], *, meta: Optional[Mapping[str, Any]] = None
 ) -> Op:
-    return _op("set_attr", target=target, attrs=dict(attrs), meta=dict(meta) if meta else None)
+    """Set attributes. URL attributes are checked with ``safe_href``.
+
+    ``javascript:``, ``vbscript:``, ``file:``, and other script schemes are
+    omitted, including whitespace and HTML-entity obfuscations. Protocol-relative
+    ``//`` URLs are kept. ``blob:`` and ``data:image/png|jpeg|gif|webp|avif``
+    are kept on src-type attributes only. ``data:image/svg+xml`` and
+    ``data:text/html`` are omitted. Dict and list values are refused and are
+    not stringified. Other non-None values are stringified the way
+    ``setAttribute`` does before that check. If that drops every attribute,
+    the op is a noop (``reason=unsafe_href``). Event-handler names (``on*``)
+    and ``srcdoc`` are always a noop (``reason=unsafe_attr``), including when
+    the value is Markup or any other ``__html__`` object. Relative, http(s),
+    mailto, and tel values are kept. Non-URL attributes are copied through.
+    """
+    raw = dict(attrs)
+    cleaned, reason = _sanitize_attr_map(raw)
+    if cleaned is None:
+        dropped: dict[str, Any] = {
+            "dropped": "set_attr",
+            "reason": reason or "unsafe_href",
+        }
+        if meta:
+            dropped = {**dict(meta), **dropped}
+        return _op("noop", meta=dropped)
+    return _op(
+        "set_attr",
+        target=target,
+        attrs=cleaned,
+        meta=dict(meta) if meta else None,
+    )
 
 
 def set_text(target: str, text: str, *, meta: Optional[Mapping[str, Any]] = None) -> Op:

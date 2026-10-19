@@ -12,9 +12,8 @@ It is **not**:
 - SSE/WebSocket subscribe (clients use push topics + tickets)
 - A guarantee across Gunicorn workers
 
-Multi-worker live updates: publish a Result on the **push bus**
-(``get_push_bus().publish``) with Redis backend; each worker applies or
-forwards as configured.
+Multi-worker live updates: publish a Result on this channel's push bus
+with a Redis backend; each worker applies or forwards as configured.
 
 See: docs/SSE.md, docs/WEBSOCKET.md, docs/COURSE.md.
 """
@@ -89,7 +88,6 @@ class LivePlane:
 
         If ``result`` is None, builds ``ch.refresh(*bound, *extra)``.
         """
-        from ux_channel.transport.push import get_push_bus
         from ux_channel.protocol.types import Result
 
         uids: list[str] = list(self.regions_for(topic))
@@ -126,7 +124,13 @@ class LivePlane:
         meta["seq"] = self.next_seq(topic)
         meta["topic"] = topic
         body["meta"] = meta
-        return get_push_bus().publish(topic, body)
+        reg = getattr(self.ch, "registry", None)
+        bus = getattr(reg, "push_bus", None) if reg is not None else None
+        if bus is None:
+            bus = getattr(self.ch, "push_bus", None)
+        if bus is None:
+            raise RuntimeError("channel has no push bus")
+        return bus.publish(topic, body)
 
     # --- presence (Wave 2 / 5) ---------------------------------------------
 

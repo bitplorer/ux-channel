@@ -1,16 +1,19 @@
 # Minimal deps for monorepo gate (./verify.sh / CI)
 itsdangerous>=2.1
+html5lib>=1.1,<2
 pytest>=8.0
 msgpack>=1.0
 hypothesis>=6.100
 pytest-cov>=5.0
-fakeredis>=2.20
+# Test-only. 2.40.0 (2026-10-14) is newer than 14 days. Intake: python/docs/security/fakeredis-intake.md
+fakeredis>=2.39,<2.40
 # Default Cap machine (cut #3). Escape: UX_CHANNEL_CEK=off
 # Floor is 0.2.0. Older wheels teach cek_host.legal. Do not pin them.
 cek-host>=0.2.0
 cek-surface>=0.2.0
 # Host suite (optional — make test-python-host)
 fastapi>=0.100
+markupsafe>=2.1
 httpx>=0.24
 starlette>=0.27
 pytest-asyncio>=0.24

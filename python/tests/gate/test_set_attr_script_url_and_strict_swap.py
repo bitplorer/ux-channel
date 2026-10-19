@@ -1,0 +1,899 @@
+"""H1 set_attr script-scheme URLs, H2 strict swap, and the H3 to_html pin.
+
+Kept behavior at 83a580a is asserted and passes. The live H1 and H2 checks
+are asserted as they must behave once closed, so they fail while the holes
+are still open.
+"""
+
+from __future__ import annotations
+
+import asyncio
+import json
+import shutil
+import subprocess
+import tempfile
+from pathlib import Path
+
+import markupsafe
+import pytest
+from fastapi import FastAPI
+
+from ux_channel import (
+    Channel,
+    ChannelConfig,
+    Intent,
+    Result,
+    esc,
+    morph,
+    set_attr,
+    swap,
+    toast,
+)
+from ux_channel.components.primitive import to_html
+from ux_channel.protocol import invoke, seq, timer_set
+from ux_channel.render.morph_policy import apply_morph_policy, strip_dangerous_html
+from ux_channel.security.security import sanitize_op_hrefs
+from ux_channel.transport.push import get_push_bus
+
+_SECRET = "h1h2-set-attr-secret-32chars-min!!"
+_STATIC = Path(__file__).resolve().parents[2] / "src" / "ux_channel" / "static"
+_LIVE_HREF = "javascript:window.PWN_ATTR=1;void 0"
+_SWAP_HTML = '<img src="x" onerror="window.PWN_SWAP=1">'
+_URL_ATTRS = ("href", "src", "action", "formaction", "xlink:href", "poster")
+_SCRIPT_URLS = (
+    _LIVE_HREF,
+    "javascript:alert(1)",
+    "JAVASCRIPT:alert(1)",
+    "vbscript:msgbox(1)",
+    "data:text/html,<script>alert(1)</script>",
+    "data:text/html;base64,PHNjcmlwdD4=",
+    "java script:alert(1)",
+    "java\tscript:alert(1)",
+    "java\nscript:alert(1)",
+    "java\r\nscript:alert(1)",
+    "java\x00script:alert(1)",
+    "\x00javascript:alert(1)",
+    "java\u200bscript:alert(1)",
+    "java\u00adscript:alert(1)",
+    "&#106;avascript:alert(1)",
+    "&#x6A;avascript:alert(1)",
+    "javascript&#58;alert(1)",
+    "java&#115;cript:alert(1)",
+    "java&#09;script:alert(1)",
+    "javascript&colon;alert(1)",
+    "&#38;#106;avascript:alert(1)",
+    "file:///etc/passwd",
+)
+_SAFE_HREFS = (
+    "/ok",
+    "./a",
+    "https://example.com/a",
+    "http://example.com/a",
+    "mailto:a@b.c",
+    "tel:+15551212",
+    "#top",
+    "?q=1",
+    "",
+    "  ",
+)
+
+_JS_HARNESS = r"""
+const fs = require("fs");
+const vm = require("vm");
+const srcPath = process.argv[2];
+const cases = JSON.parse(process.argv[3]);
+
+function el() {
+  const attrs = Object.create(null);
+  return {
+    setAttribute(k, v) { attrs[k] = String(v); },
+    getAttribute(k) {
+      return Object.prototype.hasOwnProperty.call(attrs, k) ? attrs[k] : null;
+    },
+    removeAttribute(k) { delete attrs[k]; },
+    hasAttribute(k) { return Object.prototype.hasOwnProperty.call(attrs, k); },
+  };
+}
+
+const elements = Object.create(null);
+const document = {
+  readyState: "loading",
+  body: null,
+  addEventListener() {},
+  removeEventListener() {},
+  dispatchEvent() { return true; },
+  querySelector(sel) {
+    if (!elements[sel]) elements[sel] = el();
+    return elements[sel];
+  },
+  querySelectorAll() { return []; },
+  createElement() { return el(); },
+  getElementById() { return null; },
+};
+const context = {
+  console: { log() {}, warn() {}, error() {}, info() {} },
+  document,
+  CustomEvent: class CustomEvent {
+    constructor(type, init) {
+      this.type = type;
+      this.detail = init && init.detail;
+    }
+  },
+  setTimeout, clearTimeout, queueMicrotask, Promise, URL, TextEncoder,
+  crypto: globalThis.crypto,
+  btoa: (s) => Buffer.from(s, "binary").toString("base64"),
+  atob: (s) => Buffer.from(s, "base64").toString("binary"),
+};
+context.window = context;
+context.globalThis = context;
+vm.createContext(context);
+vm.runInContext(fs.readFileSync(srcPath, "utf8"), context, { filename: srcPath });
+
+async function apply(selector, attrs) {
+  await context.uxChannel.applyResult({
+    ok: true,
+    ops: [{ op: "set_attr", target: selector, attrs }],
+  });
+  return document.querySelector(selector);
+}
+
+(async () => {
+  for (const c of cases) {
+    const node = document.querySelector(c.selector);
+    if (c.prime) await apply(c.selector, c.prime);
+    await apply(c.selector, c.attrs);
+    const got = node.getAttribute(c.attr);
+    if (got !== c.expect) {
+      console.error(JSON.stringify({ file: srcPath, case: c, got }));
+      process.exit(1);
+    }
+  }
+})().catch((err) => {
+  console.error(err && err.stack ? err.stack : String(err));
+  process.exit(1);
+});
+"""
+
+
+def _op_dicts(result: Result) -> list[dict]:
+    out: list[dict] = []
+    for op in result.ops:
+        if hasattr(op, "to_dict"):
+            out.append(op.to_dict())
+        else:
+            out.append(dict(op))
+    return out
+
+
+def _dispatch(policy: str, action: str, op: dict) -> list[dict]:
+    app = FastAPI()
+    cfg = ChannelConfig.development(
+        secret=_SECRET,
+        morph_html_policy=policy,
+        observe="off",
+        allow_memory_stores=True,
+    )
+    ch = Channel.boot(app, config=cfg)
+
+    @ch.on(action)
+    def _handler() -> Result:
+        return Result.success(op)
+
+    cap = ch.mint(action, {})
+    result = ch.registry.dispatch(Intent(action=action, args={}, cap=cap))
+    assert result.ok, result.error
+    return _op_dicts(result)
+
+
+def _set_attr_case(src: str) -> str:
+    start = src.index('case "set_attr":')
+    end = src.index('case "clear_errors":', start)
+    return src[start:end]
+
+
+def _run_client_cases(cases: list[dict]) -> None:
+    binary = shutil.which("node")
+    if not binary:
+        pytest.skip("node is not installed")
+    payload = json.dumps(cases)
+    for name in ("ux-channel.js", "ux-channel.min.js"):
+        with tempfile.NamedTemporaryFile("w", suffix=".js", delete=False) as fh:
+            fh.write(_JS_HARNESS)
+            script_path = fh.name
+        proc = subprocess.run(
+            [binary, script_path, str(_STATIC / name), payload],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        assert proc.returncode == 0, f"{name}\n{proc.stdout}\n{proc.stderr}"
+
+
+def test_set_attr_keeps_relative_https_and_non_url_attrs() -> None:
+    for href in _SAFE_HREFS:
+        op = set_attr("#link", {"href": href})
+        assert op["op"] == "set_attr", href
+        assert op["attrs"]["href"] == href
+    op = set_attr(
+        "#link",
+        {
+            "class": "javascript:alert(1)",
+            "title": "vbscript:nope",
+            "aria-invalid": "true",
+            "data-href": "javascript:alert(1)",
+            "data-src": "data:text/html,x",
+            "disabled": True,
+            "data-n": 3,
+            "href": 1,
+        },
+    )
+    assert op["op"] == "set_attr"
+    assert op["attrs"]["class"] == "javascript:alert(1)"
+    assert op["attrs"]["title"] == "vbscript:nope"
+    assert op["attrs"]["aria-invalid"] == "true"
+    assert op["attrs"]["data-href"] == "javascript:alert(1)"
+    assert op["attrs"]["data-src"] == "data:text/html,x"
+    assert op["attrs"]["disabled"] is True
+    assert op["attrs"]["data-n"] == 3
+    # setAttribute stringifies before the URL check, so a number is "1".
+    assert op["attrs"]["href"] == "1"
+
+
+def test_set_attr_refuses_script_schemes_on_url_attributes() -> None:
+    for name in _URL_ATTRS:
+        for url in _SCRIPT_URLS:
+            op = set_attr("#t", {name: url, "class": "keep"})
+            attrs = op.get("attrs") or {}
+            assert attrs.get("class") == "keep", (name, url, op)
+            assert attrs.get(name) != url, (name, url, op)
+            blob = json.dumps(attrs).lower()
+            assert "javascript:" not in blob, (name, url, op)
+            assert "vbscript:" not in blob
+            assert "data:text/html" not in blob
+
+
+_IMAGE_DATA = tuple(
+    f"data:image/{kind};base64,AAAA" for kind in ("png", "jpeg", "gif", "webp", "avif")
+)
+_SVG_DATA = "data:image/svg+xml;base64,PHN2Zy8+"
+_BLOB_URL = "blob:https://example/uuid"
+_PROTOCOL_RELATIVE = "//cdn.example/a.png"
+
+
+_ALL_URL_ATTRS = (
+    "action",
+    "archive",
+    "background",
+    "cite",
+    "classid",
+    "code",
+    "codebase",
+    "data",
+    "dynsrc",
+    "formaction",
+    "href",
+    "icon",
+    "longdesc",
+    "lowsrc",
+    "manifest",
+    "ping",
+    "poster",
+    "profile",
+    "src",
+    "usemap",
+)
+
+
+def test_url_attr_parity_server_and_client() -> None:
+    """Every URL attribute, poster included, refuses javascript: on both sides."""
+    cases = []
+    for name in _ALL_URL_ATTRS:
+        op = set_attr("#t", {name: "javascript:alert(1)", "class": "keep"})
+        assert name not in (op.get("attrs") or {}), name
+        raw = sanitize_op_hrefs(
+            [
+                {
+                    "op": "set_attr",
+                    "target": "#t",
+                    "attrs": {name: "javascript:alert(1)", "class": "keep"},
+                }
+            ]
+        )
+        assert name not in (raw[0].get("attrs") or {}), name
+        cases.append(
+            {
+                "selector": "#par-" + name,
+                "attr": name,
+                "prime": {name: "/ok"},
+                "attrs": {name: "javascript:alert(1)"},
+                "expect": "/ok",
+            }
+        )
+    _run_client_cases(cases)
+
+
+def test_set_attr_href_trailing_space_is_checked() -> None:
+    """security.py strips the name, so 'href ' is the href URL attribute."""
+    op = set_attr("#t", {"href ": "javascript:alert(1)"})
+    assert op["op"] == "noop", op
+    assert (op.get("meta") or {}).get("reason") == "unsafe_href"
+    assert "javascript:" not in json.dumps(op).lower()
+
+
+def test_set_attr_keeps_protocol_relative_and_src_image_urls() -> None:
+    for name in ("href", "src", "poster", "xlink:href"):
+        op = set_attr("#t", {name: _PROTOCOL_RELATIVE})
+        assert op["op"] == "set_attr", name
+        assert op["attrs"][name] == _PROTOCOL_RELATIVE
+
+    for name in ("src", "foo:src"):
+        op = set_attr("#i", {name: _BLOB_URL})
+        assert op["attrs"][name] == _BLOB_URL, name
+        for url in _IMAGE_DATA:
+            kept = set_attr("#i", {name: url})
+            assert kept["attrs"][name] == url, (name, url)
+
+    for name in ("href", "poster"):
+        blob_op = set_attr("#a", {name: _BLOB_URL, "class": "keep"})
+        assert name not in blob_op["attrs"]
+        assert blob_op["attrs"]["class"] == "keep"
+        image_op = set_attr("#a", {name: _IMAGE_DATA[0], "class": "keep"})
+        assert name not in image_op["attrs"]
+
+    for name in ("src", "href"):
+        svg_op = set_attr("#t", {name: _SVG_DATA, "class": "keep"})
+        assert name not in svg_op["attrs"], name
+        assert "svg" not in json.dumps(svg_op["attrs"]).lower()
+        html_op = set_attr(
+            "#t",
+            {name: "data:text/html,<script>alert(1)</script>", "class": "keep"},
+        )
+        assert name not in html_op["attrs"], name
+        assert "data:text/html" not in json.dumps(html_op).lower()
+
+
+def test_client_keeps_protocol_relative_and_src_image_urls() -> None:
+    cases = []
+    for name in ("href", "src", "poster"):
+        cases.append(
+            {
+                "selector": "#rel-" + name,
+                "attr": name,
+                "attrs": {name: _PROTOCOL_RELATIVE},
+                "expect": _PROTOCOL_RELATIVE,
+            }
+        )
+    for name in ("src", "foo:src"):
+        cases.append(
+            {
+                "selector": "#blob-" + name,
+                "attr": name,
+                "attrs": {name: _BLOB_URL},
+                "expect": _BLOB_URL,
+            }
+        )
+        for url in _IMAGE_DATA:
+            cases.append(
+                {
+                    "selector": "#img-" + name + url,
+                    "attr": name,
+                    "attrs": {name: url},
+                    "expect": url,
+                }
+            )
+    for name in ("href", "poster"):
+        cases.append(
+            {
+                "selector": "#noblob-" + name,
+                "attr": name,
+                "prime": {name: "/ok"},
+                "attrs": {name: _BLOB_URL},
+                "expect": "/ok",
+            }
+        )
+        cases.append(
+            {
+                "selector": "#noimg-" + name,
+                "attr": name,
+                "prime": {name: "/ok"},
+                "attrs": {name: _IMAGE_DATA[0]},
+                "expect": "/ok",
+            }
+        )
+    for name in ("src", "href"):
+        cases.append(
+            {
+                "selector": "#svg-" + name,
+                "attr": name,
+                "prime": {name: "/ok"},
+                "attrs": {name: _SVG_DATA},
+                "expect": "/ok",
+            }
+        )
+    _run_client_cases(cases)
+
+
+def test_set_attr_refuses_non_string_script_urls() -> None:
+    """Dict and list values are refused. They are never stringified."""
+
+    class _ScriptUrl:
+        def __str__(self) -> str:
+            return "javascript:alert(1)"
+
+    href_op = set_attr("#a", {"href": ["javascript:alert(1)"]})
+    assert href_op["op"] == "noop", href_op
+    assert (href_op.get("meta") or {}).get("reason") == "unsafe_href"
+    assert "javascript:" not in json.dumps(href_op).lower()
+
+    src_op = set_attr(
+        "#img",
+        {"src": ["data:text/html,<script>alert(1)</script>"], "class": "keep"},
+    )
+    assert src_op["op"] == "set_attr", src_op
+    assert "src" not in src_op["attrs"]
+    assert src_op["attrs"]["class"] == "keep"
+    assert "data:text/html" not in json.dumps(src_op).lower()
+
+    obj_op = set_attr("#a", {"href": _ScriptUrl(), "class": "keep"})
+    assert "href" not in (obj_op.get("attrs") or {})
+    assert "javascript:" not in json.dumps(obj_op).lower()
+
+    # A list is not stringified. Joining it would hide a script URL in one
+    # entry and would not match the client's "[object Object]" / refusal.
+    listed = set_attr("#a", {"href": ["https://example.com/a"], "class": "keep"})
+    assert listed["op"] == "set_attr", listed
+    assert "href" not in listed["attrs"]
+    assert listed["attrs"]["class"] == "keep"
+    assert "https://example.com/a" not in json.dumps(listed)
+
+    mapped = set_attr("#a", {"href": {"a": 1}, "class": "keep"})
+    assert "href" not in (mapped.get("attrs") or {})
+    blob = json.dumps(mapped)
+    assert "{'a'" not in blob
+    assert "[object Object]" not in blob
+    assert mapped["attrs"]["class"] == "keep"
+
+
+def test_client_set_attr_refuses_non_string_script_urls() -> None:
+    _run_client_cases(
+        [
+            {
+                "selector": "#link",
+                "attr": "href",
+                "prime": {"href": "/ok"},
+                "attrs": {"href": ["javascript:alert(1)"]},
+                "expect": "/ok",
+            },
+            {
+                "selector": "#img",
+                "attr": "src",
+                "prime": {"src": "/ok"},
+                "attrs": {"src": ["data:text/html,<script>alert(1)</script>"]},
+                "expect": "/ok",
+            },
+            {
+                "selector": "#link",
+                "attr": "href",
+                "prime": {"href": "/ok"},
+                "attrs": {"href": ["https://example.com/a"]},
+                "expect": "/ok",
+            },
+            {
+                "selector": "#link",
+                "attr": "href",
+                "prime": {"href": "/ok"},
+                "attrs": {"href": {"a": 1}},
+                "expect": "/ok",
+            },
+        ]
+    )
+
+
+def test_set_attr_refuses_control_prefixed_protocol_relative() -> None:
+    """``//`` is kept only after a whitespace trim, not a control-character strip."""
+    for value in ("\x01//x", "/\t/x"):
+        op = set_attr("#a", {"href": value, "class": "keep"})
+        assert "href" not in (op.get("attrs") or {}), (repr(value), op)
+        assert op["attrs"]["class"] == "keep"
+    kept = set_attr("#a", {"href": "  //cdn.example/a.png"})
+    assert kept["attrs"]["href"].lstrip().startswith("//")
+    _run_client_cases(
+        [
+            {
+                "selector": "#link",
+                "attr": "href",
+                "prime": {"href": "/ok"},
+                "attrs": {"href": "\x01//x"},
+                "expect": "/ok",
+            },
+            {
+                "selector": "#link",
+                "attr": "href",
+                "prime": {"href": "/ok"},
+                "attrs": {"href": "/\t/x"},
+                "expect": "/ok",
+            },
+            {
+                "selector": "#img",
+                "attr": "src",
+                "attrs": {"src": "  //cdn.example/a.png"},
+                "expect": "  //cdn.example/a.png",
+            },
+        ]
+    )
+
+
+def test_set_attr_refuses_event_handlers_and_srcdoc() -> None:
+    for name, value in (
+        ("onclick", "alert(1)"),
+        ("onerror", "alert(1)"),
+        ("ONLOAD", "alert(1)"),
+        ("srcdoc", "<script>alert(1)</script>"),
+    ):
+        op = set_attr("#a", {name: value, "class": "keep"})
+        assert op["op"] == "noop", (name, op)
+        assert (op.get("meta") or {}).get("reason") == "unsafe_attr"
+        assert "alert" not in json.dumps(op).lower()
+
+    raw = sanitize_op_hrefs(
+        [
+            {
+                "op": "set_attr",
+                "target": "#a",
+                "attrs": {"onclick": "alert(1)", "class": "keep"},
+            }
+        ]
+    )
+    assert raw[0]["op"] == "noop"
+    assert (raw[0].get("meta") or {}).get("reason") == "unsafe_attr"
+
+    signed = _dispatch(
+        "off",
+        "probe.onclick",
+        {"op": "set_attr", "target": "#a", "attrs": {"onclick": "alert(1)"}},
+    )
+    assert signed[0]["op"] == "noop"
+
+    # Markup is not a JavaScript trust marker. All three of these are a
+    # Markup value with a live call, and each one is still refused.
+    user = "alert(1)"
+    forms = (
+        markupsafe.Markup("select({})").format(user),
+        markupsafe.Markup("go(%s)") % user,
+        markupsafe.escape(user),
+    )
+    for value in forms:
+        for name in ("onclick", "srcdoc"):
+            op = set_attr("#a", {name: value, "class": "keep"})
+            assert op["op"] == "noop", (name, type(value).__name__, op)
+            assert (op.get("meta") or {}).get("reason") == "unsafe_attr"
+            assert "alert" not in json.dumps(op).lower()
+            again = sanitize_op_hrefs(
+                [
+                    {
+                        "op": "set_attr",
+                        "target": "#a",
+                        "attrs": {name: value, "class": "keep"},
+                    }
+                ]
+            )
+            assert again[0]["op"] == "noop", (name, again)
+            assert "alert" not in json.dumps(again).lower()
+
+    data_on = set_attr("#a", {"data-onclick": "alert(1)"})
+    assert data_on["op"] == "set_attr"
+    assert data_on["attrs"]["data-onclick"] == "alert(1)"
+
+
+def test_client_refuses_onclick_string() -> None:
+    _run_client_cases(
+        [
+            {
+                "selector": "#btn",
+                "attr": "onclick",
+                "attrs": {"onclick": "alert(1)"},
+                "expect": None,
+            }
+        ]
+    )
+
+
+def test_set_attr_only_script_href_does_not_land() -> None:
+    op = set_attr("#link", {"href": _LIVE_HREF})
+    assert op["op"] == "noop", op
+    assert (op.get("meta") or {}).get("reason") == "unsafe_href"
+    assert "javascript:" not in json.dumps(op).lower()
+
+
+def test_signed_set_attr_javascript_href_does_not_land() -> None:
+    ops = _dispatch(
+        "off",
+        "probe.attr",
+        set_attr("#link", {"href": _LIVE_HREF}),
+    )
+    assert ops
+    for op in ops:
+        if op.get("op") == "set_attr":
+            assert "href" not in (op.get("attrs") or {})
+    assert "javascript:" not in json.dumps(ops).lower()
+
+
+def test_signed_set_attr_relative_and_https_href_lands() -> None:
+    for action, href in (("probe.rel", "/ok"), ("probe.https", "https://example.com/a")):
+        ops = _dispatch("off", action, set_attr("#link", {"href": href}))
+        assert ops[0]["op"] == "set_attr"
+        assert ops[0]["attrs"]["href"] == href
+
+
+def test_signed_raw_set_attr_dict_javascript_href_does_not_land() -> None:
+    ops = _dispatch(
+        "strict",
+        "probe.raw",
+        {
+            "op": "set_attr",
+            "target": "#link",
+            "attrs": {"href": _LIVE_HREF, "class": "keep"},
+        },
+    )
+    assert ops[0]["op"] == "set_attr"
+    assert ops[0]["attrs"] == {"class": "keep"}
+    assert "javascript:" not in json.dumps(ops).lower()
+
+
+def test_off_policy_strips_handlers_and_keeps_markup() -> None:
+    ops = apply_morph_policy(
+        [
+            swap("#t", _SWAP_HTML, swap="innerHTML"),
+            morph("#m", _SWAP_HTML),
+        ],
+        policy="off",
+    )
+    for op in ops:
+        assert "onerror" not in op["html"].lower()
+        assert "<img" in op["html"].lower()
+    signed = _dispatch(
+        "off",
+        "probe.swap_off",
+        swap("#t", _SWAP_HTML, swap="innerHTML"),
+    )
+    assert signed[0]["op"] == "swap"
+    assert "onerror" not in signed[0]["html"].lower()
+    assert "<img" in signed[0]["html"].lower()
+    kept = apply_morph_policy(
+        [swap("#t", "<script>alert(1)</script><b>keep</b>")],
+        policy="off",
+    )
+    assert "<script" in kept[0]["html"].lower()
+    assert "keep" in kept[0]["html"]
+
+
+def test_strict_policy_still_strips_morph_and_toast() -> None:
+    morph_ops = apply_morph_policy(
+        [morph("#m", '<div id="m"><script>alert(1)</script><b>hi</b></div>')],
+        policy="strict",
+    )
+    assert "<script" not in morph_ops[0]["html"].lower()
+    assert "hi" in morph_ops[0]["html"]
+    toast_ops = apply_morph_policy(
+        [toast('<img src="x" onerror="alert(1)">')],
+        policy="strict",
+    )
+    assert "onerror" not in str(toast_ops[0].get("message") or "").lower()
+
+
+def test_strict_stripper_catches_svg_unquoted_and_entity_schemes() -> None:
+    svg = "<svg/onload=alert(1)>"
+    unquoted = "<a href=javascript:alert(1)>x</a>"
+    entity = '<a href="java&#115;cript:alert(1)">x</a>'
+    for html in (svg, unquoted, entity):
+        stripped = strip_dangerous_html(html)
+        assert "onload" not in stripped.lower(), stripped
+        assert "javascript:" not in stripped.lower(), stripped
+        assert "&#115;" not in stripped.lower(), stripped
+        via = apply_morph_policy([swap("#t", html)], policy="strict")
+        body = via[0]["html"].lower()
+        assert "onload" not in body, via
+        assert "javascript:" not in body, via
+        assert "&#115;" not in body, via
+    assert "x" in strip_dangerous_html(unquoted)
+    assert "x" in strip_dangerous_html(entity)
+
+
+def test_strict_policy_strips_swap_onerror() -> None:
+    ops = apply_morph_policy(
+        [swap("#t", _SWAP_HTML, swap="innerHTML")],
+        policy="strict",
+    )
+    assert "onerror" not in ops[0]["html"].lower()
+    assert "<img" in ops[0]["html"].lower()
+    signed = _dispatch("strict", "probe.swap", swap("#t", _SWAP_HTML, swap="innerHTML"))
+    assert signed[0]["op"] == "swap"
+    assert "onerror" not in signed[0]["html"].lower()
+    assert signed[0]["swap"] == "innerHTML"
+
+
+def test_nested_ops_are_filtered_for_hrefs_and_strict_swap() -> None:
+    html = '<img src="x" onerror="alert(1)">'
+    raw_attr = {
+        "op": "set_attr",
+        "target": "#a",
+        "attrs": {"href": "javascript:alert(1)", "class": "keep"},
+    }
+    direct = apply_morph_policy([seq(swap("#a", html))], policy="strict")
+    assert "onerror" not in direct[0]["ops"][0]["html"].lower()
+    assert "<img" in direct[0]["ops"][0]["html"].lower()
+    sanitized = sanitize_op_hrefs([seq(raw_attr)])
+    assert "javascript:" not in json.dumps(sanitized).lower()
+    for action, op in (
+        ("probe.seq", seq(swap("#a", html), raw_attr)),
+        ("probe.timer", timer_set("t", 10, swap("#a", html), raw_attr)),
+        ("probe.invoke", invoke("ref", "go", None, swap("#a", html), raw_attr)),
+    ):
+        ops = _dispatch("strict", action, op)
+        blob = json.dumps(ops).lower()
+        assert "onerror" not in blob, action
+        assert "javascript:" not in blob, action
+
+
+def test_push_publish_filters_nested_swap_and_href() -> None:
+    app = FastAPI()
+    cfg = ChannelConfig.development(
+        secret=_SECRET,
+        morph_html_policy="strict",
+        observe="off",
+        allow_memory_stores=True,
+    )
+    Channel.boot(app, config=cfg)
+    bus = get_push_bus()
+    queue: asyncio.Queue = asyncio.Queue()
+    bus.subscribe("probe.push", queue)
+    html = '<img src="x" onerror="alert(1)">'
+    delivered = bus.publish(
+        "probe.push",
+        Result.success(
+            seq(swap("#a", html)),
+            {
+                "op": "set_attr",
+                "target": "#a",
+                "attrs": {"href": "javascript:alert(1)", "class": "keep"},
+            },
+        ),
+    )
+    assert delivered == 1
+    body = queue.get_nowait()
+    assert "onerror" not in body["ops"][0]["ops"][0]["html"].lower()
+    assert "javascript:" not in json.dumps(body["ops"][1]).lower()
+
+
+def test_to_html_str_and_bytes_return_markup_unchanged() -> None:
+    raw = '<img src="x" onerror="window.PWN=1">'
+    assert to_html(raw) == raw
+    assert to_html(raw.encode()) == raw
+    assert to_html(None) == ""
+    escaped = esc(raw)
+    assert escaped != raw
+    assert "<img" not in escaped
+
+
+def test_client_set_attr_case_checks_href_with_safe_href() -> None:
+    for name in ("ux-channel.js", "ux-channel.min.js"):
+        body = _set_attr_case((_STATIC / name).read_text())
+        assert "safeHref(" in body
+        assert "blocked unsafe set_attr" in body
+
+
+def test_client_set_attr_keeps_relative_and_https() -> None:
+    _run_client_cases(
+        [
+            {
+                "selector": "#link",
+                "attr": "href",
+                "attrs": {"href": "/ok"},
+                "expect": "/ok",
+            },
+            {
+                "selector": "#link",
+                "attr": "href",
+                "attrs": {"href": "https://example.com/a"},
+                "expect": "https://example.com/a",
+            },
+            {
+                "selector": "#link",
+                "attr": "href",
+                "attrs": {"href": ""},
+                "expect": "",
+            },
+            {
+                "selector": "#link",
+                "attr": "class",
+                "prime": {"class": "before"},
+                "attrs": {"class": "javascript:alert(1)"},
+                "expect": "javascript:alert(1)",
+            },
+            {
+                "selector": "#link",
+                "attr": "href",
+                "prime": {"href": "/ok"},
+                "attrs": {"href": None},
+                "expect": None,
+            },
+        ]
+    )
+
+
+def test_client_set_attr_refuses_script_scheme_urls() -> None:
+    cases = []
+    for url in (
+        _LIVE_HREF,
+        "vbscript:msgbox(1)",
+        "data:text/html,<script>alert(1)</script>",
+        "java\tscript:alert(1)",
+        "java script:alert(1)",
+        "java\u200bscript:alert(1)",
+        "&#106;avascript:alert(1)",
+        "javascript&#58;alert(1)",
+        "javascript&colon;alert(1)",
+        "&#38;#106;avascript:alert(1)",
+    ):
+        cases.append(
+            {
+                "selector": "#link",
+                "attr": "href",
+                "prime": {"href": "/ok"},
+                "attrs": {"href": url},
+                "expect": "/ok",
+            }
+        )
+    for name in ("src", "action", "formaction", "xlink:href"):
+        cases.append(
+            {
+                "selector": "#" + name,
+                "attr": name,
+                "prime": {name: "/ok"},
+                "attrs": {name: _LIVE_HREF},
+                "expect": "/ok",
+            }
+        )
+    _run_client_cases(cases)
+
+
+def test_client_navigate_still_blocks_javascript() -> None:
+    binary = shutil.which("node")
+    if not binary:
+        pytest.skip("node is not installed")
+    script = r"""
+const fs = require("fs");
+const vm = require("vm");
+const src = fs.readFileSync(process.argv[2], "utf8");
+const start = src.indexOf("function safeHref");
+const brace = src.indexOf("{", start);
+let depth = 0;
+let end = -1;
+for (let n = brace; n < src.length; n++) {
+  if (src[n] === "{") depth++;
+  else if (src[n] === "}") {
+    depth--;
+    if (depth === 0) { end = n + 1; break; }
+  }
+}
+const fn = src.slice(src.lastIndexOf("\n", start) + 1, end);
+const safeHref = new Function(fn + "\nreturn safeHref;")();
+const href = "javascript:window.PWN_ATTR=1;void 0";
+if (safeHref(href) !== null) {
+  console.error(safeHref(href));
+  process.exit(1);
+}
+if (safeHref("/ok") !== "/ok") process.exit(1);
+if (safeHref("https://example.com/a") !== "https://example.com/a") process.exit(1);
+"""
+    for name in ("ux-channel.js", "ux-channel.min.js"):
+        with tempfile.NamedTemporaryFile("w", suffix=".js", delete=False) as fh:
+            fh.write(script)
+            script_path = fh.name
+        proc = subprocess.run(
+            [binary, script_path, str(_STATIC / name)],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        assert proc.returncode == 0, f"{name}\n{proc.stdout}\n{proc.stderr}"

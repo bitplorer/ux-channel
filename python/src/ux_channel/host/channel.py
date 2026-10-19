@@ -279,6 +279,13 @@ class Channel:
         self.config = config
         self.hub = hub
         self.path = path
+        # Local import: transport.push pulls the wire codec. The registry
+        # already holds this channel's bus; attaching here follows set_push_bus.
+        bus = getattr(registry, "push_bus", None)
+        if bus is not None:
+            from ux_channel.transport.push import attach_push_bus
+
+            attach_push_bus(self, bus)
         if state is not None:
             self.state = state
         else:

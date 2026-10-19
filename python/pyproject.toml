@@ -32,6 +32,7 @@ packages = [
 ]
 include = [
   "src/ux_channel/py.typed",
+  "src/ux_channel/render/drop_names.json",
   "src/ux_channel/static/**/*",
   "src/ux_channel/io_adapters/contracts/**/*",
   "src/ux_channel/scaffold/**/*",
@@ -55,6 +56,10 @@ orjson = { version = ">=3.9", optional = true }
 # 0.2.0 is the catalog Host. Older wheels teach cek_host.legal. Do not pin them.
 cek-host = ">=0.2.0"
 cek-surface = ">=0.2.0"
+# HTML5 fragment parser for the strict morph/swap stripper. The stdlib
+# parser does not do foreign content (svg/math). html5lib is MIT, last
+# release 1.1 (2020); six and webencodings are its only runtime deps.
+html5lib = ">=1.1,<2"
 
 [tool.poetry.extras]
 # Door F — host adapters
@@ -92,7 +97,7 @@ full = [
 black = ">=24.0.0"
 mypy = ">=1.10.0"
 ruff = ">=0.6.0"
-fakeredis = ">=2.20"
+fakeredis = ">=2.39,<2.40"
 httpx = ">=0.24"
 fastapi = ">=0.100"
 starlette = ">=0.27"
@@ -102,7 +107,7 @@ pytest = ">=8.0.0"
 pytest-asyncio = ">=0.24.0"
 hypothesis = ">=6.100"
 httpx = ">=0.24"
-fakeredis = ">=2.20"
+fakeredis = ">=2.39,<2.40"
 
 [tool.poetry.scripts]
 uxchannel = "ux_channel.devtools.cli:main"

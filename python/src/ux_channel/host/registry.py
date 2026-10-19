@@ -53,7 +53,7 @@ from ux_channel.security.limits import (
     enforce_result_limits,
 )
 from ux_channel.host.nonce import NonceStore
-from ux_channel.security.security import sanitize_op_hrefs, validate_action_name
+from ux_channel.security.security import filter_outbound_ops, validate_action_name
 
 
 class AsyncDispatchRequired(TypeError):
@@ -81,6 +81,18 @@ ActionHandler = Callable[..., Any]
 _principal_override: contextvars.ContextVar = contextvars.ContextVar("uid_principal", default=None)
 logger = logging.getLogger("ux_channel.host.registry")
 _request_var: contextvars.ContextVar[Any] = contextvars.ContextVar("ux_channel_request", default=None)
+
+
+def _bound_origin_host(request: Any) -> str | None:
+    """``Host`` header of the request bound for this dispatch, if any."""
+    headers = getattr(request, "headers", None)
+    getter = getattr(headers, "get", None)
+    if not callable(getter):
+        return None
+    host = getter("host")
+    if host is None or host == "":
+        return None
+    return str(host)
 
 
 class SyncLockTimeout(TimeoutError):
@@ -930,20 +942,27 @@ class ActionRegistry:
                     )
                 )
 
-        # Drop javascript:/data: navigations even if action built raw dicts
+        # Href check and strict morph/swap/toast strip. Same function as
+        # PushBus.publish, including ops nested in seq / timer.set / invoke.
         hosts = ()
         cfg = getattr(self, "config", None)
         if cfg is not None:
             hosts = tuple(getattr(cfg, "navigate_allowed_hosts", ()) or ())
-        result.ops = sanitize_op_hrefs(list(result.ops), allowed_hosts=hosts)
-        # Opt-in morph HTML policy (SECURITY_AUDIT HIGH residual). Default off.
         policy = "off"
         if cfg is not None:
-            policy = str(getattr(cfg, "morph_html_policy", "off") or "off")
-        if policy == "strict":
-            from ux_channel.render.morph_policy import apply_morph_policy
-
-            result.ops = apply_morph_policy(list(result.ops), policy=policy)
+            raw_policy = getattr(cfg, "morph_html_policy", None)
+            if raw_policy is None:
+                policy = "off"
+            elif raw_policy not in ("off", "strict"):
+                raise ValueError('morph_html_policy must be "off" or "strict"')
+            else:
+                policy = str(raw_policy)
+        result.ops = filter_outbound_ops(
+            list(result.ops),
+            policy=policy,
+            allowed_hosts=hosts,
+            origin_host=_bound_origin_host(_request_var.get()),
+        )
 
         tr = _trace_api().get_tracer()
         if tr.enabled:

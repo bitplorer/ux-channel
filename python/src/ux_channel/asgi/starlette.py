@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any
 
 from ux_channel.host.registry import ActionRegistry
+from ux_channel.transport.push import stream_filter_args
 from ux_channel.transport.stream import ResultStream, format_sse
 from ux_channel.devtools.trace import FrameKind, get_tracer
 from ux_channel.protocol.types import Intent, Result
@@ -108,9 +109,22 @@ def channel_routes(
         accept = (request.headers.get("accept") or "").lower()
         if "text/event-stream" in accept or intent.accept_stream:
             stream = ResultStream()
+            policy, hosts = stream_filter_args(registry, config)
+            origin = request.headers.get("host")
 
             async def gen():
-                yield format_sse(stream.chunk(result, done=True))
+                yield format_sse(
+                    stream.chunk(
+                        result,
+                        done=True,
+                        policy=policy,
+                        allowed_hosts=hosts,
+                        origin_host=origin,
+                    ),
+                    policy=policy,
+                    allowed_hosts=hosts,
+                    origin_host=origin,
+                )
 
             return StreamingResponse(gen(), media_type="text/event-stream")
         if "text/html" in accept and CHANNEL_JSON not in accept:

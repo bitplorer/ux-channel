@@ -8,11 +8,14 @@ Server push bus — server-initiated Results.
 from __future__ import annotations
 
 import asyncio
+import gc
 import threading
+import weakref
 from collections import defaultdict
-from typing import DefaultDict, Optional, Protocol, Set
+from typing import Any, DefaultDict, Optional, Protocol, Set
 
 from ux_channel.protocol.types import Result
+from ux_channel.security.security import filter_outbound_ops
 
 
 class PushBackend(Protocol):
@@ -69,8 +72,33 @@ class MemoryPushBackend:
 
 
 class PushBus:
+    # Stamped by a channel. Absent on a bare bus, which is strict.
+    morph_html_policy: str | None
+
     def __init__(self, backend: Optional[PushBackend] = None) -> None:
         self.backend: PushBackend = backend or MemoryPushBackend()
+        # Unset means strict. A channel stamps "off" or "strict"; a bare bus does not.
+        self.navigate_allowed_hosts: tuple[str, ...] = ()
+        self._policy_bound = False
+        self._owner: int | None = None
+        bind = getattr(self.backend, "bind_outbound_filter", None)
+        if callable(bind):
+            bind(self.filter_payload)
+
+    def outbound_policy(self) -> str:
+        """Policy for this bus.
+
+        A missing value is strict (bare ``PushBus`` or a stream with no
+        channel). A channel stamps ``off`` or ``strict``. A blank value, or
+        any other string, is a configuration error.
+        """
+        raw = getattr(self, "morph_html_policy", None)
+        # No channel stamped this bus. Strict is the unbound default.
+        if raw is None:
+            return "strict"
+        if raw not in ("off", "strict"):
+            raise ValueError('morph_html_policy must be "off" or "strict"')
+        return str(raw)
 
     def subscribe(self, topic: str, queue: asyncio.Queue) -> None:
         self.backend.subscribe_local(topic, queue)
@@ -78,9 +106,24 @@ class PushBus:
     def unsubscribe(self, topic: str, queue: asyncio.Queue) -> None:
         self.backend.unsubscribe_local(topic, queue)
 
+    def filter_payload(self, body: dict) -> dict:
+        """Same outbound filter local ``publish`` uses, for a Redis echo."""
+        if not isinstance(body, dict):
+            return body
+        ops = body.get("ops")
+        if not isinstance(ops, list):
+            return body
+        cleaned = dict(body)
+        cleaned["ops"] = filter_outbound_ops(
+            list(ops),
+            policy=self.outbound_policy(),
+            allowed_hosts=tuple(getattr(self, "navigate_allowed_hosts", ()) or ()),
+        )
+        return cleaned
+
     def publish(self, topic: str, result: Result | dict) -> int:
         body = result.to_dict() if isinstance(result, Result) else dict(result)
-        return self.backend.publish(topic, body)
+        return self.backend.publish(topic, self.filter_payload(body))
 
     def topics(self) -> list[str]:
         b = self.backend
@@ -90,15 +133,161 @@ class PushBus:
 
 
 _bus: Optional[PushBus] = None
+_owners: list[weakref.ReferenceType[Any]] = []
 
 
-def get_push_bus() -> PushBus:
+def _live_buses() -> list[PushBus]:
+    """Distinct buses still held by a live owner.
+
+    A registry and its Channel both attach the same bus, so they count once.
+    Dead owners are dropped and do not keep a collected channel's bus alive.
+    """
+    found: list[PushBus] = []
+    seen: set[int] = set()
+    alive: list[weakref.ReferenceType[Any]] = []
+    for ref in list(_owners):
+        owner = ref()
+        if owner is None:
+            continue
+        alive.append(ref)
+        bus = getattr(owner, "push_bus", None)
+        if not isinstance(bus, PushBus) or id(bus) in seen:
+            continue
+        seen.add(id(bus))
+        found.append(bus)
+    _owners[:] = alive
+    return found
+
+
+def get_push_bus(channel: Any = None) -> PushBus:
+    """Process bus when at most one channel is booted.
+
+    With two or more live channels this raises. Pass ``channel`` to take
+    that channel's bus. A bare bus with no channel is unchanged.
+    """
     global _bus
+    if channel is not None:
+        bus = getattr(channel, "push_bus", None)
+        if not isinstance(bus, PushBus):
+            reg = getattr(channel, "registry", None)
+            reg_bus = getattr(reg, "push_bus", None) if reg is not None else None
+            bus = reg_bus if isinstance(reg_bus, PushBus) else None
+        if not isinstance(bus, PushBus):
+            raise RuntimeError("channel has no push bus")
+        return bus
+    live = _live_buses()
+    if len(live) > 1:
+        # Finished tests can leave a registry in a cycle until collection.
+        # Channels the caller still holds stay, and still raise.
+        gc.collect()
+        live = _live_buses()
+    if len(live) > 1:
+        raise RuntimeError(
+            "more than one channel is booted; pass the channel to get_push_bus(channel)"
+        )
+    if len(live) == 1:
+        return live[0]
+    # A collected channel must not leave its bus as the process singleton.
+    if _bus is not None and getattr(_bus, "_owner", None) is not None:
+        _bus = None
     if _bus is None:
         _bus = PushBus()
     return _bus
 
 
+def stream_filter_args(
+    registry: Any, config: Any = None
+) -> tuple[str, tuple[str, ...]]:
+    """Policy and navigate hosts the action stream must use for this channel.
+
+    The bus stamp wins. A channel with no bus and no config is off.
+    """
+    bus = getattr(registry, "push_bus", None)
+    if isinstance(bus, PushBus):
+        hosts = tuple(getattr(bus, "navigate_allowed_hosts", ()) or ())
+        return bus.outbound_policy(), hosts
+    cfg = getattr(registry, "config", None) or config
+    if cfg is None:
+        return "off", ()
+    raw = getattr(cfg, "morph_html_policy", None)
+    if raw is None:
+        policy = "off"
+    elif raw not in ("off", "strict"):
+        raise ValueError('morph_html_policy must be "off" or "strict"')
+    else:
+        policy = str(raw)
+    hosts = tuple(getattr(cfg, "navigate_allowed_hosts", ()) or ())
+    return policy, hosts
+
+
+def registry_push_bus(registry: Any) -> PushBus:
+    """The bus mounted for this registry. No process-bus fallback."""
+    bus = getattr(registry, "push_bus", None)
+    if not isinstance(bus, PushBus):
+        raise RuntimeError("channel has no push bus")
+    return bus
+
+
+def ensure_registry_push_bus(registry: Any) -> PushBus:
+    """Attach a bus when ``mount_channel`` did not go through the factory.
+
+    The first mount shares the process bus, which is main's one-channel
+    behaviour. A later mount gets its own bus and does not borrow another
+    channel's.
+    """
+    existing = getattr(registry, "push_bus", None)
+    if isinstance(existing, PushBus):
+        return existing
+    if _live_buses():
+        bus = PushBus()
+    else:
+        bus = get_push_bus()
+    # A new bus takes this channel's policy. An already-bound bus stays.
+    if not getattr(bus, "_policy_bound", False):
+        cfg = getattr(registry, "config", None)
+        raw = getattr(cfg, "morph_html_policy", None) if cfg is not None else None
+        if raw in ("off", "strict"):
+            bus.morph_html_policy = str(raw)
+        elif not hasattr(bus, "morph_html_policy"):
+            bus.morph_html_policy = "off"
+        if cfg is not None:
+            bus.navigate_allowed_hosts = tuple(
+                getattr(cfg, "navigate_allowed_hosts", ()) or ()
+            )
+    attach_push_bus(registry, bus)
+    return bus
+
+
+def attach_push_bus(owner: Any, bus: PushBus) -> None:
+    """Remember ``owner`` so a later ``set_push_bus`` can keep its policy."""
+    owner.push_bus = bus
+    _owners.append(weakref.ref(owner))
+
+
 def set_push_bus(bus: PushBus) -> None:
+    """Install ``bus``. An unbound replacement keeps the previous policy.
+
+    A bus a channel already stamped (``_policy_bound``) is left as that
+    channel configured it, so a second boot does not rewrite the first.
+    """
     global _bus
+    prev = _bus
+    inherited = False
+    if prev is not None and bus is not prev and not getattr(bus, "_policy_bound", False):
+        if hasattr(prev, "morph_html_policy"):
+            bus.morph_html_policy = prev.morph_html_policy
+        elif hasattr(bus, "morph_html_policy"):
+            del bus.morph_html_policy
+        bus.navigate_allowed_hosts = tuple(
+            getattr(prev, "navigate_allowed_hosts", ()) or ()
+        )
+        bus._policy_bound = bool(getattr(prev, "_policy_bound", False))
+        bus._owner = getattr(prev, "_owner", None)
+        inherited = True
     _bus = bus
+    if not inherited or prev is None:
+        return
+    for ref in list(_owners):
+        owner = ref()
+        if owner is not None and getattr(owner, "push_bus", None) is prev:
+            owner.push_bus = bus

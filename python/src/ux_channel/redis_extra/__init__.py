@@ -393,6 +393,11 @@ class RedisPushBackend:
         self._started = False
         self._soft_fail = soft_fail
         self._redis_topics: set[str] = set()
+        self._outbound_filter = None
+
+    def bind_outbound_filter(self, fn) -> None:
+        """Filter messages that arrive on Redis before a local queue sees them."""
+        self._outbound_filter = fn
 
     def _ch(self, topic: str) -> str:
         return f"{self.prefix}{topic}"
@@ -465,6 +470,9 @@ class RedisPushBackend:
                         ch = ch.decode()
                     topic = ch[len(self.prefix):] if ch and ch.startswith(self.prefix) else ch
                     data = _serde.loads(msg["data"])
+                    filt = self._outbound_filter
+                    if callable(filt):
+                        data = filt(data)
                     with self._lock:
                         qs = list(self._local.get(topic, ()))
                     for q in qs:

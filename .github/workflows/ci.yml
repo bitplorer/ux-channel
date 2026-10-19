@@ -96,3 +96,33 @@ jobs:
           UX_KEEP_VALUE_REQUIRE_BROWSER: "1"
           PYTHONPATH: src
         run: python3 -m pytest tests/gate/test_keep_value.py -s --tb=short
+
+  verify-chrome:
+    name: chrome payloads
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+      - name: Install Chrome
+        run: |
+          wget -q -O /tmp/chrome.deb https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+          sudo apt-get update
+          sudo apt-get install -y /tmp/chrome.deb
+          google-chrome --version
+      - name: Install Python host test deps
+        run: python3 -m pip install -q -r requirements-dev.txt
+      - name: Chrome tests (fail if any skip)
+        env:
+          PYTHONPATH: ${{ github.workspace }}/python/src
+          UX_CHANNEL_REQUIRE_CHROME: "1"
+        run: |
+          python3 -m pytest \
+            python/tests/gate/test_chrome_payload_routes.py \
+            python/tests/gate/test_chrome_navigate_style.py \
+            python/tests/gate/test_review_r7_animate.py::test_chrome_animate_payloads_do_not_run_with_the_client_guard_off \
+            python/tests/gate/test_review_r7_morph_guard.py \
+            -q --tb=line -ra

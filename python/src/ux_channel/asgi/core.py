@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+from types import SimpleNamespace
 from typing import Any, Callable, Optional
 
 from ux_channel.host.registry import ActionRegistry
 from ux_channel.security.security import content_length_ok, origin_allowed
+from ux_channel.transport.push import stream_filter_args
 from ux_channel.transport.stream import ResultStream, format_sse
 from ux_channel.devtools.trace import FrameKind, get_tracer
 from ux_channel.protocol.types import Intent, Result
@@ -27,6 +29,16 @@ async def read_body(receive: Callable, max_bytes: int) -> bytes:
             raise ValueError("payload_too_large")
         more = message.get("more_body", False)
     return body
+
+
+class _ScopeHeaders:
+    """``headers.get`` for a raw ASGI scope, so strict navigate sees ``Host``."""
+
+    def __init__(self, headers: dict[str, str]) -> None:
+        self._headers = headers
+
+    def get(self, name: str, default: str | None = None) -> str | None:
+        return self._headers.get(name.lower(), default)
 
 
 def status_for(result: Result) -> int:
@@ -123,11 +135,25 @@ async def handle_action_asgi(
     want_stream = "text/event-stream" in accept or intent.accept_stream
     want_html = "text/html" in accept and CHANNEL_JSON not in accept and not want_stream
 
+    registry.bind_request(SimpleNamespace(headers=_ScopeHeaders(headers)))
     result = await registry.async_dispatch(intent)
 
     if want_stream:
         stream = ResultStream()
-        payload = format_sse(stream.chunk(result, done=True))
+        policy, hosts = stream_filter_args(registry, config)
+        origin = headers.get("host")
+        payload = format_sse(
+            stream.chunk(
+                result,
+                done=True,
+                policy=policy,
+                allowed_hosts=hosts,
+                origin_host=origin,
+            ),
+            policy=policy,
+            allowed_hosts=hosts,
+            origin_host=origin,
+        )
         await send(
             {
                 "type": "http.response.start",

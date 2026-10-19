@@ -20,7 +20,7 @@ Read [../../../START_HERE.md](../../../START_HERE.md) first if you are new. This
 | Async hooks on sync dispatch | **Fixed** — await when no event loop (no crash / dropped coro) |
 | Rate limit / once-caps | **OK** in-process; **multi-worker needs Redis** |
 | Morph HTML / toast content | **App must escape** — library does not HTML-sanitize fragments |
-| Absolute `https://` navigations | **Allowed** — open-redirect policy is app-owned |
+| Absolute `https://` navigations | **`off` allows a safe http(s) URL.** `strict` keeps it only for the request host or `navigate_allowed_hosts`, and refuses a backslash, a control character, an empty host, and an http(s) scheme that is not exactly `//` |
 
 **Bottom line:** Safe to ship interactive UIs behind production config **if** morph HTML is escaped, secrets are strong, and multi-worker deploys use shared nonce/rate/state stores.
 
@@ -62,7 +62,7 @@ Read [../../../START_HERE.md](../../../START_HERE.md) first if you are new. This
 |-----|---------|-------------|
 | **CRITICAL** | Async `@ch.on` handlers registered as sync wrappers → coroutine dropped, empty success | Preserve `async def` through flow + `RegionBook.command` |
 | **HIGH** | `auth=True` ignored `dispatch(principal=…)` when handler had no `principal` param | `_auth_wrap` reads `_principal_override` ContextVar + `Principal.id` |
-| **HIGH** | `javascript:` / `data:` / `//` navigate ops (XSS / phishing) | `safe_href`, ops helpers, Result finalize sanitize |
+| **HIGH** | `javascript:` / `data:` / `//` navigate ops (XSS / phishing) | `safe_href`, ops helpers, Result finalize sanitize. `set_attr` URL attributes (`href`, `src`, `action`, `formaction`, `xlink:href`, …) use the same check in the builder, finalize sanitize, and client `safeHref`. |
 | **HIGH** | Async before/after hooks crashed or leaked coroutines on sync dispatch | `asyncio.run` when no running loop |
 | **HIGH** | MCP / agent open without token in bad configs | Always require agent token; prod validate |
 | **MED** | CSRF: JSON POST without custom header | `require_channel_header` (prod default True) |
@@ -79,14 +79,14 @@ Read [../../../START_HERE.md](../../../START_HERE.md) first if you are new. This
 
 | Sev | Risk | Owner | Mitigation |
 |-----|------|-------|------------|
-| **HIGH** | **Morph / toast XSS** if user strings embedded raw | App + lib | **Mitigated (opt-in)** — `morph_html_policy="strict"` strips script/on*/javascript: hrefs. Default **off** so ux-dom is not broken. `doctor()` warns when off in production. Tests: `tests/security/test_morph_policy.py`. |
-| **MED** | **Open redirect** via `https://evil.example` navigate | App | Allowlist hosts before `navigate()` / encode `Go` |
+| **HIGH** | **Morph / swap / toast XSS** if user strings embedded raw | App + lib | **Partly mitigated.** Both modes remove `on*`, `srcdoc`, and dangerous URLs (`javascript:`, `vbscript:`, `data:text/html`, control characters in URL attributes) on every transport, including MCP. The scheme check strips C0, DEL, U+FFFD, and whitespace first, so `java\x00script:` and `jav\tscript:` do not survive html5lib's NUL rewrite. SVG `animate`, `set`, `animateMotion`, and `animateTransform` are dropped when they target `href`, `xlink:href`, or `on*`, or carry a dangerous URL in `values` / `to` / `from` / `by`. This is a security fix against main `83a580a`, where off left that markup unchanged. Off still carries `<script>` and other markup and is **not a sanitizer**. `morph_html_policy="strict"` applies the full drop list. Escape user HTML or use strict. `doctor()` warns when off in production. |
+| **MED** | **Open redirect** via `https://evil.example` navigate | App + lib | `off` still follows `safe_href`. `strict` keeps an absolute http(s) URL only for the request host or `navigate_allowed_hosts`, and refuses `https://evil.test\@app.test/`, a backslash, a control character, and an http(s) scheme that is not exactly `//`. |
 | **MED** | **Stolen `data-channel-cap`** until expiry | App + lib | Short TTL, HTTPS, `bind_cap_to_principal`, `once` for money actions |
 | **MED** | **Multi-worker** once/idempotency/rate/state | Deploy | Redis (or equivalent); do not use memory stores in multi-worker prod |
 | **MED** | **`trusted_proxy` + XFF spoof** | Deploy | Only behind proxy that overwrites `X-Forwarded-For` |
 | **LOW** | Missing `Origin` allowed | By design | Pair with channel header in prod |
 | **LOW** | Agent prompt injection | App | Allowlist tools, confirm secrets, budgets |
-| **INFO** | Absolute http(s) navigations not host-restricted | Policy | App policy layer |
+| **INFO** | Absolute http(s) navigations under `off` are not host-restricted | Policy | Set `morph_html_policy="strict"` or allowlist hosts |
 
 ---
 
@@ -155,7 +155,7 @@ CI expectation: **gate green** (`make verify`). Security residuals: **`make veri
 
 ## Recommended next hardening (post-0.1)
 
-1. ~~Optional **HTML sanitizer policy** for morph (strict mode) without breaking ux-dom.~~ **Done (opt-in)** — `ChannelConfig.morph_html_policy = "strict"`. Default off; doctor warns.  
+1. ~~Optional **HTML sanitizer policy** for morph (strict mode) without breaking ux-dom.~~ **Done (opt-in)** — `ChannelConfig.morph_html_policy = "strict"` applies the full drop list. A channel with no policy, including `create_channel()` without a config, is `off` for patches and pushes. Off removes `on*`, `srcdoc`, and dangerous URLs and still carries `<script>` and other markup. It is not a sanitizer. A bare `PushBus()` or a stream with no channel is strict. Doctor warns when a channel is off. Both modes parse HTML with html5lib; the intake record is [html5lib-intake.md](html5lib-intake.md). Off mode still removes `on*`, `srcdoc`, and dangerous URLs. html5lib is a required runtime dependency. If it cannot be imported, the first failure logs `HTML patches refused until installed` once and the HTML patch is refused; later misses stay quiet. If the check cannot run, an HTML patch is refused. A serializer error or nesting deeper than 256 tags is refused and logged. A `to_dict()` failure on an outbound op is a noop and an error log. Nested SSE `ops` lists are filtered the same way as the top-level result. A plain swap, `set_text`, and `navigate` are unaffected. A missing import is a broken install. A new channel bus inherits that channel's policy and `navigate_allowed_hosts`.  
 2. ~~**Navigate host allowlist** config.~~ **Done** — `navigate_allowed_hosts` + production derives from `allowed_origins`.  
 3. Cap **binding to session cookie** / CSRF double-submit beyond custom header.  
 4. ~~First-class **Redis** rate limit + nonce in default production factory.~~ **Done** — `REDIS_URL` auto-wires nonce/rate/idempotency/push; `production()` default TTL 900s; `doctor --fail` refuses silent memory stores.  
