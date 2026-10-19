@@ -154,18 +154,26 @@ def _refused_attr(name: str, value: str | None) -> bool:
     )
 
 
+# SVG animation fields that carry a URL. Not href attributes, same schemes.
+_ANIM_URL_FIELDS = frozenset({"by", "from", "to", "values"})
+
+
 def _off_refused_attr(name: str, value: str | None) -> bool:
     """on*, srcdoc, and dangerous URL attributes. Other attributes stay.
 
     ``data-channel-id="Counter:root"`` is not a URL attribute. The strict
-    scrubber's extra ``_js_url_value`` pass would drop it.
+    scrubber's extra ``_js_url_value`` pass would drop it. ``values``,
+    ``to``, ``from``, and ``by`` on an SVG animation are checked with the
+    same scheme rules as ``href``.
     """
     token = name.strip().lower()
     if _event_handler(name) or token == "srcdoc":
         return True
     if _attr_url_refused(name, value):
         return True
-    return token == "srcset" and _js_url_value(name, value)
+    if token == "srcset" and _js_url_value(name, value):
+        return True
+    return token in _ANIM_URL_FIELDS and _js_url_value("href", value)
 
 
 def _scrub_attrs(node: Any) -> None:

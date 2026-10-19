@@ -145,10 +145,31 @@ def channel_header_ok(
     return val.strip() in ("1", "true", "yes")
 
 
+def _strip_url_noise(text: str) -> str:
+    """Drop C0, C1, DEL, U+FFFD, and whitespace before a scheme check.
+
+    This is the only strip the scheme decision uses. html5lib rewrites
+    U+0000 to U+FFFD before a scrubber sees the attribute, and a browser
+    ignores these characters inside the token (``java\\x00script:``,
+    ``jav\\tscript:``, leading spaces). A kept URL does not use this
+    form: path spaces stay in ``_stored_href``.
+    """
+    kept: list[str] = []
+    for ch in text:
+        if ch == "\ufffd" or ch.isspace():
+            continue
+        if unicodedata.category(ch).startswith(("C", "Z")):
+            continue
+        kept.append(ch)
+    return "".join(kept)
+
+
 def _strip_href_controls(text: str) -> str:
-    """Drop C0/C1 controls and other Unicode 'C' characters (NUL, tab, DEL)."""
+    """Drop C0/C1/DEL and U+FFFD. Spaces in a kept URL stay."""
     return "".join(
-        ch for ch in text if not unicodedata.category(ch).startswith("C")
+        ch
+        for ch in text
+        if ch != "\ufffd" and not unicodedata.category(ch).startswith("C")
     )
 
 
@@ -159,6 +180,25 @@ def _scheme_token(text: str) -> str:
         for ch in text
         if not ch.isspace() and not unicodedata.category(ch).startswith("Z")
     )
+
+
+def _stored_href(href: str) -> str | None:
+    """Kept URL: controls and U+FFFD removed, scheme whitespace collapsed.
+
+    Spaces outside the scheme token stay. The scheme decision already
+    happened on ``_strip_url_noise`` and must not be repeated here.
+    """
+    h = _strip_href_controls(href).strip()
+    if not h:
+        return None
+    path = h.split("?", 1)[0].split("#", 1)[0]
+    if ":" not in path:
+        return h
+    pre, _sep, rest = h.partition(":")
+    scheme = _scheme_token(pre)
+    if scheme != pre:
+        h = scheme + ":" + rest
+    return h
 
 
 def safe_href(
@@ -172,10 +212,11 @@ def safe_href(
     Allows: relative paths, http(s), mailto, tel, and hash/query-only.
     Blocks: javascript:, data:, vbscript:, file:, etc.
 
-    Control characters are removed and whitespace inside the scheme token
-    is collapsed before the scheme check, so ``java\\x00script:`` and
-    ``java script:`` cannot bypass the block. The returned value is that
-    normalized string when the URL is allowed.
+    The scheme decision strips leading and embedded C0 controls, DEL,
+    U+FFFD (html5lib's stand-in for NUL), and whitespace, then refuses
+    ``javascript:``, ``vbscript:``, ``data:``, and the other blocked
+    schemes. The returned value still keeps spaces that were not in the
+    scheme token, and drops the controls.
 
     If ``allowed_hosts`` is non-empty, absolute http(s) URLs must match
     host (or subdomain of) an allowlisted host (Wave 1 open-redirect control).
@@ -184,35 +225,24 @@ def safe_href(
         return None
     if not isinstance(href, str):
         return None
-    h = _strip_href_controls(href).strip()
-    if not h:
+    # Scheme decision. ``_strip_url_noise`` is the only strip here, so a
+    # browser-ignored character cannot hide ``javascript:``.
+    checked = _strip_url_noise(href)
+    if not checked:
         return None
-    # protocol-relative //evil.com — treat as blocked for navigate (open redirect risk)
-    if h.startswith("//"):
+    if checked.startswith("//") or checked.startswith("\\") or checked.startswith("/\\"):
         return None
-    # Windows/UNC-ish or escaped backslash openers
-    if h.startswith("\\") or h.startswith("/\\"):
-        return None
-    # scheme present?
-    path = h.split("?", 1)[0].split("#", 1)[0]
+    path = checked.split("?", 1)[0].split("#", 1)[0]
     if ":" in path:
-        pre, _sep, rest = h.partition(":")
-        scheme = _scheme_token(pre)
-        if scheme != pre:
-            h = scheme + ":" + rest
-        scheme_l = scheme.lower()
-        lower = h.lower()
-        # allow http https mailto tel
+        scheme_l = checked.partition(":")[0].lower()
         if scheme_l in _BLOCKED_HREF_SCHEMES:
             return None
         if scheme_l not in ("http", "https", "mailto", "tel"):
-            # relative with colon in path is rare; block unknown schemes
-            if re.match(r"^[a-z][a-z0-9+.-]*:", lower):
+            if re.match(r"^[a-z][a-z0-9+.-]*:", checked.lower()):
                 return None
-        # host allowlist for absolute http(s)
         hosts = tuple(allowed_hosts or ())
         if hosts and scheme_l in ("http", "https"):
-            host = (urlparse(h).hostname or "").lower()
+            host = (urlparse(checked).hostname or "").lower()
             if not host:
                 return None
             ok = False
@@ -223,7 +253,7 @@ def safe_href(
                     break
             if not ok:
                 return None
-    return h
+    return _stored_href(href)
 
 
 def _host_on_list(host: str, allowed_hosts: tuple[str, ...] | list[str] | None) -> bool:
