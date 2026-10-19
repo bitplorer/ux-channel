@@ -97,6 +97,24 @@ def test_keep_value_node_engine_is_22() -> None:
     assert 'node-version: "22"' in ci
 
 
+def test_missing_chrome_path_fails_without_path_search(tmp_path: Path) -> None:
+    missing = tmp_path / "no-such-chrome"
+    env = os.environ.copy()
+    env["CHROME_PATH"] = str(missing)
+    env["UX_KEEP_VALUE_REQUIRE_BROWSER"] = "1"
+    proc = subprocess.run(
+        ["node", "keep_value.test.mjs"],
+        cwd=CASE_DIR,
+        capture_output=True,
+        text=True,
+        env=env,
+        check=False,
+    )
+    assert proc.returncode != 0, proc.stdout + proc.stderr
+    assert "CHROME_PATH" in proc.stderr
+    assert "passed=0 skipped=0" in proc.stdout
+
+
 def test_keep_value_is_documented() -> None:
     for rel in DOCS:
         text = rel.read_text(encoding="utf-8")
