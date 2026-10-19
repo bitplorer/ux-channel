@@ -1,15 +1,16 @@
 """70 payloads through JSON, SSE, /push, /ws, and MCP, then headless Chrome.
 
 The HTML Chrome applies is the HTML the route returned. A live handler is
-a ``window.PWN`` call or an ``on*`` / ``javascript:`` attribute left after
-the client applies that HTML. Strict must stay at 0. Policy off does not
-strip swap markup, so its count is measured and reported.
+a ``window.PWN`` call. Strict must stay at 0. Off mode may still carry a
+``<script>`` tag. ``on*``, ``srcdoc``, and dangerous URLs must not run on
+any transport.
 """
 
 from __future__ import annotations
 
 import importlib.util
 import json
+import re
 import shutil
 import subprocess
 import tempfile
@@ -361,23 +362,54 @@ def _chrome_score(cases: list[dict]) -> dict:
     return score
 
 
+def _off_vector_class(html: str) -> str:
+    """on*, srcdoc, and dangerous URLs are refused in off mode too.
+
+    A ``<script>`` tag is the class main's off mode is documented to carry.
+    """
+    if re.search(r"srcdoc", html, re.I):
+        return "srcdoc"
+    if re.search(r"(?:^|[\s/])on[a-z]{2,}\s*=", html, re.I):
+        return "on*"
+    if re.search(r"javascript\s*:|vbscript\s*:|data\s*:\s*text/html", html, re.I):
+        return "dangerous-url"
+    if re.search(r"[\x00-\x1f\x7f]", html) and re.search(
+        r"href|src|action|formaction|xlink:href", html, re.I
+    ):
+        return "dangerous-url"
+    return "carried"
+
+
+_REFUSED_OFF = frozenset({"on*", "srcdoc", "dangerous-url"})
+
+
+def _cases(route: str, htmls: list[str]) -> list[dict]:
+    return [
+        {"route": route, "n": number, "html": html}
+        for number, html in enumerate(htmls, start=1)
+    ]
+
+
 def test_chrome_payload_routes_have_no_live_handlers_under_strict() -> None:
     _chrome_bin()
     payloads = _payloads()
     assert len(payloads) == 70
-    scores = {}
     for policy in ("off", "strict"):
         delivered = _collect(policy, payloads)
-        cases = []
         for route, htmls in delivered.items():
             assert len(htmls) == 70, (policy, route, len(htmls))
-            for number, html in enumerate(htmls, start=1):
-                cases.append({"route": route, "n": number, "html": html})
-        scores[policy] = _chrome_score(cases)
-        print(
-            f"CHROME {policy} hits={len(scores[policy]['hits'])} "
-            f"attrs={len(scores[policy]['attrs'])}"
-        )
-    strict = scores["strict"]
-    assert strict["hits"] == [], strict["hits"]
-    assert strict["attrs"] == [], strict["attrs"][:20]
+            score = _chrome_score(_cases(route, htmls))
+            print(
+                f"CHROME {policy} {route} hits={len(score['hits'])} "
+                f"attrs={len(score['attrs'])}"
+            )
+            if policy == "strict":
+                assert score["hits"] == [], score["hits"]
+                assert score["attrs"] == [], score["attrs"][:20]
+                continue
+            ran = [
+                {"route": route, "payload": number, "class": kind}
+                for number in score["hits"]
+                if (kind := _off_vector_class(payloads[number - 1])) in _REFUSED_OFF
+            ]
+            assert ran == [], ran
