@@ -96,6 +96,8 @@ def test_keep_value_node_engine_is_22() -> None:
     ci = (ROOT / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
     assert pkg.get("engines", {}).get("node") == ">=22"
     assert 'node-version: "22"' in ci
+    assert "npm ci --ignore-scripts --no-audit --no-fund" in ci
+    assert (CASE_DIR / "package-lock.json").is_file()
 
 
 def test_missing_chrome_path_fails_without_path_search(tmp_path: Path) -> None:

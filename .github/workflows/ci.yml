@@ -82,7 +82,7 @@ jobs:
       # jsdom and idiomorph only. The browser is the runner's google-chrome-stable.
       - name: Test dependencies
         working-directory: python/tests/gate/js_keep_value
-        run: npm install --include=dev --ignore-scripts --no-audit --no-fund
+        run: npm ci --ignore-scripts --no-audit --no-fund
 
       - name: Chrome
         run: |
