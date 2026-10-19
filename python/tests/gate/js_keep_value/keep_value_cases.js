@@ -248,6 +248,7 @@ async function runKeepValuePath(win, path) {
 
     await runIdentityCases(win, doc, check);
     await runErrorCases(win, doc, check);
+    await runLeakCases(win, doc, check);
 
     var callsBeforeEmpty = calls;
     var region = doc.getElementById("region");
@@ -528,6 +529,103 @@ function installRejectingValue(win) {
   return function () {
     Object.defineProperty(proto, "value", desc);
   };
+}
+
+async function runLeakCases(win, doc, check) {
+  doc.body.innerHTML = keepWrap(
+    '<form name="a"><input name="email" type="email" data-ux-keep-value value=""></form>'
+  );
+  doc.querySelector('form[name="a"] input').value = "from-form-a";
+  await applyKeepMorph(
+    win,
+    keepWrap('<form name="b"><input name="email" type="email" data-ux-keep-value value=""></form>')
+  );
+  check(
+    doc.querySelector("input").value === "",
+    "form name a to b " + JSON.stringify(doc.querySelector("input").value)
+  );
+
+  doc.body.innerHTML = keepWrap(
+    '<form><input name="email" type="email" data-ux-keep-value value=""></form>'
+  );
+  doc.querySelector("form input").value = "from-unnamed-form";
+  await applyKeepMorph(
+    win,
+    keepWrap('<input name="email" type="email" data-ux-keep-value value="">')
+  );
+  check(
+    doc.querySelector("input").value === "",
+    "unnamed form to none " + JSON.stringify(doc.querySelector("input").value)
+  );
+
+  doc.body.innerHTML = keepWrap(
+    '<form id="f1"><input name="x" type="text" data-ux-keep-value value=""></form>'
+  );
+  doc.querySelector("input").value = "f1-x-secret";
+  await applyKeepMorph(
+    win,
+    keepWrap('<form id="f"><input name="1x" type="text" data-ux-keep-value value=""></form>')
+  );
+  check(
+    doc.querySelector("input").value === "",
+    "separator f1/x to f/1x " + JSON.stringify(doc.querySelector("input").value)
+  );
+
+  doc.body.innerHTML = keepWrap(
+    '<input name="code" type="text" data-ux-keep-value value="">' +
+      '<input name="code" type="text" data-ux-keep-value value="">'
+  );
+  var oldCodes = doc.querySelectorAll('[name="code"]');
+  oldCodes[0].value = "first";
+  oldCodes[1].value = "second";
+  await applyKeepMorph(
+    win,
+    keepWrap('<input name="code" type="text" data-ux-keep-value value="">')
+  );
+  check(
+    doc.querySelector('[name="code"]').value === "",
+    "old duplicates " + JSON.stringify(doc.querySelector('[name="code"]').value)
+  );
+
+  doc.body.innerHTML = keepWrap(
+    '<input name="qty" type="text" data-ux-keep-value value="">'
+  );
+  doc.querySelector('[name="qty"]').value = "12";
+  await applyKeepMorph(
+    win,
+    keepWrap('<input name="qty" type="number" data-ux-keep-value value="4">')
+  );
+  check(
+    doc.querySelector('[name="qty"]').value === "4",
+    "text to number " + JSON.stringify(doc.querySelector('[name="qty"]').value)
+  );
+
+  var alienOld =
+    '<input name="anchor" type="text" data-ux-keep-value value="">' +
+    '<input name="obj" type="text" data-ux-keep-value value="">' +
+    '<input name="emb" type="text" data-ux-keep-value value="">' +
+    '<input name="prm" type="text" data-ux-keep-value value="">';
+  var alienNew =
+    '<a name="anchor" type="text" data-ux-keep-value></a>' +
+    '<object name="obj" type="text" data-ux-keep-value></object>' +
+    '<embed name="emb" type="text" data-ux-keep-value>' +
+    '<param name="prm" type="text" value="" data-ux-keep-value>';
+  doc.body.innerHTML = keepWrap(alienOld);
+  doc.querySelector('[name="anchor"]').value = "leak-a";
+  doc.querySelector('[name="obj"]').value = "leak-o";
+  doc.querySelector('[name="emb"]').value = "leak-e";
+  doc.querySelector('[name="prm"]').value = "leak-p";
+  await applyKeepMorph(win, keepWrap(alienNew));
+  var anchor = doc.querySelector("a");
+  var objectEl = doc.querySelector("object");
+  var embedEl = doc.querySelector("embed");
+  var paramEl = doc.querySelector("param");
+  check(anchor.value !== "leak-a", "anchor value " + JSON.stringify(anchor.value));
+  check(objectEl.value !== "leak-o", "object value " + JSON.stringify(objectEl.value));
+  check(embedEl.value !== "leak-e", "embed value " + JSON.stringify(embedEl.value));
+  check(paramEl.value !== "leak-p", "param value " + JSON.stringify(paramEl.value));
+  check(paramEl.getAttribute("value") === "", "param attribute " + JSON.stringify(paramEl.getAttribute("value")));
+  check(doc.getElementById("region").innerHTML.indexOf("leak-") === -1, "alien markup written");
 }
 
 async function runErrorCases(win, doc, check) {
