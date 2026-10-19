@@ -58,3 +58,42 @@ jobs:
         env:
           PYTHONPATH: ${{ github.workspace }}/python/src
         run: make verify-sec
+
+  keep-value-browser:
+    name: keep-value chromium
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install Python host test deps
+        run: python3 -m pip install -q -r requirements-dev.txt
+
+      # The harness launches Chromium itself (CHROME_PATH). playwright is
+      # installed only in this job so it can download that browser.
+      # Pin: playwright@1.64.1 (Apache-2.0, Microsoft).
+      - name: Install Chromium
+        working-directory: python/tests/gate/js_keep_value
+        run: |
+          npm install --include=dev --ignore-scripts --no-audit --no-fund
+          npm install --no-save --ignore-scripts --no-audit --no-fund playwright@1.64.1
+          npx playwright install --with-deps chromium
+          node --input-type=module -e "import { chromium } from 'playwright'; process.stdout.write(chromium.executablePath())" > "$RUNNER_TEMP/chrome-path"
+          echo "CHROME_PATH=$(cat "$RUNNER_TEMP/chrome-path")" >> "$GITHUB_ENV"
+
+      - name: Keep-value Chromium
+        working-directory: python
+        env:
+          UX_KEEP_VALUE_REQUIRE_BROWSER: "1"
+          PYTHONPATH: src
+        run: python3 -m pytest tests/gate/test_keep_value.py -s --tb=short

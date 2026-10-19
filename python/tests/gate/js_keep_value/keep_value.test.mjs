@@ -1,6 +1,7 @@
 /**
  * jsdom always. Chromium when a Chrome/Chromium binary is on PATH.
- * GitHub Actions verify does not install a browser, so the chrome half skips.
+ * UX_KEEP_VALUE_REQUIRE_BROWSER=1 turns a missing browser into a hard failure.
+ * The keep-value chromium CI job sets that flag. The verify job does not.
  */
 import { spawn } from "node:child_process";
 import fs from "node:fs";
@@ -33,9 +34,9 @@ async function runJsdom() {
   win.eval(read(casesPath));
   // jsdom throws on scrollTo. The product always restores scroll after morph.
   win.scrollTo = function () {};
-  const failures = await win.runKeepValueCases(win);
+  const result = await win.runKeepValueCases(win);
   dom.window.close();
-  return failures;
+  return result.failures;
 }
 
 function chromeBinary() {
@@ -202,7 +203,9 @@ async function runChrome(binary) {
       throw new Error(JSON.stringify(evaluated.exceptionDetails));
     }
     const value = evaluated.result && evaluated.result.value;
-    if (!Array.isArray(value)) throw new Error("chrome returned " + JSON.stringify(evaluated.result));
+    if (!value || !Array.isArray(value.failures) || typeof value.checks !== "number") {
+      throw new Error("chrome returned " + JSON.stringify(evaluated.result));
+    }
     return value;
   } catch (err) {
     const detail = stderr
@@ -234,20 +237,35 @@ async function runChrome(binary) {
   }
 }
 
+const requireBrowser = process.env.UX_KEEP_VALUE_REQUIRE_BROWSER === "1";
 const jsdomFailures = await runJsdom();
 const binary = chromeBinary();
 let chrome;
 if (!binary) {
-  chrome = { skipped: true, ok: true, failures: [] };
+  if (requireBrowser) {
+    console.log("CHROMIUM passed=0 skipped=0");
+    console.error("CHROMIUM browser required but no Chrome or Chromium binary was found");
+    process.exit(1);
+  }
+  chrome = { skipped: true, ok: true, failures: [], passed: 0, skippedCases: 1 };
 } else {
   try {
-    const failures = await runChrome(binary);
-    chrome = { skipped: false, ok: failures.length === 0, failures, binary };
+    const result = await runChrome(binary);
+    chrome = {
+      skipped: false,
+      ok: result.failures.length === 0,
+      failures: result.failures,
+      passed: result.checks - result.failures.length,
+      skippedCases: 0,
+      binary,
+    };
   } catch (err) {
     chrome = {
       skipped: false,
       ok: false,
       failures: [String(err && err.stack ? err.stack : err)],
+      passed: 0,
+      skippedCases: 0,
       binary,
     };
   }
@@ -256,5 +274,8 @@ const payload = {
   jsdom: { ok: jsdomFailures.length === 0, failures: jsdomFailures },
   chrome,
 };
+console.log(
+  "CHROMIUM passed=" + chrome.passed + " skipped=" + (chrome.skipped ? chrome.skippedCases : 0),
+);
 console.log("KEEP_VALUE_RESULT " + JSON.stringify(payload));
 if (!payload.jsdom.ok || !payload.chrome.ok) process.exit(1);

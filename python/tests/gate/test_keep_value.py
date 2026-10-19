@@ -1,13 +1,15 @@
 """data-ux-keep-value survives a morph in the visitor's document.
 
-jsdom runs under node whenever this gate test runs, including CI.
-Chromium runs only when a Chrome or Chromium binary is on PATH.
-The GitHub verify job does not install a browser, so that half skips.
+jsdom runs under node whenever this gate test runs, including the verify job.
+Chromium runs when a Chrome or Chromium binary is on PATH.
+UX_KEEP_VALUE_REQUIRE_BROWSER=1 fails the run when that binary is missing.
+The verify job leaves the flag unset, so a missing browser still skips there.
 """
 
 from __future__ import annotations
 
 import json
+import os
 import shutil
 import subprocess
 from pathlib import Path
@@ -67,6 +69,11 @@ def _run_cases() -> dict:
 
 def test_data_ux_keep_value_survives_morph() -> None:
     ran = _run_cases()
+    counts = next(
+        (item for item in ran["out"].splitlines() if item.startswith("CHROMIUM ")),
+        "",
+    )
+    print(counts)
     assert ran["code"] == 0, ran["out"] + ran["err"]
     line = next(
         item
@@ -75,7 +82,12 @@ def test_data_ux_keep_value_survives_morph() -> None:
     )
     payload = json.loads(line[len("KEEP_VALUE_RESULT ") :])
     assert payload["jsdom"]["ok"] is True
-    assert payload["chrome"]["skipped"] is True or payload["chrome"]["ok"] is True
+    if os.environ.get("UX_KEEP_VALUE_REQUIRE_BROWSER") == "1":
+        assert payload["chrome"]["skipped"] is False
+        assert payload["chrome"]["skippedCases"] == 0
+        assert payload["chrome"]["ok"] is True
+    else:
+        assert payload["chrome"]["skipped"] is True or payload["chrome"]["ok"] is True
 
 
 def test_keep_value_is_documented() -> None:

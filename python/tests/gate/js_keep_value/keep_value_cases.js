@@ -6,16 +6,22 @@
 async function runKeepValueCases(win) {
   var saved = win.Idiomorph;
   var failures = [];
+  var checks = 0;
   win.Idiomorph = undefined;
-  failures = failures.concat(await runKeepValuePath(win, "replaceWith"));
+  var replacePart = await runKeepValuePath(win, "replaceWith");
+  failures = failures.concat(replacePart.failures);
+  checks += replacePart.checks;
   if (saved && typeof saved.morph === "function") {
     win.Idiomorph = saved;
-    failures = failures.concat(await runKeepValuePath(win, "idiomorph"));
+    var idioPart = await runKeepValuePath(win, "idiomorph");
+    failures = failures.concat(idioPart.failures);
+    checks += idioPart.checks;
   } else {
+    checks += 1;
     failures.push("idiomorph Idiomorph global missing");
   }
   win.Idiomorph = saved;
-  return failures;
+  return { failures: failures, checks: checks };
 }
 
 var KEEP_SECRET = "s3cret-from-visitor";
@@ -48,7 +54,9 @@ async function applyKeepMorph(win, html) {
 
 async function runKeepValuePath(win, path) {
   var failures = [];
+  var checks = 0;
   function check(cond, msg) {
+    checks += 1;
     if (!cond) failures.push(path + " " + msg);
   }
   var doc = win.document;
@@ -195,5 +203,5 @@ async function runKeepValuePath(win, path) {
   } finally {
     restoreSpy();
   }
-  return failures;
+  return { failures: failures, checks: checks };
 }
