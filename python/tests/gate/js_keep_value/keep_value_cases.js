@@ -863,4 +863,74 @@ async function runScopeCases(win, doc, check, warns) {
     "unnamed form no component " + JSON.stringify(doc.querySelector("input").value)
   );
   check(keepWarnCount(warns) === 1, "unnamed form no component warnings " + keepWarnCount(warns));
+
+  var compField = function (id, inner) {
+    return '<div data-channel-id="' + id + '">' + inner + "</div>";
+  };
+  var mail = '<input name="email" type="email" data-ux-keep-value value="">';
+
+  doc.body.innerHTML = scopeHtml(compField("a", '<form id="none">' + mail + "</form>"));
+  doc.querySelector("input").value = "form-none";
+  await applyKeepMorph(win, scopeHtml(compField("a", mail)));
+  check(
+    doc.querySelector("input").value === "",
+    "form id none to no form " + JSON.stringify(doc.querySelector("input").value)
+  );
+
+  doc.body.innerHTML = scopeHtml(compField("a", '<form id="unnamed">' + mail + "</form>"));
+  doc.querySelector("input").value = "form-unnamed";
+  await applyKeepMorph(win, scopeHtml(compField("a", "<form>" + mail + "</form>")));
+  check(
+    doc.querySelector("input").value === "",
+    "form id unnamed to unnamed " + JSON.stringify(doc.querySelector("input").value)
+  );
+
+  doc.body.innerHTML = scopeHtml(compField("a", '<form id="name:x">' + mail + "</form>"));
+  doc.querySelector("input").value = "id-namex";
+  await applyKeepMorph(win, scopeHtml(compField("a", '<form name="x">' + mail + "</form>")));
+  check(
+    doc.querySelector("input").value === "",
+    "form id name:x to name x " + JSON.stringify(doc.querySelector("input").value)
+  );
+
+  doc.body.innerHTML = scopeHtml(compField("a", '<form name="id:f">' + mail + "</form>"));
+  doc.querySelector("input").value = "name-idf";
+  await applyKeepMorph(win, scopeHtml(compField("a", '<form id="f">' + mail + "</form>")));
+  check(
+    doc.querySelector("input").value === "",
+    "form name id:f to id f " + JSON.stringify(doc.querySelector("input").value)
+  );
+
+  var card = function (channel) {
+    return (
+      '<div id="card" data-channel-id="' + channel + '">' +
+      '<input name="email" type="email" data-ux-keep-value value="">' +
+      "</div>"
+    );
+  };
+  doc.body.innerHTML = scopeHtml(card("a"));
+  doc.querySelector("input").value = "A-card";
+  await applyKeepMorph(win, scopeHtml(card("b")));
+  check(
+    doc.querySelector("input").value === "",
+    "component element id " + JSON.stringify(doc.querySelector("input").value)
+  );
+
+  var bothKinds =
+    '<div data-channel-id="a">' +
+    '<input name="x" type="text" data-ux-keep-value value="">' +
+    '<textarea name="x" data-ux-keep-value></textarea>' +
+    "</div>";
+  doc.body.innerHTML = scopeHtml(bothKinds);
+  doc.querySelector("input").value = "t";
+  doc.querySelector("textarea").value = "ta";
+  await applyKeepMorph(win, scopeHtml(bothKinds));
+  check(
+    doc.querySelector("input").value === "t",
+    "text beside textarea " + JSON.stringify(doc.querySelector("input").value)
+  );
+  check(
+    doc.querySelector("textarea").value === "ta",
+    "textarea beside text " + JSON.stringify(doc.querySelector("textarea").value)
+  );
 }
