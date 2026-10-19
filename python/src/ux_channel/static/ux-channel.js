@@ -259,23 +259,46 @@
 
   // Opt-in live value. Copies onto an element the morph already left in the
   // document. Property write only: never setAttribute, never parse or insert.
+  // The six text-like input types are one class. Textarea is its own class.
+  var KEEP_TEXT_TYPE = {
+    password: 1,
+    text: 1,
+    email: 1,
+    search: 1,
+    tel: 1,
+    url: 1,
+  };
+
+  function keepKind(el) {
+    if (!el || !el.tagName) return "";
+    var tag = String(el.tagName).toLowerCase();
+    if (tag === "textarea") return "textarea";
+    if (tag !== "input") return "";
+    if (KEEP_TEXT_TYPE[String(el.type || "").toLowerCase()]) return "text";
+    return "";
+  }
+
   function keepValueKey(el) {
     if (!el || !el.hasAttribute || !el.hasAttribute("data-ux-keep-value")) return "";
-    var tag = String(el.tagName || "").toLowerCase();
-    if (tag !== "input" && tag !== "textarea") return "";
+    if (!keepKind(el)) return "";
     if (el.id) return "id:" + el.id;
     var name = el.getAttribute("name");
     if (name) return "name:" + name;
     return "";
   }
 
-  function keepValueCheckable(el) {
-    var type = String(el.type || "").toLowerCase();
-    return type === "checkbox" || type === "radio";
+  function warnIgnoredKeep(root) {
+    if (!root || typeof root.querySelectorAll !== "function") return;
+    var nodes = root.querySelectorAll("[data-ux-keep-value]");
+    var i;
+    for (i = 0; i < nodes.length; i++) {
+      if (!keepKind(nodes[i])) console.warn("[ux-channel] data-ux-keep-value ignored");
+    }
   }
 
   function snapshotKeepValues(root) {
     var saved = [];
+    warnIgnoredKeep(root);
     if (!root || typeof root.querySelectorAll !== "function") return saved;
     var nodes = root.querySelectorAll("input, textarea");
     var i, el, key;
@@ -283,12 +306,7 @@
       el = nodes[i];
       key = keepValueKey(el);
       if (!key) continue;
-      saved.push({
-        key: key,
-        value: el.value,
-        checked: !!el.checked,
-        checkable: keepValueCheckable(el),
-      });
+      saved.push({ key: key, value: el.value });
     }
     return saved;
   }
@@ -312,7 +330,6 @@
       for (j = 0; j < matches.length; j++) {
         el = matches[j];
         el.value = item.value;
-        if (item.checkable && keepValueCheckable(el)) el.checked = item.checked;
       }
     }
   }
