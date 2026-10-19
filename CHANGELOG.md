@@ -16,16 +16,22 @@
   component root. One warning is logged per ignored field per morph. A
   marked field with no `name` restores nothing and logs one warning,
   including inside a form or a component. A field that has a name, inside
-  a named form or inside a component, does not log that warning. `id` is not the key. Shared keys restore nothing.
+  a named form or inside a component, does not log that warning. `id` is
+  not the key. Shared keys restore nothing.
   After the fragment is in the DOM, the client writes `el.value` inside its
   own try/catch. A throw while reading or writing one marked field skips
   that field and logs one warning that names the error; the other fields
   continue. The name is `error.message` when that is a string, otherwise
   `String(error)`, otherwise `unknown error`. The thrown value is the
   second `console.warn` argument. Two fields that throw the same message
-  each log a warning; the same field logs one. If Idiomorph throws, the error is reported the same way as
-  any other failed morph, and kept values for the other fields are still
-  restored. The partial morph is left in place.   If the saved element throws while it is being matched, or a node's key
+  each log a warning; the same field logs one. If Idiomorph throws, the
+  error is reported the same way as any other failed morph, and kept values
+  for the other fields are still restored. The partial morph is left in
+  place. A throw while restoring kept values, including while listing the
+  marked fields, only logs that warning. It does not replace a morph error,
+  and it does not create an op error when the morph succeeded. The same
+  holds when the page has no Idiomorph and the client uses `replaceWith`.
+  If the saved element throws while it is being matched, or a node's key
   cannot be decided, that field is not restored and the value is not written
   into a different field. A different field's throw does not clear the
   others. The throw logs the same warning.

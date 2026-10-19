@@ -435,7 +435,14 @@
   function restoreKeepValues(root, saved, write) {
     if (!root || !saved || !saved.length || !write) return;
     if (typeof root.querySelectorAll !== "function") return;
-    var nodes = root.querySelectorAll("[data-ux-keep-value]");
+    var nodes;
+    try {
+      nodes = root.querySelectorAll("[data-ux-keep-value]");
+    } catch (re) {
+      // Reason: a throw while listing fields only warns, then restore stops.
+      keepFailure(re, root);
+      return;
+    }
     var i, item, j, el, key, matches;
     for (i = 0; i < saved.length; i++) {
       item = saved[i];
@@ -561,17 +568,33 @@
     if (target.hasAttribute("data-channel-id") && !next.hasAttribute("data-channel-id")) {
       next.setAttribute("data-channel-id", target.getAttribute("data-channel-id"));
     }
+    // Reason: a throw while restoring kept values only warns. It does not
+    // replace a morph error, and it does not create an op error when the
+    // morph succeeded.
+    var restoreRoot;
     if (global.Idiomorph && typeof global.Idiomorph.morph === "function") {
-      // Reason: an Idiomorph throw must reach the caller the same way it does
-      // on main. Other fields still get their kept values.
       try {
         global.Idiomorph.morph(target, next);
       } finally {
-        if (target.parentNode) restoreKeepValues(target, keepSnap, writeKeep);
+        try {
+          if (target.parentNode) restoreKeepValues(target, keepSnap, writeKeep);
+        } catch (re) {
+          keepFailure(re);
+        }
       }
     } else {
-      target.replaceWith(next);
-      restoreKeepValues(next, keepSnap, writeKeep);
+      try {
+        target.replaceWith(next);
+      } finally {
+        try {
+          restoreRoot = next.parentNode ? next : target;
+          if (restoreRoot && restoreRoot.parentNode) {
+            restoreKeepValues(restoreRoot, keepSnap, writeKeep);
+          }
+        } catch (re2) {
+          keepFailure(re2);
+        }
+      }
     }
     restoreFocus(focusSnap);
     restoreScroll(scrollSnap);
