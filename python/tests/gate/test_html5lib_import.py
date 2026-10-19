@@ -1,7 +1,8 @@
-"""html5lib is imported only by the strict sanitizer, and only lazily.
+"""html5lib checks HTML in both modes.
 
-Off mode must still deliver a patch when ``html5lib`` cannot be imported.
-Strict mode refuses the patch when that import fails or the parser raises.
+An HTML patch is refused when html5lib cannot be imported, the parser
+raises, or a second parse of the cleaned output disagrees. Plain text and
+non-HTML ops still pass when the import is missing.
 """
 
 from __future__ import annotations
@@ -24,10 +25,10 @@ def _restore_morph_policy() -> None:
     security_mod.apply_morph_policy = morph_policy.apply_morph_policy
 
 
-def test_off_mode_patch_runs_when_html5lib_is_missing(
+def test_off_mode_html_is_refused_when_html5lib_is_missing(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Block the import. An off patch must still go through."""
+    """HTML is refused. Plain text and non-HTML ops still pass."""
     import ux_channel.render.morph_policy as morph_policy
 
     names = [
@@ -41,14 +42,59 @@ def test_off_mode_patch_runs_when_html5lib_is_missing(
     try:
         reloaded = importlib.reload(morph_policy)
         ops = reloaded.apply_morph_policy(
-            [{"op": "swap", "target": "#t", "html": _HTML}],
+            [
+                {"op": "swap", "target": "#t", "html": _HTML},
+                {"op": "swap", "target": "#t", "html": "Saved."},
+                {"op": "set_text", "target": "#t", "text": "hello"},
+                {"op": "navigate", "href": "/ok"},
+            ],
             policy="off",
         )
     finally:
         monkeypatch.undo()
         _restore_morph_policy()
-    assert ops[0]["html"] == _HTML
-    assert "onclick" in ops[0]["html"]
+    assert ops[0]["html"] == ""
+    assert "onclick" not in ops[0]["html"].lower()
+    assert ops[1]["html"] == "Saved."
+    assert ops[2]["text"] == "hello"
+    assert ops[3]["href"] == "/ok"
+
+
+def test_off_mode_parse_failure_refuses_the_fragment(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def _boom(self, *args, **kwargs):
+        raise RuntimeError("parse")
+
+    monkeypatch.setattr("html5lib.HTMLParser.parseFragment", _boom)
+    ops = apply_morph_policy(
+        [{"op": "swap", "target": "#t", "html": _HTML}],
+        policy="off",
+    )
+    assert ops[0]["html"] == ""
+
+
+def test_off_mode_second_parse_disagreement_refuses_the_fragment(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import html5lib
+
+    real = html5lib.HTMLParser.parseFragment
+    seen = {"n": 0}
+
+    def _wrapped(self, html, *args, **kwargs):
+        seen["n"] += 1
+        fragment = real(self, html, *args, **kwargs)
+        if seen["n"] >= 2:
+            fragment.text = (fragment.text or "") + "DIFF"
+        return fragment
+
+    monkeypatch.setattr("html5lib.HTMLParser.parseFragment", _wrapped)
+    ops = apply_morph_policy(
+        [{"op": "swap", "target": "#t", "html": "<b>ok</b>"}],
+        policy="off",
+    )
+    assert ops[0]["html"] == ""
 
 
 def test_strict_patch_is_refused_when_html5lib_import_fails(
