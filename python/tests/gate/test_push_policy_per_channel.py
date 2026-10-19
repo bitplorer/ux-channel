@@ -18,6 +18,7 @@ from ux_channel.transport.push import PushBus, get_push_bus, set_push_bus
 
 _SECRET = "push-policy-per-channel-32chars!!"
 _HTML = '<img src="x" onerror="alert(1)">'
+_topic_seq = 0
 
 
 def _boot(policy: str | None = "off", hosts: tuple[str, ...] = ()) -> PushBus:
@@ -36,8 +37,10 @@ def _boot(policy: str | None = "off", hosts: tuple[str, ...] = ()) -> PushBus:
 
 
 def _publish(bus: PushBus, op: dict) -> dict:
+    global _topic_seq
+    _topic_seq += 1
     queue: asyncio.Queue = asyncio.Queue()
-    topic = f"probe.{id(bus)}.{id(op)}"
+    topic = f"probe.{id(bus)}.{_topic_seq}"
     bus.subscribe(topic, queue)
     assert bus.publish(topic, Result.success(op)) == 1
     return queue.get_nowait()

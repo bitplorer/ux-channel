@@ -304,20 +304,38 @@ def create_channel(
 
     # Importing transport.push at module level loads transport/__init__.py,
     # which pulls the outbox and the wire codec. Keep this local.
-    from ux_channel.transport.push import get_push_bus
+    from ux_channel.transport.push import (
+        PushBus,
+        attach_push_bus,
+        get_push_bus,
+        set_push_bus,
+    )
 
     bus = get_push_bus()
+    # A bus already owned by another channel stays untouched.
+    if getattr(bus, "_owner", None) is not None:
+        bus = PushBus()
     cfg_bus = mount_config or config
     if cfg_bus is None:
-        bus.morph_html_policy = "off"
+        # No config is a missing policy: publish fails closed.
+        if hasattr(bus, "morph_html_policy"):
+            del bus.morph_html_policy
         bus.navigate_allowed_hosts = ()
     else:
-        bus.morph_html_policy = str(
-            getattr(cfg_bus, "morph_html_policy", "off") or "off"
-        )
+        raw_policy = getattr(cfg_bus, "morph_html_policy", None)
+        if raw_policy is None or str(raw_policy).strip() == "":
+            if hasattr(bus, "morph_html_policy"):
+                del bus.morph_html_policy
+        else:
+            bus.morph_html_policy = str(raw_policy)
         bus.navigate_allowed_hosts = tuple(
             getattr(cfg_bus, "navigate_allowed_hosts", ()) or ()
         )
+    bus._policy_bound = True
+    bus._owner = id(reg)
+    if get_push_bus() is not bus:
+        set_push_bus(bus)
+    attach_push_bus(reg, bus)
 
     set_hub(hub)
     return reg, hub

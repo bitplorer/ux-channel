@@ -126,7 +126,13 @@ class LivePlane:
         meta["seq"] = self.next_seq(topic)
         meta["topic"] = topic
         body["meta"] = meta
-        return get_push_bus().publish(topic, body)
+        reg = getattr(self.ch, "registry", None)
+        bus = getattr(reg, "push_bus", None) if reg is not None else None
+        if bus is None:
+            bus = getattr(self.ch, "push_bus", None)
+        if bus is None:
+            bus = get_push_bus()
+        return bus.publish(topic, body)
 
     # --- presence (Wave 2 / 5) ---------------------------------------------
 
