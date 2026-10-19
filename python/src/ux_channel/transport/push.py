@@ -242,9 +242,18 @@ def ensure_registry_push_bus(registry: Any) -> PushBus:
         bus = PushBus()
     else:
         bus = get_push_bus()
-    # Attaching makes this a channel bus. No policy yet means off, not strict.
-    if not getattr(bus, "_policy_bound", False) and not hasattr(bus, "morph_html_policy"):
-        bus.morph_html_policy = "off"
+    # A new bus takes this channel's policy. An already-bound bus stays.
+    if not getattr(bus, "_policy_bound", False):
+        cfg = getattr(registry, "config", None)
+        raw = getattr(cfg, "morph_html_policy", None) if cfg is not None else None
+        if raw in ("off", "strict"):
+            bus.morph_html_policy = str(raw)
+        elif not hasattr(bus, "morph_html_policy"):
+            bus.morph_html_policy = "off"
+        if cfg is not None:
+            bus.navigate_allowed_hosts = tuple(
+                getattr(cfg, "navigate_allowed_hosts", ()) or ()
+            )
     attach_push_bus(registry, bus)
     return bus
 
