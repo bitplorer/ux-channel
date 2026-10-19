@@ -53,7 +53,7 @@ from ux_channel.security.limits import (
     enforce_result_limits,
 )
 from ux_channel.host.nonce import NonceStore
-from ux_channel.security.security import sanitize_op_hrefs, validate_action_name
+from ux_channel.security.security import filter_outbound_ops, validate_action_name
 
 
 class AsyncDispatchRequired(TypeError):
@@ -930,21 +930,20 @@ class ActionRegistry:
                     )
                 )
 
-        # Drop javascript:/data: navigations and set_attr URL attributes even
-        # if the action built raw dicts.
+        # Href check and strict morph/swap/toast strip. Same function as
+        # PushBus.publish, including ops nested in seq / timer.set / invoke.
         hosts = ()
         cfg = getattr(self, "config", None)
         if cfg is not None:
             hosts = tuple(getattr(cfg, "navigate_allowed_hosts", ()) or ())
-        result.ops = sanitize_op_hrefs(list(result.ops), allowed_hosts=hosts)
-        # Opt-in morph/swap/toast HTML policy (SECURITY_AUDIT HIGH residual). Default off.
         policy = "off"
         if cfg is not None:
             policy = str(getattr(cfg, "morph_html_policy", "off") or "off")
-        if policy == "strict":
-            from ux_channel.render.morph_policy import apply_morph_policy
-
-            result.ops = apply_morph_policy(list(result.ops), policy=policy)
+        result.ops = filter_outbound_ops(
+            list(result.ops),
+            policy=policy,
+            allowed_hosts=hosts,
+        )
 
         tr = _trace_api().get_tracer()
         if tr.enabled:

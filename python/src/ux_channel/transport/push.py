@@ -13,6 +13,7 @@ from collections import defaultdict
 from typing import DefaultDict, Optional, Protocol, Set
 
 from ux_channel.protocol.types import Result
+from ux_channel.security.security import filter_outbound_ops
 
 
 class PushBackend(Protocol):
@@ -71,6 +72,9 @@ class MemoryPushBackend:
 class PushBus:
     def __init__(self, backend: Optional[PushBackend] = None) -> None:
         self.backend: PushBackend = backend or MemoryPushBackend()
+        # Stamped from ChannelConfig at boot. Default off leaves markup as authored.
+        self.morph_html_policy = "off"
+        self.navigate_allowed_hosts: tuple[str, ...] = ()
 
     def subscribe(self, topic: str, queue: asyncio.Queue) -> None:
         self.backend.subscribe_local(topic, queue)
@@ -80,6 +84,13 @@ class PushBus:
 
     def publish(self, topic: str, result: Result | dict) -> int:
         body = result.to_dict() if isinstance(result, Result) else dict(result)
+        ops = body.get("ops")
+        if isinstance(ops, list):
+            body["ops"] = filter_outbound_ops(
+                ops,
+                policy=self.morph_html_policy,
+                allowed_hosts=self.navigate_allowed_hosts,
+            )
         return self.backend.publish(topic, body)
 
     def topics(self) -> list[str]:
