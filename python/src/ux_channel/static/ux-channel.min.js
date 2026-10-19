@@ -327,17 +327,26 @@
     return JSON.stringify([parts[0], parts[1], parts[2], kind]);
   }
 
-  var keepSeen = null;
+  var keepFailed = null;
 
-  function keepFailure(e) {
-    var message = "[ux-channel] data-ux-keep-value ignored";
-    var key = e && e.message ? String(e.message) : "";
-    if (key) {
-      if (keepSeen && keepSeen[key]) return;
-      if (keepSeen) keepSeen[key] = 1;
-      message += ": " + key;
+  // Reason: naming a throw must not itself throw, and two fields that throw
+  // the same message each warn once.
+  function keepErrorName(e) {
+    try {
+      if (typeof e.message === "string") return e.message;
+    } catch (ignored) {}
+    try {
+      return String(e);
+    } catch (ignored2) {}
+    return "unknown error";
+  }
+
+  function keepFailure(e, el) {
+    if (keepFailed && el) {
+      if (keepFailed.indexOf(el) !== -1) return;
+      keepFailed.push(el);
     }
-    console.warn(message);
+    console.warn("[ux-channel] data-ux-keep-value ignored: " + keepErrorName(e), e);
   }
 
   function keepIgnored(el) {
@@ -376,7 +385,7 @@
         item = collectOne(el);
       } catch (e) {
         // Reason: the warning is for this read, so it is logged before the morph.
-        keepFailure(e);
+        keepFailure(e, el);
         continue;
       }
       if (!item) continue;
@@ -406,7 +415,7 @@
     try {
       el.value = value;
     } catch (e) {
-      keepFailure(e);
+      keepFailure(e, el);
     }
   }
 
@@ -414,7 +423,7 @@
     try {
       el.value = value;
     } catch (e) {
-      keepFailure(e);
+      keepFailure(e, el);
     }
   }
 
@@ -434,7 +443,7 @@
         } catch (e) {
           // Reason: a throw while matching one item means that item must not
           // be written into this field or any other.
-          keepFailure(e);
+          keepFailure(e, el);
           skipItem = true;
           break;
         }
@@ -449,7 +458,7 @@
         if (!sameKeepKind(item, el)) continue;
         write(el, item.value);
       } catch (e) {
-        keepFailure(e);
+        keepFailure(e, el);
         continue;
       }
     }
@@ -512,11 +521,11 @@
   }
 
   function applyMorph(targetSel, html) {
-    keepSeen = Object.create(null);
+    keepFailed = [];
     try {
       return applyMorphBody(targetSel, html);
     } finally {
-      keepSeen = null;
+      keepFailed = null;
     }
   }
 

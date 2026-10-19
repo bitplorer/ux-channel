@@ -20,7 +20,10 @@
   After the fragment is in the DOM, the client writes `el.value` inside its
   own try/catch. A throw while reading or writing one marked field skips
   that field and logs one warning that names the error; the other fields
-  continue. If Idiomorph throws, the error is reported the same way as
+  continue. The name is `error.message` when that is a string, otherwise
+  `String(error)`, otherwise `unknown error`. The thrown value is the
+  second `console.warn` argument. Two fields that throw the same message
+  each log a warning; the same field logs one. If Idiomorph throws, the error is reported the same way as
   any other failed morph, and kept values for the other fields are still
   restored. The partial morph is left in place. If any node throws while
   a saved field is being matched, that field is not restored and the value

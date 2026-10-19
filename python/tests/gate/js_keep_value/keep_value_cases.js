@@ -94,7 +94,16 @@ async function runKeepValuePath(win, path) {
   var warns = [];
   var origWarn = win.console.warn;
   win.console.warn = function () {
-    var text = Array.prototype.join.call(arguments, " ");
+    var parts = [];
+    var i;
+    for (i = 0; i < arguments.length; i++) {
+      try {
+        parts.push(String(arguments[i]));
+      } catch (e) {
+        parts.push("");
+      }
+    }
+    var text = parts.join(" ");
     var rec = { text: text, args: Array.prototype.slice.call(arguments) };
     rec.toString = function () { return text; };
     warns.push(rec);
