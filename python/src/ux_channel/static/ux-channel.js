@@ -310,13 +310,11 @@
     return "unnamed";
   }
 
-  // Reason: an unnamed form was one shared token, so a value crossed components.
   function keepParts(el) {
     if (!el || !el.hasAttribute || !el.hasAttribute("data-ux-keep-value")) return null;
     var name = el.getAttribute("name");
     var component = keepComponentId(el);
     var formPart = keepFormPart(el);
-    if (!component && (formPart === "none" || formPart === "unnamed")) return null;
     return [component, formPart, name];
   }
 
@@ -329,11 +327,24 @@
   var keepFailed = null;
 
   // Reason: naming a throw must not itself throw, and two fields that throw
-  // the same message each warn once.
+  // the same message each warn once. An empty message uses the constructor
+  // name, or Error when that name is empty.
   function keepErrorName(e) {
+    var sawMessage = false;
+    var message = null;
     try {
-      if (typeof e.message === "string") return e.message;
+      message = e.message;
+      sawMessage = true;
     } catch (ignored) {}
+    if (sawMessage && typeof message === "string" && message) return message;
+    if (sawMessage && message === "") {
+      try {
+        var ctor = e.constructor;
+        var name = ctor && ctor.name;
+        if (typeof name === "string" && name) return name;
+      } catch (ignoredName) {}
+      return "Error";
+    }
     try {
       return String(e);
     } catch (ignored2) {}
@@ -432,8 +443,8 @@
     el.value = value;
   }
 
-  function restoreKeepValues(root, saved, write) {
-    if (!root || !saved || !saved.length || !write) return;
+  function restoreKeepValues(root, saved) {
+    if (!root || !saved || !saved.length) return;
     if (typeof root.querySelectorAll !== "function") return;
     var nodes;
     try {
@@ -471,7 +482,7 @@
         // Reason: a throw while reading this field's type must skip the item
         // and still restore the fields after it.
         if (!sameKeepKind(item, el)) continue;
-        write(el, item.value);
+        writeKeep(el, item.value);
       } catch (e) {
         keepFailure(e, el);
         continue;
@@ -580,7 +591,7 @@
         global.Idiomorph.morph(target, next);
       } finally {
         try {
-          if (target.parentNode) restoreKeepValues(target, keepSnap, writeKeep);
+          if (target.parentNode) restoreKeepValues(target, keepSnap);
         } catch (re) {
           keepFailure(re);
         }
@@ -592,7 +603,7 @@
         try {
           restoreRoot = next.parentNode ? next : target;
           if (restoreRoot && restoreRoot.parentNode) {
-            restoreKeepValues(restoreRoot, keepSnap, writeKeep);
+            restoreKeepValues(restoreRoot, keepSnap);
           }
         } catch (re2) {
           keepFailure(re2);

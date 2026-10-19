@@ -189,7 +189,9 @@ After the fragment is already in the DOM, the client writes `el.value` for
 each match inside its own try/catch. A throw while reading or writing one
 marked field skips that field and logs one warning that names the error.
 The other fields continue. The name is `error.message` when that is a
-string, otherwise `String(error)`, otherwise `unknown error`. The thrown
+non-empty string. An empty message uses the constructor name, or `Error`
+when that name is empty. Otherwise the name is `String(error)`, or
+`unknown error` when that throws. The thrown
 value is the second `console.warn` argument. Two fields that throw the
 same message each log a warning; the same field logs one, including when a
 nested morph runs during this one. If Idiomorph throws, the

@@ -81,8 +81,10 @@ control (`hidden`, `checkbox`, `radio`, `file`, `select`) ignores the mark
 and logs one console warning. The copy is the DOM property `el.value`, one
 element at a time inside try/catch. A throw while reading or writing one
 field skips that field and logs one warning that names the error; the other
-fields continue. The name is `error.message` when that is a string,
-otherwise `String(error)`, otherwise `unknown error`. The thrown value is
+fields continue. The name is `error.message` when that is a non-empty
+string. An empty message uses the constructor name, or `Error` when that
+name is empty. Otherwise the name is `String(error)`, or `unknown error`
+when that throws. The thrown value is
 the second `console.warn` argument. Two fields that throw the same message
 each log a warning; the same field logs one, including when a nested morph
 runs during this one. If Idiomorph throws, the error is

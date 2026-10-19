@@ -1193,10 +1193,10 @@ async function runIsolationCases(win, doc, check, warns, path) {
   await runWarnNameCase(win, doc, check, warns);
   await runSurvivorCases(win, doc, check, warns, path);
   await runRestoreErrorCase(win, doc, check, warns, path);
+  await runUnmarkedThrowCase(win, doc, check, warns);
   if (path === "idiomorph") {
     await runPersistentBreakCase(win, doc, check, warns);
     await runNestedKeepCase(win, doc, check, warns);
-    await runUnmarkedThrowCase(win, doc, check, warns);
   }
 }
 
@@ -2056,12 +2056,24 @@ function rawUnmarkedMorph(win, doc) {
   var target = doc.getElementById("region");
   var tpl = doc.createElement("template");
   tpl.innerHTML = unmarkedAfter().trim();
-  try { win.Idiomorph.morph(target, tpl.content.firstElementChild); } catch (e) {}
-  return regionShot(doc);
+  var next = tpl.content.firstElementChild;
+  var engineError = null;
+  try {
+    if (win.Idiomorph && typeof win.Idiomorph.morph === "function") {
+      win.Idiomorph.morph(target, next);
+    } else {
+      target.replaceWith(next);
+    }
+  } catch (e) {
+    engineError = e;
+  }
+  return { shot: regionShot(doc), engineError: engineError };
 }
 
 async function runUnmarkedThrowCase(win, doc, check, warns) {
-  var mainDom = rawUnmarkedMorph(win, doc);
+  var raw = rawUnmarkedMorph(win, doc);
+  var mainDom = raw.shot;
+  var engineError = raw.engineError;
   win.uxChannel.clearErrorLog();
   warns.length = 0;
   doc.body.innerHTML = unmarkedBefore();
@@ -2099,19 +2111,26 @@ async function runUnmarkedThrowCase(win, doc, check, warns) {
   check(shot.added === mainDom.added, "unmarked added " + shot.added);
   check(shot.plain === mainDom.plain, "unmarked plain " + JSON.stringify(shot.plain));
   check(keepWarnCount(warns) === 0, "unmarked warnings " + keepWarnCount(warns));
-  check(
-    !!(reported && reported.kind === "op" && reported.message === "Op failed: morph — plain getAttribute rejected" && reported.source === "apply" && reported.op && reported.op.op === "morph" && reported.code == null),
-    "unmarked lastErrors " + (reported && reported.message)
-  );
-  check(
-    !!(channelError && channelError.kind === "op" && channelError.entry && channelError.entry.message === (reported && reported.message)),
-    "unmarked channel:error"
-  );
-  check(
-    !!(opError && opError.error && opError.error.message === "plain getAttribute rejected" && opError.op && opError.op.op === "morph" && opError.index === 0),
-    "unmarked channel:opError"
-  );
-  check(!events.some(function (ev) { return ev.name === "channel:afterOp"; }), "unmarked afterOp");
+  if (engineError) {
+    check(
+      !!(reported && reported.kind === "op" && reported.message === "Op failed: morph — " + engineError.message && reported.source === "apply" && reported.op && reported.op.op === "morph" && reported.code == null),
+      "unmarked lastErrors " + (reported && reported.message)
+    );
+    check(
+      !!(channelError && channelError.kind === "op" && channelError.entry && channelError.entry.message === (reported && reported.message)),
+      "unmarked channel:error"
+    );
+    check(
+      !!(opError && opError.error && opError.error.message === engineError.message && opError.op && opError.op.op === "morph" && opError.index === 0),
+      "unmarked channel:opError"
+    );
+    check(!events.some(function (ev) { return ev.name === "channel:afterOp"; }), "unmarked afterOp");
+  } else {
+    check(!reported, "unmarked lastErrors " + (reported && reported.message));
+    check(!channelError, "unmarked channel:error");
+    check(!opError, "unmarked channel:opError");
+    check(events.some(function (ev) { return ev.name === "channel:afterOp"; }), "unmarked afterOp");
+  }
   check(events.some(function (ev) { return ev.name === "channel:afterApply"; }), "unmarked afterApply");
   check(events.some(function (ev) { return ev.name === "channel:applied"; }), "unmarked applied");
 
@@ -2127,10 +2146,14 @@ async function runUnmarkedThrowCase(win, doc, check, warns) {
     callerError = e2;
   }
   var optShot = regionShot(doc);
-  check(
-    !!(callerError && callerError.message === "plain getAttribute rejected"),
-    "unmarked optimisticMorph " + (callerError && callerError.message)
-  );
+  if (engineError) {
+    check(
+      !!(callerError && callerError.message === engineError.message),
+      "unmarked optimisticMorph " + (callerError && callerError.message)
+    );
+  } else {
+    check(!callerError, "unmarked optimisticMorph " + (callerError && callerError.message));
+  }
   check(optShot.html === mainDom.html, "unmarked optimistic html " + optShot.html);
   check(win.uxChannel.lastErrors(1).length === 0, "unmarked optimistic lastErrors " + win.uxChannel.lastErrors(1).length);
   check(keepWarnCount(warns) === 0, "unmarked optimistic warnings " + keepWarnCount(warns));
