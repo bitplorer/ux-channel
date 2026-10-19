@@ -723,6 +723,9 @@
   // Same names as python/src/ux_channel/render/drop_names.json.
   var DROP_CONTENT = ["iframe", "noembed", "noframes", "noscript", "object", "plaintext", "script", "template", "xmp"];
   var DROP_VOID = ["base", "embed", "link", "meta"];
+  var DROP_ANIMATE = ["animate", "animatemotion", "animatetransform", "set"];
+  var DROP_ANIMATE_NAME = ["href", "xlink:href"];
+  var DROP_ANIMATE_URL = ["by", "from", "to", "values"];
 
   // URL attributes. data-* is not included; only the exact "data" attribute is.
   var URL_ATTRS = {

@@ -10,5 +10,8 @@
     "template",
     "xmp"
   ],
-  "void": ["base", "embed", "link", "meta"]
+  "void": ["base", "embed", "link", "meta"],
+  "animate": ["animate", "animatemotion", "animatetransform", "set"],
+  "animate_name": ["href", "xlink:href"],
+  "animate_url": ["by", "from", "to", "values"]
 }
