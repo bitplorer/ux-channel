@@ -188,10 +188,10 @@ change out of the class restores nothing.
 After the fragment is already in the DOM, the client writes `el.value` for
 each match inside its own try/catch. A throw while reading or writing one
 marked field skips that field and logs one warning that names the error.
-The other fields continue. If Idiomorph throws, that warning is logged and
-the whole target is replaced with the server fragment, then kept values are
-restored on that path. A throw while matching a kept field logs the same
-warning. It does not set the value attribute,
+The other fields continue. If Idiomorph throws, the error is reported the
+same way as any other failed morph, and kept values for the other fields
+are still restored. The partial morph is left in place. A throw while
+matching a kept field logs the same warning. It does not set the value attribute,
 parse the typed text, or insert a node. Focus restore is the same path as
 on main.
 

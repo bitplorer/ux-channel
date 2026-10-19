@@ -554,17 +554,13 @@
       next.setAttribute("data-channel-id", target.getAttribute("data-channel-id"));
     }
     if (global.Idiomorph && typeof global.Idiomorph.morph === "function") {
+      // Reason: an Idiomorph throw must reach the caller the same way it does
+      // on main. Other fields still get their kept values.
       try {
         global.Idiomorph.morph(target, next);
-      } catch (e) {
-        // Reason: a throw inside Idiomorph leaves every node after the broken
-        // field stale. Warn once, naming the error, then replace the whole
-        // target so the server HTML lands.
-        keepFailure(e);
-        if (target.parentNode) target.replaceWith(next);
-        restoreKeepValues(next, keepSnap, writeKeepReplace);
+      } finally {
+        if (target.parentNode) restoreKeepValues(target, keepSnap, writeKeepIdio);
       }
-      if (target.parentNode) restoreKeepValues(target, keepSnap, writeKeepIdio);
     } else {
       target.replaceWith(next);
       restoreKeepValues(next, keepSnap, writeKeepReplace);

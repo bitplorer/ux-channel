@@ -1189,10 +1189,12 @@ function unmarkedAfter() {
   );
 }
 
-function armPlain(doc) {
+function armPlain(win, doc) {
   var input = doc.getElementById("plain");
-  input.getAttribute = function () {
-    throw new Error("plain getAttribute rejected");
+  var orig = win.Element.prototype.getAttribute;
+  input.getAttribute = function (name) {
+    if (name === "value") throw new Error("plain getAttribute rejected");
+    return orig.call(this, name);
   };
 }
 
@@ -1212,7 +1214,7 @@ function regionShot(doc) {
 
 function rawUnmarkedMorph(win, doc) {
   doc.body.innerHTML = unmarkedBefore();
-  armPlain(doc);
+  armPlain(win, doc);
   var target = doc.getElementById("region");
   var tpl = doc.createElement("template");
   tpl.innerHTML = unmarkedAfter().trim();
@@ -1225,7 +1227,8 @@ async function runUnmarkedThrowCase(win, doc, check, warns) {
   win.uxChannel.clearErrorLog();
   warns.length = 0;
   doc.body.innerHTML = unmarkedBefore();
-  armPlain(doc);
+  if (doc.activeElement && doc.activeElement.blur) doc.activeElement.blur();
+  armPlain(win, doc);
   var tracked = trackChannel(win, [
     "channel:error",
     "channel:opError",
@@ -1277,7 +1280,8 @@ async function runUnmarkedThrowCase(win, doc, check, warns) {
   win.uxChannel.clearErrorLog();
   warns.length = 0;
   doc.body.innerHTML = unmarkedBefore();
-  armPlain(doc);
+  if (doc.activeElement && doc.activeElement.blur) doc.activeElement.blur();
+  armPlain(win, doc);
   var callerError = null;
   try {
     win.uxChannel.optimisticMorph("login", unmarkedAfter());
