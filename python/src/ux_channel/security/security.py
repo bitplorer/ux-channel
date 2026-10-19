@@ -325,10 +325,55 @@ def _sanitize_url_attr_value(name: object, value: Any) -> tuple[bool, Any]:
     return True, normalized
 
 
-def _sanitize_attr_map(attrs: dict) -> dict | None:
-    """Drop unsafe URL attributes. ``None`` means the whole map was refused."""
+class _TrustedAttr(str):
+    """In-process marker for a set_attr value the author marked trusted.
+
+    A plain string is not trusted. A later pass still sees ``__html__``.
+    JSON encodes this as the string, which the client applies.
+    """
+
+    def __html__(self) -> str:
+        return str(self)
+
+
+def _event_or_srcdoc(name: object) -> bool:
+    """True for event-handler names (``on*``) and ``srcdoc``."""
+    if not isinstance(name, str):
+        return False
+    token = name.strip().lower()
+    if token == "srcdoc":
+        return True
+    return len(token) > 2 and token.startswith("on")
+
+
+def _trusted_markup(value: Any) -> _TrustedAttr | None:
+    """``SafeHtml`` / ``mark_safe`` / any object with ``__html__`` (Markup)."""
+    dunder = getattr(value, "__html__", None)
+    if not callable(dunder):
+        return None
+    try:
+        rendered = dunder()
+    except Exception:
+        return None
+    if isinstance(rendered, str):
+        return _TrustedAttr(rendered)
+    return None
+
+
+def _sanitize_attr_map(attrs: dict) -> tuple[dict | None, str]:
+    """Return ``(attrs, reason)``. ``None`` attrs means the op is a noop.
+
+    ``unsafe_attr`` refuses the whole op: an untrusted ``on*`` or ``srcdoc``.
+    ``unsafe_href`` means every attribute was an unsafe URL.
+    """
     cleaned: dict[Any, Any] = {}
     for key, value in attrs.items():
+        if _event_or_srcdoc(key):
+            trusted = _trusted_markup(value)
+            if trusted is None:
+                return None, "unsafe_attr"
+            cleaned[key] = trusted
+            continue
         if _is_url_attr(key):
             keep, safe_value = _sanitize_url_attr_value(key, value)
             if not keep:
@@ -337,8 +382,8 @@ def _sanitize_attr_map(attrs: dict) -> dict | None:
         else:
             cleaned[key] = value
     if attrs and not cleaned:
-        return None
-    return cleaned
+        return None, "unsafe_href"
+    return cleaned, ""
 
 
 def _as_op_dict(op: Any) -> Any:
@@ -362,11 +407,11 @@ def _sanitize_one(op: Any, allowed_hosts: tuple[str, ...] | list[str] | None) ->
         return op
     name = op.get("op")
     if name == "set_attr" and isinstance(op.get("attrs"), dict):
-        cleaned = _sanitize_attr_map(op["attrs"])
+        cleaned, reason = _sanitize_attr_map(op["attrs"])
         if cleaned is None:
             op = {
                 "op": "noop",
-                "meta": {"dropped": "set_attr", "reason": "unsafe_href"},
+                "meta": {"dropped": "set_attr", "reason": reason or "unsafe_href"},
             }
         else:
             op = dict(op)

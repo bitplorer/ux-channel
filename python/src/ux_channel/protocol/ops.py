@@ -74,13 +74,18 @@ def set_attr(
     are kept on src-type attributes only. ``data:image/svg+xml`` and
     ``data:text/html`` are omitted. Non-None values are stringified the way
     ``setAttribute`` does before that check. If that drops every attribute,
-    the op is a noop (``reason=unsafe_href``). Relative, http(s), mailto,
+    the op is a noop (``reason=unsafe_href``). Event-handler names (``on*``)
+    and ``srcdoc`` are a noop (``reason=unsafe_attr``) unless the value is
+    trusted markup (``mark_safe`` / ``__html__``). Relative, http(s), mailto,
     and tel values are kept. Non-URL attributes are copied through.
     """
     raw = dict(attrs)
-    cleaned = _sanitize_attr_map(raw)
+    cleaned, reason = _sanitize_attr_map(raw)
     if cleaned is None:
-        dropped: dict[str, Any] = {"dropped": "set_attr", "reason": "unsafe_href"}
+        dropped: dict[str, Any] = {
+            "dropped": "set_attr",
+            "reason": reason or "unsafe_href",
+        }
         if meta:
             dropped = {**dict(meta), **dropped}
         return _op("noop", meta=dropped)
