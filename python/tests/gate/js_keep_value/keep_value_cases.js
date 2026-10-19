@@ -94,7 +94,10 @@ async function runKeepValuePath(win, path) {
   var warns = [];
   var origWarn = win.console.warn;
   win.console.warn = function () {
-    warns.push(Array.prototype.join.call(arguments, " "));
+    var text = Array.prototype.join.call(arguments, " ");
+    var rec = { text: text, args: Array.prototype.slice.call(arguments) };
+    rec.toString = function () { return text; };
+    warns.push(rec);
     return origWarn.apply(win.console, arguments);
   };
 
@@ -157,7 +160,7 @@ async function runKeepValuePath(win, path) {
         step.name + " hidden " + JSON.stringify(doc.getElementById("token").value)
       );
       var ignoredWarns = warns.filter(function (line) {
-        return line.indexOf("data-ux-keep-value") !== -1;
+        return warnText(line).indexOf("data-ux-keep-value") !== -1;
       });
       check(ignoredWarns.length === 5, step.name + " warnings " + ignoredWarns.length);
       warns.length = 0;
@@ -673,7 +676,7 @@ async function runComponentCases(win, doc, check, warns) {
   var loose = doc.querySelector('[name="note"]');
   check(loose.value === "", "no component root " + JSON.stringify(loose.value));
   var orphanWarns = warns.filter(function (line) {
-    return line.indexOf("data-ux-keep-value") !== -1;
+    return warnText(line).indexOf("data-ux-keep-value") !== -1;
   });
   check(orphanWarns.length === 1, "no component root warnings " + orphanWarns.length);
 }
@@ -707,10 +710,27 @@ function scopeHtml(inner) {
   return '<div id="region">' + inner + "</div>";
 }
 
+function warnText(item) {
+  return item && item.text != null ? item.text : String(item);
+}
+
 function keepWarnCount(warns) {
   return warns.filter(function (item) {
-    return String(item).indexOf("data-ux-keep-value") !== -1;
+    return warnText(item).indexOf("data-ux-keep-value") !== -1;
   }).length;
+}
+
+function trackChannel(win, names) {
+  var events = [];
+  var fns = names.map(function (name) {
+    var fn = function (ev) { events.push({ name: name, detail: ev.detail }); };
+    win.document.addEventListener(name, fn);
+    return function () { win.document.removeEventListener(name, fn); };
+  });
+  return {
+    events: events,
+    stop: function () { fns.forEach(function (fn) { fn(); }); },
+  };
 }
 
 async function runScopeCases(win, doc, check, warns) {
@@ -990,7 +1010,7 @@ function isolationHtml(marker, tail, extra) {
   );
 }
 
-function checkIsolation(doc, check, warns, label, path, errorName) {
+function checkIsolation(win, doc, check, warns, label, path, errorName) {
   var applied = doc.getElementById("applied");
   var safe = doc.getElementById("safe");
   var tail = doc.getElementById("tail");
@@ -1003,20 +1023,31 @@ function checkIsolation(doc, check, warns, label, path, errorName) {
     !!(safe && safe.value === "kept-safe"),
     label + " safe " + JSON.stringify(safe && safe.value)
   );
-  check(
-    !!(tail && tail.textContent === "fresh"),
-    label + " tail " + (tail && tail.textContent)
-  );
-  check(
-    !!(added && added.textContent === "new"),
-    label + " added " + (added && added.textContent)
-  );
   check(keepWarnCount(warns) === 1, label + " warnings " + keepWarnCount(warns));
   if (path === "idiomorph") {
+    check(
+      !!(tail && tail.textContent === "stale"),
+      label + " tail " + (tail && tail.textContent)
+    );
+    check(!added, label + " added " + (added && added.textContent));
     check(warns.length === 1, label + " warn calls " + warns.length);
     check(
-      warns.length === 1 && String(warns[0]).indexOf(errorName) !== -1,
+      warns.length === 1 && warnText(warns[0]).indexOf(errorName) !== -1,
       label + " warn names " + JSON.stringify(warns)
+    );
+    var last = win.uxChannel.lastErrors(1);
+    check(
+      last.length === 1 && String(last[0].message).indexOf(errorName) !== -1,
+      label + " reported " + (last[0] && last[0].message)
+    );
+  } else {
+    check(
+      !!(tail && tail.textContent === "fresh"),
+      label + " tail " + (tail && tail.textContent)
+    );
+    check(
+      !!(added && added.textContent === "new"),
+      label + " added " + (added && added.textContent)
     );
   }
 }
@@ -1027,6 +1058,7 @@ async function runIsolationCases(win, doc, check, warns, path) {
   var before = isolationHtml("no", "stale");
   var after = isolationHtml("yes", "fresh", '<span id="added">new</span>');
 
+  if (win.uxChannel.clearErrorLog) win.uxChannel.clearErrorLog();
   warns.length = 0;
   doc.body.innerHTML = before;
   doc.getElementById("safe").value = "kept-safe";
@@ -1042,11 +1074,12 @@ async function runIsolationCases(win, doc, check, warns, path) {
   });
   try {
     await applyKeepMorph(win, after);
-    checkIsolation(doc, check, warns, "getter", path, "value getter rejected");
+    checkIsolation(win, doc, check, warns, "getter", path, "value getter rejected");
   } finally {
     delete getterBad.value;
   }
 
+  if (win.uxChannel.clearErrorLog) win.uxChannel.clearErrorLog();
   warns.length = 0;
   doc.body.innerHTML = before;
   doc.getElementById("safe").value = "kept-safe";
@@ -1056,11 +1089,12 @@ async function runIsolationCases(win, doc, check, warns, path) {
   };
   try {
     await applyKeepMorph(win, after);
-    checkIsolation(doc, check, warns, "getAttribute", path, "getAttribute rejected");
+    checkIsolation(win, doc, check, warns, "getAttribute", path, "getAttribute rejected");
   } finally {
     delete attrBad.getAttribute;
   }
 
+  if (win.uxChannel.clearErrorLog) win.uxChannel.clearErrorLog();
   warns.length = 0;
   doc.body.innerHTML = before;
   doc.getElementById("safe").value = "kept-safe";
@@ -1078,7 +1112,7 @@ async function runIsolationCases(win, doc, check, warns, path) {
   });
   try {
     await applyKeepMorph(win, after);
-    checkIsolation(doc, check, warns, "setter", path, "value setter rejected");
+    checkIsolation(win, doc, check, warns, "setter", path, "value setter rejected");
   } finally {
     Object.defineProperty(proto, "value", valueDesc);
   }
@@ -1119,7 +1153,7 @@ async function runIsolationCases(win, doc, check, warns, path) {
       )
     );
     var named = warns.filter(function (line) {
-      return String(line).indexOf("keepKey rejected") !== -1;
+      return warnText(line).indexOf("keepKey rejected") !== -1;
     });
     check(named.length === 1, "keepKey warn " + named.length + " " + JSON.stringify(warns));
     check(
@@ -1130,4 +1164,132 @@ async function runIsolationCases(win, doc, check, warns, path) {
     if (path === "idiomorph" && savedMorph) win.Idiomorph.morph = savedMorph;
     else win.Element.prototype.replaceWith = savedReplace;
   }
+
+  if (path === "idiomorph") await runUnmarkedThrowCase(win, doc, check, warns);
+}
+
+function unmarkedBefore() {
+  return (
+    '<div id="region" data-channel-id="login">' +
+    '<span id="applied">no</span>' +
+    '<input id="plain" name="plain" type="text" value="x">' +
+    '<p id="tail">stale</p>' +
+    "</div>"
+  );
+}
+
+function unmarkedAfter() {
+  return (
+    '<div id="region" data-channel-id="login">' +
+    '<span id="applied">yes</span>' +
+    '<input id="plain" name="plain" type="text" value="">' +
+    '<p id="tail">fresh</p>' +
+    '<span id="added">new</span>' +
+    "</div>"
+  );
+}
+
+function armPlain(doc) {
+  var input = doc.getElementById("plain");
+  input.getAttribute = function () {
+    throw new Error("plain getAttribute rejected");
+  };
+}
+
+function regionShot(doc) {
+  var applied = doc.getElementById("applied");
+  var tail = doc.getElementById("tail");
+  var plain = doc.getElementById("plain");
+  var region = doc.getElementById("region");
+  return {
+    html: region ? region.outerHTML : "",
+    applied: applied && applied.textContent,
+    tail: tail && tail.textContent,
+    added: !!doc.getElementById("added"),
+    plain: plain && plain.value,
+  };
+}
+
+function rawUnmarkedMorph(win, doc) {
+  doc.body.innerHTML = unmarkedBefore();
+  armPlain(doc);
+  var target = doc.getElementById("region");
+  var tpl = doc.createElement("template");
+  tpl.innerHTML = unmarkedAfter().trim();
+  try { win.Idiomorph.morph(target, tpl.content.firstElementChild); } catch (e) {}
+  return regionShot(doc);
+}
+
+async function runUnmarkedThrowCase(win, doc, check, warns) {
+  var mainDom = rawUnmarkedMorph(win, doc);
+  win.uxChannel.clearErrorLog();
+  warns.length = 0;
+  doc.body.innerHTML = unmarkedBefore();
+  armPlain(doc);
+  var tracked = trackChannel(win, [
+    "channel:error",
+    "channel:opError",
+    "channel:afterOp",
+    "channel:afterApply",
+    "channel:applied",
+  ]);
+  var escaped = null;
+  try {
+    await applyKeepMorph(win, unmarkedAfter());
+  } catch (e) {
+    escaped = e;
+  }
+  var shot = regionShot(doc);
+  var events = tracked.events;
+  tracked.stop();
+  var last = win.uxChannel.lastErrors(1);
+  var reported = last[0] || null;
+  var opError = null;
+  var channelError = null;
+  var i;
+  for (i = 0; i < events.length; i++) {
+    if (events[i].name === "channel:opError") opError = events[i].detail;
+    if (events[i].name === "channel:error") channelError = events[i].detail;
+  }
+  check(!escaped, "unmarked applyResult escaped");
+  check(shot.html === mainDom.html, "unmarked html " + shot.html);
+  check(shot.applied === mainDom.applied, "unmarked applied " + shot.applied);
+  check(shot.tail === mainDom.tail, "unmarked tail " + shot.tail);
+  check(shot.added === mainDom.added, "unmarked added " + shot.added);
+  check(shot.plain === mainDom.plain, "unmarked plain " + JSON.stringify(shot.plain));
+  check(keepWarnCount(warns) === 0, "unmarked warnings " + keepWarnCount(warns));
+  check(
+    !!(reported && reported.kind === "op" && reported.message === "Op failed: morph — plain getAttribute rejected" && reported.source === "apply" && reported.op && reported.op.op === "morph" && reported.code == null),
+    "unmarked lastErrors " + (reported && reported.message)
+  );
+  check(
+    !!(channelError && channelError.kind === "op" && channelError.entry && channelError.entry.message === (reported && reported.message)),
+    "unmarked channel:error"
+  );
+  check(
+    !!(opError && opError.error && opError.error.message === "plain getAttribute rejected" && opError.op && opError.op.op === "morph" && opError.index === 0),
+    "unmarked channel:opError"
+  );
+  check(!events.some(function (ev) { return ev.name === "channel:afterOp"; }), "unmarked afterOp");
+  check(events.some(function (ev) { return ev.name === "channel:afterApply"; }), "unmarked afterApply");
+  check(events.some(function (ev) { return ev.name === "channel:applied"; }), "unmarked applied");
+
+  win.uxChannel.clearErrorLog();
+  warns.length = 0;
+  doc.body.innerHTML = unmarkedBefore();
+  armPlain(doc);
+  var callerError = null;
+  try {
+    win.uxChannel.optimisticMorph("login", unmarkedAfter());
+  } catch (e2) {
+    callerError = e2;
+  }
+  var optShot = regionShot(doc);
+  check(
+    !!(callerError && callerError.message === "plain getAttribute rejected"),
+    "unmarked optimisticMorph " + (callerError && callerError.message)
+  );
+  check(optShot.html === mainDom.html, "unmarked optimistic html " + optShot.html);
+  check(win.uxChannel.lastErrors(1).length === 0, "unmarked optimistic lastErrors " + win.uxChannel.lastErrors(1).length);
+  check(keepWarnCount(warns) === 0, "unmarked optimistic warnings " + keepWarnCount(warns));
 }
