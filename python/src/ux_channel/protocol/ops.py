@@ -72,7 +72,8 @@ def set_attr(
     omitted, including whitespace and HTML-entity obfuscations. Protocol-relative
     ``//`` URLs are kept. ``blob:`` and ``data:image/png|jpeg|gif|webp|avif``
     are kept on src-type attributes only. ``data:image/svg+xml`` and
-    ``data:text/html`` are omitted. Non-None values are stringified the way
+    ``data:text/html`` are omitted. Dict and list values are refused and are
+    not stringified. Other non-None values are stringified the way
     ``setAttribute`` does before that check. If that drops every attribute,
     the op is a noop (``reason=unsafe_href``). Event-handler names (``on*``)
     and ``srcdoc`` are always a noop (``reason=unsafe_attr``), including when

@@ -783,8 +783,13 @@
               ae.removeAttribute(k);
               return;
             }
+            // Dict and list values are refused. String(object) is
+            // "[object Object]" and would not match the server.
+            if (typeof v === "object") {
+              console.warn("[ux-channel] blocked unsafe set_attr", k, v);
+              return;
+            }
             if (isUrlAttr(k)) {
-              // setAttribute stringifies arrays and other objects before use.
               var raw = typeof v === "string" ? v : String(v);
               var forms = [];
               var current = raw;

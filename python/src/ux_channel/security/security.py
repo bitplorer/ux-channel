@@ -242,10 +242,15 @@ def _is_src_type_attr(name: object) -> bool:
 
 
 def _url_attr_exception(name: object, value: str) -> bool:
-    """Kept URLs that ``safe_href`` rejects: ``//`` and src image/blob."""
-    cleaned = _strip_href_controls(value).strip()
-    if cleaned.startswith("//"):
+    """Kept URLs that ``safe_href`` rejects: ``//`` and src image/blob.
+
+    The ``//`` exception is a whitespace trim only. Stripping control
+    characters first would keep ``\\x01//x`` and ``/\\t/x``, which the
+    client refuses.
+    """
+    if value.strip().startswith("//"):
         return True
+    cleaned = _strip_href_controls(value).strip()
     if not _is_src_type_attr(name):
         return False
     if cleaned.lower().startswith("blob:"):
@@ -307,15 +312,17 @@ def _dom_attr_string(value: Any) -> str:
 def _sanitize_url_attr_value(name: object, value: Any) -> tuple[bool, Any]:
     """Return ``(keep, value)`` for one URL attribute.
 
-    ``None`` removes the attribute. Every other value is turned into a string
-    the way ``setAttribute`` does, then checked, so a list or other object
-    cannot skip the scheme check. Script schemes and every other non-empty
-    value ``safe_href`` rejects are dropped. Allowed strings are the
-    ``safe_href``-normalized form. Empty and whitespace-only strings are kept
-    as authored.
+    ``None`` removes the attribute. A dict or a list is refused and is not
+    stringified. Every other non-string is turned into a string the way
+    ``setAttribute`` does, then checked. Script schemes and every other
+    non-empty value ``safe_href`` rejects are dropped. Allowed strings are
+    the ``safe_href``-normalized form. Empty and whitespace-only strings are
+    kept as authored.
     """
     if value is None:
         return True, None
+    if isinstance(value, (list, tuple, dict)):
+        return False, None
     text = value if isinstance(value, str) else _dom_attr_string(value)
     if _unsafe_url_attr(name, text):
         return False, None
@@ -346,6 +353,8 @@ def _sanitize_attr_map(attrs: dict) -> tuple[dict | None, str]:
     for key, value in attrs.items():
         if _event_or_srcdoc(key):
             return None, "unsafe_attr"
+        if isinstance(value, (list, tuple, dict)):
+            continue
         if _is_url_attr(key):
             keep, safe_value = _sanitize_url_attr_value(key, value)
             if not keep:
