@@ -302,5 +302,22 @@ def create_channel(
                 "observe=otel attach error: %s", exc
             )
 
+    # Importing transport.push at module level loads transport/__init__.py,
+    # which pulls the outbox and the wire codec. Keep this local.
+    from ux_channel.transport.push import get_push_bus
+
+    bus = get_push_bus()
+    cfg_bus = mount_config or config
+    if cfg_bus is None:
+        bus.morph_html_policy = "off"
+        bus.navigate_allowed_hosts = ()
+    else:
+        bus.morph_html_policy = str(
+            getattr(cfg_bus, "morph_html_policy", "off") or "off"
+        )
+        bus.navigate_allowed_hosts = tuple(
+            getattr(cfg_bus, "navigate_allowed_hosts", ()) or ()
+        )
+
     set_hub(hub)
     return reg, hub
