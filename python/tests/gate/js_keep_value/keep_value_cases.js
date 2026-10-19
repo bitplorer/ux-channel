@@ -1179,7 +1179,64 @@ async function runIsolationCases(win, doc, check, warns, path) {
   }
 
   await runSharedKeyCase(win, doc, check);
+  await runTypeGuardCase(win, doc, check, warns);
   if (path === "idiomorph") await runUnmarkedThrowCase(win, doc, check, warns);
+}
+
+async function runTypeGuardCase(win, doc, check, warns) {
+  var html = keepWrap(
+    '<input id="left" name="left" type="text" data-ux-keep-value value="">' +
+      '<input id="mid" name="mid" type="text" data-ux-keep-value value="">' +
+      '<input id="right" name="right" type="text" data-ux-keep-value value="">'
+  );
+  warns.length = 0;
+  doc.body.innerHTML = html;
+  doc.getElementById("left").value = "kept-left";
+  doc.getElementById("mid").value = "kept-mid";
+  doc.getElementById("right").value = "kept-right";
+  var savedMorph = win.Idiomorph && win.Idiomorph.morph;
+  var savedReplace = win.Element.prototype.replaceWith;
+  function poison() {
+    var mid = doc.getElementById("mid");
+    var reads = 0;
+    Object.defineProperty(mid, "type", {
+      configurable: true,
+      get: function () {
+        reads += 1;
+        if (reads === 3) throw new Error("type rejected");
+        return "text";
+      },
+    });
+  }
+  if (savedMorph && win.Idiomorph) {
+    win.Idiomorph.morph = function () {
+      var result = savedMorph.apply(this, arguments);
+      poison();
+      return result;
+    };
+  } else {
+    win.Element.prototype.replaceWith = function () {
+      var result = savedReplace.apply(this, arguments);
+      poison();
+      return result;
+    };
+  }
+  try {
+    await applyKeepMorph(win, html);
+    check(
+      doc.getElementById("left").value === "kept-left",
+      "type left " + JSON.stringify(doc.getElementById("left").value)
+    );
+    check(
+      doc.getElementById("right").value === "kept-right",
+      "type right " + JSON.stringify(doc.getElementById("right").value)
+    );
+  } finally {
+    if (savedMorph && win.Idiomorph) win.Idiomorph.morph = savedMorph;
+    win.Element.prototype.replaceWith = savedReplace;
+    var mid = doc.getElementById("mid");
+    if (mid) delete mid.type;
+  }
 }
 
 async function runSharedKeyCase(win, doc, check) {
