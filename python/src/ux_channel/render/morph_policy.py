@@ -72,12 +72,48 @@ def _event_handler(name: str) -> bool:
     return len(token) > 2 and token.startswith("on")
 
 
-def _anim_sets_handler(attrs: list[tuple[str, str | None]]) -> bool:
-    """``<set attributeName=onmouseover>`` installs a handler."""
-    for name, value in attrs:
-        if name.strip().lower() != "attributename" or not value:
-            continue
-        if _event_handler(value):
+def _named(attrs: list[tuple[str, str | None]]) -> list[tuple[str, str | None]]:
+    return [(_local_name(key).strip().lower(), value) for key, value in attrs]
+
+
+def _anim_target(named: list[tuple[str, str | None]]) -> str:
+    for name, value in named:
+        if name == "attributename" and value:
+            return value.strip().lower()
+    return ""
+
+
+def _anim_url_dangerous(value: str | None) -> bool:
+    """True when any ``;``-separated part is a dangerous URL."""
+    if not value:
+        return False
+    parts = [value]
+    parts.extend(value.split(";"))
+    for part in parts:
+        bit = part.strip()
+        if bit and _js_url_value("href", bit):
+            return True
+    return False
+
+
+def _drop_animation(local: str, named: list[tuple[str, str | None]]) -> bool:
+    """Drop animate/set when it targets a URL or handler, or carries one.
+
+    ``attributeName`` of href, xlink:href, or on* drops the element even
+    when the URL itself would be safe. ``values``, ``to``, ``from``, and
+    ``by`` drop it when any semicolon-separated part is a dangerous URL.
+    """
+    if local not in _ANIMATE:
+        return False
+    target = _anim_target(named)
+    if (
+        _event_handler(target)
+        or target in _ANIMATE_NAME
+        or target.endswith(":href")
+    ):
+        return True
+    for name, value in named:
+        if name in _ANIMATE_URL and _anim_url_dangerous(value):
             return True
     return False
 
@@ -154,8 +190,11 @@ def _refused_attr(name: str, value: str | None) -> bool:
     )
 
 
-# SVG animation fields that carry a URL. Not href attributes, same schemes.
-_ANIM_URL_FIELDS = frozenset({"by", "from", "to", "values"})
+# One list with the element drop names. The client copies these arrays.
+_ANIMATE = frozenset(_DROP_NAMES["animate"])
+_ANIMATE_NAME = frozenset(_DROP_NAMES["animate_name"])
+_ANIMATE_URL = frozenset(_DROP_NAMES["animate_url"])
+_ANIM_URL_FIELDS = _ANIMATE_URL
 
 
 def _off_refused_attr(name: str, value: str | None) -> bool:
@@ -184,8 +223,7 @@ def _scrub_attrs(node: Any) -> None:
             continue
         local = _local_name(tag).lower()
         attrs = list(child.attrib.items())
-        named = [(_local_name(key), value) for key, value in attrs]
-        if local in ("set", "animate") and _anim_sets_handler(named):
+        if _drop_animation(local, _named(attrs)):
             _drop_element(node, child)
             continue
         for key, value in attrs:
@@ -210,9 +248,7 @@ def _scrub(node: Any) -> None:
             _drop_element(node, child)
             continue
         attrs = list(child.attrib.items())
-        if local in ("set", "animate") and _anim_sets_handler(
-            [(_local_name(key), value) for key, value in attrs]
-        ):
+        if _drop_animation(local, _named(attrs)):
             _drop_element(node, child)
             continue
         for key, value in attrs:
@@ -387,7 +423,8 @@ def _filter_one(op: Any, scrub: Callable[[str], str]) -> Any:
             try:
                 body = to_dict()
             except Exception:
-                return op
+                logger.error("morph op to_dict failed")
+                return {"op": "noop", "meta": {"dropped": "to_dict"}}
     if not isinstance(body, Mapping):
         return op
     cloned = dict(body)

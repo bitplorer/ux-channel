@@ -12,6 +12,7 @@ Surfaces covered:
 from __future__ import annotations
 
 import html
+import logging
 import re
 import unicodedata
 import warnings
@@ -19,6 +20,8 @@ from typing import Any, Optional, Sequence
 from urllib.parse import urlparse
 
 from ux_channel.render.morph_policy import apply_morph_policy
+
+logger = logging.getLogger("ux_channel.security.security")
 
 # Schemes blocked in navigate / push_url / set_attr URL attributes (XSS / drive-by)
 _BLOCKED_HREF_SCHEMES = frozenset(
@@ -511,7 +514,8 @@ def _as_op_dict(op: Any) -> Any:
     try:
         body = to_dict()
     except Exception:
-        return op
+        logger.error("outbound op to_dict failed")
+        return {"op": "noop", "meta": {"dropped": "to_dict"}}
     return body if isinstance(body, dict) else op
 
 

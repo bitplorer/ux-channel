@@ -93,6 +93,53 @@ def _filter_result_body(
     return cleaned
 
 
+def _filter_sse_tree(
+    node: Any,
+    *,
+    policy: str | None,
+    allowed_hosts: tuple[str, ...] | list[str] | None,
+    origin_host: str | None,
+) -> Any:
+    """Copy ``node`` and filter every ``ops`` list, including nested ones.
+
+    The caller's object is not rewritten. A dict or list that is not an op
+    envelope is still walked, so ``result.result.ops``, ``events[].ops``,
+    and ``data.ops`` get the same filter as a top-level result.
+    """
+    if isinstance(node, Result):
+        node = node.to_dict()
+    if isinstance(node, dict):
+        out = {
+            key: _filter_sse_tree(
+                value,
+                policy=policy,
+                allowed_hosts=allowed_hosts,
+                origin_host=origin_host,
+            )
+            for key, value in node.items()
+        }
+        ops = out.get("ops")
+        if isinstance(ops, list):
+            out["ops"] = filter_outbound_ops(
+                list(ops),
+                policy=resolve_stream_policy(policy),
+                allowed_hosts=allowed_hosts,
+                origin_host=origin_host,
+            )
+        return out
+    if isinstance(node, list):
+        return [
+            _filter_sse_tree(
+                item,
+                policy=policy,
+                allowed_hosts=allowed_hosts,
+                origin_host=origin_host,
+            )
+            for item in node
+        ]
+    return node
+
+
 def format_sse(
     envelope: dict[str, Any],
     *,
@@ -112,25 +159,12 @@ def format_sse(
         lines.append(f"event: {event}")
     if event_id is not None:
         lines.append(f"id: {event_id}")
-    payload = dict(envelope)
-    result = payload.get("result")
-    if isinstance(result, Result):
-        result = result.to_dict()
-    if isinstance(result, dict):
-        payload["result"] = _filter_result_body(
-            result,
-            policy=policy,
-            allowed_hosts=allowed_hosts,
-            origin_host=origin_host,
-        )
-    elif isinstance(payload.get("ops"), list):
-        # A bare Result dict has ops and no result wrapper. No channel is strict.
-        payload = _filter_result_body(
-            payload,
-            policy=policy,
-            allowed_hosts=allowed_hosts,
-            origin_host=origin_host,
-        )
+    payload = _filter_sse_tree(
+        envelope,
+        policy=policy,
+        allowed_hosts=allowed_hosts,
+        origin_host=origin_host,
+    )
     data = _serde.dumps(payload, default=str)
     # SSE: each data line; we use a single line JSON payload
     lines.append(f"data: {data}")
