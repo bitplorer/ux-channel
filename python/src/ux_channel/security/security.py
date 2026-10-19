@@ -11,13 +11,14 @@ Surfaces covered:
 
 from __future__ import annotations
 
+import html
 import re
 import unicodedata
 import warnings
-from typing import Optional, Sequence
+from typing import Any, Optional, Sequence
 from urllib.parse import urlparse
 
-# Schemes blocked in navigate / push_url (XSS / drive-by)
+# Schemes blocked in navigate / push_url / set_attr URL attributes (XSS / drive-by)
 _BLOCKED_HREF_SCHEMES = frozenset(
     {
         "javascript",
@@ -32,6 +33,33 @@ _BLOCKED_HREF_SCHEMES = frozenset(
 # Action names: dotted identifiers, limited length (DoS / log injection)
 _ACTION_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*(\.[A-Za-z0-9_]+)*$")
 MAX_ACTION_NAME_LEN = 128
+
+# Attributes whose values are URLs. ``data-*`` is not in this set; only the
+# exact ``data`` attribute (object URLs) is. Names are compared case-insensitively.
+_URL_ATTRS = frozenset(
+    {
+        "action",
+        "archive",
+        "background",
+        "cite",
+        "classid",
+        "code",
+        "codebase",
+        "data",
+        "dynsrc",
+        "formaction",
+        "href",
+        "icon",
+        "longdesc",
+        "lowsrc",
+        "manifest",
+        "ping",
+        "poster",
+        "profile",
+        "src",
+        "usemap",
+    }
+)
 
 
 def origin_allowed(
@@ -137,7 +165,7 @@ def safe_href(
     allowed_hosts: tuple[str, ...] | list[str] | None = None,
 ) -> str | None:
     """
-    Return href if safe for navigate/push_url, else None.
+    Return href if safe for navigate/push_url and set_attr URL attributes, else None.
 
     Allows: relative paths, http(s), mailto, tel, and hash/query-only.
     Blocks: javascript:, data:, vbscript:, file:, etc.
@@ -196,19 +224,96 @@ def safe_href(
     return h
 
 
+def _is_url_attr(name: object) -> bool:
+    """True for href/src/action/formaction/xlink:href and the other URL attributes."""
+    if not isinstance(name, str):
+        return False
+    token = name.strip().lower()
+    if token in _URL_ATTRS:
+        return True
+    return token.endswith(":href") or token.endswith(":src")
+
+
+def _unsafe_url_attr(value: str) -> bool:
+    """True when ``safe_href`` rejects a non-empty URL form of ``value``.
+
+    HTML entities are decoded (twice, so ``&#38;#106;`` collapses) before the
+    scheme check. Empty and whitespace-only strings are not script URLs.
+    """
+    current = value
+    seen: list[str] = []
+    for _ in range(3):
+        if current in seen:
+            break
+        seen.append(current)
+        if safe_href(current) is None and current.strip():
+            return True
+        decoded = html.unescape(current)
+        if decoded == current:
+            break
+        current = decoded
+    return False
+
+
+def _sanitize_url_attr_value(value: Any) -> tuple[bool, Any]:
+    """Return ``(keep, value)`` for one URL attribute.
+
+    Non-strings (including ``None``, which removes the attribute) are kept.
+    Script schemes and every other non-empty value ``safe_href`` rejects are
+    dropped. Allowed strings are the ``safe_href``-normalized form. Empty and
+    whitespace-only strings are kept as authored.
+    """
+    if not isinstance(value, str):
+        return True, value
+    if _unsafe_url_attr(value):
+        return False, None
+    normalized = safe_href(value)
+    if normalized is None:
+        return True, value
+    return True, normalized
+
+
+def _sanitize_attr_map(attrs: dict) -> dict | None:
+    """Drop unsafe URL attributes. ``None`` means the whole map was refused."""
+    cleaned: dict[Any, Any] = {}
+    for key, value in attrs.items():
+        if _is_url_attr(key):
+            keep, safe_value = _sanitize_url_attr_value(value)
+            if not keep:
+                continue
+            cleaned[key] = safe_value
+        else:
+            cleaned[key] = value
+    if attrs and not cleaned:
+        return None
+    return cleaned
+
+
 def sanitize_op_hrefs(
     ops: list,
     *,
     allowed_hosts: tuple[str, ...] | list[str] | None = None,
 ) -> list:
-    """Filter/block dangerous hrefs in navigate/push_url ops (defense in depth)."""
+    """Drop unsafe navigate/push_url hrefs and set_attr URL attributes."""
     out = []
     for op in ops:
         if not isinstance(op, dict):
             out.append(op)
             continue
         name = op.get("op")
-        if name in ("navigate", "push_url", "redirect"):
+        if name == "set_attr" and isinstance(op.get("attrs"), dict):
+            cleaned = _sanitize_attr_map(op["attrs"])
+            if cleaned is None:
+                out.append(
+                    {
+                        "op": "noop",
+                        "meta": {"dropped": "set_attr", "reason": "unsafe_href"},
+                    }
+                )
+                continue
+            op = dict(op)
+            op["attrs"] = cleaned
+        elif name in ("navigate", "push_url", "redirect"):
             href = op.get("href")
             safe = safe_href(
                 href if isinstance(href, str) else None,
@@ -248,5 +353,3 @@ def warn_trusted_proxy(enabled: bool) -> None:
         )
 
 
-# typing Any
-from typing import Any  # noqa: E402

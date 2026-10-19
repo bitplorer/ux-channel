@@ -714,6 +714,41 @@
     return h;
   }
 
+  // URL attributes. data-* is not included; only the exact "data" attribute is.
+  var URL_ATTRS = {
+    action: 1, archive: 1, background: 1, cite: 1, classid: 1, code: 1,
+    codebase: 1, data: 1, dynsrc: 1, formaction: 1, href: 1, icon: 1,
+    longdesc: 1, lowsrc: 1, manifest: 1, ping: 1, poster: 1, profile: 1,
+    src: 1, usemap: 1
+  };
+
+  function isUrlAttr(name) {
+    var n = String(name == null ? "" : name).replace(/^\s+|\s+$/g, "").toLowerCase();
+    if (URL_ATTRS[n]) return true;
+    return n.length > 4 && (n.slice(-5) === ":href" || n.slice(-4) === ":src");
+  }
+
+  function decodeUrlEntities(s) {
+    return String(s).replace(
+      /&(#x[0-9a-f]+|#\d+|colon|tab|newline|amp);?/gi,
+      function (all, body) {
+        var low = body.toLowerCase();
+        var cp;
+        if (low.charAt(0) === "#") {
+          var hex = low.charAt(1) === "x";
+          cp = parseInt(hex ? low.slice(2) : low.slice(1), hex ? 16 : 10);
+          if (!isFinite(cp) || cp < 0 || cp > 0x10ffff) return all;
+          try { return String.fromCodePoint(cp); } catch (eEnt) { return all; }
+        }
+        if (low === "colon") return ":";
+        if (low === "tab") return "\t";
+        if (low === "newline") return "\n";
+        if (low === "amp") return "&";
+        return all;
+      }
+    );
+  }
+
   function applyOp(op) {
     if (!op || !op.op) return;
     switch (op.op) {
@@ -729,8 +764,35 @@
         if (ae && op.attrs) {
           Object.keys(op.attrs).forEach(function (k) {
             var v = op.attrs[k];
-            if (v === null || v === undefined) ae.removeAttribute(k);
-            else ae.setAttribute(k, v);
+            if (v === null || v === undefined) {
+              ae.removeAttribute(k);
+              return;
+            }
+            if (isUrlAttr(k) && typeof v === "string") {
+              var forms = [];
+              var current = v;
+              var blocked = false;
+              var pass;
+              for (pass = 0; pass < 3; pass++) {
+                if (forms.indexOf(current) !== -1) break;
+                forms.push(current);
+                if (!safeHref(current) && String(current).replace(/^\s+|\s+$/g, "")) {
+                  blocked = true;
+                  break;
+                }
+                var decoded = decodeUrlEntities(current);
+                if (decoded === current) break;
+                current = decoded;
+              }
+              if (blocked) {
+                console.warn("[ux-channel] blocked unsafe set_attr", k, v);
+                return;
+              }
+              var normalized = safeHref(v);
+              ae.setAttribute(k, normalized || v);
+              return;
+            }
+            ae.setAttribute(k, v);
           });
         }
         break;

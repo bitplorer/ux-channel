@@ -930,7 +930,8 @@ class ActionRegistry:
                     )
                 )
 
-        # Drop javascript:/data: navigations even if action built raw dicts
+        # Drop javascript:/data: navigations and set_attr URL attributes even
+        # if the action built raw dicts.
         hosts = ()
         cfg = getattr(self, "config", None)
         if cfg is not None:

@@ -62,7 +62,7 @@ Read [../../../START_HERE.md](../../../START_HERE.md) first if you are new. This
 |-----|---------|-------------|
 | **CRITICAL** | Async `@ch.on` handlers registered as sync wrappers → coroutine dropped, empty success | Preserve `async def` through flow + `RegionBook.command` |
 | **HIGH** | `auth=True` ignored `dispatch(principal=…)` when handler had no `principal` param | `_auth_wrap` reads `_principal_override` ContextVar + `Principal.id` |
-| **HIGH** | `javascript:` / `data:` / `//` navigate ops (XSS / phishing) | `safe_href`, ops helpers, Result finalize sanitize |
+| **HIGH** | `javascript:` / `data:` / `//` navigate ops (XSS / phishing) | `safe_href`, ops helpers, Result finalize sanitize. `set_attr` URL attributes (`href`, `src`, `action`, `formaction`, `xlink:href`, …) use the same check in the builder, finalize sanitize, and client `safeHref`. |
 | **HIGH** | Async before/after hooks crashed or leaked coroutines on sync dispatch | `asyncio.run` when no running loop |
 | **HIGH** | MCP / agent open without token in bad configs | Always require agent token; prod validate |
 | **MED** | CSRF: JSON POST without custom header | `require_channel_header` (prod default True) |

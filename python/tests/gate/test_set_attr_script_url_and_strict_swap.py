@@ -262,7 +262,9 @@ def test_signed_set_attr_javascript_href_does_not_land() -> None:
         set_attr("#link", {"href": _LIVE_HREF}),
     )
     assert ops
-    assert all(op.get("op") != "set_attr" or "href" not in (op.get("attrs") or {}) for op in ops)
+    for op in ops:
+        if op.get("op") == "set_attr":
+            assert "href" not in (op.get("attrs") or {})
     assert "javascript:" not in json.dumps(ops).lower()
 
 
@@ -277,7 +279,11 @@ def test_signed_raw_set_attr_dict_javascript_href_does_not_land() -> None:
     ops = _dispatch(
         "strict",
         "probe.raw",
-        {"op": "set_attr", "target": "#link", "attrs": {"href": _LIVE_HREF, "class": "keep"}},
+        {
+            "op": "set_attr",
+            "target": "#link",
+            "attrs": {"href": _LIVE_HREF, "class": "keep"},
+        },
     )
     assert ops[0]["op"] == "set_attr"
     assert ops[0]["attrs"] == {"class": "keep"}
@@ -294,7 +300,11 @@ def test_off_policy_leaves_swap_and_morph_markup() -> None:
     )
     assert ops[0]["html"] == _SWAP_HTML
     assert ops[1]["html"] == _SWAP_HTML
-    signed = _dispatch("off", "probe.swap_off", swap("#t", _SWAP_HTML, swap="innerHTML"))
+    signed = _dispatch(
+        "off",
+        "probe.swap_off",
+        swap("#t", _SWAP_HTML, swap="innerHTML"),
+    )
     assert signed[0]["op"] == "swap"
     assert signed[0]["html"] == _SWAP_HTML
 

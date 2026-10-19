@@ -41,6 +41,7 @@
   It does not set the value attribute, parse the value, or
   insert a node, and it does not send the value to the server. Focus restore
   is unchanged. The server should paint `value=""` for secrets.
+- `set_attr` URL attributes (`href`, `src`, `action`, `formaction`, `xlink:href`, and the other URL attributes) go through `safe_href`. `javascript:`, `vbscript:`, `data:` (including `data:text/html`), and the same whitespace, control-character, and HTML-entity obfuscations are omitted. The builder and the Result href sanitizer do this on the server; the client `set_attr` path calls `safeHref` the way `navigate` and `push_url` already do. Relative, `http(s)`, `mailto`, and `tel` values still apply. Non-URL attributes are unchanged, and an empty URL attribute is still written.
 
 ## 0.1.2 — dead-code cleanup
 

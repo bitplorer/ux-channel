@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from typing import Any, Mapping, MutableMapping, Optional, Sequence
 
-from ux_channel.security.security import safe_href
+from ux_channel.security.security import _sanitize_attr_map, safe_href
 
 Op = dict[str, Any]
 
@@ -66,7 +66,27 @@ def remove(target: str, *, meta: Optional[Mapping[str, Any]] = None) -> Op:
 def set_attr(
     target: str, attrs: Mapping[str, Any], *, meta: Optional[Mapping[str, Any]] = None
 ) -> Op:
-    return _op("set_attr", target=target, attrs=dict(attrs), meta=dict(meta) if meta else None)
+    """Set attributes. URL attributes are checked with ``safe_href``.
+
+    ``javascript:``, ``vbscript:``, ``data:``, and the other hrefs
+    ``safe_href`` rejects are omitted, including whitespace and HTML-entity
+    obfuscations of those schemes. If that drops every attribute, the op is
+    a noop (``reason=unsafe_href``). Relative, http(s), mailto, and tel
+    values are kept. Non-URL attributes are copied through.
+    """
+    raw = dict(attrs)
+    cleaned = _sanitize_attr_map(raw)
+    if cleaned is None:
+        dropped: dict[str, Any] = {"dropped": "set_attr", "reason": "unsafe_href"}
+        if meta:
+            dropped = {**dict(meta), **dropped}
+        return _op("noop", meta=dropped)
+    return _op(
+        "set_attr",
+        target=target,
+        attrs=cleaned,
+        meta=dict(meta) if meta else None,
+    )
 
 
 def set_text(target: str, text: str, *, meta: Optional[Mapping[str, Any]] = None) -> Op:
