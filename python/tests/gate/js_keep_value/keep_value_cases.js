@@ -247,6 +247,7 @@ async function runKeepValuePath(win, path) {
     check(calls === steps.length + 2, "file switch calls " + calls);
 
     await runIdentityCases(win, doc, check);
+    await runErrorCases(win, doc, check);
 
     var callsBeforeEmpty = calls;
     var region = doc.getElementById("region");
@@ -508,4 +509,48 @@ async function runIdentityCases(win, doc, check) {
     doc.querySelectorAll('[name="user"]')[1].value === "outside",
     "form vs none outside " + doc.querySelectorAll('[name="user"]')[1].value
   );
+}
+
+function installRejectingValue(win) {
+  var proto = win.HTMLInputElement.prototype;
+  var desc = Object.getOwnPropertyDescriptor(proto, "value");
+  Object.defineProperty(proto, "value", {
+    configurable: true,
+    enumerable: desc.enumerable,
+    get: function () {
+      return desc.get.call(this);
+    },
+    set: function (v) {
+      if (this.getAttribute("name") === "bad" && v) throw new Error("value setter rejected");
+      desc.set.call(this, v);
+    },
+  });
+  return function () {
+    Object.defineProperty(proto, "value", desc);
+  };
+}
+
+async function runErrorCases(win, doc, check) {
+  var html =
+    '<input name="bad" type="text" data-ux-keep-value value="">' +
+    '<input id="safe" name="safe" type="text" data-ux-keep-value value="">';
+  doc.body.innerHTML = keepWrap(html);
+  doc.querySelector('[name="bad"]').value = "boom";
+  var safe = doc.getElementById("safe");
+  safe.value = "still-here";
+  safe.focus();
+  safe.setSelectionRange(1, 4);
+  var restoreSetter = installRejectingValue(win);
+  try {
+    await applyKeepMorph(win, keepWrap(html));
+    safe = doc.getElementById("safe");
+    check(safe.value === "still-here", "throw sibling " + JSON.stringify(safe.value));
+    check(doc.activeElement === safe, "throw focus " + (doc.activeElement && doc.activeElement.id));
+    check(
+      safe.selectionStart === 1 && safe.selectionEnd === 4,
+      "throw selection " + safe.selectionStart + "," + safe.selectionEnd
+    );
+  } finally {
+    restoreSetter();
+  }
 }
