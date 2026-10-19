@@ -1835,6 +1835,54 @@ async function runWarnNameCase(win, doc, check, warns) {
       doc.getElementById("keep").value === "kept-keep",
       "unknown keep " + JSON.stringify(doc.getElementById("keep").value)
     );
+
+    function headHas(fragment) {
+      return warns.filter(function (line) {
+        var head = line && line.args && line.args[0] != null ? String(line.args[0]) : "";
+        return head.indexOf(fragment) !== -1;
+      });
+    }
+    warns.length = 0;
+    doc.body.innerHTML = html;
+    doc.getElementById("keep").value = "kept-keep";
+    poison("a", new win.Error(""));
+    await applyKeepMorph(win, html);
+    var emptyNamed = headHas("ignored: Error");
+    check(
+      emptyNamed.length === 1,
+      "empty name warnings " + emptyNamed.length + " " + (warns[0] && warns[0].args && warns[0].args[0])
+    );
+
+    function BoomError() {
+      this.message = "";
+    }
+    BoomError.prototype = Object.create(win.Error.prototype);
+    BoomError.prototype.constructor = BoomError;
+    warns.length = 0;
+    doc.body.innerHTML = html;
+    doc.getElementById("keep").value = "kept-keep";
+    poison("a", new BoomError());
+    await applyKeepMorph(win, html);
+    var boomNamed = headHas("BoomError");
+    check(
+      boomNamed.length === 1,
+      "ctor name warnings " + boomNamed.length + " " + (warns[0] && warns[0].args && warns[0].args[0])
+    );
+
+    function HiddenName() {
+      this.message = "";
+    }
+    Object.defineProperty(HiddenName, "name", { value: "" });
+    warns.length = 0;
+    doc.body.innerHTML = html;
+    doc.getElementById("keep").value = "kept-keep";
+    poison("a", new HiddenName());
+    await applyKeepMorph(win, html);
+    var hiddenNamed = headHas("ignored: Error");
+    check(
+      hiddenNamed.length === 1 && String(hiddenNamed[0].args[0]).indexOf("HiddenName") === -1,
+      "blank ctor warnings " + hiddenNamed.length + " " + (warns[0] && warns[0].args && warns[0].args[0])
+    );
   } finally {
     disarm();
     if (savedMorph && win.Idiomorph) win.Idiomorph.morph = savedMorph;
