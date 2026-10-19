@@ -257,6 +257,239 @@
     setTimeout(function () { if (el.parentNode) el.remove(); }, durationMs || 4000);
   }
 
+  // Opt-in live value. Copies onto an element the morph already left in the
+  // document. Property write only: never setAttribute, never parse or insert.
+  // The six text-like input types are one class. Textarea is its own class.
+  var KEEP_TEXT_TYPE = {
+    password: 1,
+    text: 1,
+    email: 1,
+    search: 1,
+    tel: 1,
+    url: 1,
+  };
+
+  function keepKind(el) {
+    if (!el || !el.tagName) return "";
+    var tag = String(el.tagName).toLowerCase();
+    if (tag === "textarea") return "textarea";
+    if (tag !== "input") return "";
+    if (KEEP_TEXT_TYPE[String(el.type || "").toLowerCase()]) return "text";
+    return "";
+  }
+
+  // Final class check. One line switches this to strict same-type.
+  function sameKeepKind(a, b) {
+    var ka = keepKind(a);
+    var kb = keepKind(b);
+    return !!ka && ka === kb;
+  }
+
+  function closestChannelRoot(el) {
+    var node = el && el.parentNode;
+    while (node && node.nodeType === 1) {
+      if (node.getAttribute && node.getAttribute("data-channel-id")) return node;
+      node = node.parentNode;
+    }
+    return null;
+  }
+
+  function keepComponentId(el) {
+    var root = closestChannelRoot(el);
+    var id = root && root.getAttribute("data-channel-id");
+    return id || "";
+  }
+
+  function keepFormPart(el) {
+    var form = el.form || null;
+    if (!form) return "none";
+    var id = form.getAttribute && form.getAttribute("id");
+    if (id) return "id:" + id;
+    var name = form.getAttribute && form.getAttribute("name");
+    if (name) return "name:" + name;
+    return "unnamed";
+  }
+
+  function keepParts(el) {
+    if (!el || !el.hasAttribute || !el.hasAttribute("data-ux-keep-value")) return null;
+    var name = el.getAttribute("name");
+    var component = keepComponentId(el);
+    var formPart = keepFormPart(el);
+    return [component, formPart, name];
+  }
+
+  function keepKey(el, kind) {
+    var parts = keepParts(el);
+    if (!parts || !kind) return "";
+    return JSON.stringify([parts[0], parts[1], parts[2], kind]);
+  }
+
+  var keepFailed = null;
+
+  // Reason: naming a throw must not itself throw, and two fields that throw
+  // the same message each warn once. An empty message uses the constructor
+  // name, or Error when that name is empty.
+  function keepErrorName(e) {
+    var sawMessage = false;
+    var message = null;
+    try {
+      message = e.message;
+      sawMessage = true;
+    } catch (ignored) {}
+    if (sawMessage && typeof message === "string" && message) return message;
+    if (sawMessage && message === "") {
+      try {
+        var ctor = e.constructor;
+        var name = ctor && ctor.name;
+        if (typeof name === "string" && name) return name;
+      } catch (ignoredName) {}
+      return "Error";
+    }
+    try {
+      return String(e);
+    } catch (ignored2) {}
+    return "unknown error";
+  }
+
+  function keepFailure(e, el) {
+    if (keepFailed && el) {
+      if (keepFailed.indexOf(el) !== -1) return;
+      keepFailed.push(el);
+    }
+    console.warn("[ux-channel] data-ux-keep-value ignored: " + keepErrorName(e), e);
+  }
+
+  function keepIgnored(el) {
+    if (!keepKind(el)) return true;
+    // Reason: no name is ignored, and every ignored field warns once.
+    if (!el.getAttribute || !el.getAttribute("name")) return true;
+    var form = el.form || null;
+    var unnamed = !!(form && !(form.getAttribute && (form.getAttribute("id") || form.getAttribute("name"))));
+    if (!keepComponentId(el) && !form) return true;
+    if (!keepComponentId(el) && unnamed) return true;
+    return false;
+  }
+
+  function collectOne(el) {
+    if (keepIgnored(el)) return { warn: 1 };
+    var kind = keepKind(el);
+    return {
+      key: keepKey(el, kind),
+      value: el.value,
+      tagName: el.tagName,
+      type: el.type,
+      kind: kind,
+      el: el,
+      name: el.getAttribute("name") || "",
+    };
+  }
+
+  // A sibling with a different name is not this item. A missing or same name
+  // means the key cannot be decided.
+  function otherKeepField(item, el) {
+    var name = "";
+    try {
+      if (el.name) name = String(el.name);
+    } catch (e) {}
+    if (!name) {
+      try {
+        name = el.getAttribute("name") || "";
+      } catch (e2) {
+        return false;
+      }
+    }
+    return !!(item.name && name && name !== item.name);
+  }
+
+  // Reason: a throw on one field must not drop the morph or clear the others.
+  function snapshotKeepValues(root) {
+    var saved = [];
+    var groups = Object.create(null);
+    if (!root || typeof root.querySelectorAll !== "function") return saved;
+    var nodes = root.querySelectorAll("[data-ux-keep-value]");
+    var i, el, item, keys, k, list;
+    for (i = 0; i < nodes.length; i++) {
+      el = nodes[i];
+      try {
+        item = collectOne(el);
+      } catch (e) {
+        // Reason: the warning is for this read, so it is logged before the morph.
+        keepFailure(e, el);
+        continue;
+      }
+      if (item.warn) {
+        console.warn("[ux-channel] data-ux-keep-value ignored");
+        continue;
+      }
+      if (!item.key) continue;
+      if (!groups[item.key]) groups[item.key] = [];
+      groups[item.key].push(item);
+    }
+    keys = Object.keys(groups);
+    for (k = 0; k < keys.length; k++) {
+      list = groups[keys[k]];
+      if (list.length !== 1) continue;
+      saved.push(list[0]);
+    }
+    return saved;
+  }
+
+  function restoreKind(item, el) {
+    if (sameKeepKind(item, el)) return item.kind;
+    return keepKind(el);
+  }
+
+  function writeKeep(el, value) {
+    el.value = value;
+  }
+
+  function restoreKeepValues(root, saved) {
+    if (!root || !saved || !saved.length) return;
+    if (typeof root.querySelectorAll !== "function") return;
+    var nodes;
+    try {
+      nodes = root.querySelectorAll("[data-ux-keep-value]");
+    } catch (re) {
+      // Reason: a throw while listing fields only warns, then restore stops.
+      keepFailure(re, root);
+      return;
+    }
+    var i, item, j, el, key, matches;
+    for (i = 0; i < saved.length; i++) {
+      item = saved[i];
+      matches = [];
+      var skipItem = false;
+      for (j = 0; j < nodes.length; j++) {
+        el = nodes[j];
+        try {
+          key = keepKey(el, restoreKind(item, el));
+        } catch (e) {
+          // Reason: skip this item when its own element throws, or when this
+          // node's key cannot be decided. A different field must not be blanked.
+          keepFailure(e, el);
+          if (el === item.el || !otherKeepField(item, el)) {
+            skipItem = true;
+            break;
+          }
+          continue;
+        }
+        if (key && key === item.key) matches.push(el);
+      }
+      if (skipItem) continue;
+      if (matches.length !== 1) continue;
+      el = matches[0];
+      try {
+        // Reason: a throw while reading this field's type must skip the item
+        // and still restore the fields after it.
+        if (!sameKeepKind(item, el)) continue;
+        writeKeep(el, item.value);
+      } catch (e) {
+        keepFailure(e, el);
+        continue;
+      }
+    }
+  }
+
   function snapshotFocus() {
     var ae = document.activeElement;
     if (!ae || ae === document.body) return null;
@@ -314,6 +547,18 @@
   }
 
   function applyMorph(targetSel, html) {
+    // Reason: a morph started from a connectedCallback must not wipe the
+    // outer list, or one field warns again for the same throw.
+    var previous = keepFailed;
+    keepFailed = [];
+    try {
+      return applyMorphBody(targetSel, html);
+    } finally {
+      keepFailed = previous;
+    }
+  }
+
+  function applyMorphBody(targetSel, html) {
     var target = qs(targetSel);
     if (!target) {
       console.warn("[ux-channel] morph target not found:", targetSel);
@@ -321,6 +566,7 @@
     }
     var focusSnap = snapshotFocus();
     var scrollSnap = snapshotScroll(targetSel);
+    var keepSnap = snapshotKeepValues(target);
     var tpl = document.createElement("template");
     tpl.innerHTML = String(html).trim();
     var next = tpl.content.firstElementChild;
@@ -336,10 +582,33 @@
     if (target.hasAttribute("data-channel-id") && !next.hasAttribute("data-channel-id")) {
       next.setAttribute("data-channel-id", target.getAttribute("data-channel-id"));
     }
+    // Reason: a throw while restoring kept values only warns. It does not
+    // replace a morph error, and it does not create an op error when the
+    // morph succeeded.
+    var restoreRoot;
     if (global.Idiomorph && typeof global.Idiomorph.morph === "function") {
-      global.Idiomorph.morph(target, next);
+      try {
+        global.Idiomorph.morph(target, next);
+      } finally {
+        try {
+          if (target.parentNode) restoreKeepValues(target, keepSnap);
+        } catch (re) {
+          keepFailure(re);
+        }
+      }
     } else {
-      target.replaceWith(next);
+      try {
+        target.replaceWith(next);
+      } finally {
+        try {
+          restoreRoot = next.parentNode ? next : target;
+          if (restoreRoot && restoreRoot.parentNode) {
+            restoreKeepValues(restoreRoot, keepSnap);
+          }
+        } catch (re2) {
+          keepFailure(re2);
+        }
+      }
     }
     restoreFocus(focusSnap);
     restoreScroll(scrollSnap);

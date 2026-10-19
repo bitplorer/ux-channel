@@ -1,3 +1,47 @@
+## Unreleased
+
+- `data-ux-keep-value` keeps the visitor's live `.value` across a morph or
+  outer swap for a `textarea`, or for an `input` of type `password`, `text`,
+  `email`, `search`, `tel`, or `url`. Those six types are one class, so Show
+  can switch `password` to `text` and the value stays. Textarea matches only
+  textarea. A change into or out of the class (`hidden`, `checkbox`, `radio`,
+  `file`, `select`, and anything else) restores nothing, and each ignored mark
+  logs one console warning. The key is `JSON.stringify` of four strings:
+  the closest ancestor `data-channel-id` (or `""`), the form identity, the
+  field `name`, and the kind class. Form identity is `id:` plus the form id,
+  `name:` plus the form name, `unnamed`, or `none`. Every form is scoped by
+  its component, so a form id moving from component a to component b does
+  not keep the value. An unnamed form with no component root restores
+  nothing and logs one warning, the same as a field with no form and no
+  component root. One warning is logged per ignored field per morph. A
+  marked field with no `name` restores nothing and logs one warning,
+  including inside a form or a component. A field that has a name, inside
+  a named form or inside a component, does not log that warning. `id` is
+  not the key. Shared keys restore nothing.
+  After the fragment is in the DOM, the client writes `el.value` inside its
+  own try/catch. A throw while reading or writing one marked field skips
+  that field and logs one warning that names the error; the other fields
+  continue. The name is `error.message` when that is a non-empty string.
+  An empty message uses the constructor name, or `Error` when that name is
+  empty. Otherwise the name is `String(error)`, or `unknown error` when
+  that throws. The thrown value is the
+  second `console.warn` argument. Two fields that throw the same message
+  each log a warning; the same field logs one, including when a nested morph
+  runs during this one. If Idiomorph throws, the
+  error is reported the same way as any other failed morph, and kept values
+  for the other fields are still restored. The partial morph is left in
+  place. A throw while restoring kept values, including while listing the
+  marked fields, only logs that warning. It does not replace a morph error,
+  and it does not create an op error when the morph succeeded. The same
+  holds when the page has no Idiomorph and the client uses `replaceWith`.
+  If the saved element throws while it is being matched, or a node's key
+  cannot be decided, that field is not restored and the value is not written
+  into a different field. A different field's throw does not clear the
+  others. The throw logs the same warning.
+  It does not set the value attribute, parse the value, or
+  insert a node, and it does not send the value to the server. Focus restore
+  is unchanged. The server should paint `value=""` for secrets.
+
 ## 0.1.2 — dead-code cleanup
 
 - Version bump 0.1.1 → 0.1.2 (patch: no runtime behaviour change; version strings in

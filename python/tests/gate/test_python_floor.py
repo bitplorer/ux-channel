@@ -37,7 +37,8 @@ def test_ci_runs_python_314():
     assert 'python-version: "3.14"' in text
     assert 'python-version: "3.12"' not in text
     assert 'python-version: "3.10"' not in text
-    assert text.count('python-version: "3.14"') == 2
+    # verify, verify-sec, and the keep-value chromium job
+    assert text.count('python-version: "3.14"') == 3
 
 
 def test_docs_claim_314_floor_not_310():

@@ -58,3 +58,41 @@ jobs:
         env:
           PYTHONPATH: ${{ github.workspace }}/python/src
         run: make verify-sec
+
+  keep-value-browser:
+    name: keep-value chromium
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install Python host test deps
+        run: python3 -m pip install -q -r requirements-dev.txt
+
+      # jsdom and idiomorph only. The browser is the runner's google-chrome-stable.
+      - name: Test dependencies
+        working-directory: python/tests/gate/js_keep_value
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
+      - name: Chrome
+        run: |
+          chrome="$(command -v google-chrome-stable || command -v google-chrome)"
+          test -n "$chrome"
+          echo "Chrome version: $($chrome --version)"
+
+      - name: Keep-value Chromium
+        working-directory: python
+        env:
+          UX_KEEP_VALUE_REQUIRE_BROWSER: "1"
+          PYTHONPATH: src
+        run: python3 -m pytest tests/gate/test_keep_value.py -s --tb=short

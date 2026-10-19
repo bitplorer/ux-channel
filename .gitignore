@@ -9,3 +9,4 @@ python/reports/
 .coverage.*
 htmlcov/
 soak-report.json
+python/tests/gate/js_keep_value/node_modules/
