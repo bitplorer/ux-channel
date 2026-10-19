@@ -16,12 +16,7 @@ elements the browser does not treat the way ``html.parser`` does.
 from __future__ import annotations
 
 import re
-from typing import Any, Mapping
-
-from html5lib import HTMLParser
-from html5lib.serializer import HTMLSerializer
-from html5lib.treebuilders import getTreeBuilder
-from html5lib.treewalkers import getTreeWalker
+from typing import Any, Callable, Mapping
 
 __all__ = ["apply_morph_policy", "strip_dangerous_html"]
 
@@ -177,9 +172,14 @@ def _scrub(node: Any) -> None:
         _scrub(child)
 
 
-def _serialize(fragment: Any) -> str:
-    serializer = HTMLSerializer(omit_optional_tags=False, quote_attr_values="always")
-    return serializer.render(getTreeWalker("etree")(fragment))
+def _serialize(
+    fragment: Any,
+    *,
+    html_serializer: Callable[..., Any],
+    get_tree_walker: Callable[..., Any],
+) -> str:
+    serializer = html_serializer(omit_optional_tags=False, quote_attr_values="always")
+    return serializer.render(get_tree_walker("etree")(fragment))
 
 
 def _regex_strip(html: str) -> str:
@@ -206,6 +206,16 @@ def strip_dangerous_html(html: str) -> str:
     if not html:
         return html
     try:
+        # html5lib 1.1 was last released on 2020-06-22 and is tracked as a
+        # dependency to watch. Imported only here so policy "off" does not
+        # need the package.
+        from html5lib import HTMLParser
+        from html5lib.serializer import HTMLSerializer
+        from html5lib.treebuilders import getTreeBuilder
+        from html5lib.treewalkers import getTreeWalker
+    except Exception:
+        return ""
+    try:
         parser = HTMLParser(tree=getTreeBuilder("etree"))
         fragment = parser.parseFragment(html, container="div", scripting=True)
     except Exception:
@@ -213,7 +223,11 @@ def strip_dangerous_html(html: str) -> str:
     _scrub(fragment)
     if _raw_text_disagrees(fragment):
         return ""
-    rendered = _serialize(fragment)
+    rendered = _serialize(
+        fragment,
+        html_serializer=HTMLSerializer,
+        get_tree_walker=getTreeWalker,
+    )
     if _regex_strip(rendered) != rendered:
         return ""
     return rendered

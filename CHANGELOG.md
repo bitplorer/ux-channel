@@ -48,6 +48,7 @@
 - `seq`, `timer.set`, `invoke`, and any other op that carries nested `ops` are href-checked and, when `morph_html_policy` is `strict`, stripped. `PushBus.publish` runs that same filter, using the policy stamped from `ChannelConfig` at boot. A strict `seq(swap(...))` no longer keeps `onerror`, and a nested `javascript:` href is omitted on the way out.
 - `morph_html_policy="strict"` strips `swap` HTML with the same rules as `morph` and toast. The default `"off"` still leaves swap, morph, and toast markup unchanged.
 - That strict stripper parses with html5lib (scripting on, so svg/math are foreign content and `noscript` is raw text) and serializes the scrubbed tree. `style` stays raw text in HTML and is dropped in svg/math. If main's regex pass would still change that serialization, or the parser raises, the fragment is empty. `data-*` attributes and custom elements stay.
+- html5lib 1.1 was last released on 2020-06-22 and is tracked as a dependency to watch. Only the strict sanitizer imports it, and only inside the strip function. Policy `off` does not import it. If the import fails or the parser raises, the strict patch is refused.
 ## 0.1.2 — dead-code cleanup
 
 - Version bump 0.1.1 → 0.1.2 (patch: no runtime behaviour change; version strings in
