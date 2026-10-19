@@ -61,8 +61,6 @@ _SCRIPT_URLS = (
     "java&#09;script:alert(1)",
     "javascript&colon;alert(1)",
     "&#38;#106;avascript:alert(1)",
-    "//evil.example/a",
-    "blob:https://example/uuid",
     "file:///etc/passwd",
 )
 _SAFE_HREFS = (
@@ -251,6 +249,107 @@ def test_set_attr_refuses_script_schemes_on_url_attributes() -> None:
             assert "javascript:" not in blob, (name, url, op)
             assert "vbscript:" not in blob
             assert "data:text/html" not in blob
+
+
+_IMAGE_DATA = tuple(
+    f"data:image/{kind};base64,AAAA" for kind in ("png", "jpeg", "gif", "webp", "avif")
+)
+_SVG_DATA = "data:image/svg+xml;base64,PHN2Zy8+"
+_BLOB_URL = "blob:https://example/uuid"
+_PROTOCOL_RELATIVE = "//cdn.example/a.png"
+
+
+def test_set_attr_keeps_protocol_relative_and_src_image_urls() -> None:
+    for name in ("href", "src", "poster", "xlink:href"):
+        op = set_attr("#t", {name: _PROTOCOL_RELATIVE})
+        assert op["op"] == "set_attr", name
+        assert op["attrs"][name] == _PROTOCOL_RELATIVE
+
+    for name in ("src", "foo:src"):
+        op = set_attr("#i", {name: _BLOB_URL})
+        assert op["attrs"][name] == _BLOB_URL, name
+        for url in _IMAGE_DATA:
+            kept = set_attr("#i", {name: url})
+            assert kept["attrs"][name] == url, (name, url)
+
+    for name in ("href", "poster"):
+        blob_op = set_attr("#a", {name: _BLOB_URL, "class": "keep"})
+        assert name not in blob_op["attrs"]
+        assert blob_op["attrs"]["class"] == "keep"
+        image_op = set_attr("#a", {name: _IMAGE_DATA[0], "class": "keep"})
+        assert name not in image_op["attrs"]
+
+    for name in ("src", "href"):
+        svg_op = set_attr("#t", {name: _SVG_DATA, "class": "keep"})
+        assert name not in svg_op["attrs"], name
+        assert "svg" not in json.dumps(svg_op["attrs"]).lower()
+        html_op = set_attr(
+            "#t",
+            {name: "data:text/html,<script>alert(1)</script>", "class": "keep"},
+        )
+        assert name not in html_op["attrs"], name
+        assert "data:text/html" not in json.dumps(html_op).lower()
+
+
+def test_client_keeps_protocol_relative_and_src_image_urls() -> None:
+    cases = []
+    for name in ("href", "src", "poster"):
+        cases.append(
+            {
+                "selector": "#rel-" + name,
+                "attr": name,
+                "attrs": {name: _PROTOCOL_RELATIVE},
+                "expect": _PROTOCOL_RELATIVE,
+            }
+        )
+    for name in ("src", "foo:src"):
+        cases.append(
+            {
+                "selector": "#blob-" + name,
+                "attr": name,
+                "attrs": {name: _BLOB_URL},
+                "expect": _BLOB_URL,
+            }
+        )
+        for url in _IMAGE_DATA:
+            cases.append(
+                {
+                    "selector": "#img-" + name + url,
+                    "attr": name,
+                    "attrs": {name: url},
+                    "expect": url,
+                }
+            )
+    for name in ("href", "poster"):
+        cases.append(
+            {
+                "selector": "#noblob-" + name,
+                "attr": name,
+                "prime": {name: "/ok"},
+                "attrs": {name: _BLOB_URL},
+                "expect": "/ok",
+            }
+        )
+        cases.append(
+            {
+                "selector": "#noimg-" + name,
+                "attr": name,
+                "prime": {name: "/ok"},
+                "attrs": {name: _IMAGE_DATA[0]},
+                "expect": "/ok",
+            }
+        )
+    for name in ("src", "href"):
+        cases.append(
+            {
+                "selector": "#svg-" + name,
+                "attr": name,
+                "prime": {name: "/ok"},
+                "attrs": {name: _SVG_DATA},
+                "expect": "/ok",
+            }
+        )
+    _run_client_cases(cases)
 
 
 def test_set_attr_refuses_non_string_script_urls() -> None:
@@ -520,7 +619,6 @@ def test_client_set_attr_refuses_script_scheme_urls() -> None:
         "javascript&#58;alert(1)",
         "javascript&colon;alert(1)",
         "&#38;#106;avascript:alert(1)",
-        "//evil.example/a",
     ):
         cases.append(
             {
