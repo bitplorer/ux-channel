@@ -1180,7 +1180,125 @@ async function runIsolationCases(win, doc, check, warns, path) {
 
   await runSharedKeyCase(win, doc, check);
   await runTypeGuardCase(win, doc, check, warns);
+  await runWarnNameCase(win, doc, check, warns);
   if (path === "idiomorph") await runUnmarkedThrowCase(win, doc, check, warns);
+}
+
+async function runWarnNameCase(win, doc, check, warns) {
+  var html = keepWrap(
+    '<input id="a" name="a" type="text" data-ux-keep-value value="">' +
+      '<input id="keep" name="keep" type="text" data-ux-keep-value value="">' +
+      '<input id="b" name="b" type="text" data-ux-keep-value value="">'
+  );
+  var savedMorph = win.Idiomorph && win.Idiomorph.morph;
+  var savedReplace = win.Element.prototype.replaceWith;
+  function disarm() {
+    ["a", "keep", "b"].forEach(function (id) {
+      var el = doc.getElementById(id);
+      if (el) delete el.value;
+    });
+  }
+  if (savedMorph && win.Idiomorph) {
+    win.Idiomorph.morph = function () {
+      disarm();
+      return savedMorph.apply(this, arguments);
+    };
+  } else {
+    win.Element.prototype.replaceWith = function () {
+      disarm();
+      return savedReplace.apply(this, arguments);
+    };
+  }
+  function poison(id, thrown) {
+    Object.defineProperty(doc.getElementById(id), "value", {
+      configurable: true,
+      get: function () { throw thrown; },
+    });
+  }
+  function named(fragment) {
+    return warns.filter(function (line) {
+      return warnText(line).indexOf(fragment) !== -1;
+    });
+  }
+  try {
+    warns.length = 0;
+    doc.body.innerHTML = html;
+    doc.getElementById("keep").value = "kept-keep";
+    poison("a", new win.Error("same message"));
+    poison("b", new win.Error("same message"));
+    await applyKeepMorph(win, html);
+    var same = named("same message");
+    check(same.length === 2, "same message warnings " + same.length);
+    check(
+      same.length === 2 &&
+        same[0].args && same[0].args[1] instanceof win.Error &&
+        same[1].args && same[1].args[1] instanceof win.Error &&
+        typeof same[0].args[1].stack === "string" &&
+        typeof same[1].args[1].stack === "string",
+      "same message args " + same.length
+    );
+    check(
+      doc.getElementById("keep").value === "kept-keep",
+      "same message keep " + JSON.stringify(doc.getElementById("keep").value)
+    );
+
+    warns.length = 0;
+    doc.body.innerHTML = html;
+    doc.getElementById("keep").value = "kept-keep";
+    poison("a", "plain string");
+    await applyKeepMorph(win, html);
+    var strWarns = named("plain string");
+    check(strWarns.length === 1, "string warnings " + strWarns.length + " " + warns.map(warnText).join(" | "));
+    check(
+      strWarns.length === 1 && strWarns[0].args && strWarns[0].args[1] === "plain string",
+      "string arg " + (strWarns[0] && strWarns[0].args && strWarns[0].args.length)
+    );
+    check(
+      doc.getElementById("keep").value === "kept-keep",
+      "string keep " + JSON.stringify(doc.getElementById("keep").value)
+    );
+
+    var numbered = { toString: function () { return "object-name"; } };
+    Object.defineProperty(numbered, "message", { value: 404 });
+    warns.length = 0;
+    doc.body.innerHTML = html;
+    doc.getElementById("keep").value = "kept-keep";
+    poison("a", numbered);
+    await applyKeepMorph(win, html);
+    var objWarns = named("object-name");
+    check(objWarns.length === 1, "object warnings " + objWarns.length + " " + warns.map(warnText).join(" | "));
+    check(
+      objWarns.length === 1 && warnText(objWarns[0]).indexOf("404") === -1,
+      "object skips message " + (objWarns[0] && warnText(objWarns[0]))
+    );
+    check(
+      objWarns.length === 1 && objWarns[0].args && objWarns[0].args[1] === numbered,
+      "object arg"
+    );
+
+    var bomb = {};
+    Object.defineProperty(bomb, "message", {
+      get: function () { throw new win.Error("msg"); },
+    });
+    bomb.toString = function () { throw new win.Error("str"); };
+    bomb.valueOf = function () { throw new win.Error("val"); };
+    warns.length = 0;
+    doc.body.innerHTML = html;
+    doc.getElementById("keep").value = "kept-keep";
+    poison("b", bomb);
+    await applyKeepMorph(win, html);
+    var unk = named("unknown error");
+    check(unk.length === 1, "unknown warnings " + unk.length + " " + warns.map(warnText).join(" | "));
+    check(unk.length === 1 && unk[0].args && unk[0].args[1] === bomb, "unknown arg");
+    check(
+      doc.getElementById("keep").value === "kept-keep",
+      "unknown keep " + JSON.stringify(doc.getElementById("keep").value)
+    );
+  } finally {
+    disarm();
+    if (savedMorph && win.Idiomorph) win.Idiomorph.morph = savedMorph;
+    win.Element.prototype.replaceWith = savedReplace;
+  }
 }
 
 async function runTypeGuardCase(win, doc, check, warns) {
