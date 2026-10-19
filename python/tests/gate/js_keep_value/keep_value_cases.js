@@ -250,6 +250,7 @@ async function runKeepValuePath(win, path) {
     await runErrorCases(win, doc, check);
     await runLeakCases(win, doc, check);
     await runComponentCases(win, doc, check, warns);
+    await runScopeCases(win, doc, check, warns);
 
     var callsBeforeEmpty = calls;
     var region = doc.getElementById("region");
@@ -699,4 +700,167 @@ async function runErrorCases(win, doc, check) {
   } finally {
     restoreSetter();
   }
+}
+
+function scopeHtml(inner) {
+  return '<div id="region">' + inner + "</div>";
+}
+
+function keepWarnCount(warns) {
+  return warns.filter(function (item) {
+    return String(item).indexOf("data-ux-keep-value") !== -1;
+  }).length;
+}
+
+async function runScopeCases(win, doc, check, warns) {
+  var email = '<input name="email" type="email" data-ux-keep-value value="">';
+  var unnamed = function (id) {
+    return (
+      '<div data-channel-id="' + id + '"><form>' + email + "</form></div>"
+    );
+  };
+  doc.body.innerHTML = scopeHtml(unnamed("a"));
+  doc.querySelector("input").value = "A-form-private";
+  await applyKeepMorph(win, scopeHtml(unnamed("b")));
+  check(
+    doc.querySelector("input").value === "",
+    "unnamed form A to B " + JSON.stringify(doc.querySelector("input").value)
+  );
+
+  var named = function (id) {
+    return (
+      '<div data-channel-id="' + id + '"><form id="f">' + email + "</form></div>"
+    );
+  };
+  doc.body.innerHTML = scopeHtml(named("a"));
+  doc.querySelector("input").value = "named-a";
+  await applyKeepMorph(win, scopeHtml(named("b")));
+  check(
+    doc.querySelector("input").value === "",
+    "named form A to B " + JSON.stringify(doc.querySelector("input").value)
+  );
+
+  doc.body.innerHTML = scopeHtml(unnamed("a"));
+  doc.querySelector("input").value = "stays-unnamed";
+  await applyKeepMorph(win, scopeHtml(unnamed("a")));
+  check(
+    doc.querySelector("input").value === "stays-unnamed",
+    "same component unnamed " + JSON.stringify(doc.querySelector("input").value)
+  );
+
+  doc.body.innerHTML = scopeHtml(named("a"));
+  doc.querySelector("input").value = "stays-named";
+  await applyKeepMorph(win, scopeHtml(named("a")));
+  check(
+    doc.querySelector("input").value === "stays-named",
+    "same component named " + JSON.stringify(doc.querySelector("input").value)
+  );
+
+  doc.body.innerHTML = scopeHtml(
+    '<div data-channel-id="1f">' + email + "</div>"
+  );
+  doc.querySelector("input").value = "comp-1f";
+  await applyKeepMorph(win, scopeHtml("<form id=\"f\">" + email + "</form>"));
+  check(
+    doc.querySelector("input").value === "",
+    "component 1f vs form f " + JSON.stringify(doc.querySelector("input").value)
+  );
+
+  doc.body.innerHTML = scopeHtml('<div data-channel-id="f">' + email + "</div>");
+  doc.querySelector("input").value = "comp-f";
+  await applyKeepMorph(win, scopeHtml("<form id=\"f\">" + email + "</form>"));
+  check(
+    doc.querySelector("input").value === "",
+    "component f vs form f " + JSON.stringify(doc.querySelector("input").value)
+  );
+
+  var wrapped =
+    '<div data-channel-id="a"><div><label>' +
+    '<input name="q" type="text" data-ux-keep-value value="">' +
+    "</label></div></div>";
+  warns.length = 0;
+  doc.body.innerHTML = scopeHtml(wrapped);
+  doc.querySelector("input").value = "wrapped";
+  await applyKeepMorph(win, scopeHtml(wrapped));
+  check(
+    doc.querySelector("input").value === "wrapped",
+    "wrapped field " + JSON.stringify(doc.querySelector("input").value)
+  );
+  check(keepWarnCount(warns) === 0, "wrapped warnings " + keepWarnCount(warns));
+
+  var emptyInner =
+    '<div data-channel-id="a"><div data-channel-id="">' +
+    '<input name="q" type="text" data-ux-keep-value value="">' +
+    "</div></div>";
+  warns.length = 0;
+  doc.body.innerHTML = scopeHtml(emptyInner);
+  doc.querySelector("input").value = "outer-a";
+  await applyKeepMorph(win, scopeHtml(emptyInner));
+  check(
+    doc.querySelector("input").value === "outer-a",
+    "empty channel id " + JSON.stringify(doc.querySelector("input").value)
+  );
+  check(keepWarnCount(warns) === 0, "empty channel warnings " + keepWarnCount(warns));
+
+  var own =
+    '<input name="q" type="text" data-channel-id="self" data-ux-keep-value value="">';
+  warns.length = 0;
+  doc.body.innerHTML = scopeHtml(own);
+  doc.querySelector("input").value = "own-id";
+  await applyKeepMorph(win, scopeHtml(own));
+  check(
+    doc.querySelector("input").value === "",
+    "own data-channel-id " + JSON.stringify(doc.querySelector("input").value)
+  );
+  check(keepWarnCount(warns) === 1, "own data-channel-id warnings " + keepWarnCount(warns));
+
+  var orphans =
+    '<input name="o1" type="text" data-ux-keep-value value="">' +
+    '<input name="o2" type="text" data-ux-keep-value value="">';
+  warns.length = 0;
+  doc.body.innerHTML = scopeHtml(orphans);
+  doc.querySelector('[name="o1"]').value = "one";
+  doc.querySelector('[name="o2"]').value = "two";
+  await applyKeepMorph(win, scopeHtml(orphans));
+  check(doc.querySelector('[name="o1"]').value === "", "orphan one kept");
+  check(doc.querySelector('[name="o2"]').value === "", "orphan two kept");
+  check(keepWarnCount(warns) === 2, "two orphan warnings " + keepWarnCount(warns));
+
+  var namedOnly = '<form id="fid"><input name="byid" type="email" data-ux-keep-value value=""></form>';
+  warns.length = 0;
+  doc.body.innerHTML = scopeHtml(namedOnly);
+  doc.querySelector("input").value = "by-id";
+  await applyKeepMorph(win, scopeHtml(namedOnly));
+  check(doc.querySelector("input").value === "by-id", "named form no component");
+  check(keepWarnCount(warns) === 0, "named form warnings " + keepWarnCount(warns));
+
+  var byName = '<form name="fname"><input name="byname" type="email" data-ux-keep-value value=""></form>';
+  warns.length = 0;
+  doc.body.innerHTML = scopeHtml(byName);
+  doc.querySelector("input").value = "by-name";
+  await applyKeepMorph(win, scopeHtml(byName));
+  check(doc.querySelector("input").value === "by-name", "form name no component");
+  check(keepWarnCount(warns) === 0, "form name warnings " + keepWarnCount(warns));
+
+  var inside =
+    '<div data-channel-id="comp"><form>' +
+    '<input name="inside" type="email" data-ux-keep-value value="">' +
+    "</form></div>";
+  warns.length = 0;
+  doc.body.innerHTML = scopeHtml(inside);
+  doc.querySelector("input").value = "inside-form";
+  await applyKeepMorph(win, scopeHtml(inside));
+  check(doc.querySelector("input").value === "inside-form", "unnamed form in component");
+  check(keepWarnCount(warns) === 0, "unnamed in component warnings " + keepWarnCount(warns));
+
+  var loose = "<form>" + email + "</form>";
+  warns.length = 0;
+  doc.body.innerHTML = scopeHtml(loose);
+  doc.querySelector("input").value = "loose-form";
+  await applyKeepMorph(win, scopeHtml(loose));
+  check(
+    doc.querySelector("input").value === "",
+    "unnamed form no component " + JSON.stringify(doc.querySelector("input").value)
+  );
+  check(keepWarnCount(warns) === 1, "unnamed form no component warnings " + keepWarnCount(warns));
 }
