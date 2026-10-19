@@ -1,16 +1,18 @@
-"""Opt-in strict HTML policy for morph / swap / toast (SECURITY_AUDIT HIGH residual).
+"""HTML policy for morph / swap / toast (SECURITY_AUDIT HIGH residual).
 
-Default is off — ux-dom fragments and app-owned markup stay intact.
-``ChannelConfig.morph_html_policy = "strict"`` strips script/iframe/object
-and inline event handlers from morph and swap HTML and from toast text.
+Both modes remove ``on*``, ``srcdoc``, and dangerous URLs (``javascript:``,
+``vbscript:``, ``data:text/html``, and a control character in a URL
+attribute) with html5lib. Off mode keeps ``<script>`` and every other
+element. It is not a sanitizer: apps must escape user HTML or set
+``morph_html_policy="strict"``.
 
-Must not break ux-dom: data-* attributes, custom elements, and region
-slots are preserved. This is not a full sanitizer; it is a fail-closed
-strip of the residual XSS shapes named in SECURITY_AUDIT.md.
+This replaces main ``83a580a``, where off mode returned the fragment
+unchanged. Strict still drops script, iframe, object, and the rest of
+the full list.
 
-A fragment is kept only when both passes accept it: the HTML parser pass,
-then the regex pass from main (83a580a). The parser pass drops raw-text
-elements the browser does not treat the way ``html.parser`` does.
+A fragment is refused when html5lib cannot be imported, the parse fails,
+or a second parse of the cleaned output disagrees. Plain text (no ``<``)
+and non-HTML ops do not need the parser.
 """
 
 from __future__ import annotations
@@ -138,11 +140,31 @@ def _drop_element(parent: Any, child: Any) -> None:
 
 
 def _refused_attr(name: str, value: str | None) -> bool:
+    token = name.strip().lower()
     return (
         _event_handler(name)
+        or token == "srcdoc"
         or _attr_url_refused(name, value)
         or _js_url_value(name, value)
     )
+
+
+def _scrub_attrs(node: Any) -> None:
+    """Remove on*, srcdoc, and dangerous URLs. Keep script and other elements."""
+    for child in list(node):
+        tag = getattr(child, "tag", None)
+        if not isinstance(tag, str):
+            continue
+        local = _local_name(tag).lower()
+        attrs = list(child.attrib.items())
+        named = [(_local_name(key), value) for key, value in attrs]
+        if local in ("set", "animate") and _anim_sets_handler(named):
+            _drop_element(node, child)
+            continue
+        for key, value in attrs:
+            if _refused_attr(_local_name(key), value):
+                del child.attrib[key]
+        _scrub_attrs(child)
 
 
 def _scrub(node: Any) -> None:
@@ -194,43 +216,91 @@ def _regex_strip(html: str) -> str:
     return out
 
 
+def _import_html5lib() -> tuple[Any, Any, Any, Any]:
+    """Load html5lib. Raises when the package is missing.
+
+    html5lib 1.1 was last released on 2020-06-22 and is tracked as a
+    dependency to watch. Both modes import it for HTML fragments.
+    """
+    from html5lib import HTMLParser
+    from html5lib.serializer import HTMLSerializer
+    from html5lib.treebuilders import getTreeBuilder
+    from html5lib.treewalkers import getTreeWalker
+
+    return HTMLParser, HTMLSerializer, getTreeBuilder, getTreeWalker
+
+
+def _parse_fragment(html: str, html_parser: Any, get_tree_builder: Any) -> Any:
+    parser = html_parser(tree=get_tree_builder("etree"))
+    return parser.parseFragment(html, container="div", scripting=True)
+
+
+def _render(fragment: Any, html_serializer: Any, get_tree_walker: Any) -> str:
+    return _serialize(
+        fragment,
+        html_serializer=html_serializer,
+        get_tree_walker=get_tree_walker,
+    )
+
+
+def _checked_fragment(html: str, *, drop_elements: bool) -> str:
+    """Return cleaned HTML, or ``""`` when the check cannot finish.
+
+    ``drop_elements`` is the strict list. Off mode only removes attributes.
+    Plain text never reaches the parser.
+    """
+    if not html:
+        return html
+    if not drop_elements and "<" not in html:
+        return html
+    try:
+        html_parser, html_serializer, get_tree_builder, get_tree_walker = (
+            _import_html5lib()
+        )
+    except Exception:
+        return ""
+    try:
+        fragment = _parse_fragment(html, html_parser, get_tree_builder)
+    except Exception:
+        return ""
+    if drop_elements:
+        _scrub(fragment)
+        if _raw_text_disagrees(fragment):
+            return ""
+    else:
+        _scrub_attrs(fragment)
+    rendered = _render(fragment, html_serializer, get_tree_walker)
+    if drop_elements and _regex_strip(rendered) != rendered:
+        return ""
+    try:
+        again = _parse_fragment(rendered, html_parser, get_tree_builder)
+        again_rendered = _render(again, html_serializer, get_tree_walker)
+    except Exception:
+        return ""
+    if again_rendered != rendered:
+        return ""
+    return rendered
+
+
+def strip_off_html(html: str) -> str:
+    """Remove on*, srcdoc, and dangerous URLs. Keep script and other markup.
+
+    Refused when html5lib is missing, the parse fails, or a second parse of
+    the cleaned output disagrees. Plain text is returned unchanged.
+    """
+    return _checked_fragment(html, drop_elements=False)
+
+
 def strip_dangerous_html(html: str) -> str:
     """Remove script-shaped markup. Leaves ux-dom data-* and custom tags.
 
     The tree is built with an HTML5 parser (scripting on, so ``noscript`` is
     raw text and svg/math are foreign content). Dangerous elements and
     attributes are removed, then the fragment is serialized. If main's regex
-    pass would still change that serialization, the fragment is refused.
-    A parse failure drops it.
+    pass would still change that serialization, or a second parse disagrees,
+    the fragment is refused. A parse failure drops it.
     """
-    if not html:
-        return html
-    try:
-        # html5lib 1.1 was last released on 2020-06-22 and is tracked as a
-        # dependency to watch. Imported only here so policy "off" does not
-        # need the package.
-        from html5lib import HTMLParser
-        from html5lib.serializer import HTMLSerializer
-        from html5lib.treebuilders import getTreeBuilder
-        from html5lib.treewalkers import getTreeWalker
-    except Exception:
-        return ""
-    try:
-        parser = HTMLParser(tree=getTreeBuilder("etree"))
-        fragment = parser.parseFragment(html, container="div", scripting=True)
-    except Exception:
-        return ""
-    _scrub(fragment)
-    if _raw_text_disagrees(fragment):
-        return ""
-    rendered = _serialize(
-        fragment,
-        html_serializer=HTMLSerializer,
-        get_tree_walker=getTreeWalker,
-    )
-    if _regex_strip(rendered) != rendered:
-        return ""
-    return rendered
+    return _checked_fragment(html, drop_elements=True)
 
 
 def _raw_text_disagrees(node: Any) -> bool:
@@ -247,8 +317,8 @@ def _raw_text_disagrees(node: Any) -> bool:
     return False
 
 
-def _strict_one(op: Any) -> Any:
-    """Strip one op and any ops nested inside it."""
+def _filter_one(op: Any, scrub: Callable[[str], str]) -> Any:
+    """Run ``scrub`` on one op and any ops nested inside it."""
     body = op
     if not isinstance(op, Mapping):
         to_dict = getattr(op, "to_dict", None)
@@ -262,25 +332,26 @@ def _strict_one(op: Any) -> Any:
     cloned = dict(body)
     name = str(cloned.get("op") or "")
     if name in ("morph", "swap") and "html" in cloned:
-        cloned["html"] = strip_dangerous_html(str(cloned.get("html") or ""))
+        cloned["html"] = scrub(str(cloned.get("html") or ""))
     elif name == "toast":
         for key in ("message", "text", "display"):
             if key in cloned and cloned[key] is not None:
-                cloned[key] = strip_dangerous_html(str(cloned[key]))
+                cloned[key] = scrub(str(cloned[key]))
     nested = cloned.get("ops")
     if isinstance(nested, list):
-        cloned["ops"] = [_strict_one(child) for child in nested]
+        cloned["ops"] = [_filter_one(child, scrub) for child in nested]
     return cloned
 
 
 def apply_morph_policy(ops: list[Any], *, policy: str = "off") -> list[Any]:
-    """Filter morph/swap/toast ops when policy=strict. ``off`` returns ops unchanged.
+    """Remove refused vectors from morph, swap, and toast in both modes.
 
-    Strict mode walks ``seq``, ``timer.set``, ``invoke``, and any other op
-    that carries an ``ops`` list.
+    Off removes ``on*``, ``srcdoc``, and dangerous URLs and keeps
+    ``<script>`` and other markup. Strict applies the full drop list.
+    Both walk ``seq``, ``timer.set``, ``invoke``, and any other op that
+    carries an ``ops`` list. Plain text and non-HTML ops are unchanged.
     """
-    if policy == "off":
-        return ops
-    if policy != "strict":
+    if policy not in ("off", "strict"):
         raise ValueError('morph_html_policy must be "off" or "strict"')
-    return [_strict_one(op) for op in ops]
+    scrub = strip_dangerous_html if policy == "strict" else strip_off_html
+    return [_filter_one(op, scrub) for op in ops]

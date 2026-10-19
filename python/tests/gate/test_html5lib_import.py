@@ -25,7 +25,7 @@ def _restore_morph_policy() -> None:
     security_mod.apply_morph_policy = morph_policy.apply_morph_policy
 
 
-def test_off_mode_html_is_refused_when_html5lib_is_missing(
+def test_off_mode_patch_runs_when_html5lib_is_missing(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """HTML is refused. Plain text and non-HTML ops still pass."""

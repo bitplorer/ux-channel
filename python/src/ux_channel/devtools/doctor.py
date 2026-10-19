@@ -95,14 +95,15 @@ def production_go_nogo(config: Any) -> dict[str, Any]:
         row(
             "morph_html_policy",
             True,
-            "morph_html_policy=off: app must escape user strings "
-            "(HIGH residual). Set morph_html_policy='strict' to strip script/on* "
-            "from morph, swap, and toast.",
+            "morph_html_policy=off removes on*, srcdoc, and dangerous URLs "
+            "but still carries <script> and other markup. It is not a sanitizer. "
+            "Escape user HTML or set morph_html_policy='strict'.",
             fatal=False,
         )
         if morph == "off":
             hints.append(
-                "morph_html_policy=off — escape user HTML or set morph_html_policy='strict'"
+                "morph_html_policy=off is not a sanitizer — escape user HTML "
+                "or set morph_html_policy='strict'"
             )
         if mount_mcp:
             row(

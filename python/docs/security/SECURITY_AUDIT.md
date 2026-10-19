@@ -79,7 +79,7 @@ Read [../../../START_HERE.md](../../../START_HERE.md) first if you are new. This
 
 | Sev | Risk | Owner | Mitigation |
 |-----|------|-------|------------|
-| **HIGH** | **Morph / swap / toast XSS** if user strings embedded raw | App + lib | **Mitigated (opt-in)** — `morph_html_policy="strict"` strips script/on*/javascript: hrefs from morph, swap, and toast. Default **off** so ux-dom is not broken. `doctor()` warns when off in production. Tests: `tests/security/test_morph_policy.py`. |
+| **HIGH** | **Morph / swap / toast XSS** if user strings embedded raw | App + lib | **Partly mitigated.** Both modes remove `on*`, `srcdoc`, and dangerous URLs (`javascript:`, `vbscript:`, `data:text/html`, control characters in URL attributes) on every transport. This is a security fix against main `83a580a`, where off left that markup unchanged. Off still carries `<script>` and other markup and is **not a sanitizer**. `morph_html_policy="strict"` applies the full drop list. Escape user HTML or use strict. `doctor()` warns when off in production. |
 | **MED** | **Open redirect** via `https://evil.example` navigate | App | Allowlist hosts before `navigate()` / encode `Go` |
 | **MED** | **Stolen `data-channel-cap`** until expiry | App + lib | Short TTL, HTTPS, `bind_cap_to_principal`, `once` for money actions |
 | **MED** | **Multi-worker** once/idempotency/rate/state | Deploy | Redis (or equivalent); do not use memory stores in multi-worker prod |
@@ -155,7 +155,7 @@ CI expectation: **gate green** (`make verify`). Security residuals: **`make veri
 
 ## Recommended next hardening (post-0.1)
 
-1. ~~Optional **HTML sanitizer policy** for morph (strict mode) without breaking ux-dom.~~ **Done (opt-in)** — `ChannelConfig.morph_html_policy = "strict"`. A channel with no policy, including `create_channel()` without a config, is `off` for patches and pushes on JSON and SSE. A bare `PushBus()` or a stream with no channel is strict. Doctor warns when a channel is off. The strict stripper's parser is html5lib; the intake record is [html5lib-intake.md](html5lib-intake.md).  
+1. ~~Optional **HTML sanitizer policy** for morph (strict mode) without breaking ux-dom.~~ **Done (opt-in)** — `ChannelConfig.morph_html_policy = "strict"` applies the full drop list. A channel with no policy, including `create_channel()` without a config, is `off` for patches and pushes. Off removes `on*`, `srcdoc`, and dangerous URLs and still carries `<script>` and other markup. It is not a sanitizer. A bare `PushBus()` or a stream with no channel is strict. Doctor warns when a channel is off. Both modes parse HTML with html5lib; the intake record is [html5lib-intake.md](html5lib-intake.md).  
 2. ~~**Navigate host allowlist** config.~~ **Done** — `navigate_allowed_hosts` + production derives from `allowed_origins`.  
 3. Cap **binding to session cookie** / CSRF double-submit beyond custom header.  
 4. ~~First-class **Redis** rate limit + nonce in default production factory.~~ **Done** — `REDIS_URL` auto-wires nonce/rate/idempotency/push; `production()` default TTL 900s; `doctor --fail` refuses silent memory stores.  

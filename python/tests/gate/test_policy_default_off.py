@@ -21,7 +21,7 @@ from ux_channel.transport.stream import resolve_stream_policy
 _SECRET = "policy-off-secret-32chars-minimum!"
 _TOPIC = "board"
 _MARK = "PWN-OFF-9"
-_CLICK = f'<div onclick="window.{_MARK}(1)">x</div>'
+_CLICK = f'<script>S</script><div onclick="window.NO(1)">{_MARK}</div>'
 
 _REFUSALS: tuple[tuple[str, dict], ...] = (
     ("onclick", {"op": "set_attr", "target": "#a", "attrs": {"onclick": f"window.{_MARK}(1)"}}),
@@ -144,7 +144,7 @@ def test_unknown_policy_strings_raise_and_bare_bus_is_strict() -> None:
 
 
 def test_no_config_is_off_for_json_sse_and_push() -> None:
-    """No config matches explicit off: markup stays, on every response shape."""
+    """No config matches explicit off: handlers go, script and markup stay."""
     app, ch = _no_config()
     _handler(ch, swap("#t", _CLICK))
     client = TestClient(app)
@@ -164,7 +164,8 @@ def test_no_config_is_off_for_json_sse_and_push() -> None:
         ("sse", sse_res.text),
         ("push", pushed),
     ):
-        assert "onclick" in blob.lower(), label + " " + blob
+        assert "onclick" not in blob.lower(), label + " " + blob
+        assert "<script" in blob.lower(), label + " " + blob
         assert _MARK in blob, label + " " + blob
 
 
@@ -180,7 +181,9 @@ def test_explicit_off_matches_strict_across_json_and_sse() -> None:
         headers={"Accept": "text/event-stream"},
     ).text
     assert ("onclick" in json_blob.lower()) == ("onclick" in sse_blob.lower())
-    assert "onclick" in json_blob.lower(), json_blob
+    assert "onclick" not in json_blob.lower(), json_blob
+    assert "<script" in json_blob.lower(), json_blob
+    assert "<script" in sse_blob.lower(), sse_blob
 
     app_s = FastAPI()
     cfg = ChannelConfig.development(
@@ -201,6 +204,9 @@ def test_explicit_off_matches_strict_across_json_and_sse() -> None:
     ).text
     assert "onclick" not in json_s.lower(), json_s
     assert "onclick" not in sse_s.lower(), sse_s
+    assert "<script" not in json_s.lower(), json_s
+    assert "<script" not in sse_s.lower(), sse_s
+    assert _MARK in json_s, json_s
 
 
 def _refuse_blob(blob: str, name: str) -> None:

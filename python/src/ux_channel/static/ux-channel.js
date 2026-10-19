@@ -752,9 +752,9 @@
     return /^data:image\/(png|jpeg|gif|webp|avif)($|[;,])/i.test(h);
   }
 
-  // Off mode does not run the html5lib stripper, so a swap or morph fragment
-  // may still carry a <script> tag. on*, srcdoc, and dangerous URLs are
-  // removed before insertion. If the fragment cannot be checked, it is refused.
+  // Second layer. The server already removed on*, srcdoc, and dangerous URLs
+  // in both modes. Off mode still carries a <script> tag. If this check
+  // cannot run, or a second parse disagrees, the fragment is not inserted.
   function guardedHtml(html) {
     var raw = String(html == null ? "" : html);
     if (!raw) return raw;

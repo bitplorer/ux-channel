@@ -23,7 +23,8 @@ from ux_channel.transport.push import PushBus, get_push_bus, set_push_bus
 
 _SECRET = "route-bus-secret-32chars-minimum!"
 _TOPIC = "board"
-_B_CLICK = '<div onclick="window.PWN(1)">b</div>'
+_B_MARK = "B-MARK-9f3c"
+_B_CLICK = f'<div onclick="window.PWN(1)">{_B_MARK}</div>'
 _B_ERROR = '<img src="x" onerror="window.PWN(2)">'
 _A_MARK = "A-MARK-9f3c"
 
@@ -125,19 +126,21 @@ def test_push_sse_a_does_not_receive_b_and_does_receive_itself() -> None:
     ch_b.live.publish(_TOPIC, result=Result.success(swap("#t", _B_CLICK)))
     ch_a.live.publish(_TOPIC, result=Result.success(swap("#t", f"<b>{_A_MARK}</b>")))
     _kick(ch_a.registry.push_bus, ch_b.registry.push_bus)
-    got_a = _wait_blob(sink_a, "onclick")
+    got_a = _wait_blob(sink_a, _A_MARK)
     thread_a.join(0.1)
     assert "onclick" not in got_a.lower(), got_a
     assert _A_MARK in got_a, got_a
+    assert _B_MARK not in got_a, got_a
 
     client_b = TestClient(_app_b)
     sink_b, thread_b, _ = _start_sse(client_b, _TOPIC)
     ch_b.live.publish(_TOPIC, result=Result.success(swap("#t", _B_CLICK)))
     ch_a.live.publish(_TOPIC, result=Result.success(swap("#t", f"<b>{_A_MARK}</b>")))
     _kick(ch_a.registry.push_bus, ch_b.registry.push_bus)
-    got_b = _wait_blob(sink_b, "onclick")
+    got_b = _wait_blob(sink_b, _B_MARK)
     thread_b.join(0.1)
-    assert "onclick" in got_b.lower(), got_b
+    assert _B_MARK in got_b, got_b
+    assert "onclick" not in got_b.lower(), got_b
     assert _A_MARK not in got_b, got_b
 
 
@@ -179,7 +182,9 @@ def test_ws_a_does_not_receive_b_and_does_receive_itself() -> None:
             got_b = _collect_ws(ws_b)
     assert "onclick" not in got_a.lower(), got_a
     assert _A_MARK in got_a, got_a
-    assert "onclick" in got_b.lower(), got_b
+    assert _B_MARK not in got_a, got_a
+    assert _B_MARK in got_b, got_b
+    assert "onclick" not in got_b.lower(), got_b
     assert _A_MARK not in got_b, got_b
 
 
@@ -194,19 +199,21 @@ def test_mcp_a_does_not_receive_b_and_does_receive_itself() -> None:
     ch_b.live.publish(topic, result=Result.success(swap("#t", _B_CLICK)))
     ch_a.live.publish(topic, result=Result.success(swap("#t", f"<b>{_A_MARK}</b>")))
     _kick(ch_a.registry.push_bus, ch_b.registry.push_bus)
-    got_a = _wait_blob(sink_a, "onclick")
+    got_a = _wait_blob(sink_a, _A_MARK)
     thread_a.join(0.1)
     assert "onclick" not in got_a.lower(), got_a
     assert _A_MARK in got_a, got_a
+    assert _B_MARK not in got_a, got_a
 
     client_b = TestClient(app_b)
     sink_b, thread_b, _ = _start_mcp(client_b, topic, headers)
     ch_b.live.publish(topic, result=Result.success(swap("#t", _B_CLICK)))
     ch_a.live.publish(topic, result=Result.success(swap("#t", f"<b>{_A_MARK}</b>")))
     _kick(ch_a.registry.push_bus, ch_b.registry.push_bus)
-    got_b = _wait_blob(sink_b, "onclick")
+    got_b = _wait_blob(sink_b, _B_MARK)
     thread_b.join(0.1)
-    assert "onclick" in got_b.lower(), got_b
+    assert _B_MARK in got_b, got_b
+    assert "onclick" not in got_b.lower(), got_b
     assert _A_MARK not in got_b, got_b
 
 

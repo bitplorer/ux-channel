@@ -1,7 +1,8 @@
 # html5lib intake
 
-Runtime dependency of the strict morph/swap/toast stripper only.
-`morph_html_policy="off"` does not import it.
+Runtime dependency of the morph/swap/toast HTML check in both modes.
+`morph_html_policy="off"` imports it for a fragment that contains HTML, and
+refuses that fragment when the import fails. Plain text does not import it.
 
 | Field | Value |
 | --- | --- |
@@ -11,7 +12,7 @@ Runtime dependency of the strict morph/swap/toast stripper only.
 | Last release | 2020-06-22 (1.1) |
 | Why it is here | The standard library has no HTML5 tree builder that implements foreign content. svg and math need that, and `scripting=True` is what makes `noscript` raw text. |
 | Transitive runtime deps | `six` 1.17.0 (MIT), `webencodings` 0.6.1 (BSD). No other package was added. html5lib extras (`lxml`, `genshi`, `chardet`) are not used. |
-| Maintenance | Last release 2020-06-22. Tracked as a dependency to watch. The import sits inside `strip_dangerous_html` with that comment. |
+| Maintenance | Last release 2020-06-22. Tracked as a dependency to watch. The import sits inside `_import_html5lib`, used by both modes. |
 
 ## Alternatives rejected
 

@@ -640,7 +640,7 @@ def test_signed_raw_set_attr_dict_javascript_href_does_not_land() -> None:
     assert "javascript:" not in json.dumps(ops).lower()
 
 
-def test_off_policy_leaves_swap_and_morph_markup() -> None:
+def test_off_policy_strips_handlers_and_keeps_markup() -> None:
     ops = apply_morph_policy(
         [
             swap("#t", _SWAP_HTML, swap="innerHTML"),
@@ -648,15 +648,23 @@ def test_off_policy_leaves_swap_and_morph_markup() -> None:
         ],
         policy="off",
     )
-    assert ops[0]["html"] == _SWAP_HTML
-    assert ops[1]["html"] == _SWAP_HTML
+    for op in ops:
+        assert "onerror" not in op["html"].lower()
+        assert "<img" in op["html"].lower()
     signed = _dispatch(
         "off",
         "probe.swap_off",
         swap("#t", _SWAP_HTML, swap="innerHTML"),
     )
     assert signed[0]["op"] == "swap"
-    assert signed[0]["html"] == _SWAP_HTML
+    assert "onerror" not in signed[0]["html"].lower()
+    assert "<img" in signed[0]["html"].lower()
+    kept = apply_morph_policy(
+        [swap("#t", "<script>alert(1)</script><b>keep</b>")],
+        policy="off",
+    )
+    assert "<script" in kept[0]["html"].lower()
+    assert "keep" in kept[0]["html"]
 
 
 def test_strict_policy_still_strips_morph_and_toast() -> None:

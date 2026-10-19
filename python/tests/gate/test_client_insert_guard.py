@@ -52,9 +52,28 @@ const context = {
   setTimeout, clearTimeout, queueMicrotask, Promise, URL, TextEncoder,
   crypto: globalThis.crypto,
 };
-if (mode === "disagree") {
+if (mode === "disagree" || mode === "again") {
   function DOMParser() {}
+  let calls = 0;
   DOMParser.prototype.parseFromString = function () {
+    calls += 1;
+    if (mode === "again" && calls === 1) {
+      const root = {
+        attributes: [{ name: "onclick", value: "window.PWN(1)" }],
+        querySelectorAll() { return []; },
+        getAttribute(name) {
+          return name === "onclick" ? "window.PWN(1)" : null;
+        },
+        removeAttribute(name) {
+          if (name === "onclick") root.attributes = [];
+        },
+        innerHTML: '<b onclick="window.PWN(1)">ok</b>',
+      };
+      return {
+        getElementById() { return root; },
+        body: { children: [root], firstElementChild: root },
+      };
+    }
     const root = {
       attributes: [],
       querySelectorAll() { return []; },
@@ -106,3 +125,7 @@ def test_client_refuses_html_when_the_check_cannot_run() -> None:
 
 def test_client_refuses_html_when_the_parse_disagrees() -> None:
     assert _run("disagree") == ""
+
+
+def test_client_refuses_html_when_the_second_parse_still_looks_refused() -> None:
+    assert _run("again") == ""
