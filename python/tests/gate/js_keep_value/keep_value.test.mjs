@@ -154,7 +154,7 @@ async function runChrome(binary) {
       `--user-data-dir=${profile}`,
       "about:blank",
     ],
-    { stdio: ["ignore", "ignore", "pipe"] },
+    { detached: true, stdio: ["ignore", "ignore", "pipe"] },
   );
   let stderr = "";
   chrome.stderr.on("data", (buf) => {
@@ -173,6 +173,21 @@ async function runChrome(binary) {
     const client = cdp(target.webSocketDebuggerUrl);
     await client.ready;
     await client.send("Runtime.enable");
+    // json/new returns before the document's scripts have run.
+    const started = Date.now();
+    let probe = "";
+    while (Date.now() - started < 8000) {
+      const ready = await client.send("Runtime.evaluate", {
+        expression: "typeof runKeepValueCases",
+        returnByValue: true,
+      });
+      probe = ready.result && ready.result.value;
+      if (probe === "function") break;
+      await new Promise((r) => setTimeout(r, 40));
+    }
+    if (probe !== "function") {
+      throw new Error("runKeepValueCases was not defined (" + probe + ")");
+    }
     const evaluated = await withTimeout(
       client.send("Runtime.evaluate", {
         expression: "runKeepValueCases(window)",
@@ -190,11 +205,32 @@ async function runChrome(binary) {
     if (!Array.isArray(value)) throw new Error("chrome returned " + JSON.stringify(evaluated.result));
     return value;
   } catch (err) {
-    const detail = stderr ? "\n" + stderr : "";
+    const detail = stderr
+      ? "\n" + stderr.split("\n").filter((line) => line && !/dbus|DevTools listening/i.test(line)).slice(-8).join("\n")
+      : "";
     throw new Error(String(err && err.message ? err.message : err) + detail);
   } finally {
-    chrome.kill("SIGKILL");
-    fs.rmSync(profile, { recursive: true, force: true });
+    try {
+      process.kill(-chrome.pid, "SIGKILL");
+    } catch (eKill) {
+      try { chrome.kill("SIGKILL"); } catch (eOnce) {}
+    }
+    await new Promise((resolve) => {
+      if (chrome.exitCode !== null || chrome.signalCode !== null) resolve();
+      else {
+        chrome.once("exit", () => resolve());
+        setTimeout(resolve, 2000);
+      }
+    });
+    for (let attempt = 0; attempt < 8; attempt++) {
+      try {
+        fs.rmSync(profile, { recursive: true, force: true });
+        break;
+      } catch (eRm) {
+        if (attempt === 7) throw eRm;
+        await new Promise((r) => setTimeout(r, 40));
+      }
+    }
   }
 }
 
