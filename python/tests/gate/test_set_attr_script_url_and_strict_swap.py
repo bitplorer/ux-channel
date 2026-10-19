@@ -7,6 +7,7 @@ are still open.
 
 from __future__ import annotations
 
+import asyncio
 import json
 import shutil
 import subprocess
@@ -28,7 +29,10 @@ from ux_channel import (
     toast,
 )
 from ux_channel.components.primitive import to_html
+from ux_channel.protocol import invoke, seq, timer_set
 from ux_channel.render.morph_policy import apply_morph_policy
+from ux_channel.security.security import sanitize_op_hrefs
+from ux_channel.transport.push import get_push_bus
 
 _SECRET = "h1h2-set-attr-secret-32chars-min!!"
 _STATIC = Path(__file__).resolve().parents[2] / "src" / "ux_channel" / "static"
@@ -392,6 +396,59 @@ def test_strict_policy_strips_swap_onerror() -> None:
     assert signed[0]["op"] == "swap"
     assert "onerror" not in signed[0]["html"].lower()
     assert signed[0]["swap"] == "innerHTML"
+
+
+def test_nested_ops_are_filtered_for_hrefs_and_strict_swap() -> None:
+    html = '<img src="x" onerror="alert(1)">'
+    raw_attr = {
+        "op": "set_attr",
+        "target": "#a",
+        "attrs": {"href": "javascript:alert(1)", "class": "keep"},
+    }
+    direct = apply_morph_policy([seq(swap("#a", html))], policy="strict")
+    assert "onerror" not in direct[0]["ops"][0]["html"].lower()
+    assert "<img" in direct[0]["ops"][0]["html"].lower()
+    sanitized = sanitize_op_hrefs([seq(raw_attr)])
+    assert "javascript:" not in json.dumps(sanitized).lower()
+    for action, op in (
+        ("probe.seq", seq(swap("#a", html), raw_attr)),
+        ("probe.timer", timer_set("t", 10, swap("#a", html), raw_attr)),
+        ("probe.invoke", invoke("ref", "go", None, swap("#a", html), raw_attr)),
+    ):
+        ops = _dispatch("strict", action, op)
+        blob = json.dumps(ops).lower()
+        assert "onerror" not in blob, action
+        assert "javascript:" not in blob, action
+
+
+def test_push_publish_filters_nested_swap_and_href() -> None:
+    app = FastAPI()
+    cfg = ChannelConfig.development(
+        secret=_SECRET,
+        morph_html_policy="strict",
+        observe="off",
+        allow_memory_stores=True,
+    )
+    Channel.boot(app, config=cfg)
+    bus = get_push_bus()
+    queue: asyncio.Queue = asyncio.Queue()
+    bus.subscribe("probe.push", queue)
+    html = '<img src="x" onerror="alert(1)">'
+    delivered = bus.publish(
+        "probe.push",
+        Result.success(
+            seq(swap("#a", html)),
+            {
+                "op": "set_attr",
+                "target": "#a",
+                "attrs": {"href": "javascript:alert(1)", "class": "keep"},
+            },
+        ),
+    )
+    assert delivered == 1
+    body = queue.get_nowait()
+    assert "onerror" not in body["ops"][0]["ops"][0]["html"].lower()
+    assert "javascript:" not in json.dumps(body["ops"][1]).lower()
 
 
 def test_to_html_str_and_bytes_return_markup_unchanged() -> None:
