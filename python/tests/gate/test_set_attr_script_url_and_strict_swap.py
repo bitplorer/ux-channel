@@ -250,7 +250,7 @@ def test_set_attr_refuses_script_schemes_on_url_attributes() -> None:
 
 
 def test_set_attr_refuses_non_string_script_urls() -> None:
-    """Lists and other objects are stringified the way setAttribute does, then checked."""
+    """Lists and other objects are stringified like setAttribute, then checked."""
 
     class _ScriptUrl:
         def __str__(self) -> str:

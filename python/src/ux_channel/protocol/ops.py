@@ -70,9 +70,10 @@ def set_attr(
 
     ``javascript:``, ``vbscript:``, ``data:``, and the other hrefs
     ``safe_href`` rejects are omitted, including whitespace and HTML-entity
-    obfuscations of those schemes. If that drops every attribute, the op is
-    a noop (``reason=unsafe_href``). Relative, http(s), mailto, and tel
-    values are kept. Non-URL attributes are copied through.
+    obfuscations of those schemes. Non-None values are stringified the way
+    ``setAttribute`` does before that check. If that drops every attribute,
+    the op is a noop (``reason=unsafe_href``). Relative, http(s), mailto,
+    and tel values are kept. Non-URL attributes are copied through.
     """
     raw = dict(attrs)
     cleaned = _sanitize_attr_map(raw)

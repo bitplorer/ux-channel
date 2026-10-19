@@ -768,9 +768,11 @@
               ae.removeAttribute(k);
               return;
             }
-            if (isUrlAttr(k) && typeof v === "string") {
+            if (isUrlAttr(k)) {
+              // setAttribute stringifies arrays and other objects before use.
+              var raw = typeof v === "string" ? v : String(v);
               var forms = [];
-              var current = v;
+              var current = raw;
               var blocked = false;
               var pass;
               for (pass = 0; pass < 3; pass++) {
@@ -785,11 +787,11 @@
                 current = decoded;
               }
               if (blocked) {
-                console.warn("[ux-channel] blocked unsafe set_attr", k, v);
+                console.warn("[ux-channel] blocked unsafe set_attr", k, raw);
                 return;
               }
-              var normalized = safeHref(v);
-              ae.setAttribute(k, normalized || v);
+              var normalized = safeHref(raw);
+              ae.setAttribute(k, normalized || raw);
               return;
             }
             ae.setAttribute(k, v);

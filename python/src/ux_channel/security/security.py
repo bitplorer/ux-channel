@@ -255,21 +255,38 @@ def _unsafe_url_attr(value: str) -> bool:
     return False
 
 
+def _dom_attr_string(value: Any) -> str:
+    """String form ``setAttribute`` uses for a non-None value.
+
+    Lists and tuples join with ``,`` (WebIDL ``ToString`` on an array).
+    Booleans are ``true`` / ``false``. Everything else uses ``str``.
+    """
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    if isinstance(value, (list, tuple)):
+        parts = ["" if item is None else _dom_attr_string(item) for item in value]
+        return ",".join(parts)
+    return str(value)
+
+
 def _sanitize_url_attr_value(value: Any) -> tuple[bool, Any]:
     """Return ``(keep, value)`` for one URL attribute.
 
-    Non-strings (including ``None``, which removes the attribute) are kept.
-    Script schemes and every other non-empty value ``safe_href`` rejects are
-    dropped. Allowed strings are the ``safe_href``-normalized form. Empty and
-    whitespace-only strings are kept as authored.
+    ``None`` removes the attribute. Every other value is turned into a string
+    the way ``setAttribute`` does, then checked, so a list or other object
+    cannot skip the scheme check. Script schemes and every other non-empty
+    value ``safe_href`` rejects are dropped. Allowed strings are the
+    ``safe_href``-normalized form. Empty and whitespace-only strings are kept
+    as authored.
     """
-    if not isinstance(value, str):
-        return True, value
-    if _unsafe_url_attr(value):
+    if value is None:
+        return True, None
+    text = value if isinstance(value, str) else _dom_attr_string(value)
+    if _unsafe_url_attr(text):
         return False, None
-    normalized = safe_href(value)
+    normalized = safe_href(text)
     if normalized is None:
-        return True, value
+        return True, text
     return True, normalized
 
 
