@@ -75,9 +75,9 @@ def set_attr(
     ``data:text/html`` are omitted. Non-None values are stringified the way
     ``setAttribute`` does before that check. If that drops every attribute,
     the op is a noop (``reason=unsafe_href``). Event-handler names (``on*``)
-    and ``srcdoc`` are a noop (``reason=unsafe_attr``) unless the value is
-    trusted markup (``mark_safe`` / ``__html__``). Relative, http(s), mailto,
-    and tel values are kept. Non-URL attributes are copied through.
+    and ``srcdoc`` are always a noop (``reason=unsafe_attr``), including when
+    the value is Markup or any other ``__html__`` object. Relative, http(s),
+    mailto, and tel values are kept. Non-URL attributes are copied through.
     """
     raw = dict(attrs)
     cleaned, reason = _sanitize_attr_map(raw)

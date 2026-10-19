@@ -325,17 +325,6 @@ def _sanitize_url_attr_value(name: object, value: Any) -> tuple[bool, Any]:
     return True, normalized
 
 
-class _TrustedAttr(str):
-    """In-process marker for a set_attr value the author marked trusted.
-
-    A plain string is not trusted. A later pass still sees ``__html__``.
-    JSON encodes this as the string, which the client applies.
-    """
-
-    def __html__(self) -> str:
-        return str(self)
-
-
 def _event_or_srcdoc(name: object) -> bool:
     """True for event-handler names (``on*``) and ``srcdoc``."""
     if not isinstance(name, str):
@@ -346,34 +335,17 @@ def _event_or_srcdoc(name: object) -> bool:
     return len(token) > 2 and token.startswith("on")
 
 
-def _trusted_markup(value: Any) -> _TrustedAttr | None:
-    """``SafeHtml`` / ``mark_safe`` / any object with ``__html__`` (Markup)."""
-    dunder = getattr(value, "__html__", None)
-    if not callable(dunder):
-        return None
-    try:
-        rendered = dunder()
-    except Exception:
-        return None
-    if isinstance(rendered, str):
-        return _TrustedAttr(rendered)
-    return None
-
-
 def _sanitize_attr_map(attrs: dict) -> tuple[dict | None, str]:
     """Return ``(attrs, reason)``. ``None`` attrs means the op is a noop.
 
-    ``unsafe_attr`` refuses the whole op: an untrusted ``on*`` or ``srcdoc``.
+    ``unsafe_attr`` refuses the whole op: an ``on*`` name or ``srcdoc``.
+    Markup is not a JavaScript trust marker, so ``__html__`` does not opt in.
     ``unsafe_href`` means every attribute was an unsafe URL.
     """
     cleaned: dict[Any, Any] = {}
     for key, value in attrs.items():
         if _event_or_srcdoc(key):
-            trusted = _trusted_markup(value)
-            if trusted is None:
-                return None, "unsafe_attr"
-            cleaned[key] = trusted
-            continue
+            return None, "unsafe_attr"
         if _is_url_attr(key):
             keep, safe_value = _sanitize_url_attr_value(key, value)
             if not keep:
