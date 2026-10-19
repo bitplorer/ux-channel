@@ -257,7 +257,14 @@ if (!binary) {
   chrome = { skipped: true, ok: true, failures: [], passed: 0, skippedCases: 1 };
 } else {
   try {
-    const result = await runChrome(binary);
+    let result;
+    try {
+      result = await runChrome(binary);
+    } catch (err) {
+      // A loaded runner can miss the DevTools port on the first start.
+      if (!/devtools not ready/.test(String(err && err.message))) throw err;
+      result = await runChrome(binary);
+    }
     chrome = {
       skipped: false,
       ok: result.failures.length === 0,
