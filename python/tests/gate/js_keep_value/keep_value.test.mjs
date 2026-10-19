@@ -41,7 +41,14 @@ async function runJsdom() {
 
 function chromeBinary() {
   const env = process.env.CHROME_PATH;
-  if (env && fs.existsSync(env)) return env;
+  if (env) {
+    if (!fs.existsSync(env)) {
+      console.log("CHROMIUM passed=0 skipped=0");
+      console.error("CHROME_PATH does not exist: " + env);
+      process.exit(1);
+    }
+    return env;
+  }
   const names = ["google-chrome", "google-chrome-stable", "chromium", "chromium-browser"];
   const dirs = (process.env.PATH || "").split(path.delimiter);
   for (const name of names) {
@@ -238,8 +245,8 @@ async function runChrome(binary) {
 }
 
 const requireBrowser = process.env.UX_KEEP_VALUE_REQUIRE_BROWSER === "1";
-const jsdomFailures = await runJsdom();
 const binary = chromeBinary();
+const jsdomFailures = await runJsdom();
 let chrome;
 if (!binary) {
   if (requireBrowser) {

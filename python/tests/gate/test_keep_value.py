@@ -3,6 +3,7 @@
 jsdom runs under node whenever this gate test runs, including the verify job.
 Chromium runs when a Chrome or Chromium binary is on PATH.
 UX_KEEP_VALUE_REQUIRE_BROWSER=1 fails the run when that binary is missing.
+A CHROME_PATH that is not on disk fails immediately and does not search PATH.
 The verify job leaves the flag unset, so a missing browser still skips there.
 """
 
