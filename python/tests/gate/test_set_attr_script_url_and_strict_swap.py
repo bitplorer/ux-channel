@@ -14,6 +14,7 @@ import subprocess
 import tempfile
 from pathlib import Path
 
+import markupsafe
 import pytest
 from fastapi import FastAPI
 
@@ -23,7 +24,6 @@ from ux_channel import (
     Intent,
     Result,
     esc,
-    mark_safe,
     morph,
     set_attr,
     swap,
@@ -470,7 +470,7 @@ def test_client_set_attr_refuses_non_string_script_urls() -> None:
     )
 
 
-def test_set_attr_refuses_event_handlers_and_srcdoc_unless_markup() -> None:
+def test_set_attr_refuses_event_handlers_and_srcdoc() -> None:
     for name, value in (
         ("onclick", "alert(1)"),
         ("onerror", "alert(1)"),
@@ -501,23 +501,31 @@ def test_set_attr_refuses_event_handlers_and_srcdoc_unless_markup() -> None:
     )
     assert signed[0]["op"] == "noop"
 
-    class _Markup(str):
-        def __html__(self) -> str:
-            return str(self)
-
-    for value in (mark_safe("alert(1)"), _Markup("alert(1)")):
-        allowed = set_attr("#a", {"onclick": value, "class": "keep"})
-        assert allowed["op"] == "set_attr", allowed
-        landed = sanitize_op_hrefs([allowed])
-        assert landed[0]["op"] == "set_attr"
-        assert landed[0]["attrs"]["onclick"] == "alert(1)"
-        assert landed[0]["attrs"]["class"] == "keep"
-
-    srcdoc = sanitize_op_hrefs(
-        [set_attr("#frame", {"srcdoc": mark_safe("<b>ok</b>")})]
+    # Markup is not a JavaScript trust marker. All three of these are a
+    # Markup value with a live call, and each one is still refused.
+    user = "alert(1)"
+    forms = (
+        markupsafe.Markup("select({})").format(user),
+        markupsafe.Markup("go(%s)") % user,
+        markupsafe.escape(user),
     )
-    assert srcdoc[0]["op"] == "set_attr"
-    assert srcdoc[0]["attrs"]["srcdoc"] == "<b>ok</b>"
+    for value in forms:
+        for name in ("onclick", "srcdoc"):
+            op = set_attr("#a", {name: value, "class": "keep"})
+            assert op["op"] == "noop", (name, type(value).__name__, op)
+            assert (op.get("meta") or {}).get("reason") == "unsafe_attr"
+            assert "alert" not in json.dumps(op).lower()
+            again = sanitize_op_hrefs(
+                [
+                    {
+                        "op": "set_attr",
+                        "target": "#a",
+                        "attrs": {name: value, "class": "keep"},
+                    }
+                ]
+            )
+            assert again[0]["op"] == "noop", (name, again)
+            assert "alert" not in json.dumps(again).lower()
 
     data_on = set_attr("#a", {"data-onclick": "alert(1)"})
     assert data_on["op"] == "set_attr"
