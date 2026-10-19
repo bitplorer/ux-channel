@@ -1191,7 +1191,43 @@ async function runIsolationCases(win, doc, check, warns, path) {
   await runTypeGuardCase(win, doc, check, warns);
   await runWarnNameCase(win, doc, check, warns);
   await runSurvivorCases(win, doc, check, warns, path);
-  if (path === "idiomorph") await runUnmarkedThrowCase(win, doc, check, warns);
+  if (path === "idiomorph") {
+    await runPersistentBreakCase(win, doc, check, warns);
+    await runUnmarkedThrowCase(win, doc, check, warns);
+  }
+}
+
+async function runPersistentBreakCase(win, doc, check, warns) {
+  var html = keepWrap(
+    '<input id="e-email" name="email" type="email" data-ux-keep-value value="">' +
+      '<input id="e-nick" name="nick" type="text" data-ux-keep-value value="">' +
+      '<input id="e-brk" name="brk" type="text" data-ux-keep-value value="">'
+  );
+  warns.length = 0;
+  doc.body.innerHTML = html;
+  doc.getElementById("e-email").value = "alice@x.test";
+  doc.getElementById("e-nick").value = "nick-e";
+  var brk = doc.getElementById("e-brk");
+  brk.getAttribute = function () {
+    throw new Error("e-brk getAttribute");
+  };
+  try {
+    await applyKeepMorph(win, html);
+    check(
+      doc.getElementById("e-email").value === "alice@x.test",
+      "e-email " + JSON.stringify(doc.getElementById("e-email").value)
+    );
+    check(
+      doc.getElementById("e-nick").value === "nick-e",
+      "e-nick " + JSON.stringify(doc.getElementById("e-nick").value)
+    );
+    var named = warns.filter(function (line) {
+      return warnText(line).indexOf("e-brk getAttribute") !== -1;
+    });
+    check(named.length === 1, "e-brk warnings " + named.length);
+  } finally {
+    if (brk) delete brk.getAttribute;
+  }
 }
 
 async function runSurvivorCases(win, doc, check, warns, path) {
