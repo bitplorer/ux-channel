@@ -4,6 +4,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from gate.ux_dom_dep import (
+    assert_hard_ux_dom_deps_fail,
+    assert_ux_dom_is_not_a_hard_dep,
+)
 from ux_channel import ActionRegistry
 from ux_channel.components import ChannelComponent, RegistryHost, to_html
 from ux_channel.render.html_safe import _html_escape, _ux_dom_to_html
@@ -14,25 +18,12 @@ PYPROJECT = ROOT / "python" / "pyproject.toml"
 SECRET = "soft1-html-owner-secret-key-32b!!!"
 
 
-def _parse_poetry_deps(text: str) -> dict[str, str]:
-    deps: dict[str, str] = {}
-    in_deps = False
-    for raw in text.splitlines():
-        line = raw.strip()
-        if line.startswith("[") and line.endswith("]"):
-            in_deps = line == "[tool.poetry.dependencies]"
-            continue
-        if not in_deps or "=" not in line or line.startswith("#"):
-            continue
-        name, _, rest = line.partition("=")
-        deps[name.strip()] = rest.strip()
-    return deps
-
-
 def test_ux_dom_is_not_a_hard_dep():
-    deps = _parse_poetry_deps(PYPROJECT.read_text(encoding="utf-8"))
-    assert "ux-dom" not in deps
-    assert "ux_dom" not in deps
+    assert_ux_dom_is_not_a_hard_dep(PYPROJECT.read_text(encoding="utf-8"))
+
+
+def test_hard_ux_dom_dep_fails_the_gate():
+    assert_hard_ux_dom_deps_fail()
 
 
 def test_no_root_all_fashion_add_for_html_owner():
