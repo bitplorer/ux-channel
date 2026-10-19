@@ -251,7 +251,7 @@ async function runKeepValuePath(win, path) {
     await runLeakCases(win, doc, check);
     await runComponentCases(win, doc, check, warns);
     await runScopeCases(win, doc, check, warns);
-    await runIsolationCases(win, doc, check, warns);
+    await runIsolationCases(win, doc, check, warns, path);
 
     var callsBeforeEmpty = calls;
     var region = doc.getElementById("region");
@@ -980,17 +980,21 @@ async function runScopeCases(win, doc, check, warns) {
   );
 }
 
-function isolationHtml(marker) {
+function isolationHtml(marker, tail, extra) {
   return keepWrap(
     '<span id="applied">' + marker + "</span>" +
       '<input id="safe" name="safe" type="text" data-ux-keep-value value="">' +
-      '<input name="bad" type="text" data-ux-keep-value value="">'
+      '<input name="bad" type="text" data-ux-keep-value value="">' +
+      '<p id="tail">' + tail + "</p>" +
+      (extra || "")
   );
 }
 
-function checkIsolation(doc, check, warns, label) {
+function checkIsolation(doc, check, warns, label, path, errorName) {
   var applied = doc.getElementById("applied");
   var safe = doc.getElementById("safe");
+  var tail = doc.getElementById("tail");
+  var added = doc.getElementById("added");
   check(
     !!(applied && applied.textContent === "yes"),
     label + " morph " + (applied && applied.textContent)
@@ -999,15 +1003,32 @@ function checkIsolation(doc, check, warns, label) {
     !!(safe && safe.value === "kept-safe"),
     label + " safe " + JSON.stringify(safe && safe.value)
   );
+  check(
+    !!(tail && tail.textContent === "fresh"),
+    label + " tail " + (tail && tail.textContent)
+  );
+  check(
+    !!(added && added.textContent === "new"),
+    label + " added " + (added && added.textContent)
+  );
   check(keepWarnCount(warns) === 1, label + " warnings " + keepWarnCount(warns));
+  if (path === "idiomorph") {
+    check(warns.length === 1, label + " warn calls " + warns.length);
+    check(
+      warns.length === 1 && String(warns[0]).indexOf(errorName) !== -1,
+      label + " warn names " + JSON.stringify(warns)
+    );
+  }
 }
 
-async function runIsolationCases(win, doc, check, warns) {
+async function runIsolationCases(win, doc, check, warns, path) {
   var proto = win.HTMLInputElement.prototype;
   var valueDesc = Object.getOwnPropertyDescriptor(proto, "value");
+  var before = isolationHtml("no", "stale");
+  var after = isolationHtml("yes", "fresh", '<span id="added">new</span>');
 
   warns.length = 0;
-  doc.body.innerHTML = isolationHtml("no");
+  doc.body.innerHTML = before;
   doc.getElementById("safe").value = "kept-safe";
   var getterBad = doc.querySelector('[name="bad"]');
   Object.defineProperty(getterBad, "value", {
@@ -1020,28 +1041,28 @@ async function runIsolationCases(win, doc, check, warns) {
     },
   });
   try {
-    await applyKeepMorph(win, isolationHtml("yes"));
-    checkIsolation(doc, check, warns, "getter");
+    await applyKeepMorph(win, after);
+    checkIsolation(doc, check, warns, "getter", path, "value getter rejected");
   } finally {
     delete getterBad.value;
   }
 
   warns.length = 0;
-  doc.body.innerHTML = isolationHtml("no");
+  doc.body.innerHTML = before;
   doc.getElementById("safe").value = "kept-safe";
   var attrBad = doc.querySelector('[name="bad"]');
   attrBad.getAttribute = function () {
     throw new Error("getAttribute rejected");
   };
   try {
-    await applyKeepMorph(win, isolationHtml("yes"));
-    checkIsolation(doc, check, warns, "getAttribute");
+    await applyKeepMorph(win, after);
+    checkIsolation(doc, check, warns, "getAttribute", path, "getAttribute rejected");
   } finally {
     delete attrBad.getAttribute;
   }
 
   warns.length = 0;
-  doc.body.innerHTML = isolationHtml("no");
+  doc.body.innerHTML = before;
   doc.getElementById("safe").value = "kept-safe";
   doc.querySelector('[name="bad"]').value = "boom";
   Object.defineProperty(proto, "value", {
@@ -1056,9 +1077,57 @@ async function runIsolationCases(win, doc, check, warns) {
     },
   });
   try {
-    await applyKeepMorph(win, isolationHtml("yes"));
-    checkIsolation(doc, check, warns, "setter");
+    await applyKeepMorph(win, after);
+    checkIsolation(doc, check, warns, "setter", path, "value setter rejected");
   } finally {
     Object.defineProperty(proto, "value", valueDesc);
+  }
+
+  warns.length = 0;
+  doc.body.innerHTML = keepWrap(
+    '<input id="safe" name="safe" type="text" data-ux-keep-value value="">' +
+      '<input id="bad" name="bad" type="text" data-ux-keep-value value="">'
+  );
+  doc.getElementById("safe").value = "kept-safe";
+  var savedMorph = win.Idiomorph && win.Idiomorph.morph;
+  var savedReplace = win.Element.prototype.replaceWith;
+  if (path === "idiomorph" && savedMorph) {
+    win.Idiomorph.morph = function () {
+      var result = savedMorph.apply(this, arguments);
+      var bad = doc.getElementById("bad");
+      bad.getAttribute = function () {
+        throw new Error("keepKey rejected");
+      };
+      return result;
+    };
+  } else {
+    win.Element.prototype.replaceWith = function () {
+      var result = savedReplace.apply(this, arguments);
+      var bad = doc.getElementById("bad");
+      bad.getAttribute = function () {
+        throw new Error("keepKey rejected");
+      };
+      return result;
+    };
+  }
+  try {
+    await applyKeepMorph(
+      win,
+      keepWrap(
+        '<input id="safe" name="safe" type="text" data-ux-keep-value value="">' +
+          '<input id="bad" name="bad" type="text" data-ux-keep-value value="">'
+      )
+    );
+    var named = warns.filter(function (line) {
+      return String(line).indexOf("keepKey rejected") !== -1;
+    });
+    check(named.length === 1, "keepKey warn " + named.length + " " + JSON.stringify(warns));
+    check(
+      doc.getElementById("safe").value === "kept-safe",
+      "keepKey safe " + JSON.stringify(doc.getElementById("safe") && doc.getElementById("safe").value)
+    );
+  } finally {
+    if (path === "idiomorph" && savedMorph) win.Idiomorph.morph = savedMorph;
+    else win.Element.prototype.replaceWith = savedReplace;
   }
 }
