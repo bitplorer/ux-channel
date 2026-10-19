@@ -249,6 +249,7 @@ async function runKeepValuePath(win, path) {
     await runIdentityCases(win, doc, check);
     await runErrorCases(win, doc, check);
     await runLeakCases(win, doc, check);
+    await runComponentCases(win, doc, check, warns);
 
     var callsBeforeEmpty = calls;
     var region = doc.getElementById("region");
@@ -626,6 +627,53 @@ async function runLeakCases(win, doc, check) {
   check(paramEl.value !== "leak-p", "param value " + JSON.stringify(paramEl.value));
   check(paramEl.getAttribute("value") === "", "param attribute " + JSON.stringify(paramEl.getAttribute("value")));
   check(doc.getElementById("region").innerHTML.indexOf("leak-") === -1, "alien markup written");
+}
+
+async function runComponentCases(win, doc, check, warns) {
+  var swapped =
+    '<div data-channel-id="component-a">' +
+    '<input name="note" type="text" data-ux-keep-value value="">' +
+    "</div>";
+  doc.body.innerHTML = keepWrap(swapped);
+  doc.querySelector('[name="note"]').value = "A-private";
+  await applyKeepMorph(
+    win,
+    keepWrap(
+      '<div data-channel-id="component-b">' +
+        '<input name="note" type="text" data-ux-keep-value value="">' +
+        "</div>"
+    )
+  );
+  check(
+    doc.querySelector('[name="note"]').value === "",
+    "A-private into B " + JSON.stringify(doc.querySelector('[name="note"]').value)
+  );
+
+  var same =
+    '<div data-channel-id="component-a">' +
+    '<input name="note" type="text" data-ux-keep-value value="">' +
+    "</div>";
+  doc.body.innerHTML = keepWrap(same);
+  doc.querySelector('[name="note"]').value = "stays-here";
+  await applyKeepMorph(win, keepWrap(same));
+  check(
+    doc.querySelector('[name="note"]').value === "stays-here",
+    "same component root " + JSON.stringify(doc.querySelector('[name="note"]').value)
+  );
+
+  warns.length = 0;
+  doc.body.innerHTML = '<div id="region"><input name="note" type="text" data-ux-keep-value value=""></div>';
+  doc.querySelector('[name="note"]').value = "loose";
+  await applyKeepMorph(
+    win,
+    '<div id="region"><input name="note" type="text" data-ux-keep-value value=""></div>'
+  );
+  var loose = doc.querySelector('[name="note"]');
+  check(loose.value === "", "no component root " + JSON.stringify(loose.value));
+  var orphanWarns = warns.filter(function (line) {
+    return line.indexOf("data-ux-keep-value") !== -1;
+  });
+  check(orphanWarns.length === 1, "no component root warnings " + orphanWarns.length);
 }
 
 async function runErrorCases(win, doc, check) {
