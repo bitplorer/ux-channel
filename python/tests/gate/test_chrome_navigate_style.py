@@ -175,31 +175,48 @@ def _push_op(client: TestClient, ch: Channel, href: str) -> dict:
     raise AssertionError("".join(sink))
 
 
-def _score(cases: list[dict], script: Path | None = None) -> dict:
+def _dump_dom(page: str, *, timeout_s: str = "40") -> str:
+    """Headless dump. One retry when Chrome exits with no document.
+
+    A busy runner can kill the first launch before ``--dump-dom`` writes.
+    A navigation still returns a document, so the retry does not hide one.
+    """
     binary = _chrome()
+    last_err = ""
+    text = ""
+    for _attempt in range(2):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "nav.html"
+            path.write_text(page, encoding="utf-8")
+            proc = subprocess.run(
+                [
+                    "timeout",
+                    timeout_s,
+                    binary,
+                    "--headless=new",
+                    "--no-sandbox",
+                    "--disable-gpu",
+                    f"--user-data-dir={Path(tmp) / 'profile'}",
+                    "--virtual-time-budget=8000",
+                    "--dump-dom",
+                    path.as_uri(),
+                ],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+        text = proc.stdout
+        last_err = proc.stderr
+        if text.strip():
+            return text
+    assert text.strip(), last_err[-1500:]
+    return text
+
+
+def _score(cases: list[dict], script: Path | None = None) -> dict:
     encoded = json.dumps(cases).replace("<", "\\u003c")
     page = _PAGE.format(js=(script or _STATIC).resolve().as_uri(), cases=encoded)
-    with tempfile.TemporaryDirectory() as tmp:
-        path = Path(tmp) / "nav.html"
-        path.write_text(page, encoding="utf-8")
-        proc = subprocess.run(
-            [
-                "timeout",
-                "25",
-                binary,
-                "--headless=new",
-                "--no-sandbox",
-                "--disable-gpu",
-                f"--user-data-dir={Path(tmp) / 'profile'}",
-                "--virtual-time-budget=8000",
-                "--dump-dom",
-                path.as_uri(),
-            ],
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-    text = proc.stdout
+    text = _dump_dom(page)
     marker = '<pre id="score">'
     start = text.find(marker)
     assert start >= 0, text[-1500:]
@@ -478,7 +495,6 @@ def _chrome_verdict(script_name: str, href: str) -> tuple[str, str]:
     cached = _CHROME_CACHE.get(key)
     if cached is not None:
         return cached
-    binary = _chrome()
     script = (_STATIC.parent / script_name).resolve().as_uri()
     page = f"""<!doctype html><html><body>
 <pre id="score">PENDING</pre>
@@ -495,27 +511,7 @@ Promise.race([
   }});
 }});
 </script></body></html>"""
-    with tempfile.TemporaryDirectory() as tmp:
-        path = Path(tmp) / "nav.html"
-        path.write_text(page, encoding="utf-8")
-        proc = subprocess.run(
-            [
-                "timeout",
-                "40",
-                binary,
-                "--headless=new",
-                "--no-sandbox",
-                "--disable-gpu",
-                f"--user-data-dir={Path(tmp) / 'profile'}",
-                "--virtual-time-budget=8000",
-                "--dump-dom",
-                path.as_uri(),
-            ],
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-    text = proc.stdout
+    text = _dump_dom(page)
     marker = '<pre id="score">'
     if marker in text and '"stayed":true' in text:
         verdict = ("drop", "")
