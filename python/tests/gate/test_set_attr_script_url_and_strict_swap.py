@@ -232,7 +232,8 @@ def test_set_attr_keeps_relative_https_and_non_url_attrs() -> None:
     assert op["attrs"]["data-src"] == "data:text/html,x"
     assert op["attrs"]["disabled"] is True
     assert op["attrs"]["data-n"] == 3
-    assert op["attrs"]["href"] == 1
+    # setAttribute stringifies before the URL check, so a number is "1".
+    assert op["attrs"]["href"] == "1"
 
 
 def test_set_attr_refuses_script_schemes_on_url_attributes() -> None:
@@ -246,6 +247,63 @@ def test_set_attr_refuses_script_schemes_on_url_attributes() -> None:
             assert "javascript:" not in blob, (name, url, op)
             assert "vbscript:" not in blob
             assert "data:text/html" not in blob
+
+
+def test_set_attr_refuses_non_string_script_urls() -> None:
+    """Lists and other objects are stringified the way setAttribute does, then checked."""
+
+    class _ScriptUrl:
+        def __str__(self) -> str:
+            return "javascript:alert(1)"
+
+    href_op = set_attr("#a", {"href": ["javascript:alert(1)"]})
+    assert href_op["op"] == "noop", href_op
+    assert (href_op.get("meta") or {}).get("reason") == "unsafe_href"
+    assert "javascript:" not in json.dumps(href_op).lower()
+
+    src_op = set_attr(
+        "#img",
+        {"src": ["data:text/html,<script>alert(1)</script>"], "class": "keep"},
+    )
+    assert src_op["op"] == "set_attr", src_op
+    assert "src" not in src_op["attrs"]
+    assert src_op["attrs"]["class"] == "keep"
+    assert "data:text/html" not in json.dumps(src_op).lower()
+
+    obj_op = set_attr("#a", {"href": _ScriptUrl(), "class": "keep"})
+    assert "href" not in (obj_op.get("attrs") or {})
+    assert "javascript:" not in json.dumps(obj_op).lower()
+
+    kept = set_attr("#a", {"href": ["https://example.com/a"]})
+    assert kept["op"] == "set_attr"
+    assert kept["attrs"]["href"] == "https://example.com/a"
+
+
+def test_client_set_attr_refuses_non_string_script_urls() -> None:
+    _run_client_cases(
+        [
+            {
+                "selector": "#link",
+                "attr": "href",
+                "prime": {"href": "/ok"},
+                "attrs": {"href": ["javascript:alert(1)"]},
+                "expect": "/ok",
+            },
+            {
+                "selector": "#img",
+                "attr": "src",
+                "prime": {"src": "/ok"},
+                "attrs": {"src": ["data:text/html,<script>alert(1)</script>"]},
+                "expect": "/ok",
+            },
+            {
+                "selector": "#link",
+                "attr": "href",
+                "attrs": {"href": ["https://example.com/a"]},
+                "expect": "https://example.com/a",
+            },
+        ]
+    )
 
 
 def test_set_attr_only_script_href_does_not_land() -> None:
