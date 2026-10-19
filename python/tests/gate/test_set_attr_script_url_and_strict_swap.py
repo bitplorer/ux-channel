@@ -585,14 +585,14 @@ def test_set_attr_refuses_event_handlers_and_srcdoc() -> None:
     assert data_on["attrs"]["data-onclick"] == "alert(1)"
 
 
-def test_client_applies_onclick_string() -> None:
+def test_client_refuses_onclick_string() -> None:
     _run_client_cases(
         [
             {
                 "selector": "#btn",
                 "attr": "onclick",
                 "attrs": {"onclick": "alert(1)"},
-                "expect": "alert(1)",
+                "expect": None,
             }
         ]
     )
