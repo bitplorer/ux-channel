@@ -298,6 +298,12 @@ def resolve_preset_spec(
             hint="uxchannel bridge preset chartjs  OR  uxchannel bridge catalog",
         )
     low = key.lower()
+    if low.startswith("builtin/"):
+        raise DxUsageError(
+            f"{key!r} is in the reserved builtin/ namespace that builtins.js registers",
+            code="bridge.builtin_reserved",
+            hint="uxchannel bridge preset confetti  (catalog key, no prefix)",
+        )
     if low in KNOWN_PRESETS:
         meta = KNOWN_PRESETS[low]
         pkg = str(meta["package"])

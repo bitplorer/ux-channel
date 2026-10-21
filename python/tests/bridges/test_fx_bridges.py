@@ -100,6 +100,16 @@ def test_create_app_unknown_bridge_writes_nothing():
         assert not dest.exists()
 
 
+@pytest.mark.parametrize("npm", ["", "x"])
+@pytest.mark.parametrize(
+    "name", ["builtin/confetti", "builtin/not-shipped-yet", "Builtin/confetti", "  BUILTIN/Confetti "]
+)
+def test_builtin_namespace_is_reserved(name, npm):
+    with pytest.raises(DxUsageError) as exc:
+        resolve_preset_spec(name, npm=npm)
+    assert exc.value.code == "bridge.builtin_reserved"
+
+
 def test_builtin_preset_refuses_npm_dependency():
     with pytest.raises(DxUsageError) as exc:
         resolve_preset_spec("confetti", npm="ux-fx")
