@@ -42,7 +42,7 @@ Enterprise live highlights:
 ## Known non-goals of this pass
 
 * Real peer WebRTC media (two browsers / cameras)  
-* Every ux-ui CDN package mount (leaflet/quill/…) online  
+* Every widgets.js CDN package mount (leaflet/quill/…) online  
 * Multi-worker Redis production cluster soak  
 
 Re-run::

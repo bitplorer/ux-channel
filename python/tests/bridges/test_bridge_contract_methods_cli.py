@@ -57,7 +57,7 @@ def test_add_remove_methods_api():
 def test_cli_add_remove_methods():
     with tempfile.TemporaryDirectory() as td:
         # free-form package (no pre-seeded method_specs conflict)
-        assert main(["bridge", "new", "my-map", "--out", td, "--force", "--methods", "update,destroy"]) == 0
+        assert main(["bridge", "new", "my-map", "--npm", "my-map", "--out", td, "--force", "--methods", "update,destroy"]) == 0
         assert (
             main(
                 [

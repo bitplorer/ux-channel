@@ -297,7 +297,7 @@ def render_contract_json(
             "schema_version": CONTRACT_SCHEMA_VERSION,
             "package": package,
             "version": "0.1.0",
-            "npm": npm or package,
+            "npm": npm,
             "lifecycle": list(LIFECYCLE_OPS),
             "methods": methods_obj,
             "mount_props": mount_props,
@@ -308,11 +308,25 @@ def render_contract_json(
     return json.dumps(body, indent=2, sort_keys=False) + "\n"
 
 
-def render_readme(package: str, methods: Sequence[str], npm_dep: str = "") -> str:
+def render_readme(
+    package: str, methods: Sequence[str], npm_dep: str = "", *, builtin: bool = False
+) -> str:
     from ux_channel.bridge.bridge_preset_gen import class_name_for
+    from ux_channel.bridges import BUILTINS_SCRIPT
 
     cls = class_name_for(package)
     methods_list = "\n".join(f"- `{m}`" for m in methods)
+    install = f"## Install npm dep\n\n```bash\nnpm i {npm_dep}\n```\n\n" if npm_dep else ""
+    if builtin:
+        browser = (
+            "Ships inside ux-channel; nothing to import. Load it after ux-bridge.js:\n\n"
+            f'```html\n<script src="{BUILTINS_SCRIPT}" defer></script>\n```'
+        )
+    else:
+        browser = (
+            "```js\n// load ux-bridge.js from channel, then:\n"
+            f'import "./ux-bridge-{slugify(package)}.js";\n```'
+        )
     return f"""# Bridge preset: `{package}`
 
 Callable **factory façade** (default codegen).
@@ -330,18 +344,9 @@ return w.commit(...)              # Result + bridge ops
 
 ## Browser
 
-```js
-// load ux-bridge.js from channel, then:
-import "./ux-bridge-{slugify(package)}.js";
-```
+{browser}
 
-## Install npm dep
-
-```bash
-npm i {npm_dep or package}
-```
-
-## Methods
+{install}## Methods
 
 {methods_list}
 
@@ -363,9 +368,13 @@ def create_bridge_package(
     flat: bool = False,
     mount_props: dict | None = None,
     method_specs: dict | None = None,
+    builtin: bool = False,
 ) -> Path:
     """
     Write adapter package tree under *dest*.
+
+    A *builtin* is already registered by ``builtins.js``, so no adapter JS is
+    written: a generic one would overwrite the real registration.
 
     Returns the package directory path.
     """
@@ -392,22 +401,22 @@ def create_bridge_package(
             )
     root.mkdir(parents=True, exist_ok=True)
 
-    js_name = f"ux-bridge-{slugify(pkg)}.js"
-    (root / js_name).write_text(
-        render_adapter_js(
-            pkg,
-            methods=methods,
-            npm_import=npm_import or (npm_dep.split("@")[0] if npm_dep and not npm_dep.startswith("@") else npm_import),
-            global_name=global_name,
-        ),
-        encoding="utf-8",
-    )
+    if not builtin:
+        (root / f"ux-bridge-{slugify(pkg)}.js").write_text(
+            render_adapter_js(
+                pkg,
+                methods=methods,
+                npm_import=npm_import or (npm_dep.split("@")[0] if npm_dep and not npm_dep.startswith("@") else npm_import),
+                global_name=global_name,
+            ),
+            encoding="utf-8",
+        )
     (root / "package.json").write_text(
         render_package_json(pkg, npm_dep=npm_dep or ""),
         encoding="utf-8",
     )
     (root / "README.md").write_text(
-        render_readme(pkg, methods, npm_dep=npm_dep),
+        render_readme(pkg, methods, npm_dep=npm_dep, builtin=builtin),
         encoding="utf-8",
     )
     (root / "register.py").write_text(
@@ -598,7 +607,7 @@ def normalize_contract(data: dict) -> dict[str, Any]:
         "schema_version": int(data.get("schema_version") or CONTRACT_SCHEMA_VERSION),
         "package": pkg,
         "version": str(data.get("version") or "0.1.0"),
-        "npm": str(data.get("npm") or pkg),
+        "npm": str(data.get("npm") or ""),
         "lifecycle": list(lifecycle),
         "methods": methods,
         "mount_props": mount_props,
@@ -930,7 +939,7 @@ Commands:
 Scaffold with presets:
   uxchannel create-app myapp --bridge chartjs --bridge leaflet
 
-Catalog: chartjs, leaflet, codemirror — or any npm package name.
+Catalog: chartjs, leaflet, codemirror — or any npm package via --npm <package>.
 
 Docs: docs/BRIDGE_CONTRACT.md  docs/BRIDGES_VS_UI_DOM.md
 """

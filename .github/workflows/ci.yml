@@ -123,6 +123,7 @@ jobs:
           python3 -m pytest \
             python/tests/gate/test_chrome_payload_routes.py \
             python/tests/gate/test_chrome_navigate_style.py \
+            python/tests/gate/test_chrome_builtin_preset.py \
             python/tests/gate/test_review_r7_animate.py::test_chrome_animate_payloads_do_not_run_with_the_client_guard_off \
             python/tests/gate/test_review_r7_morph_guard.py \
             -q --tb=line -ra

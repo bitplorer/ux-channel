@@ -147,7 +147,7 @@ try {
 
   // filter benign CDN noise
   const hardErr = consoleErrors.filter(
-    (e) => !/Failed to load resource/i.test(e) || /ux-channel|ux-bridge|ux-fx/i.test(e),
+    (e) => !/Failed to load resource/i.test(e) || /ux-channel|ux-bridge|builtins/i.test(e),
   );
   if (hardErr.length) fail("console: " + hardErr.slice(0, 3).join(" | "));
   if (pageErrors.length) fail("pageErrors: " + pageErrors.join("; "));

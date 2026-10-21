@@ -369,7 +369,7 @@ def cmd_bridge(args: argparse.Namespace) -> int:
             builtin = f"  [builtin {r['builtin']}]" if r.get("builtin") else ""
             print(f"  {r['key']:12}  {r['package']:16}  {','.join(r['methods'])}{builtin}")
         log.ok("catalog done")
-        log.info("any npm package also works: uxchannel bridge preset my-lib --methods a,b")
+        log.info("any npm package also works: uxchannel bridge preset my-lib --npm my-lib --methods a,b")
         return 0
 
     if action == "new":
