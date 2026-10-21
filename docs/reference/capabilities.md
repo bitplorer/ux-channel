@@ -25,6 +25,25 @@ verify(token, action, args) → ok or CapError
 
 **Implication you must not miss:** if the handler reads `product_id` from args, that value must be in the **signed** args (often via `ch.control(..., trust_product_id=...)`). Putting the price only in a hidden HTML field **without** putting it in signed args is a bug.
 
+### What the handler can trust
+
+`ctx.verified` (`VerifiedContext`) is what the Cap Host verified for this Intent: `action`,
+`subject` (the subject the Cap is bound to, or `None`) and `claims` (read-only). It is built only
+from verify output, never from Intent args, and is `None` when the Intent carried no Cap.
+`ctx.principal`, `ctx.subject`, `ctx.user_id` and `ctx.meta` can come from args (soft identity),
+so authorize on `ctx.verified`.
+
+```python
+@ch.on("Doc.edit")
+def edit(ctx, doc: str):
+    if ctx.verified is None or ctx.verified.subject is None:
+        raise ActionError("forbidden", "subject-bound Cap required")
+    owner = ctx.verified.subject
+    ...
+```
+
+Spec: [SPEC/capability.md](../../SPEC/capability.md#verified-context-for-handlers).
+
 ### API names (Python ↔ Rust)
 
 | Concept | Python | Rust |

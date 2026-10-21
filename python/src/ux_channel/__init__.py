@@ -64,7 +64,7 @@ from ux_channel.host import (
     RegionBook,
     create_channel,
 )
-from ux_channel.host.context import ActionContext, Principal
+from ux_channel.host.context import ActionContext, Principal, VerifiedContext
 
 # Common control / HTML helpers (light path only)
 from ux_channel.render import (
@@ -112,6 +112,7 @@ __all__ = [
     "Navigate",
     "ActionContext",
     "Principal",
+    "VerifiedContext",
     "state",
     "attach_state",
     "agents",

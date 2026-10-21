@@ -19,7 +19,7 @@ from typing import Any
 
 from ux_channel._version import __version__, __version_info__
 from ux_channel.host import Channel, ChannelConfig, Region, RegionBook, create_channel
-from ux_channel.host.context import ActionContext, Principal
+from ux_channel.host.context import ActionContext, Principal, VerifiedContext
 from ux_channel.protocol import (
     CapError,
     CapService,
@@ -54,6 +54,7 @@ __all__ = [
     "AuditBundle",
     "ActionContext",
     "Principal",
+    "VerifiedContext",
 ]
 
 _LAZY: dict[str, tuple[str, str]] = {
