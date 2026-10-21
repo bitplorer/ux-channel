@@ -51,10 +51,11 @@ A peer must reject the Intent if any of the following fail:
 2. Token expired (`iat + max_age`).
 3. `action` in token ≠ `action` in Intent.
 4. `args_hash` ≠ hash of the sealed args actually presented.
-5. The Cap carries a subject and it does not match the caller's authenticated principal. On the default
-   cek-runtime Host this holds for every subject-bound Cap: no resolved principal refuses, and a soft id
-   taken from Intent args is not a principal. Classic `CapService` (`cek=off`) checks `sub` only with
-   `bind_cap_to_principal`.
+5. The Cap carries a subject and it does not match the caller's authenticated principal. This holds for
+   every subject-bound Cap, on the cek-runtime Host and on classic `CapService` (`cek=off`) alike: no
+   resolved principal refuses, and a soft id taken from Intent args is not a principal. The Cap subject
+   never supplies a missing principal. Classic `bind_cap_to_principal` additionally refuses a Cap with no
+   subject when a principal is present.
 6. Required scopes are not a subset of the token’s scopes (unless `"*"` is present).
 7. `once=true` and the `jti` has already been consumed.
 

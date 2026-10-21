@@ -44,24 +44,6 @@ def test_role_claim_emits_security_event():
     assert "role_claim_ignored" in kinds
 
 
-def test_cap_sub_overrides_soft_principal_from_args():
-    """Signed cap.sub wins over client-supplied user_id when they disagree."""
-    secret = "test-secret-key-32chars-minimum!!!!"
-    reg = ActionRegistry(secret=secret, require_cap=True)
-    seen = {}
-
-    @reg.action("Who.ami")
-    def who(ctx=None):
-        seen["id"] = getattr(getattr(ctx, "principal", None), "id", None)
-        return None
-
-    args = {"user_id": "attacker"}
-    cap = reg.mint("Who.ami", args, sub="alice")
-    r = reg.dispatch(Intent(action="Who.ami", args=args, cap=cap))
-    assert r.ok, r.error
-    assert seen["id"] == "alice"
-
-
 def test_stores_fail_closed():
     s = MemoryIdempotencyStore(max_keys=2)
     s.set("a", {"ok": 1}, ttl_s=3600)
