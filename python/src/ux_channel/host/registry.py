@@ -731,37 +731,22 @@ class ActionRegistry:
                     verify_args,
                     **verify_kw,
                 )
-                # With no caller id, cek-host matches the subject against
-                # Intent.args, which the client sends. A subject-bound Cap needs
-                # a resolved principal; a soft id from args is not one.
-                if cap_data.get("subject") is not None and (
-                    principal is None or soft_from_args
-                ):
-                    raise CapError("capability subject requires an authenticated principal")
+                # A subject-bound Cap runs only for the authenticated principal
+                # it names (cek-host claims "subject", classic CapService "sub").
+                # A soft id from Intent.args is client data, not a principal.
+                cap_subject = cap_data.get("subject", cap_data.get("sub"))
+                if cap_subject is not None:
+                    if principal is None or soft_from_args:
+                        raise CapError("capability subject requires an authenticated principal")
+                    if principal.id != cap_subject:
+                        raise CapError("subject bind mismatch")
                 tr.emit(
                     _trace_api().FrameKind.CAP_OK,
                     "capability verified",
                     request_id=intent.request_id,
                     action=intent.action,
-                    detail={"sub": cap_data.get("sub"), "once": cap_data.get("once")},
+                    detail={"sub": cap_subject, "once": cap_data.get("once")},
                 )
-                # Cap subject is server-signed truth: fill missing principal, or
-                # override soft-from-args when they disagree (never trust client id
-                # over a signed sub).
-                cap_sub = cap_data.get("sub")
-                if cap_sub is not None and str(cap_sub).strip():
-                    cap_sub_s = str(cap_sub).strip()
-                    if principal is None:
-                        principal = Principal(id=cap_sub_s)
-                    elif soft_from_args and str(getattr(principal, "id", "") or "") != cap_sub_s:
-                        _sec(
-                            "principal_mismatch",
-                            action=intent.action,
-                            reason="soft principal from args differed from cap.sub; using cap.sub",
-                            principal=cap_sub_s,
-                            claimed=str(getattr(principal, "id", "") or ""),
-                        )
-                        principal = Principal(id=cap_sub_s)
             except CapError as exc:
                 _sec("cap_fail", action=getattr(intent, "action", ""), reason=str(exc))
                 tr.emit(
@@ -1222,8 +1207,9 @@ class ActionRegistry:
         """Caller id the verifier checks a Cap subject against.
 
         The cek-runtime Host checks the subject of every subject-bound Cap, so
-        it always gets the caller. Classic CapService checks only on
-        ``bind_cap_to_principal``.
+        it always gets the caller. Classic CapService gets it only on
+        ``bind_cap_to_principal``, which then also refuses a Cap with no
+        subject; ``_prepare`` checks a classic Cap's subject either way.
         """
         if principal is None:
             return None
