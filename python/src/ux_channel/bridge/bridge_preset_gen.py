@@ -290,6 +290,7 @@ def resolve_preset_spec(
     global_name: str = "",
 ) -> dict[str, Any]:
     key = (name or "").strip()
+    npm = (npm or "").strip()
     if not key:
         raise DxUsageError(
             "preset name required",
@@ -763,6 +764,7 @@ def create_bridge_preset(
         flat=True,
         mount_props=spec.get("mount_props") or None,
         method_specs=spec.get("method_specs") or None,
+        builtin=bool(spec["catalog_key"]) and not spec["npm"],
     )
     cls = class_name_for(pkg)
     (root / "preset.py").write_text(render_preset_py(spec), encoding="utf-8")

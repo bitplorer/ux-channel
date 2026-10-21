@@ -37,13 +37,13 @@ try {
     const { page, status, consoleErrors, pageErrors, consoleWarns } = await openPage("/");
     const snap = await page.evaluate(() => {
       const g = window;
-      const bridgePkgs = g.uidBridge
+      const bridgePkgs = g.uxBridge
         ? Object.keys(
             // adapters are private; probe via register overwrite no-op
             (function () {
               try {
                 // instance map
-                return g.uidBridge.instances || {};
+                return g.uxBridge.instances || {};
               } catch (e) {
                 return {};
               }
@@ -54,23 +54,23 @@ try {
       let mountOk = false;
       let packagesGuess = [];
       try {
-        if (g.uidBridge) {
+        if (g.uxBridge) {
           // scan should have mounted hosts
-          packagesGuess = Object.keys(g.uidBridge.instances || {});
+          packagesGuess = Object.keys(g.uxBridge.instances || {});
           mountOk = packagesGuess.length >= 0;
         }
       } catch (e) {}
       return {
-        uidChannel: !!(g.uidChannel && g.uidChannel.version),
-        channelVersion: g.uidChannel && g.uidChannel.version,
-        uidBridge: !!(g.uidBridge && g.uidBridge.register),
-        bridgeVersion: g.uidBridge && g.uidBridge.version,
+        uxChannel: !!(g.uxChannel && g.uxChannel.version),
+        channelVersion: g.uxChannel && g.uxChannel.version,
+        uxBridge: !!(g.uxBridge && g.uxBridge.register),
+        bridgeVersion: g.uxBridge && g.uxBridge.version,
         uidInspector: !!(g.uidInspector && g.uidInspector.version),
         UxWebRTC: !!g.UxWebRTC,
         flags: {
           channelLoaded: !!g.__UX_CHANNEL_RUNTIME_LOADED__,
-          fxLoaded: !!g.__UX_FX_LOADED__,
-          uiLoaded: !!g.__UX_UI_LOADED__,
+          fxLoaded: !!g.__UX_BUILTINS_LOADED__,
+          uiLoaded: !!g.__UX_WIDGETS_LOADED__,
           webrtcLoaded: !!g.__UX_WEBRTC_LOADED__,
         },
         instances: packagesGuess,
@@ -111,8 +111,8 @@ try {
     report.pages.full = entry;
 
     if (status !== 200) report.problems.push("full: bad status");
-    if (!snap.uidChannel) report.problems.push("full: uidChannel missing");
-    if (!snap.uidBridge) report.problems.push("full: uidBridge missing");
+    if (!snap.uxChannel) report.problems.push("full: uxChannel missing");
+    if (!snap.uxBridge) report.problems.push("full: uxBridge missing");
     if (!(counter1 >= 1)) report.problems.push(`full: counter after 1 click=${counter1}`);
     if (!(counter2 > counter1)) report.problems.push(`full: concurrent clicks failed ${counter1}->${counter2}`);
     if (keepAfter !== 2) report.problems.push(`full: DOM siblings damaged keep=${keepAfter}`);
@@ -158,7 +158,7 @@ try {
   {
     const { page, status, consoleErrors, pageErrors, consoleWarns } = await openPage("/wrong-order");
     const alive = await page.locator("#ok").innerText().catch(() => "");
-    const hasFxAfterSecond = await page.evaluate(() => !!window.__UX_FX_LOADED__);
+    const hasFxAfterSecond = await page.evaluate(() => !!window.__UX_BUILTINS_LOADED__);
     report.pages.wrongOrder = {
       status,
       alive,

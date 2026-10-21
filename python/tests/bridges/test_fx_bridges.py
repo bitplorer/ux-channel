@@ -6,6 +6,7 @@ import json
 import re
 import tempfile
 from importlib.resources import files
+from pathlib import Path
 
 import pytest
 from fastapi import FastAPI
@@ -27,6 +28,7 @@ from ux_channel.bridge.bridge_preset_gen import (
 )
 from ux_channel.devtools.errors import DxUsageError
 from ux_channel.render.kit import builtins_script_tags
+from ux_channel.scaffold import ScaffoldOptions, create_app
 
 
 def _ch():
@@ -66,7 +68,9 @@ def test_builtin_preset_writes_no_npm_dependency(key):
         assert resolve_preset_spec(key)["package"] in _js_builtin_keys()
         pkg = json.loads((root / "package.json").read_text())
         assert pkg["peerDependencies"] == {}
+        assert json.loads((root / "contract.json").read_text())["npm"] == ""
         assert "npm i" not in (root / "README.md").read_text()
+        assert not list(root.glob("ux-bridge-*.js"))
 
 
 def test_no_generated_package_json_mentions_ux_fx():
@@ -80,6 +84,20 @@ def test_unknown_preset_without_npm_fails_closed():
     with pytest.raises(DxUsageError) as exc:
         resolve_preset_spec("not-a-known-preset")
     assert exc.value.code == "bridge.npm_unknown"
+
+
+def test_blank_npm_on_unknown_preset_fails_closed():
+    with pytest.raises(DxUsageError) as exc:
+        resolve_preset_spec("not-a-known-preset", npm="  ")
+    assert exc.value.code == "bridge.npm_unknown"
+
+
+def test_create_app_unknown_bridge_writes_nothing():
+    with tempfile.TemporaryDirectory() as td:
+        dest = Path(td) / "app"
+        with pytest.raises(DxUsageError):
+            create_app(ScaffoldOptions("app", dest=dest, bridges=["not-a-known-preset"]))
+        assert not dest.exists()
 
 
 def test_builtin_preset_refuses_npm_dependency():

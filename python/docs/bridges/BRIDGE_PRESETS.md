@@ -69,7 +69,7 @@ uxchannel create-app myapp --bridge chartjs
 uxchannel bridge preset my-lib --npm my-lib   # not in the catalog: --npm is required
 ```
 
-The generated `package.json` names an npm dependency only when the scaffolder knows it: the catalog entry's npm name, or the one you pass with `--npm`. A name outside the catalog without `--npm` fails with `bridge.npm_unknown`. Builtin presets (`builtin/*`) ship inside ux-channel, so they write no dependency, and `--npm` on them fails with `bridge.builtin_npm`.
+The generated `package.json` names an npm dependency only when the scaffolder knows it: the catalog entry's npm name, or the one you pass with `--npm`. A name outside the catalog without `--npm` fails with `bridge.npm_unknown`. Builtin presets (`builtin/*`) ship inside ux-channel, so they write no dependency and no adapter JS (one would overwrite the real `builtins.js` registration); their README says to load `builtins.js`. `--npm` on them fails with `bridge.builtin_npm`. `create-app --bridge` checks every name before it writes any file.
 
 
 ## Methods: names + parameters from contract

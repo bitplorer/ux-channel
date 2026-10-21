@@ -94,6 +94,12 @@ def create_app(opts: ScaffoldOptions) -> Path:
 
     Returns the project root path. Raises ``FileExistsError`` unless ``force``.
     """
+    if opts.bridges:
+        from ux_channel.bridge.bridge_preset_gen import resolve_preset_spec
+
+        for name in opts.bridges:  # fail before writing any file
+            resolve_preset_spec(name)
+
     root = Path(opts.dest)  # type: ignore[arg-type]
     if root.exists() and any(root.iterdir()) and not opts.force:
         raise FileExistsError(
