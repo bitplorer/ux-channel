@@ -731,6 +731,13 @@ class ActionRegistry:
                     verify_args,
                     **verify_kw,
                 )
+                # With no caller id, cek-host matches the subject against
+                # Intent.args, which the client sends. A subject-bound Cap needs
+                # a resolved principal; a soft id from args is not one.
+                if cap_data.get("subject") is not None and (
+                    principal is None or soft_from_args
+                ):
+                    raise CapError("capability subject requires an authenticated principal")
                 tr.emit(
                     _trace_api().FrameKind.CAP_OK,
                     "capability verified",
@@ -1212,7 +1219,17 @@ class ActionRegistry:
         return bool(result.error and result.error.code == "rate_limited")
 
     def _cap_expected_sub(self, principal: Optional[Principal]) -> Optional[str]:
-        if principal and getattr(self.config, "bind_cap_to_principal", False):
+        """Caller id the verifier checks a Cap subject against.
+
+        The cek-runtime Host checks the subject of every subject-bound Cap, so
+        it always gets the caller. Classic CapService checks only on
+        ``bind_cap_to_principal``.
+        """
+        if principal is None:
+            return None
+        if self._cek_require_owns_once() or getattr(
+            self.config, "bind_cap_to_principal", False
+        ):
             return principal.id
         return None
 
