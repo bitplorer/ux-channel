@@ -2516,7 +2516,7 @@
     document.addEventListener("input", onInput, true);
     document.addEventListener("change", onChange, true);
     document.addEventListener("blur", onBlur, true);
-    // Adapters (ux-fx / ux-ui) often load *after* this file (defer order).
+    // Adapters (builtins.js / widgets.js) often load *after* this file (defer order).
     // Scan now + after microtasks/ticks so late register() still mounts hosts.
     scanBridges();
     try {

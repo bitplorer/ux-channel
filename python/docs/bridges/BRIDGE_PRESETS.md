@@ -66,7 +66,10 @@ Re-run or regenerate preset so `MOUNT_PROP_KEYS` / docs update.
 uxchannel bridge catalog
 uxchannel bridge preset chartjs --out bridges
 uxchannel create-app myapp --bridge chartjs
+uxchannel bridge preset my-lib --npm my-lib   # not in the catalog: --npm is required
 ```
+
+The generated `package.json` names an npm dependency only when the scaffolder knows it: the catalog entry's npm name, or the one you pass with `--npm`. A name outside the catalog without `--npm` fails with `bridge.npm_unknown`. Builtin presets (`builtin/*`) ship inside ux-channel, so they write no dependency, and `--npm` on them fails with `bridge.builtin_npm`.
 
 
 ## Methods: names + parameters from contract

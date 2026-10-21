@@ -44,7 +44,7 @@ def test_json_exception_includes_code_hint():
 def test_cli_json_flag():
     with tempfile.TemporaryDirectory() as td:
         # capture by running with --json should exit 0
-        assert main(["--json", "bridge", "new", "j", "--out", td, "--force"]) == 0
+        assert main(["--json", "bridge", "new", "j", "--npm", "j", "--out", td, "--force"]) == 0
 
 
 def test_otel_status_and_attach_without_sdk():

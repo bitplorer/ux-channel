@@ -70,7 +70,7 @@ def test_normalize_upgrades_list_methods():
 
 def test_cli_double_add():
     with tempfile.TemporaryDirectory() as td:
-        assert main(["bridge", "new", "z", "--out", td, "--force"]) == 0
+        assert main(["bridge", "new", "z", "--npm", "z", "--out", td, "--force"]) == 0
         assert main(["bridge", "add-method", "z", "foo", "--out", td]) == 0
         assert main(["bridge", "add-method", "z", "foo", "--out", td]) == 0
         assert main(["bridge", "remove-method", "z", "foo", "--out", td]) == 0

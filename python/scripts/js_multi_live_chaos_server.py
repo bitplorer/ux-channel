@@ -80,17 +80,17 @@ def _page(*, double_channel: bool = False) -> str:
     scripts = demo_scripts(ch)
     if "ux-bridge.js" not in scripts:
         scripts += '\n<script src="/ux-channel/static/ux-bridge.js" defer id="ux-bridge"></script>'
-    if "ux-fx.js" not in scripts:
-        scripts += '\n<script src="/ux-channel/static/adapters/ux-fx.js" defer id="ux-fx"></script>'
-    if "ux-ui.js" not in scripts:
-        scripts += '\n<script src="/ux-channel/static/adapters/ux-ui.js" defer id="ux-ui"></script>'
+    if "builtins.js" not in scripts:
+        scripts += '\n<script src="/ux-channel/static/adapters/builtins.js" defer id="builtins"></script>'
+    if "widgets.js" not in scripts:
+        scripts += '\n<script src="/ux-channel/static/adapters/widgets.js" defer id="widgets"></script>'
 
     double = ""
     if double_channel:
         double = (
             '\n<script src="/ux-channel/static/ux-channel.js" defer id="ux-channel-dup"></script>'
             '\n<script src="/ux-channel/static/ux-bridge.js" defer id="ux-bridge-dup"></script>'
-            '\n<script src="/ux-channel/static/adapters/ux-fx.js" defer id="ux-fx-dup"></script>'
+            '\n<script src="/ux-channel/static/adapters/builtins.js" defer id="builtins-dup"></script>'
         )
 
     return f"""<!doctype html>
@@ -148,15 +148,15 @@ def wrong_order() -> HTMLResponse:
     body = attr_string(ch.body_attrs())
     html = f"""<!doctype html>
 <html><head>
-<script src="/ux-channel/static/adapters/ux-fx.js"></script>
+<script src="/ux-channel/static/adapters/builtins.js"></script>
 <script src="/ux-channel/static/ux-bridge.js"></script>
-<script src="/ux-channel/static/adapters/ux-fx.js"></script>
+<script src="/ux-channel/static/adapters/builtins.js"></script>
 <script src="/ux-channel/static/ux-channel.js"></script>
 <title>wrong order</title>
 </head>
 <body {body}>
   <h1 id="ok">still alive</h1>
-  <div data-channel-bridge-id="c1" data-channel-bridge-package="ux-fx/confetti"
+  <div data-channel-bridge-id="c1" data-channel-bridge-package="builtin/confetti"
        style="min-height:4rem"></div>
 </body></html>"""
     return HTMLResponse(html)

@@ -96,40 +96,40 @@ KNOWN_PRESETS: dict[str, dict[str, Any]] = {
     },
 
     "confetti": {
-        "package": "ux-fx/confetti",
-        "npm": "ux-fx",
+        "package": "builtin/confetti",
+        "npm": "",
         "methods": ("update", "destroy", "burst", "cannon", "rain", "stop"),
         "kind": "fx",
         "description": "Canvas confetti bursts",
         "use_builtin": "ux_channel.bridges.ConfettiBridge",
     },
     "particles": {
-        "package": "ux-fx/particles",
-        "npm": "ux-fx",
+        "package": "builtin/particles",
+        "npm": "",
         "methods": ("update", "destroy", "pulse", "burst"),
         "kind": "fx",
         "description": "Ambient particle field",
         "use_builtin": "ux_channel.bridges.ParticlesBridge",
     },
     "aurora": {
-        "package": "ux-fx/aurora",
-        "npm": "ux-fx",
+        "package": "builtin/aurora",
+        "npm": "",
         "methods": ("update", "destroy", "pause", "play"),
         "kind": "fx",
         "description": "Animated aurora mesh gradient",
         "use_builtin": "ux_channel.bridges.AuroraBridge",
     },
     "countup": {
-        "package": "ux-fx/countup",
-        "npm": "ux-fx",
+        "package": "builtin/countup",
+        "npm": "",
         "methods": ("update", "destroy", "setValue", "replay"),
         "kind": "fx",
         "description": "Animated metric count-up",
         "use_builtin": "ux_channel.bridges.CountUpBridge",
     },
     "spotlight": {
-        "package": "ux-fx/spotlight",
-        "npm": "ux-fx",
+        "package": "builtin/spotlight",
+        "npm": "",
         "methods": ("update", "destroy"),
         "kind": "fx",
         "description": "Mouse spotlight glass glow",
@@ -271,7 +271,7 @@ def list_known_presets() -> list[dict[str, Any]]:
             {
                 "key": key if key != "chart.js" else "chartjs",
                 "package": pkg,
-                "npm": meta.get("npm") or pkg,
+                "npm": meta.get("npm") or "",
                 "methods": list(meta.get("methods") or ()),
                 "kind": meta.get("kind") or "widget",
                 "description": meta.get("description") or "",
@@ -300,12 +300,18 @@ def resolve_preset_spec(
     if low in KNOWN_PRESETS:
         meta = KNOWN_PRESETS[low]
         pkg = str(meta["package"])
+        if npm and not meta.get("npm"):
+            raise DxUsageError(
+                f"{low!r} is a builtin shipped inside ux-channel; it has no npm dependency",
+                code="bridge.builtin_npm",
+                hint=f"uxchannel bridge preset {low}  (without --npm)",
+            )
         mp = meta.get("mount_props")
         if mp is None and low == "chart.js":
             mp = KNOWN_PRESETS["chartjs"].get("mount_props")
         return {
             "package": pkg,
-            "npm": npm or str(meta.get("npm") or pkg),
+            "npm": npm or str(meta.get("npm") or ""),
             "npm_import": npm_import or str(meta.get("import") or ""),
             "global_name": global_name or str(meta.get("global") or ""),
             "methods": tuple(methods)
@@ -318,9 +324,15 @@ def resolve_preset_spec(
             "mount_props": mp if isinstance(mp, dict) else {},
             "method_specs": dict(meta.get("method_specs") or {}),
         }
+    if not npm:
+        raise DxUsageError(
+            f"unknown preset {key!r}; refusing to guess an npm dependency",
+            code="bridge.npm_unknown",
+            hint=f"uxchannel bridge preset {key} --npm <package>  OR  uxchannel bridge catalog",
+        )
     return {
         "package": key,
-        "npm": npm or key,
+        "npm": npm,
         "npm_import": npm_import or "",
         "global_name": global_name or "",
         "methods": tuple(methods) if methods else default_methods(),

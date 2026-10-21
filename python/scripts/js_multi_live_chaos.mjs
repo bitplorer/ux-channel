@@ -117,8 +117,8 @@ try {
     if (!(counter2 > counter1)) report.problems.push(`full: concurrent clicks failed ${counter1}->${counter2}`);
     if (keepAfter !== 2) report.problems.push(`full: DOM siblings damaged keep=${keepAfter}`);
     if (pageErrors.length) report.problems.push(`full: pageErrors ${pageErrors.join(";")}`);
-    // filter network noise from optional CDN in uid-ui
-    const hard = consoleErrors.filter((e) => !/Failed to load resource/i.test(e) || /ux-channel|ux-bridge|ux-fx|uid-ui\.js/i.test(e));
+    // filter network noise from optional CDN in widgets.js
+    const hard = consoleErrors.filter((e) => !/Failed to load resource/i.test(e) || /ux-channel|ux-bridge|builtins|widgets\.js/i.test(e));
     if (hard.length) report.problems.push(`full: console ${hard.slice(0, 3).join(" | ")}`);
     await page.close();
   }
@@ -163,7 +163,7 @@ try {
       status,
       alive,
       hasFxAfterSecond,
-      warns: consoleWarns.filter((w) => /ux-fx|uidBridge/i.test(w)).slice(0, 5),
+      warns: consoleWarns.filter((w) => /builtins|uxBridge/i.test(w)).slice(0, 5),
       pageErrors,
     };
     if (alive !== "still alive") report.problems.push("wrong-order: page crashed");

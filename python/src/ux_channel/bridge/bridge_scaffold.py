@@ -313,6 +313,7 @@ def render_readme(package: str, methods: Sequence[str], npm_dep: str = "") -> st
 
     cls = class_name_for(package)
     methods_list = "\n".join(f"- `{m}`" for m in methods)
+    install = f"## Install npm dep\n\n```bash\nnpm i {npm_dep}\n```\n\n" if npm_dep else ""
     return f"""# Bridge preset: `{package}`
 
 Callable **factory façade** (default codegen).
@@ -335,13 +336,7 @@ return w.commit(...)              # Result + bridge ops
 import "./ux-bridge-{slugify(package)}.js";
 ```
 
-## Install npm dep
-
-```bash
-npm i {npm_dep or package}
-```
-
-## Methods
+{install}## Methods
 
 {methods_list}
 
@@ -930,7 +925,7 @@ Commands:
 Scaffold with presets:
   uxchannel create-app myapp --bridge chartjs --bridge leaflet
 
-Catalog: chartjs, leaflet, codemirror — or any npm package name.
+Catalog: chartjs, leaflet, codemirror — or any npm package via --npm <package>.
 
 Docs: docs/BRIDGE_CONTRACT.md  docs/BRIDGES_VS_UI_DOM.md
 """

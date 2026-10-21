@@ -2,6 +2,12 @@
 
 from __future__ import annotations
 
+import json
+import re
+import tempfile
+from importlib.resources import files
+
+import pytest
 from fastapi import FastAPI
 
 from ux_channel import Channel, ChannelConfig
@@ -14,7 +20,12 @@ from ux_channel.bridges import (
     ParticlesBridge,
     SpotlightBridge,
 )
-from ux_channel.bridge.bridge_preset_gen import list_known_presets
+from ux_channel.bridge.bridge_preset_gen import (
+    create_bridge_preset,
+    list_known_presets,
+    resolve_preset_spec,
+)
+from ux_channel.devtools.errors import DxUsageError
 from ux_channel.render.kit import builtins_script_tags
 
 
@@ -31,6 +42,50 @@ def test_catalog_includes_builtins():
     keys = {p["key"] for p in list_known_presets()}
     for k in ("confetti", "particles", "aurora", "countup", "spotlight", "lottie"):
         assert k in keys, k
+
+
+_BUILTIN_PRESETS = ("confetti", "particles", "aurora", "countup", "spotlight")
+
+
+def _js_builtin_keys() -> set[str]:
+    js = (files("ux_channel") / "static" / "adapters" / "builtins.js").read_text()
+    return {f"builtin/{n}" for n in re.findall(r'builtin\("([a-z]+)"', js)}
+
+
+def test_confetti_preset_uses_key_registered_by_builtins_js():
+    with tempfile.TemporaryDirectory() as td:
+        root = create_bridge_preset(td, "confetti", force=True)
+        assert 'PACKAGE = "builtin/confetti"' in (root / "preset.py").read_text()
+    assert "builtin/confetti" in _js_builtin_keys()
+
+
+@pytest.mark.parametrize("key", _BUILTIN_PRESETS)
+def test_builtin_preset_writes_no_npm_dependency(key):
+    with tempfile.TemporaryDirectory() as td:
+        root = create_bridge_preset(td, key, force=True)
+        assert resolve_preset_spec(key)["package"] in _js_builtin_keys()
+        pkg = json.loads((root / "package.json").read_text())
+        assert pkg["peerDependencies"] == {}
+        assert "npm i" not in (root / "README.md").read_text()
+
+
+def test_no_generated_package_json_mentions_ux_fx():
+    with tempfile.TemporaryDirectory() as td:
+        for row in list_known_presets():
+            root = create_bridge_preset(td, row["key"], force=True)
+            assert "ux-fx" not in (root / "package.json").read_text(), row["key"]
+
+
+def test_unknown_preset_without_npm_fails_closed():
+    with pytest.raises(DxUsageError) as exc:
+        resolve_preset_spec("not-a-known-preset")
+    assert exc.value.code == "bridge.npm_unknown"
+
+
+def test_builtin_preset_refuses_npm_dependency():
+    with pytest.raises(DxUsageError) as exc:
+        resolve_preset_spec("confetti", npm="ux-fx")
+    assert exc.value.code == "bridge.builtin_npm"
 
 
 def test_confetti_factory_burst_ops():

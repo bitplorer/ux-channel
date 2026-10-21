@@ -303,7 +303,7 @@ def test_load_many_presets_sequential():
         for i in range(15):
             name = f"pkg{i}"
             root = create_bridge_preset(
-                td, name, methods=("update", "ping"), force=True
+                td, name, methods=("update", "ping"), npm=name, force=True
             )
             assert (root / "contract.json").is_file()
             methods = json.loads((root / "contract.json").read_text())["methods"]

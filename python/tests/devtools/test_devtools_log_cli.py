@@ -44,6 +44,6 @@ def test_cli_bridge_missing_package_logs_usage():
 
 def test_cli_bridge_verbose_ok():
     with tempfile.TemporaryDirectory() as td:
-        assert main(["-v", "bridge", "new", "z", "--out", td, "--force"]) == 0
+        assert main(["-v", "bridge", "new", "z", "--npm", "z", "--out", td, "--force"]) == 0
         assert main(["bridge", "add-method", "z", "foo", "--out", td]) == 0
         assert main(["bridge", "add-method", "z", "foo", "--out", td]) == 0  # idempotent
