@@ -7,6 +7,7 @@ from typing import Any, Optional
 
 from ux_channel.host.idempotency import IdempotencyCapacityError
 from ux_channel.protocol import serde as _serde
+from ux_channel.transport.push import deliver, subscriber_loop
 
 
 def _client(url: str | Any):
@@ -386,7 +387,7 @@ class RedisPushBackend:
         except Exception:
             self.r = None
         self.prefix = channel_prefix
-        self._local: dict = {}  # topic -> set of queues
+        self._local: dict = {}  # topic -> {queue: subscriber loop}
         self._lock = __import__("threading").Lock()
         self._pubsub = None
         self._thread: threading.Thread | None = None
@@ -410,7 +411,7 @@ class RedisPushBackend:
 
         n = self._rr.execute(_pub, default=0)
         with self._lock:
-            qs = list(self._local.get(topic, ()))
+            subs = list(self._local.get(topic, {}).items())
             listener_alive = self._thread is not None and self._thread.is_alive()
             # This process is subscribed on Redis, so the listener echoes the
             # publish back. A second local put would deliver the push twice.
@@ -423,16 +424,13 @@ class RedisPushBackend:
             )
         if echo:
             return int(n)
-        for q in qs:
-            try:
-                q.put_nowait(payload)
-            except Exception:
-                pass
-        return int(n) if n else len(qs)
+        for q, loop in subs:
+            deliver(loop, q, payload)
+        return int(n) if n else len(subs)
 
     def subscribe_local(self, topic: str, queue):
         with self._lock:
-            self._local.setdefault(topic, set()).add(queue)
+            self._local.setdefault(topic, {})[queue] = subscriber_loop()
         self._ensure_listener()
         # subscribe redis channel
         if self._pubsub is not None:
@@ -443,7 +441,7 @@ class RedisPushBackend:
     def unsubscribe_local(self, topic: str, queue):
         with self._lock:
             if topic in self._local:
-                self._local[topic].discard(queue)
+                self._local[topic].pop(queue, None)
                 if not self._local[topic]:
                     del self._local[topic]
 
@@ -474,12 +472,9 @@ class RedisPushBackend:
                     if callable(filt):
                         data = filt(data)
                     with self._lock:
-                        qs = list(self._local.get(topic, ()))
-                    for q in qs:
-                        try:
-                            q.put_nowait(data)
-                        except Exception:
-                            pass
+                        subs = list(self._local.get(topic, {}).items())
+                    for q, loop in subs:
+                        deliver(loop, q, data)
                 except Exception:
                     pass
 

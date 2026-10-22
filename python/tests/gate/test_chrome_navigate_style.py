@@ -125,15 +125,6 @@ def _boot():
     return app, ch, holder
 
 
-def _kick(bus: object) -> None:
-    subs = getattr(getattr(bus, "backend", None), "_subs", None) or {}
-    for queues in list(subs.values()):
-        for q in list(queues):
-            loop = getattr(q, "_loop", None)
-            if loop is not None and not loop.is_closed():
-                loop.call_soon_threadsafe(lambda: None)
-
-
 def _json_op(client: TestClient, holder: dict[str, str], href: str) -> dict:
     holder["href"] = href
     response = client.post(
@@ -166,7 +157,6 @@ def _push_op(client: TestClient, ch: Channel, href: str) -> dict:
     )
     deadline = time.time() + 2
     while time.time() < deadline and "data: " not in "".join(sink):
-        _kick(ch.registry.push_bus)
         time.sleep(0.01)
     thread.join(0.2)
     for line in "".join(sink).splitlines():

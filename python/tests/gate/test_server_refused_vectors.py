@@ -88,21 +88,6 @@ def _boot(policy: str, *, redis: bool = False):
     return app, ch, holder, fake
 
 
-def _kick(bus: object) -> None:
-    backend = getattr(bus, "backend", None)
-    groups = []
-    for name in ("_subs", "_local"):
-        found = getattr(backend, name, None)
-        if found:
-            groups.append(found)
-    for subs in groups:
-        for queues in list(subs.values()):
-            for q in list(queues):
-                loop = getattr(q, "_loop", None)
-                if loop is not None and not loop.is_closed():
-                    loop.call_soon_threadsafe(lambda: None)
-
-
 def _assert_clean(blob: str, needle: str, *, label: str) -> None:
     assert needle.lower() not in blob.lower(), label + " " + blob
     assert _KEEP in blob, label + " " + blob
@@ -152,7 +137,6 @@ def _push_blob(client: TestClient, ch: Channel, html: str) -> str:
     ch.live.publish(_TOPIC, result=Result.success(swap("#t", html, swap="innerHTML")))
     deadline = time.time() + 2
     while time.time() < deadline and "data: " not in "".join(sink):
-        _kick(ch.registry.push_bus)
         time.sleep(0.01)
     thread.join(0.2)
     return "".join(sink)
@@ -163,7 +147,6 @@ def _ws_blob(client: TestClient, ch: Channel, html: str) -> str:
         assert ws.receive_json()["type"] == "hello"
         assert ws.receive_json()["type"] == "subscribed"
         ch.live.publish(_TOPIC, result=Result.success(swap("#t", html, swap="innerHTML")))
-        _kick(ch.registry.push_bus)
         return json.dumps(ws.receive_json())
 
 
@@ -193,7 +176,6 @@ def _mcp_blob(client: TestClient, ch: Channel, html: str) -> str:
     )
     deadline = time.time() + 2
     while time.time() < deadline and "".join(sink).count("data: ") < 2:
-        _kick(ch.registry.push_bus)
         time.sleep(0.01)
     thread.join(0.2)
     return "".join(sink)
@@ -226,7 +208,6 @@ def _redis_blob(policy: str, html: str) -> str:
     fake.publish(bus.backend._ch(_TOPIC), json.dumps(raw))
     deadline = time.time() + 2
     while time.time() < deadline and "data: " not in "".join(sink):
-        _kick(bus)
         time.sleep(0.02)
     thread.join(0.2)
     return "".join(sink)

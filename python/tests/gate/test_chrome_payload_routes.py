@@ -85,17 +85,6 @@ def _boot(policy: str):
     return app, ch, holder
 
 
-def _kick(bus: object) -> None:
-    subs = getattr(getattr(bus, "backend", None), "_subs", None)
-    if not subs:
-        return
-    for queues in list(subs.values()):
-        for q in list(queues):
-            loop = getattr(q, "_loop", None)
-            if loop is not None and not loop.is_closed():
-                loop.call_soon_threadsafe(lambda: None)
-
-
 def _html_of(body: object) -> str:
     if not isinstance(body, dict):
         return ""
@@ -165,7 +154,6 @@ def _push_htmls(client: TestClient, ch: Channel, payloads: list[str]) -> list[st
         )
         deadline = time.time() + 2
         while time.time() < deadline and "".join(sink).count("data: ") < index:
-            _kick(bus)
             time.sleep(0.01)
     thread.join(2)
     text = "".join(sink)
@@ -187,7 +175,6 @@ def _ws_htmls(client: TestClient, ch: Channel, payloads: list[str]) -> list[str]
             ch.live.publish(
                 _TOPIC, result=Result.success(swap("#slot", html, swap="innerHTML"))
             )
-            _kick(bus)
             box: dict[str, object] = {}
 
             def _recv(inbox: dict[str, object] = box) -> None:
@@ -234,7 +221,6 @@ def _mcp_htmls(client: TestClient, ch: Channel, payloads: list[str]) -> list[str
         # The hello event is the first data line.
         deadline = time.time() + 2
         while time.time() < deadline and "".join(sink).count("data: ") < index + 1:
-            _kick(bus)
             time.sleep(0.01)
     thread.join(2)
     found = []

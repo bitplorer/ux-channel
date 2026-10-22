@@ -1,5 +1,6 @@
 ## Unreleased
 
+- A push published from another thread reaches an idle `/push` or `/ws` reader at once. Each subscriber's event loop is recorded at `subscribe_local`, and `MemoryPushBackend.publish` and the `RedisPushBackend` listener hand the item over with `loop.call_soon_threadsafe`. Before, a put from the Redis listener thread, or from a sync action in the threadpool, did not wake the loop, so the reader waited for its keepalive timeout (15 s SSE, 20 s WS). A full Redis subscriber queue now drops its oldest item, the same as the memory backend.
 - An error on the Cap or ticket path now raises instead of allowing. `mint_continuation` raises on an unknown `cek` mode or a broken `ux_channel.cek.surface_adapter` import; it no longer falls back to native continuations under `cek=require`. When the revocation store raises, push subscribe, RTC ticket verify, and workplace ticket verify raise, and `POST /mcp/session/revoke` returns 500 instead of reporting the ticket revoked. A topic policy engine that raises, or a confirm-token nonce store that raises, propagates instead of allowing the subscribe or accepting the token.
 - `data-ux-keep-value` keeps the visitor's live `.value` across a morph or
   outer swap for a `textarea`, or for an `input` of type `password`, `text`,
