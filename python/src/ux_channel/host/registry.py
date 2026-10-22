@@ -22,6 +22,7 @@ from ux_channel.protocol.capability import CapError, CapService
 from ux_channel.host.context import (
     ActionContext,
     AuthResolver,
+    IDENTITY_KEYS,
     Principal,
     VerifiedContext,
     cap_subject,
@@ -661,25 +662,17 @@ class ActionRegistry:
                 None,
                 False,
             )
-        soft_from_args = False
-        # Soft identity: id only. NEVER take roles/scopes from client Intent args.
-        if principal is None:
-            # Client-supplied roles are never trusted — emit so operators can see probes.
-            if args.get("roles") is not None or args.get("role") is not None:
-                _sec(
-                    "role_claim_ignored",
-                    action=intent.action,
-                    reason="roles in Intent.args are ignored; use auth_resolver / principal=",
-                    principal=str(
-                        args.get("user_id") or args.get("sub") or args.get("subject") or ""
-                    ),
-                )
-            for key in ("user_id", "sub", "subject"):
-                val = args.get(key)
-                if val is not None and str(val).strip():
-                    principal = Principal.of(str(val).strip())
-                    soft_from_args = True
-                    break
+        # The principal comes only from dispatch(principal=) or auth_resolver.
+        # Intent args are client data: no id, role or scope in them is identity.
+        if principal is None and (
+            args.get("roles") is not None or args.get("role") is not None
+        ):
+            # Emit so operators can see probes.
+            _sec(
+                "role_claim_ignored",
+                action=intent.action,
+                reason="roles in Intent.args are ignored; use auth_resolver / principal=",
+            )
         if self.require_principal and principal is None:
             return (
                 intent,
@@ -739,13 +732,12 @@ class ActionRegistry:
                 )
                 # A subject-bound Cap runs only for the authenticated principal
                 # it names (cek-host claims "subject", classic CapService "sub").
-                # A soft id from Intent.args is client data, not a principal.
                 subject = cap_subject(cap_data)
                 if subject is not None:
-                    if principal is None or soft_from_args:
+                    if principal is None:
                         raise CapError("capability subject requires an authenticated principal")
-                    # An empty subject names nobody, so no principal matches it.
-                    if not subject or principal.id != subject:
+                    # A blank subject names nobody, so no principal matches it.
+                    if not subject.strip() or principal.id != subject:
                         raise CapError("subject bind mismatch")
                 tr.emit(
                     _trace_api().FrameKind.CAP_OK,
@@ -1013,24 +1005,18 @@ class ActionRegistry:
         if self.action_timeout_s and self.action_timeout_s > 0:
             deadline = time.monotonic() + self.action_timeout_s
         meta: dict[str, Any] = {}
-        # Stamp identity / tenancy keys so RegionBook can rebuild scope without
-        # depending on handler signature binding every key.
+        # Stamp resource / tenancy keys so RegionBook can rebuild scope without
+        # depending on handler signature binding every key. Identity keys come
+        # only from the principal, never from args.
         if args:
             for k, v in args.items():
-                if v is None:
+                if v is None or k in IDENTITY_KEYS or k in ("roles", "role"):
                     continue
-                if k in ("roles", "role"):
-                    continue
-                if k.endswith("_id") or k in (
-                    "user_id", "sub", "subject", "tenant_id", "id", "uid",
-                ):
+                if k.endswith("_id") or k in ("tenant_id", "id", "uid"):
                     meta[k] = v
         if principal is not None:
-            pid = getattr(principal, "id", None) or getattr(principal, "sub", None)
-            if pid:
-                meta.setdefault("user_id", pid)
-                meta.setdefault("subject", pid)
-                meta.setdefault("sub", pid)
+            for k in IDENTITY_KEYS:
+                meta[k] = principal.id
         return ActionContext(
             request_id=intent.request_id or "",
             action=intent.action,
@@ -1068,8 +1054,10 @@ class ActionRegistry:
                 ann is not inspect.Parameter.empty
                 and (ann is Principal or getattr(ann, "__name__", "") == "Principal")
             )
-            if wants_principal and ctx is not None and ctx.principal is not None:
-                bound[name] = ctx.principal
+            if wants_principal:
+                # Never bound from args: a client-sent "principal" is not one.
+                if ctx is not None and ctx.principal is not None:
+                    bound[name] = ctx.principal
                 continue
             if name in args:
                 bound[name] = args[name]
@@ -1084,10 +1072,11 @@ class ActionRegistry:
                 raise TypeError(f"missing required argument: {name}")
         if accepts_var_kw:
             for k, v in args.items():
-                bound.setdefault(k, v)
+                if k != "principal":
+                    bound.setdefault(k, v)
             # region wrappers expect principal in kwargs
             if ctx is not None and ctx.principal is not None:
-                bound.setdefault("principal", ctx.principal)
+                bound["principal"] = ctx.principal
         hints = {}
         try:
             hints = {
@@ -1423,12 +1412,12 @@ class ActionRegistry:
                 intent, early, t0, idempotency_hit=idempotency_hit
             )
 
-        # Soft principal from args must be visible to auth wraps / RegionBook
+        # An auth_resolver principal must be visible to auth wraps / RegionBook
         # (they read ContextVar; principal= on dispatch already set it).
-        soft_token = None
+        resolver_token = None
         claim_token: Optional[str] = None
         if principal is not None and _principal_override.get() is None:
-            soft_token = _principal_override.set(principal)
+            resolver_token = _principal_override.set(principal)
         try:
             early = self._run_before_hooks_sync(intent, args, principal, _cap)
             stop, claim_token, idempotency_hit = self._admit_after_hooks(
@@ -1521,8 +1510,8 @@ class ActionRegistry:
             return self._finalize(intent, result, t0, claim_token=claim_token)
         finally:
             self._idem_release(intent.idempotency_key, claim_token)
-            if soft_token is not None:
-                _principal_override.reset(soft_token)
+            if resolver_token is not None:
+                _principal_override.reset(resolver_token)
 
     async def _join_cancelled_thread(self, work: "asyncio.Future[Any]") -> Any:
         """Wait until a shielded sync worker finishes.
@@ -1576,10 +1565,10 @@ class ActionRegistry:
                 intent, early, t0, idempotency_hit=idempotency_hit
             )
 
-        soft_token = None
+        resolver_token = None
         claim_token: Optional[str] = None
         if principal is not None and _principal_override.get() is None:
-            soft_token = _principal_override.set(principal)
+            resolver_token = _principal_override.set(principal)
         try:
             early = await self._run_before_hooks_async(intent, args, principal, _cap)
             stop, claim_token, idempotency_hit = self._admit_after_hooks(
@@ -1616,7 +1605,7 @@ class ActionRegistry:
                 if inspect.iscoroutinefunction(handler):
                     value = await self._run_with_timeout(handler, bound)
                 else:
-                    # Preserve ContextVars (soft/hard principal) across threads
+                    # Preserve ContextVars (principal) across threads
                     # (asyncio.to_thread does not copy context on all Pythons).
                     ctx_run = contextvars.copy_context()
                     work = asyncio.create_task(
@@ -1710,8 +1699,8 @@ class ActionRegistry:
             return self._finalize(intent, result, t0, claim_token=claim_token)
         finally:
             self._idem_release(intent.idempotency_key, claim_token)
-            if soft_token is not None:
-                _principal_override.reset(soft_token)
+            if resolver_token is not None:
+                _principal_override.reset(resolver_token)
 
 
 __all__ = ["ActionRegistry", "Navigate", "ActionHandler"]

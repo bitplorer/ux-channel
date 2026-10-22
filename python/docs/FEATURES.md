@@ -136,8 +136,8 @@ Classic IR ignores unknown keys; neither package is on root `__all__`.
 | **Docs** | [HOW_TO](start/HOW_TO.md) · [COOKBOOK](start/COOKBOOK.md) |
 
 Handlers receive context (principal, caps, state) and return `Result` or values
-coerced to Result/ops. `ctx.verified` is the verified Cap; `ctx.principal` may
-be a soft id from args (see [capabilities](../../docs/reference/capabilities.md#what-the-handler-can-trust)).
+coerced to Result/ops. `ctx.verified` is the verified Cap; `ctx.principal` is the
+authenticated principal or `None`, never taken from args (see [capabilities](../../docs/reference/capabilities.md#what-the-handler-can-trust)).
 
 ---
 

@@ -22,7 +22,7 @@ git push -u origin main
 
 ## Hardenings included
 
-- Soft principal: id only (no client roles from Intent)  
+- Principal only from `auth_resolver` / `dispatch(principal=)`, never from Intent args  
 - registry meta / regions / flow: strip client roles  
 - AgentRunner: confirmation requires signed secret (fail closed)  
 - WebRTC ticket + origin fail-closed defaults  

@@ -91,6 +91,20 @@ def test_empty_subject_matches_no_principal(cek, bind):
 
 
 @HOSTS
+@pytest.mark.parametrize("blank", [" ", "\t \n"])
+def test_whitespace_subject_matches_no_principal(cek, bind, blank):
+    """A whitespace-only Cap subject names nobody, even a whitespace principal id."""
+    ch = _channel(cek, bind)
+    args = {"order_id": "o1"}
+    cap = ch.mint("Order.pay", args, sub=blank)
+    for principal in (Principal.of(blank), Principal.of("alice"), None):
+        r = ch.registry.dispatch(
+            Intent(action="Order.pay", args=args, cap=cap), principal=principal
+        )
+        assert _refused(ch, r), (principal, r.error)
+
+
+@HOSTS
 def test_no_principal_fails_closed(cek, bind):
     """The Cap subject never stands in for a missing principal."""
     ch = _channel(cek, bind)
@@ -104,7 +118,6 @@ def test_subject_in_args_is_not_authentication(cek, bind):
         ch = _channel(cek, bind)
         r = _pay(ch, {"order_id": "o1", key: "alice"})
         assert _refused(ch, r), (key, r.error)
-        assert "authenticated principal" in r.error.message, key
 
 
 @HOSTS

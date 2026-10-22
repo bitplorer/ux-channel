@@ -10,6 +10,7 @@ from dataclasses import dataclass, field
 import pytest
 
 from ux_channel import Channel, Intent, Result
+from ux_channel.host.context import Principal
 from ux_channel.host.testing import ChannelTest
 from ux_channel.render.kit import attr_string, demo_button, demo_page, demo_scripts, script_tags
 from ux_channel.security.bulkhead import install_bulkhead
@@ -205,9 +206,10 @@ def test_concurrent_adds_stress():
     ch.registry.hooks.before.clear()
 
     def one(i: int):
-        cap = ch.mint("Cart.add", {"product_id": "p1", "user_id": "u1"})
+        cap = ch.mint("Cart.add", {"product_id": "p1"})
         r = ch.registry.dispatch(
-            Intent(action="Cart.add", args={"product_id": "p1", "user_id": "u1"}, cap=cap)
+            Intent(action="Cart.add", args={"product_id": "p1"}, cap=cap),
+            principal=Principal.of("u1"),
         )
         return r.ok
 
