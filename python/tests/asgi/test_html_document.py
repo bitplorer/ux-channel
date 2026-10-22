@@ -23,7 +23,15 @@ def test_runtime_placement_has_scripts():
     assert p.kind == "runtime"
     urls = [s.src for s in p.scripts]
     assert any("ux-channel.js" in u for u in urls)
-    assert any("ux-bridge.js" in u for u in urls)
+
+
+def test_bridge_js_is_opt_in():
+    ch = _ch()
+    assert "ux-bridge.js" not in demo_scripts(ch)
+    assert "ux-bridge.js" not in demo_page(ch, "<p>x</p>")
+    assert "ux-bridge.js" not in script_tags(ch.media.plugin("lobby"))
+    assert demo_scripts(ch, bridge=True).count("ux-bridge.js") == 1
+    assert demo_page(ch, "<p>x</p>", bridge=True).count("ux-bridge.js") == 1
 
 
 def test_demo_scripts_from_runtime():

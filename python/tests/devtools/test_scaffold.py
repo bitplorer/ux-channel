@@ -1,12 +1,14 @@
 """Scaffold create-app — plug-and-play DX."""
 from __future__ import annotations
 
+import os
 import subprocess
 import sys
 import tempfile
 import unittest
 from pathlib import Path
 
+import ux_channel
 from ux_channel.scaffold import (
     ScaffoldOptions,
     available_templates,
@@ -89,6 +91,35 @@ class TestScaffoldTemplates(unittest.TestCase):
             )
             self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
             self.assertTrue((dest / "app" / "main.py").is_file())
+
+
+    def test_bridge_flag_opts_the_page_into_ux_bridge_js(self):
+        """``create-app --bridge`` pages load ux-bridge.js; pages without it do not."""
+        src = str(Path(ux_channel.__file__).resolve().parents[1])
+        render = (
+            "from fastapi.testclient import TestClient\n"
+            "from app.main import app\n"
+            "print(TestClient(app).get('/').text)\n"
+        )
+        for template in ("minimal", "live"):
+            for bridges, expected in (([], 0), (["--bridge", "chartjs"], 1)):
+                with self.subTest(template=template, bridges=bridges), tempfile.TemporaryDirectory() as td:
+                    dest = Path(td) / "app_root"
+                    env = {**os.environ, "PYTHONPATH": src}
+                    made = subprocess.run(
+                        [sys.executable, "-m", "ux_channel", "create-app", "demo",
+                         "--dir", str(dest), "-t", template, "--force", *bridges],
+                        capture_output=True, text=True, cwd=td, env=env,
+                    )
+                    self.assertEqual(made.returncode, 0, made.stdout + made.stderr)
+                    page = subprocess.run(
+                        [sys.executable, "-c", render],
+                        capture_output=True, text=True, cwd=dest,
+                        env={**env, "PYTHONPATH": os.pathsep.join([src, str(dest)])},
+                    )
+                    self.assertEqual(page.returncode, 0, page.stderr)
+                    self.assertEqual(page.stdout.count("ux-bridge.js"), expected)
+                    self.assertEqual(page.stdout.count("ux-channel.js"), 1)
 
 
 if __name__ == "__main__":

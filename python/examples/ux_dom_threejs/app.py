@@ -325,7 +325,7 @@ def _btn_html(label: str, action, *, primary: bool = False) -> str:
 
 @app.get("/", response_class=HTMLResponse)
 def index():
-    scripts = str(demo_scripts(ch, ))
+    scripts = str(demo_scripts(ch, bridge=True))
     extra = (
         '<script src="/demo-static/threejs-adapter.js" defer></script>'
         """

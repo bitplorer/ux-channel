@@ -147,7 +147,8 @@ def create_app(opts: ScaffoldOptions) -> Path:
                     "spec = w.mount_spec()  # ux-dom",
                     "```",
                     "",
-                    "JS: app/static/bridges/ after channel scripts.",
+                    "JS: ux-bridge.js (the minimal, live and full templates pass",
+                    "``bridge=True`` to ``demo_page``), then app/static/bridges/.",
                     "",
                 ]
             ),
@@ -485,19 +486,25 @@ def get_channel_config() -> ChannelConfig:
 
 def _main_py(opts: ScaffoldOptions, *, title: str, port: int) -> str:
     """Generate main.py — branches by template, always heavily commented."""
+    bridge = bool(opts.bridges)
     if opts.template == "minimal":
-        return _main_minimal(title=title, port=port)
+        return _main_minimal(title=title, port=port, bridge=bridge)
     if opts.template == "live":
-        return _main_live(title=title, port=port)
+        return _main_live(title=title, port=port, bridge=bridge)
     if opts.template == "webrtc":
         return _main_webrtc(title=title, port=port)
     if opts.template == "media":
         return _main_media(title=title, port=port)
     # full
-    return _main_full(title=title, port=port)
+    return _main_full(title=title, port=port, bridge=bridge)
 
 
-def _main_minimal(*, title: str, port: int) -> str:
+def _bridge_kwarg(bridge: bool) -> str:
+    """``demo_page`` loads ux-bridge.js only when the app asked for bridges."""
+    return "        bridge=True,\n" if bridge else ""
+
+
+def _main_minimal(*, title: str, port: int, bridge: bool) -> str:
     return f'''\
 """
 {title} — minimal uxchannel app (plug-and-play).
@@ -576,7 +583,7 @@ def index():
         demo_button(ch, "+1", inc),
         demo_button(ch, "Reset", reset),
         title="{title}",
-    )
+{_bridge_kwarg(bridge)}    )
 
 
 if __name__ == "__main__":
@@ -586,7 +593,7 @@ if __name__ == "__main__":
 '''
 
 
-def _main_live(*, title: str, port: int) -> str:
+def _main_live(*, title: str, port: int, bridge: bool) -> str:
     return f'''\
 """
 {title} — multi-region live board (ux-channel).
@@ -643,7 +650,7 @@ def index():
         feed,
         demo_button(ch, "Ping", ping),
         title="{title}",
-    )
+{_bridge_kwarg(bridge)}    )
 
 
 if __name__ == "__main__":
@@ -670,11 +677,15 @@ def _main_media(*, title: str, port: int) -> str:
     )
 
 
-def _main_full(*, title: str, port: int) -> str:
+def _main_full(*, title: str, port: int, bridge: bool) -> str:
     """Full template — live morph + /call."""
     from ux_channel.scaffold.templates_src import FULL_MAIN
 
-    return FULL_MAIN.replace("__TITLE__", title).replace("__PORT__", str(port))
+    return (
+        FULL_MAIN.replace("__TITLE__", title)
+        .replace("__PORT__", str(port))
+        .replace("__BRIDGE__", _bridge_kwarg(bridge))
+    )
 
 
 def _regions_py() -> str:

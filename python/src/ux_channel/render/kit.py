@@ -294,7 +294,7 @@ def demo_page(
     ch: Any,
     *parts: Any,
     title: str = "ux-channel",
-    bridge: bool = True,
+    bridge: bool = False,
     inspector: bool | None = None,
     dev: bool | None = None,
     webrtc: bool | None = None,

@@ -29,12 +29,16 @@ def attach_document(channel: Any) -> None:
 
     def runtime(
         *,
-        bridge: bool = True,
+        bridge: bool = False,
         inspector: bool | None = None,
         dev: bool | None = None,
         webrtc: bool | None = None,
     ):
-        """Channel runtime Placement (script URLs) — no HTML."""
+        """Channel runtime Placement (script URLs) — no HTML.
+
+        ``ux-bridge.js`` runs any method a ``bridge.call`` op names on a bridged
+        widget, so it is listed only with ``bridge=True``.
+        """
         from ux_channel.render.placement import Placement, ScriptRef
 
         dev_b, insp = _env_flags(dev, inspector)
