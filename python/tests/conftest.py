@@ -34,6 +34,20 @@ def _isolate_push_bus():
     _wipe()
 
 
+@pytest.fixture(autouse=True)
+def _isolate_revocation_list():
+    """Drop the process ticket revocation list between tests.
+
+    ``create_channel(redis_url=...)`` installs a Redis-backed list. Ticket
+    verify fails closed when that store is unreachable, so it must not leak.
+    """
+    from ux_channel.devtools import ticket_revoke
+
+    ticket_revoke._list = None
+    yield
+    ticket_revoke._list = None
+
+
 @pytest.fixture
 def secret() -> str:
     return "test-secret-key-32-chars-minimum!!"

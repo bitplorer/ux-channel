@@ -469,12 +469,9 @@ def verify_rtc_ticket(
     if age is None:
         age = int(getattr(config, "webrtc_ticket_max_age", 300) or 300)
     ser = URLSafeTimedSerializer(str(secret), salt="ux-channel-rtc-v1")
-    try:
-        from ux_channel.devtools.ticket_revoke import get_revocation_list
-        if get_revocation_list().is_revoked(ticket):
-            return False, "ticket revoked"
-    except Exception:
-        pass
+    from ux_channel.devtools.ticket_revoke import get_revocation_list
+    if get_revocation_list().is_revoked(ticket):
+        return False, "ticket revoked"
     try:
         data = ser.loads(ticket, max_age=age)
     except SignatureExpired:

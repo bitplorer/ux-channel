@@ -113,12 +113,10 @@ class EnhanceFacade:
         sealed = dict(args or {})
         cfg = getattr(self.channel, "config", None)
         # cek=require: compose Continuation via cek_surface; Cap still from host.
-        try:
-            from ux_channel.cek.surface_adapter import uses_cek_surface
+        # No fallback: a bad mode or import must not downgrade require to native.
+        from ux_channel.cek.surface_adapter import uses_cek_surface
 
-            use_cek = uses_cek_surface(cfg)
-        except Exception:
-            use_cek = False
+        use_cek = uses_cek_surface(cfg)
         reg = getattr(self.channel, "registry", None)
         if reg is None:
             raise RuntimeError("Channel has no registry — cannot mint continuation Cap")
