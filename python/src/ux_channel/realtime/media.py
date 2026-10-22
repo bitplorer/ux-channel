@@ -281,7 +281,6 @@ class SfuBridge:
         base = (getattr(ch, "path", None) or "/ux-channel").rstrip("/")
         refs: list = [
             ScriptRef(src=f"{base}/static/ux-channel.js", defer=True, id="ux-channel"),
-            ScriptRef(src=f"{base}/static/ux-bridge.js", defer=True, id="ux-bridge"),
         ]
         if inspector:
             refs.append(

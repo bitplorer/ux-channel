@@ -9,6 +9,14 @@
   or `require_principal`, and a handler `principal` parameter is never bound
   from args. Classic `CapService` now refuses a whitespace-only Cap subject,
   as the cek-runtime Host does.
+- `ux-bridge.js` is opt-in. `ch.runtime()`, `demo_scripts(ch)` and
+  `demo_page(ch, ...)` default to `bridge=False`, and the media plane's
+  scripts no longer include it. That script runs any method a `bridge.call`
+  op names on a bridged widget, so a page without bridges must not ship it.
+  Pages with bridges pass `bridge=True` (as `examples/ux_dom_chartjs` and
+  `examples/ux_dom_threejs` now do) or load `bridge_script_tags()` /
+  `builtins_script_tags()` / `widgets_script_tags()`, which exist only to
+  load bridge adapters and keep loading it.
 - `data-ux-keep-value` keeps the visitor's live `.value` across a morph or
   outer swap for a `textarea`, or for an `input` of type `password`, `text`,
   `email`, `search`, `tel`, or `url`. Those six types are one class, so Show

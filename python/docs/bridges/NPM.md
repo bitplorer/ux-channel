@@ -22,7 +22,7 @@ App template (ux-dom)          uxchannel Browser
 ───────────────          ──────────────                 ─────────
 host element attrs    ←──  ch.bridge.mount_spec
   data-channel-bridge-*
-scripts               ←──  ch.runtime()  (includes ux-bridge.js)
+scripts               ←──  ch.runtime(bridge=True)  (adds ux-bridge.js)
 Result ops            ←──  ch.bridge.mount_ops(...)   →   ux-bridge.js
                                                       →   adapter from npm
 ```
@@ -117,7 +117,7 @@ Using `bridge.mount("livekit")` is **wrong**. Use `ch.media.plugin` + `@ux-chann
 
 ## DX checklist
 
-- [ ] `ch.runtime()` includes `ux-bridge.js` when using widgets  
+- [ ] `ch.runtime(bridge=True)` (or `demo_page(..., bridge=True)`) loads `ux-bridge.js`; it is off by default  
 - [ ] Host element has `data-channel-bridge-id` + `data-channel-bridge-package`  
 - [ ] Adapter registered before `bridge.mount` op arrives  
 - [ ] Manifest methods match adapter `call` surface  

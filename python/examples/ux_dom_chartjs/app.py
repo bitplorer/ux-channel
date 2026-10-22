@@ -291,7 +291,7 @@ def _btn(label: str, action, *, primary: bool = False):
 def _head_scripts() -> str:
     """Placement → script tags (demo helper). Adapter after channel scripts."""
     return (
-        script_tags(ch.runtime())
+        script_tags(ch.runtime(bridge=True))
         + '\n<script src="/demo-static/chartjs-adapter.js" defer></script>\n'
         + """
 <script>
