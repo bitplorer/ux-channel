@@ -55,11 +55,27 @@ import logging
 logger = logging.getLogger("ux_channel.host.regions")
 
 from dataclasses import dataclass, field
+from types import MappingProxyType
 from typing import Any, Callable, Mapping, Optional, Sequence, Union
 
 from ux_channel.render.html_safe import SafeHtml
 from ux_channel.protocol.types import Result
 from ux_channel.host.context import IDENTITY_KEYS, VerifiedContext
+
+
+def _principal_scope(principal: Any) -> dict[str, Any]:
+    """Trusted scope of an action: the principal's id, roles and ``*_id`` claims."""
+    if principal is None:
+        return {}
+    claims = getattr(principal, "claims", None) or {}
+    scope = {k: v for k, v in claims.items() if v is not None and k.endswith("_id")}
+    pid = getattr(principal, "id", None) or getattr(principal, "sub", None) or principal
+    for k in IDENTITY_KEYS:
+        scope[k] = pid
+    roles = claims.get("roles") or claims.get("role") or getattr(principal, "scopes", None)
+    if roles:
+        scope["roles"] = [roles] if isinstance(roles, str) else list(roles)
+    return scope
 
 
 def _id_str(uid: Any) -> str:
@@ -82,14 +98,16 @@ class RegionContext:
     Per-request context for region model + paint.
 
     * subject / actor — who is acting
-    * scope — resource ids (cart_id, user_id, …)
+    * scope — trusted keys: in an action, the principal's id, roles and
+      ``*_id`` claims (tenant_id, …); on paint, what server code passed
+    * args — the Intent args of the action, read-only. Client data: never
+      trusted, and never merged into scope
     * draft — ephemeral UI state
     * verified — the verified Cap (``ActionContext.verified``); ``None`` on
       paint or when the Intent carried no Cap.
 
     principal is the authenticated principal or ``None``; subject / actor /
-    user_id are its id. None of them, nor the identity keys of scope, ever
-    come from Intent args.
+    user_id are its id. Intent args never reach principal or scope.
     """
 
     principal: Any = None
@@ -98,6 +116,7 @@ class RegionContext:
     meta: dict[str, Any] = field(default_factory=dict)
     channel: Any = None
     verified: Optional[VerifiedContext] = None
+    args: Mapping[str, Any] = field(default_factory=lambda: MappingProxyType({}))
 
     @property
     def user_id(self) -> Any:
@@ -454,66 +473,21 @@ class RegionBook:
             def _prepare_call(args, kwargs):
                 """Build RegionContext from dispatch kwargs.
 
-                Registry injects ``ctx=ActionContext`` with the authenticated
-                principal. That identity must not be discarded when we rebuild
-                RegionContext — otherwise auth=True and multi-tenant scope
-                silently see ``anon``. Identity keys in scope come only from
-                that principal: ``scope`` and every other kwarg are client args.
+                Registry injects ``ctx=ActionContext`` and the authenticated
+                ``principal``. scope comes only from that principal; every
+                other kwarg is a client arg and goes to ``ctx.args`` alone.
                 """
                 principal = kwargs.pop("principal", None)
-                scope = dict(kwargs.pop("scope", None) or {})
-                # Registry-bound ActionContext carries principal + meta keys
                 existing_ctx = kwargs.pop("ctx", None)
-                if existing_ctx is not None:
-                    if principal is None:
-                        principal = getattr(existing_ctx, "principal", None)
-                    meta = getattr(existing_ctx, "meta", None) or {}
-                    if isinstance(meta, Mapping):
-                        for k, v in meta.items():
-                            if v is not None:
-                                scope.setdefault(k, v)
-                    # claims → scope (roles, tenant_id, …)
-                    if principal is not None:
-                        claims = getattr(principal, "claims", None) or {}
-                        if isinstance(claims, Mapping):
-                            for k, v in claims.items():
-                                if v is not None and (
-                                    k.endswith("_id")
-                                    or k in ("roles", "role", "tenant_id")
-                                ):
-                                    scope.setdefault(k, v)
-                for k in list(kwargs.keys()):
-                    if k in ("roles", "role"):
-                        continue
-                    if k.endswith("_id") or k in ("id", "uid", "tenant_id"):
-                        scope.setdefault(k, kwargs[k])
-                for k in IDENTITY_KEYS:
-                    scope.pop(k, None)
-                # Authenticated principal from ContextVar when still missing
                 if principal is None:
-                    try:
-                        from ux_channel.host.registry import _principal_override
+                    principal = getattr(existing_ctx, "principal", None)
+                if principal is None:
+                    from ux_channel.host.registry import _principal_override
 
-                        principal = _principal_override.get()
-                    except Exception:
-                        principal = None
-                if principal is not None:
-                    pid = (
-                        getattr(principal, "id", None)
-                        or getattr(principal, "sub", None)
-                        or principal
-                    )
-                    for k in IDENTITY_KEYS:
-                        scope[k] = pid
-                    if "roles" not in scope:
-                        roles = (getattr(principal, "claims", None) or {}).get("roles")
-                        if not roles:
-                            roles = getattr(principal, "scopes", None)
-                        if roles:
-                            scope["roles"] = (
-                                list(roles) if not isinstance(roles, str) else [roles]
-                            )
+                    principal = _principal_override.get()
+                scope = _principal_scope(principal)
                 ctx = self.context(principal=principal, scope=scope)
+                ctx.args = MappingProxyType(dict(kwargs))
                 ctx.verified = getattr(existing_ctx, "verified", None)
                 try:
                     sig = inspect.signature(fn)

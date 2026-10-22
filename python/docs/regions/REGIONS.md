@@ -52,6 +52,11 @@ badge(order_id="ord-1")  # __call__ → html(**scope)
 
 `ctx.scope` inside `render` holds those keys (plus principal-derived ids when present).
 
+In an `@ch.on` action and the regions it refreshes, `ctx.scope` holds only the principal's id,
+`roles` and `*_id` claims (`tenant_id`, …). The action's Intent args are untrusted client data in
+`ctx.args` (read-only); they never enter `ctx.scope`. To refresh a region for an arg, pass it
+explicitly: `ch.done(refresh=[cart], scope={"cart_id": cart_id})`.
+
 ## Not regions
 
 npm chart hosts use **bridges** (`mount_html`, `bridge_*` ops). See [PLUGINS.md](../bridges/PLUGINS.md).

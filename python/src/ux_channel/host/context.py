@@ -117,9 +117,9 @@ class ActionContext:
 
     ``principal`` is the authenticated principal (``dispatch(principal=)`` or
     ``auth_resolver``) or ``None``; ``subject`` and ``user_id`` are its id.
-    None of them, nor the identity keys of ``meta``, ever come from Intent
-    args. ``verified`` is the verified Cap, or ``None`` when the Intent carried
-    no Cap.
+    None of them, nor ``meta`` or ``key()``, ever see Intent args: those are
+    the handler's own parameters. ``verified`` is the verified Cap, or
+    ``None`` when the Intent carried no Cap.
     """
 
     request_id: str

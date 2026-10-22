@@ -22,7 +22,6 @@ from ux_channel.protocol.capability import CapError, CapService
 from ux_channel.host.context import (
     ActionContext,
     AuthResolver,
-    IDENTITY_KEYS,
     Principal,
     VerifiedContext,
     cap_subject,
@@ -998,25 +997,11 @@ class ActionRegistry:
         intent: Intent,
         principal: Optional[Principal],
         t0: float,
-        args: Optional[Mapping[str, Any]] = None,
         cap_data: Optional[Mapping[str, Any]] = None,
     ) -> ActionContext:
         deadline = None
         if self.action_timeout_s and self.action_timeout_s > 0:
             deadline = time.monotonic() + self.action_timeout_s
-        meta: dict[str, Any] = {}
-        # Stamp resource / tenancy keys so RegionBook can rebuild scope without
-        # depending on handler signature binding every key. Identity keys come
-        # only from the principal, never from args.
-        if args:
-            for k, v in args.items():
-                if v is None or k in IDENTITY_KEYS or k in ("roles", "role"):
-                    continue
-                if k.endswith("_id") or k in ("tenant_id", "id", "uid"):
-                    meta[k] = v
-        if principal is not None:
-            for k in IDENTITY_KEYS:
-                meta[k] = principal.id
         return ActionContext(
             request_id=intent.request_id or "",
             action=intent.action,
@@ -1024,7 +1009,6 @@ class ActionRegistry:
             deadline_monotonic=deadline,
             idempotency_key=intent.idempotency_key,
             request=_request_var.get(),
-            meta=meta,
             verified=VerifiedContext.from_claims(cap_data) if cap_data else None,
         )
 
@@ -1434,7 +1418,7 @@ class ActionRegistry:
 
             handler = self._actions[intent.action]
             meta = {"action": intent.action, "request_id": intent.request_id}
-            ctx = self._build_ctx(intent, principal, t0, args, _cap)
+            ctx = self._build_ctx(intent, principal, t0, _cap)
 
             try:
                 bound = self._bind_args(handler, args, ctx)
@@ -1585,7 +1569,7 @@ class ActionRegistry:
 
             handler = self._actions[intent.action]
             meta = {"action": intent.action, "request_id": intent.request_id}
-            ctx = self._build_ctx(intent, principal, t0, args, _cap)
+            ctx = self._build_ctx(intent, principal, t0, _cap)
 
             try:
                 bound = self._bind_args(handler, args, ctx)
