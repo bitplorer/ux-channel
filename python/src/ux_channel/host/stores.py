@@ -19,9 +19,10 @@ import copy
 import json
 import sqlite3
 import threading
+from contextlib import contextmanager
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Callable, Mapping, Protocol, runtime_checkable
+from typing import Any, Callable, Iterator, Mapping, Protocol, runtime_checkable
 
 Mutator = Callable[[Any], Any]
 
@@ -131,6 +132,9 @@ class MemoryStateStore:
     def __init__(self) -> None:
         self._data: dict[str, Any] = {}
         self._ver: dict[str, int] = {}
+        # One sequence for the store, never reset: a key deleted and set again
+        # gets a version no ``edit`` slot has seen (no ABA).
+        self._seq = 0
         self._lock = threading.RLock()
 
     def get(self, key: str, default: Any = None) -> Any:
@@ -142,7 +146,11 @@ class MemoryStateStore:
     def set(self, key: str, value: Any) -> None:
         with self._lock:
             self._data[key] = copy.deepcopy(value)
-            self._ver[key] = self._ver.get(key, 0) + 1
+            self._bump(key)
+
+    def _bump(self, key: str) -> None:
+        self._seq += 1
+        self._ver[key] = self._seq
 
     def delete(self, key: str) -> None:
         with self._lock:
@@ -164,7 +172,7 @@ class MemoryStateStore:
                     f"(expected ver={expected_ver}, now={cur}); retry the with-block"
                 )
             self._data[key] = copy.deepcopy(value)
-            self._ver[key] = cur + 1
+            self._bump(key)
 
     def edit(self, key: str, *, default: Any = None) -> EditSlot:
         """
@@ -221,7 +229,7 @@ class MemoryStateStore:
                 current = copy.deepcopy(default)
             new = mutator(current)
             self._data[key] = copy.deepcopy(new)
-            self._ver[key] = self._ver.get(key, 0) + 1
+            self._bump(key)
             return copy.deepcopy(new)
 
     def merge(self, key: str, updates: Mapping[str, Any], *, default: Any = None) -> Any:
@@ -286,7 +294,8 @@ class FileStateStore:
     ``StateConflict`` from this module.
 
     ``change`` uses ``BEGIN IMMEDIATE`` so two processes cannot lose
-    increments. CAS (``edit``) is a single sqlite statement.
+    increments. CAS (``edit``) checks and writes in one such transaction.
+    Versions come from the ``kv_seq`` row, shared by every key.
     """
 
     def __init__(self, path: str | Path) -> None:
@@ -308,6 +317,43 @@ class FileStateStore:
             " ver INTEGER NOT NULL"
             ")"
         )
+        # The never-reset version sequence (see MemoryStateStore), seeded
+        # above any version an older file already holds.
+        self._conn.execute(
+            "CREATE TABLE IF NOT EXISTS kv_seq ("
+            " id INTEGER PRIMARY KEY CHECK (id = 1),"
+            " n INTEGER NOT NULL"
+            ")"
+        )
+        self._conn.execute(
+            "INSERT OR IGNORE INTO kv_seq(id, n) SELECT 1, COALESCE(MAX(ver), 0) FROM kv"
+        )
+
+    @contextmanager
+    def _tx(self) -> Iterator[None]:
+        """One write transaction; ``BEGIN IMMEDIATE`` serializes processes."""
+        with self._lock:
+            self._conn.execute("BEGIN IMMEDIATE")
+            try:
+                yield
+            except BaseException:
+                try:
+                    self._conn.execute("ROLLBACK")
+                except sqlite3.Error:
+                    pass
+                raise
+            self._conn.execute("COMMIT")
+
+    def _put(self, key: str, payload: str) -> None:
+        """Write ``payload`` at the next version. Call inside ``_tx``."""
+        ver = self._conn.execute(
+            "UPDATE kv_seq SET n = n + 1 RETURNING n"
+        ).fetchall()[0][0]
+        self._conn.execute(
+            "INSERT INTO kv(k, v, ver) VALUES (?, ?, ?) "
+            "ON CONFLICT(k) DO UPDATE SET v = excluded.v, ver = excluded.ver",
+            (key, payload, ver),
+        )
 
     def get(self, key: str, default: Any = None) -> Any:
         with self._lock:
@@ -320,12 +366,8 @@ class FileStateStore:
 
     def set(self, key: str, value: Any) -> None:
         payload = _json_dump(copy.deepcopy(value))
-        with self._lock:
-            self._conn.execute(
-                "INSERT INTO kv(k, v, ver) VALUES (?, ?, 1) "
-                "ON CONFLICT(k) DO UPDATE SET v = excluded.v, ver = kv.ver + 1",
-                (key, payload),
-            )
+        with self._tx():
+            self._put(key, payload)
 
     def delete(self, key: str) -> None:
         with self._lock:
@@ -342,37 +384,17 @@ class FileStateStore:
 
     def _cas_set(self, key: str, expected_ver: int, value: Any) -> None:
         payload = _json_dump(copy.deepcopy(value))
-        with self._lock:
-            if expected_ver == 0:
-                try:
-                    self._conn.execute(
-                        "INSERT INTO kv(k, v, ver) VALUES (?, ?, 1)",
-                        (key, payload),
-                    )
-                    return
-                except sqlite3.IntegrityError:
-                    cur = self._conn.execute(
-                        "SELECT ver FROM kv WHERE k = ?", (key,)
-                    ).fetchone()
-                    now = int(cur[0]) if cur else -1
-                    raise StateConflict(
-                        f"state key {key!r} changed during edit "
-                        f"(expected ver={expected_ver}, now={now}); retry the with-block"
-                    ) from None
-            cur = self._conn.execute(
-                "UPDATE kv SET v = ?, ver = ver + 1 WHERE k = ? AND ver = ?",
-                (payload, key, expected_ver),
-            )
-            if cur.rowcount == 1:
-                return
+        with self._tx():
             row = self._conn.execute(
                 "SELECT ver FROM kv WHERE k = ?", (key,)
             ).fetchone()
             now = int(row[0]) if row else 0
-            raise StateConflict(
-                f"state key {key!r} changed during edit "
-                f"(expected ver={expected_ver}, now={now}); retry the with-block"
-            )
+            if now != expected_ver:
+                raise StateConflict(
+                    f"state key {key!r} changed during edit "
+                    f"(expected ver={expected_ver}, now={now}); retry the with-block"
+                )
+            self._put(key, payload)
 
     def edit(self, key: str, *, default: Any = None) -> EditSlot:
         value, ver = self._snapshot(key, default)
@@ -408,31 +430,17 @@ class FileStateStore:
         ui + channel). Thread ``RLock`` serializes in-process. Redis uses
         WATCH/MULTI for the same job.
         """
-        with self._lock:
-            self._conn.execute("BEGIN IMMEDIATE")
-            try:
-                row = self._conn.execute(
-                    "SELECT v FROM kv WHERE k = ?", (key,)
-                ).fetchone()
-                if row is None:
-                    current = copy.deepcopy(default)
-                else:
-                    current = copy.deepcopy(_json_load(row[0]))
-                new = mutator(current)
-                payload = _json_dump(copy.deepcopy(new))
-                self._conn.execute(
-                    "INSERT INTO kv(k, v, ver) VALUES (?, ?, 1) "
-                    "ON CONFLICT(k) DO UPDATE SET v = excluded.v, ver = kv.ver + 1",
-                    (key, payload),
-                )
-                self._conn.execute("COMMIT")
-                return copy.deepcopy(new)
-            except Exception:
-                try:
-                    self._conn.execute("ROLLBACK")
-                except sqlite3.Error:
-                    pass
-                raise
+        with self._tx():
+            row = self._conn.execute(
+                "SELECT v FROM kv WHERE k = ?", (key,)
+            ).fetchone()
+            if row is None:
+                current = copy.deepcopy(default)
+            else:
+                current = copy.deepcopy(_json_load(row[0]))
+            new = mutator(current)
+            self._put(key, _json_dump(copy.deepcopy(new)))
+        return copy.deepcopy(new)
 
     def merge(self, key: str, updates: Mapping[str, Any], *, default: Any = None) -> Any:
         def _mut(base: Any) -> Any:
