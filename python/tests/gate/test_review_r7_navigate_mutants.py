@@ -20,7 +20,6 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from gate.test_server_refused_vectors import _kick
 from ux_channel import Channel, ChannelConfig, Result, navigate
 from ux_channel.redis_extra import RedisPushBus
 from ux_channel.transport.stream import format_sse
@@ -160,7 +159,6 @@ def _deliver(
         fake.publish(bus.backend._ch(_TOPIC), json.dumps(Result.success(op).to_dict()))
         deadline = time.time() + 2
         while time.time() < deadline and "data: " not in "".join(sink):
-            _kick(bus)
             time.sleep(0.02)
         thread.join(0.2)
         return _delivered("".join(sink))
@@ -193,7 +191,6 @@ def _deliver(
             assert ws.receive_json()["type"] == "hello"
             assert ws.receive_json()["type"] == "subscribed"
             ch.live.publish(_TOPIC, result=Result.success(op))
-            _kick(ch.registry.push_bus)
             return _delivered(json.dumps(ws.receive_json()))
     if transport == "mcp":
         return _published(client, ch, _MCP_TOPIC, op, mcp=True)
@@ -227,7 +224,6 @@ def _published(client: TestClient, ch: Channel, topic: str, op: dict, *, mcp: bo
     ch.live.publish(topic, result=Result.success(op))
     deadline = time.time() + 2
     while time.time() < deadline and "".join(sink).count("data: ") < need:
-        _kick(ch.registry.push_bus)
         time.sleep(0.01)
     thread.join(0.2)
     return _delivered("".join(sink))

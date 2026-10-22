@@ -35,28 +35,6 @@ def _reset_push() -> None:
     gc.collect()
 
 
-def _kick(*buses: object) -> None:
-    """Wake a TestClient stream blocked in ``asyncio.Queue.get``.
-
-    ``PushBus.publish`` uses ``put_nowait`` from the test thread. That schedules
-    the waiter without waking the loop the stream is blocked on, so a body that
-    is already queued never shows up. This only unblocks the read.
-    """
-    seen: set[int] = set()
-    for bus in buses:
-        if bus is None or id(bus) in seen:
-            continue
-        seen.add(id(bus))
-        subs = getattr(getattr(bus, "backend", None), "_subs", None)
-        if not subs:
-            continue
-        for queues in list(subs.values()):
-            for q in list(queues):
-                loop = getattr(q, "_loop", None)
-                if loop is not None and not loop.is_closed():
-                    loop.call_soon_threadsafe(lambda: None)
-
-
 def _boot(policy: str | None = "off", hosts: tuple[str, ...] = ()):
     app = FastAPI()
     kwargs: dict[str, object] = {
@@ -125,7 +103,6 @@ def test_push_sse_a_does_not_receive_b_and_does_receive_itself() -> None:
 
     ch_b.live.publish(_TOPIC, result=Result.success(swap("#t", _B_CLICK)))
     ch_a.live.publish(_TOPIC, result=Result.success(swap("#t", f"<b>{_A_MARK}</b>")))
-    _kick(ch_a.registry.push_bus, ch_b.registry.push_bus)
     got_a = _wait_blob(sink_a, _A_MARK)
     thread_a.join(0.1)
     assert "onclick" not in got_a.lower(), got_a
@@ -136,7 +113,6 @@ def test_push_sse_a_does_not_receive_b_and_does_receive_itself() -> None:
     sink_b, thread_b, _ = _start_sse(client_b, _TOPIC)
     ch_b.live.publish(_TOPIC, result=Result.success(swap("#t", _B_CLICK)))
     ch_a.live.publish(_TOPIC, result=Result.success(swap("#t", f"<b>{_A_MARK}</b>")))
-    _kick(ch_a.registry.push_bus, ch_b.registry.push_bus)
     got_b = _wait_blob(sink_b, _B_MARK)
     thread_b.join(0.1)
     assert _B_MARK in got_b, got_b
@@ -156,7 +132,6 @@ def test_strict_push_sse_never_receives_b_onerror_or_evil_navigate() -> None:
     ch_a.live.publish(
         _TOPIC, result=Result.success({"op": "navigate", "href": "https://app.test/ok"})
     )
-    _kick(ch_a.registry.push_bus, ch_b.registry.push_bus)
     got = _wait_blob(sink_a, "onerror")
     thread_a.join(0.1)
     assert "onerror" not in got.lower(), got
@@ -177,7 +152,6 @@ def test_ws_a_does_not_receive_b_and_does_receive_itself() -> None:
             assert ws_b.receive_json()["type"] == "subscribed"
             ch_b.live.publish(_TOPIC, result=Result.success(swap("#t", _B_CLICK)))
             ch_a.live.publish(_TOPIC, result=Result.success(swap("#t", f"<b>{_A_MARK}</b>")))
-            _kick(ch_a.registry.push_bus, ch_b.registry.push_bus)
             got_a = _collect_ws(ws_a)
             got_b = _collect_ws(ws_b)
     assert "onclick" not in got_a.lower(), got_a
@@ -198,7 +172,6 @@ def test_mcp_a_does_not_receive_b_and_does_receive_itself() -> None:
     sink_a, thread_a, _ = _start_mcp(client_a, topic, headers)
     ch_b.live.publish(topic, result=Result.success(swap("#t", _B_CLICK)))
     ch_a.live.publish(topic, result=Result.success(swap("#t", f"<b>{_A_MARK}</b>")))
-    _kick(ch_a.registry.push_bus, ch_b.registry.push_bus)
     got_a = _wait_blob(sink_a, _A_MARK)
     thread_a.join(0.1)
     assert "onclick" not in got_a.lower(), got_a
@@ -209,7 +182,6 @@ def test_mcp_a_does_not_receive_b_and_does_receive_itself() -> None:
     sink_b, thread_b, _ = _start_mcp(client_b, topic, headers)
     ch_b.live.publish(topic, result=Result.success(swap("#t", _B_CLICK)))
     ch_a.live.publish(topic, result=Result.success(swap("#t", f"<b>{_A_MARK}</b>")))
-    _kick(ch_a.registry.push_bus, ch_b.registry.push_bus)
     got_b = _wait_blob(sink_b, _B_MARK)
     thread_b.join(0.1)
     assert _B_MARK in got_b, got_b
@@ -236,7 +208,6 @@ def test_set_push_bus_repoints_the_open_route() -> None:
     sink, thread, _ = _start_sse(client, _TOPIC)
     body = Result.success(swap("#t", f"<b>{_A_MARK}</b>")).to_dict()
     replacement.publish(_TOPIC, body)
-    _kick(ch.registry.push_bus, replacement)
     got = _wait_blob(sink, _A_MARK)
     thread.join(0.1)
     assert ch.registry.push_bus is replacement

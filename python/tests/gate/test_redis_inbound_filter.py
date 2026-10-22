@@ -43,15 +43,6 @@ def _boot(policy: str):
     return app, bus, fake
 
 
-def _kick(bus: object) -> None:
-    local = getattr(getattr(bus, "backend", None), "_local", None) or {}
-    for queues in list(local.values()):
-        for q in list(queues):
-            loop = getattr(q, "_loop", None)
-            if loop is not None and not loop.is_closed():
-                loop.call_soon_threadsafe(lambda: None)
-
-
 def _sse(client: TestClient, sink: list[str], ready: threading.Event) -> None:
     with client.stream("GET", f"/ux-channel/push/{_TOPIC}") as resp:
         assert resp.status_code == 200, resp.status_code
@@ -84,7 +75,6 @@ def test_redis_inbound_onclick_is_filtered_on_push() -> None:
 
     deadline = time.time() + 2.0
     while time.time() < deadline and _MARK not in "".join(sink):
-        _kick(bus)
         time.sleep(0.05)
     body = "".join(sink)
     assert _MARK in body, body

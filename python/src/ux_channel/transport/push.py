@@ -12,7 +12,7 @@ import gc
 import threading
 import weakref
 from collections import defaultdict
-from typing import Any, DefaultDict, Optional, Protocol, Set
+from typing import Any, DefaultDict, Optional, Protocol
 
 from ux_channel.protocol.types import Result
 from ux_channel.security.security import filter_outbound_ops
@@ -24,45 +24,70 @@ class PushBackend(Protocol):
     def unsubscribe_local(self, topic: str, queue: asyncio.Queue) -> None: ...
 
 
+def put_latest(q: asyncio.Queue, payload: Any) -> bool:
+    """Put ``payload``; on ``QueueFull`` drop the oldest item and retry once.
+
+    Live UIs prefer *fresh* morphs over silent total loss.
+    """
+    try:
+        q.put_nowait(payload)
+        return True
+    except asyncio.QueueFull:
+        try:
+            q.get_nowait()
+        except asyncio.QueueEmpty:
+            pass
+        try:
+            q.put_nowait(payload)
+            return True
+        except asyncio.QueueFull:
+            return False
+
+
+def subscriber_loop() -> asyncio.AbstractEventLoop | None:
+    """The loop a subscriber reads on, or None outside one."""
+    try:
+        return asyncio.get_running_loop()
+    except RuntimeError:
+        return None
+
+
+def deliver(loop: asyncio.AbstractEventLoop | None, q: asyncio.Queue, payload: Any) -> bool:
+    """``put_latest`` on the subscriber's loop, from any thread.
+
+    ``asyncio.Queue`` is not thread-safe. A put from another thread (a sync
+    action in the threadpool, the Redis listener) stores the item but does not
+    wake the loop, so the reader sleeps until its SSE/WS keepalive timeout.
+    """
+    if loop is None or loop is subscriber_loop():
+        return put_latest(q, payload)
+    try:
+        loop.call_soon_threadsafe(put_latest, q, payload)
+    except RuntimeError:  # loop closed: the subscriber is gone
+        return False
+    return True
+
+
 class MemoryPushBackend:
     def __init__(self) -> None:
-        self._subs: DefaultDict[str, Set[asyncio.Queue]] = defaultdict(set)
+        self._subs: DefaultDict[
+            str, dict[asyncio.Queue, asyncio.AbstractEventLoop | None]
+        ] = defaultdict(dict)
         self._lock = threading.Lock()
 
     def publish(self, topic: str, payload: dict) -> int:
-        """
-        Fan-out to local SSE/WS queues.
-
-        On ``QueueFull``: drop the oldest item then retry once so live UIs
-        prefer *fresh* morphs over silent total loss (SSE refresh reliability).
-        """
+        """Fan-out to local SSE/WS queues."""
         with self._lock:
-            qs = list(self._subs.get(topic, ()))
-        n = 0
-        for q in qs:
-            try:
-                q.put_nowait(payload)
-                n += 1
-            except asyncio.QueueFull:
-                try:
-                    q.get_nowait()  # drop oldest
-                except Exception:
-                    pass
-                try:
-                    q.put_nowait(payload)
-                    n += 1
-                except asyncio.QueueFull:
-                    # still full — skip this subscriber
-                    pass
-        return n
+            subs = list(self._subs.get(topic, {}).items())
+        return sum(deliver(loop, q, payload) for q, loop in subs)
 
     def subscribe_local(self, topic: str, queue: asyncio.Queue) -> None:
         with self._lock:
-            self._subs[topic].add(queue)
+            self._subs[topic][queue] = subscriber_loop()
 
     def unsubscribe_local(self, topic: str, queue: asyncio.Queue) -> None:
         with self._lock:
-            self._subs[topic].discard(queue)
+            self._subs[topic].pop(queue, None)
             if not self._subs[topic]:
                 del self._subs[topic]
 

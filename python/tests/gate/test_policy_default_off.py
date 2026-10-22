@@ -76,22 +76,6 @@ def _handler(ch: Channel, op: dict) -> None:
         return Result.success(op)
 
 
-def _kick(*buses: object) -> None:
-    seen: set[int] = set()
-    for bus in buses:
-        if bus is None or id(bus) in seen:
-            continue
-        seen.add(id(bus))
-        subs = getattr(getattr(bus, "backend", None), "_subs", None)
-        if not subs:
-            continue
-        for queues in list(subs.values()):
-            for q in list(queues):
-                loop = getattr(q, "_loop", None)
-                if loop is not None and not loop.is_closed():
-                    loop.call_soon_threadsafe(lambda: None)
-
-
 def _read_push(client: TestClient, ch: Channel, op: dict) -> str:
     sink: list[str] = []
     ready = threading.Event()
@@ -109,7 +93,6 @@ def _read_push(client: TestClient, ch: Channel, op: dict) -> str:
     thread.start()
     assert ready.wait(2)
     ch.live.publish(_TOPIC, result=Result.success(op))
-    _kick(ch.registry.push_bus)
     deadline = time.time() + 1.0
     while time.time() < deadline and not sink:
         time.sleep(0.02)
@@ -275,7 +258,6 @@ def test_off_ws_refuses_handlers_and_script_urls() -> None:
         assert ws.receive_json()["type"] == "subscribed"
         for name, op in _REFUSALS:
             ch.live.publish(_TOPIC, result=Result.success(op))
-            _kick(ch.registry.push_bus)
             msg = ws.receive_json()
             _refuse_blob(str(msg), name)
 
@@ -306,7 +288,6 @@ def test_off_mcp_refuses_handlers_and_script_urls() -> None:
     for name, op in _REFUSALS:
         before = len(sink)
         ch.live.publish(topic, result=Result.success(op))
-        _kick(ch.registry.push_bus)
         deadline = time.time() + 1.0
         while time.time() < deadline and len(sink) == before:
             time.sleep(0.02)
