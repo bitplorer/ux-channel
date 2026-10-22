@@ -94,9 +94,7 @@ def mount_channel(
     static_path: Optional[str] = None,
     config: Any = None,
     trusted_proxy: bool = False,
-    include_bridge_js: bool = True,
     mount_agent_mcp: bool = False,
-    **kwargs: Any,
 ) -> APIRouter:
     """
     Mount Channel routes + static assets.
@@ -107,12 +105,14 @@ def mount_channel(
         Optional ChannelConfig — enables body limits, origin checks, IP limits.
     trusted_proxy:
         Honor X-Forwarded-For only when behind a known reverse proxy.
+    mount_agent_mcp:
+        Mount the agent MCP routes under ``{path}/mcp``. ``config.mount_agent_mcp``
+        also mounts them.
     """
     path = path.rstrip("/") or "/ux-channel"
     if config is not None and getattr(config, "path", None):
         path = str(config.path).rstrip("/") or path
     static_path = static_path or f"{path}/static"
-    _ = include_bridge_js
 
     max_request = int(getattr(config, "max_request_bytes", 256_000) or 256_000)
     allowed_origins = tuple(getattr(config, "allowed_origins", ()) or ())
@@ -965,7 +965,7 @@ def mount_channel(
 
 
     # --- Agent / MCP modular surface (opt-in) ---
-    if getattr(config, "mount_agent_mcp", False) or kwargs.get("mount_agent_mcp"):
+    if mount_agent_mcp or getattr(config, "mount_agent_mcp", False):
         agent_token = getattr(config, "agent_token", None) if config else None
         confirm_secret = getattr(config, "agent_confirmation_secret", None) if config else None
         mcp_verticals = tuple(getattr(config, "mcp_verticals", ()) or ()) if config else ()
