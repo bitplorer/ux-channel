@@ -581,20 +581,19 @@ def mount_channel(
             await websocket.close(code=1008, reason=(why_o or "origin")[:120])
             return
 
-        # Wave 1: connect rate limit (client host / IP key)
+        # Wave 1: connect rate limit (client host / IP key). A limiter that
+        # raises (Redis down) refuses the socket, like the HTTP limiters.
+        from ux_channel.transport.ws_limits import get_ws_limiter
+
         client_key = (websocket.client.host if websocket.client else None) or "unknown"
-        try:
-            from ux_channel.transport.ws_limits import get_ws_limiter
-            lim = get_ws_limiter()
-            if lim is not None:
-                ok_c, why_c = lim.allow_connect(client_key)
-                if not ok_c:
-                    from ux_channel.security.security_events import emit_security
-                    emit_security("ws_rate_connect", reason=why_c, client=client_key)
-                    await websocket.close(code=1008, reason=(why_c or "rate")[:120])
-                    return
-        except Exception:
-            pass
+        lim = get_ws_limiter()
+        if lim is not None:
+            ok_c, why_c = lim.allow_connect(client_key)
+            if not ok_c:
+                from ux_channel.security.security_events import emit_security
+                emit_security("ws_rate_connect", reason=why_c, client=client_key)
+                await websocket.close(code=1008, reason=(why_c or "rate")[:120])
+                return
 
         header_map: dict[str, str] = {}
         for k, v in websocket.scope.get("headers", []):
@@ -789,18 +788,15 @@ def mount_channel(
                     break
                 try:
                     raw = await websocket.receive_text()
-                    try:
-                        from ux_channel.transport.ws_limits import get_ws_limiter
-                        lim = get_ws_limiter()
-                        if lim is not None:
-                            ok_m, why_m = lim.allow_message(client_key)
-                            if not ok_m:
-                                await websocket.send_json(error_message("rate", why_m or "rate limit"))
-                                continue
-                    except Exception:
-                        pass
                 except Exception:
                     break
+                # A limiter that raises ends the socket (fail closed).
+                lim = get_ws_limiter()
+                if lim is not None:
+                    ok_m, why_m = lim.allow_message(client_key)
+                    if not ok_m:
+                        await websocket.send_json(error_message("rate", why_m or "rate limit"))
+                        continue
                 try:
                     msg = parse_client_message(raw, max_bytes=max_msg)
                 except Exception as exc:
