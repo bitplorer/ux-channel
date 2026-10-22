@@ -1,5 +1,6 @@
 ## Unreleased
 
+- `MemoryStateStore` and `FileStateStore` take each version from one store-wide sequence that `delete` and `clear` never reset. Before, a key deleted (or cleared) and set again restarted at version 1, so a stale `edit` slot committed over the newer value. `FileStateStore` keeps the sequence in a one-row `kv_seq` table, seeded from `MAX(ver)` when an existing file is opened. `kv(k, v, ver)` is unchanged. `RedisStateStore` compares content and is unaffected.
 - An error on the Cap or ticket path now raises instead of allowing. `mint_continuation` raises on an unknown `cek` mode or a broken `ux_channel.cek.surface_adapter` import; it no longer falls back to native continuations under `cek=require`. When the revocation store raises, push subscribe, RTC ticket verify, and workplace ticket verify raise, and `POST /mcp/session/revoke` returns 500 instead of reporting the ticket revoked. A topic policy engine that raises, or a confirm-token nonce store that raises, propagates instead of allowing the subscribe or accepting the token.
 - `data-ux-keep-value` keeps the visitor's live `.value` across a morph or
   outer swap for a `textarea`, or for an `input` of type `password`, `text`,
