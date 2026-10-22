@@ -118,7 +118,7 @@ not the key. Shared keys restore nothing. The server should paint
 
 | Want | Use |
 |------|-----|
-| Counter / wizard draft | `st.session(...)` then morph |
+| Counter / wizard draft | `st.session(...)` (per visitor) then morph |
 | Money, stock, dose, roles | your DB + `Quantity.from_store` |
 | Secret / token / cap | never the client bag |
 | Caret after morph | already on — `restoreFocus` inside applyMorph |

@@ -147,8 +147,8 @@ The bag survives reload. The HTML document does not come from the bag.
 Paint after GET is server HTML (session/db) or product JS that *reads*
 `uxChannel.signals`. Channel does not GET client values.
 
-`st.session("n", 0)` is the counter. That is server draft + morph. It does
-not use localStorage.
+`st.session("n", 0)` is the counter. That is server draft + morph, one value
+per visitor (the action's Cap subject). It does not use localStorage.
 
 ### Morph restore-focus — always on, not persist
 

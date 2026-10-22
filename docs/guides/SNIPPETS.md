@@ -285,7 +285,8 @@ from ux_channel import state
 
 # After Channel.boot(...):
 st = state(ch, allow=["ui.theme"])
-n = st.session("n", 0)
+n = st.session("n", 0)    # per visitor: keyed by the action's Cap subject
+hits = st.shared("hits", 0)  # one value for every visitor
 # st.client  — client plane (strict by default; persist only allowlisted paths)
 # st.db      — host-provided durable store facade, not a database
 ```

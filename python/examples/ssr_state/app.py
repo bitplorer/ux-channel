@@ -1,5 +1,9 @@
 """
-state() demo — session chrome + morph.
+state() demo — per-visitor session chrome + morph.
+
+A session value belongs to the subject of the action's Cap. This demo has
+one fixed visitor; a real host resolves each visitor (ux-compose: a signed
+visitor cookie) and mints that visitor's Caps.
 
   uvicorn examples.ssr_state.app:app --host 0.0.0.0 --port 8080
 """
@@ -9,7 +13,8 @@ from __future__ import annotations
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 
-from ux_channel import Channel, ChannelConfig, state
+from ux_channel import Channel, ChannelConfig, Principal, state
+from ux_channel.host.ssr_state import reading_as
 from ux_channel.render.kit import attr_string, demo_button, script_tags
 
 app = FastAPI(title="uid-state")
@@ -22,6 +27,9 @@ ch = Channel.boot(
     ),
 )
 st = state(ch)
+
+VISITOR = "demo-visitor"
+ch.registry.auth_resolver = lambda request: Principal(id=VISITOR)
 
 count = st.session("count", 0)
 cart = st.session("cart", {"qty": 0})
@@ -56,6 +64,11 @@ def reset():
 
 @app.get("/", response_class=HTMLResponse)
 def index():
+    with reading_as(VISITOR):
+        return _page()
+
+
+def _page():
     rt = ch.runtime()
     body = ch.body_attrs()
     return f"""<!doctype html>
@@ -89,8 +102,8 @@ def index():
   <code>button("+", **st.bind(add))</code></p>
   <div class="row">
     {st.paint("badge", wrap=False)}
-    {demo_button(ch, "Add", add)}
-    {demo_button(ch, "Reset", reset)}
+    {demo_button(ch, "Add", add, sub=VISITOR)}
+    {demo_button(ch, "Reset", reset, sub=VISITOR)}
   </div>
   {st.paint("cart", wrap=False)}
   <p class="muted" style="margin-top:2rem">Many rows:</p>

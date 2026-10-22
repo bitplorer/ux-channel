@@ -7,6 +7,14 @@ from fastapi import FastAPI
 
 from ux_channel import Channel, ChannelConfig, Intent, state
 from ux_channel.host.state_planes import ClientSafetyError
+from helpers.channel import VISITOR, as_visitor, visitor_caller
+
+
+@pytest.fixture(autouse=True)
+def _visitor():
+    """Session values are per visitor; these tests act as one."""
+    with as_visitor():
+        yield
 
 
 def _boot(**kw):
@@ -17,6 +25,7 @@ def _boot(**kw):
             secret="x" * 40, allow_memory_stores=True, require_cap=False
         ),
     )
+    visitor_caller(ch)
     return app, ch, state(ch, **kw)
 
 
@@ -34,7 +43,7 @@ def test_public_api_session_region_action():
     def inc():
         n.add(1)
 
-    r = ch.registry.dispatch(Intent(action="inc", args={}, cap=ch.mint("inc", {})))
+    r = ch.registry.dispatch(Intent(action="inc", args={}, cap=ch.mint("inc", {}, sub=VISITOR)))
     assert any("1" in (o.get("html") or "") for o in r.ops)
     assert ch.st is st
 

@@ -22,6 +22,14 @@ from ux_channel import (
 )
 from ux_channel.host.state_planes import ClientSafetyError
 from ux_channel.host.ssr_state import ssr_state
+from helpers.channel import VISITOR, as_visitor, visitor_caller
+
+
+@pytest.fixture(autouse=True)
+def _visitor():
+    """Session values are per visitor; these tests act as one."""
+    with as_visitor():
+        yield
 
 
 def _boot(**kw):
@@ -32,6 +40,7 @@ def _boot(**kw):
             secret="z" * 40, allow_memory_stores=True, require_cap=False
         ),
     )
+    visitor_caller(ch)
     return app, ch, state(ch, **kw)
 
 
@@ -182,7 +191,7 @@ def test_action_return_variants():
         return Result.success(notice="ok")
 
     for name in ("a_none", "a_str", "a_result"):
-        r = ch.registry.dispatch(Intent(action=name, args={}, cap=ch.mint(name, {})))
+        r = ch.registry.dispatch(Intent(action=name, args={}, cap=ch.mint(name, {}, sub=VISITOR)))
         assert r.ok
 
 
@@ -201,7 +210,7 @@ def test_async_action():
     async def ainc():
         n.add(1)
 
-    cap = ch.mint("ainc", {})
+    cap = ch.mint("ainc", {}, sub=VISITOR)
     try:
         ch.registry.dispatch(Intent(action="ainc", args={}, cap=cap))
         raise AssertionError("sync dispatch must not run async handlers")
@@ -344,7 +353,7 @@ def test_http_100_bumps():
 
     client = TestClient(app)
     for _ in range(100):
-        assert client.post("/ux-channel/action", json={"action": "bump", "args": {}}).json()["ok"]
+        assert client.post("/ux-channel/action", json={"action": "bump", "args": {}, "cap": ch.mint("bump", {}, sub=VISITOR)}).json()["ok"]
     assert n.peek() == 100
 
 
@@ -363,7 +372,7 @@ def test_http_parallel_bumps_same_counter():
     client = TestClient(app)
 
     def once(_):
-        return client.post("/ux-channel/action", json={"action": "bump", "args": {}}).json()["ok"]
+        return client.post("/ux-channel/action", json={"action": "bump", "args": {}, "cap": ch.mint("bump", {}, sub=VISITOR)}).json()["ok"]
 
     with concurrent.futures.ThreadPoolExecutor(8) as ex:
         oks = list(ex.map(once, range(40)))
@@ -423,6 +432,6 @@ def test_action_with_client_set_via_done_merge():
         # @st.action uses bag.done not ChannelState.done — client may not merge
         return st.done()  # explicit ChannelState.done
 
-    r = ch.registry.dispatch(Intent(action="theme", args={}, cap=ch.mint("theme", {})))
+    r = ch.registry.dispatch(Intent(action="theme", args={}, cap=ch.mint("theme", {}, sub=VISITOR)))
     assert r.ok
     assert any(o.get("op") == "signal.set" for o in r.ops)

@@ -32,6 +32,7 @@ from ux_channel.bridge.bridge_protocol import (
     reset_sealed_registry,
 )
 from ux_channel_ux_dom import compile_capability_tree
+from helpers.channel import as_visitor
 
 
 SECRET = "giant-foundation-secret-key-32b!!"
@@ -153,9 +154,10 @@ def test_client_refuses_quantity_path():
 def test_session_refuses_quantity():
     ch = _ch()
     st = state(ch)
-    with pytest.raises(QuantityError):
-        st.session("amount", 0).set(50)
-    st.session("order_id", "").set("ord_9")
+    with as_visitor():
+        with pytest.raises(QuantityError):
+            st.session("amount", 0).set(50)
+        st.session("order_id", "").set("ord_9")
 
 
 def test_guest_runtime_budget_and_protocol():

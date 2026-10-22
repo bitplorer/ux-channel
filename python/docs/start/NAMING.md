@@ -58,7 +58,8 @@ q = Quantity.from_store(10.5, "USD", source="db.order.9.amount", revision=3)
 
 | API | Kind |
 |-----|------|
-| `st.session` | Server draft chrome |
+| `st.session` | Server draft chrome, per visitor (Cap subject) |
+| `st.shared` | Server draft chrome, one value for every visitor |
 | `st.client` | Browser bag |
 | `st.db` | Guards only — you own durable store |
 

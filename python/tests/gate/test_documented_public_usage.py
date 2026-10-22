@@ -22,6 +22,7 @@ from ux_channel import (
     Channel,
     ChannelConfig,
     Intent,
+    Principal,
     Result,
     morph,
     navigate,
@@ -29,6 +30,7 @@ from ux_channel import (
     state,
     toast,
 )
+from ux_channel.host.ssr_state import reading_as
 from ux_channel.host.stores import MemoryStateStore
 from ux_channel.protocol.error_map import http_status_for
 from ux_channel.protocol.errors import ActionError
@@ -200,8 +202,18 @@ def test_state_session_roundtrip_and_secret_path_rejected():
     st = state(ch, allow=["ui.theme"])
     theme = st.session("ui.theme", "light")
     assert theme.get() == "light"
-    theme.set("dark")
-    assert st.session("ui.theme").get() == "dark"
+
+    @ch.on
+    def dark():
+        theme.set("dark")
+
+    # A session value is per visitor: the Cap names the visitor.
+    ch.registry.auth_resolver = lambda request: Principal(id="visitor-1")
+    r = ch.registry.dispatch(Intent(action="dark", args={}, cap=ch.mint("dark", {}, sub="visitor-1")))
+    assert r.ok, r
+    with reading_as("visitor-1"):
+        assert st.session("ui.theme").get() == "dark"
+    assert st.session("ui.theme").get() == "light"
 
     with pytest.raises(ValueError):
         st.client("password", "hunter2")
