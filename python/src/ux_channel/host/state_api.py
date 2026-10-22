@@ -72,8 +72,22 @@ class ChannelState:
         *,
         refresh: Any = None,
     ) -> SessionVar:
-        """Session value (server draft). Same key → same value."""
+        """Per-visitor value, keyed by the verified Cap subject.
+
+        Without a subject a read returns ``default`` and a write raises
+        ``NoSessionSubject``.
+        """
         return self._bag.session(key, default, refresh=refresh)
+
+    def shared(
+        self,
+        key: str,
+        default: Any = None,
+        *,
+        refresh: Any = None,
+    ) -> SessionVar:
+        """App-wide value: one cell every visitor reads and writes."""
+        return self._bag.shared(key, default, refresh=refresh)
 
     def namespace(self, *parts: Any) -> Namespace:
         """Many independent session values (e.g. per row)."""
@@ -115,7 +129,8 @@ class ChannelState:
     def help(self) -> str:
         return (
             "st = state(ch)\n"
-            "  n = st.session('n', 0)          # server session value\n"
+            "  n = st.session('n', 0)          # per-visitor (Cap subject)\n"
+            "  hits = st.shared('hits', 0)     # one value for every visitor\n"
             "  row = st.namespace('line', id); q = row.session('qty', 0)\n"
             "  @st.region / @st.action / st.bind(fn)\n"
             "  st.client('ui.theme', 'dark') # browser (allow= for persist)\n"
@@ -128,7 +143,8 @@ class ChannelState:
             "api": "state(ch) → session | client | db",
             "public_api": self.help().strip().splitlines(),
             "kinds": {
-                "session": "server draft — st.session / st.namespace",
+                "session": "per visitor (verified Cap subject) — st.session / st.namespace",
+                "shared": "one value for the whole app — st.shared",
                 "client": "browser — st.client(path, value)",
                 "db": "your database — st.db.guard / require",
             },

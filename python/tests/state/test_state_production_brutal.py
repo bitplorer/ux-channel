@@ -21,6 +21,14 @@ from ux_channel import (
     state,
 )
 from ux_channel.host.state_planes import ClientSafetyError, path_is_risky
+from helpers.channel import VISITOR, as_visitor, visitor_caller
+
+
+@pytest.fixture(autouse=True)
+def _visitor():
+    """Session values are per visitor; these tests act as one."""
+    with as_visitor():
+        yield
 
 
 def _ch(**state_kw):
@@ -31,6 +39,7 @@ def _ch(**state_kw):
             secret="y" * 40, allow_memory_stores=True, require_cap=False
         ),
     )
+    visitor_caller(ch)
     st = state(ch, **state_kw)
     return app, ch, st
 
@@ -178,7 +187,7 @@ def test_http_action_session_morph():
 
     client = TestClient(app)
     for _ in range(5):
-        r = client.post("/ux-channel/action", json={"action": "bump", "args": {}})
+        r = client.post("/ux-channel/action", json={"action": "bump", "args": {}, "cap": ch.mint("bump", {}, sub=VISITOR)})
         assert r.status_code == 200
         assert r.json()["ok"]
     assert n.peek() == 5
@@ -198,7 +207,7 @@ def test_action_auto_refresh_after_paint():
     def inc():
         n.add(1)
 
-    r = ch.registry.dispatch(Intent(action="inc", args={}, cap=ch.mint("inc", {})))
+    r = ch.registry.dispatch(Intent(action="inc", args={}, cap=ch.mint("inc", {}, sub=VISITOR)))
     assert any(o.get("op") == "morph" for o in r.ops)
 
 
@@ -209,8 +218,9 @@ def test_threaded_namespace_adds():
     counters = [st.namespace("t", i).session("n", 0) for i in range(50)]
 
     def work(i: int):
-        for _ in range(20):
-            counters[i].add(1)
+        with as_visitor():  # a new thread does not inherit the test's context
+            for _ in range(20):
+                counters[i].add(1)
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=16) as ex:
         list(ex.map(work, range(50)))

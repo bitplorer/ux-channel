@@ -82,21 +82,21 @@ def _payment_world(ch: Channel):
                 }
                 for oid, o in orders.items()
             },
-            "selected_order": st.session("selected_order", "").peek() or None,
-            "pay_step": st.session("pay_step", "review").peek(),
+            "selected_order": st.shared("selected_order", "").peek() or None,
+            "pay_step": st.shared("pay_step", "review").peek(),
         }
 
     @ch.on
     def select_order(order_id: str = "ord_1"):
         if order_id not in orders:
             return ch.fail.validation("unknown")
-        st.session("selected_order", "").set(order_id)
-        st.session("pay_step", "review").set("confirm")
+        st.shared("selected_order", "").set(order_id)
+        st.shared("pay_step", "review").set("confirm")
         return ch.done(notice=f"selected {order_id}")
 
     @ch.on
     def pay_order(order_id: str = ""):
-        oid = order_id or st.session("selected_order", "").peek() or ""
+        oid = order_id or st.shared("selected_order", "").peek() or ""
         if oid not in orders:
             return ch.fail.validation("need order")
         o = orders[oid]
@@ -107,12 +107,12 @@ def _payment_world(ch: Channel):
         st.db.require(amount=float(money.magnitude))
         o["status"] = "paid"
         o["revision"] += 1
-        st.session("pay_step", "review").set("done")
+        st.shared("pay_step", "review").set("done")
         return ch.done(notice=f"paid {money.magnitude}")
 
     @ch.on
     def refund_order(order_id: str = ""):
-        oid = order_id or st.session("selected_order", "").peek() or ""
+        oid = order_id or st.shared("selected_order", "").peek() or ""
         if oid not in orders:
             return ch.fail.validation("need order")
         o = orders[oid]
@@ -127,8 +127,8 @@ def _payment_world(ch: Channel):
         for o in orders.values():
             o["status"] = "open"
             o["revision"] = 1
-        st.session("selected_order", "").set("")
-        st.session("pay_step", "review").set("review")
+        st.shared("selected_order", "").set("")
+        st.shared("pay_step", "review").set("review")
         return ch.done(notice="reset")
 
     return st, ag, orders, facts, load_authority
@@ -191,7 +191,7 @@ def test_human_intent_and_agent_dispatch_identical_mutation():
         Intent(action="select_order", args={"order_id": "ord_2"}, cap=ch.mint("select_order", {"order_id": "ord_2"}))
     )
     assert r_h.ok
-    assert st.session("selected_order", "").peek() == "ord_2"
+    assert st.shared("selected_order", "").peek() == "ord_2"
 
     # agent pays same order
     r_a = ag.dispatch("pay_order", {"order_id": "ord_2"}, peer=ag.peer("bot"))
@@ -225,10 +225,10 @@ def test_money_invariants_client_and_session():
     with pytest.raises((ClientSafetyError, QuantityError)):
         st.client.set("payment.amount", 99)
     with pytest.raises(QuantityError):
-        st.session("amount", 0).set(50)
+        st.shared("amount", 0).set(50)
     # id chrome ok
-    st.session("order_id", "").set("ord_1")
-    assert st.session("order_id", "").peek() == "ord_1"
+    st.shared("order_id", "").set("ord_1")
+    assert st.shared("order_id", "").peek() == "ord_1"
 
 
 def test_pay_never_uses_client_amount_path():
@@ -236,7 +236,7 @@ def test_pay_never_uses_client_amount_path():
     ch = _boot()
     st, ag, orders, _, load_authority = _payment_world(ch)
     # even if something tried to set a number under a non-risky key, pay uses DB
-    st.session("selected_order", "").set("ord_1")
+    st.shared("selected_order", "").set("ord_1")
     orders["ord_1"]["amount"] = Decimal("99.00")
     r = ag.dispatch("pay_order", {"order_id": "ord_1"})
     assert r.ok

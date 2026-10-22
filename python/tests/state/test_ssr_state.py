@@ -8,6 +8,14 @@ from fastapi.testclient import TestClient
 
 from ux_channel import Channel, ChannelConfig, Intent
 from ux_channel.host.ssr_state import ssr_state
+from helpers.channel import VISITOR, as_visitor, visitor_caller
+
+
+@pytest.fixture(autouse=True)
+def _visitor():
+    """Session values are per visitor; these tests act as one."""
+    with as_visitor():
+        yield
 
 
 def _boot():
@@ -18,6 +26,7 @@ def _boot():
             secret="x" * 40, allow_memory_stores=True, require_cap=False
         ),
     )
+    visitor_caller(ch)
     return app, ch, ssr_state(ch)
 
 
@@ -35,7 +44,7 @@ def test_public_api_session():
     def inc():
         n.add(1)
 
-    r = ch.registry.dispatch(Intent(action="inc", args={}, cap=ch.mint("inc", {})))
+    r = ch.registry.dispatch(Intent(action="inc", args={}, cap=ch.mint("inc", {}, sub=VISITOR)))
     assert any("1" in (o.get("html") or "") for o in r.ops)
 
 
@@ -124,7 +133,7 @@ def test_http():
     def add():
         n.add(1)
 
-    assert TestClient(app).post("/ux-channel/action", json={"action": "add", "args": {}}).json()["ok"]
+    assert TestClient(app).post("/ux-channel/action", json={"action": "add", "args": {}, "cap": ch.mint("add", {}, sub=VISITOR)}).json()["ok"]
 
 
 def test_describe():

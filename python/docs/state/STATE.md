@@ -9,7 +9,8 @@ from ux_channel.foundations.quantity import Quantity
 
 st = state(ch, allow=["ui.theme"])   # allow = client persist allowlist
 
-n = st.session("n", 0)               # server draft chrome
+n = st.session("n", 0)               # per visitor (the action's Cap subject)
+hits = st.shared("hits", 0)          # one value for every visitor
 
 @st.region
 def badge(ctx):
@@ -30,6 +31,22 @@ q = Quantity.from_store(
 )
 st.db.require(amount=float(q.magnitude))
 ```
+
+## Who a session value belongs to
+
+`st.session` is per visitor. Its key carries the subject of the verified
+Cap of the running action (`ctx.verified.subject`), so mint each visitor's
+Caps with `sub=` and resolve that visitor as the caller (`auth_resolver`).
+ux-compose does both with its visitor cookie.
+
+| Where | Read | Write |
+|-------|------|-------|
+| Action whose Cap has `sub=` | that subject's value | that subject's value |
+| Page GET inside `reading_as(subject)` | that subject's value | `NoSessionSubject` |
+| No subject (push render, Cap without `sub=`) | the default | `NoSessionSubject` |
+
+`st.shared` is the explicit app-wide cell: every visitor reads and writes
+the same value. Use it only for state that really is global.
 
 ## Rules
 

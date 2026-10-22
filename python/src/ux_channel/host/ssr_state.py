@@ -1,6 +1,13 @@
 """
 ``ssr_state`` — session values (server draft) that drive region re-paint.
 
+A session value belongs to one visitor: it is keyed by the subject of the
+verified Cap of the action that reads or writes it. A host that knows the
+visitor of a page GET paints with ``reading_as(subject)``; that binds reads
+only. With no subject (a push render, a Cap minted without ``sub=``) a read
+returns the default and a write raises ``NoSessionSubject``. ``shared``
+values are one cell for the whole app.
+
 Flat umbrella (preferred)::
 
     from ux_channel import state
@@ -19,6 +26,7 @@ Direct::
 from __future__ import annotations
 
 import contextvars
+import copy
 import functools
 import inspect
 import re
@@ -27,16 +35,45 @@ from dataclasses import dataclass
 import threading
 from typing import Any, Callable, Iterator, Optional, Sequence, Union
 
+from ux_channel.host.context import current_verified
 from ux_channel.protocol.types import Result
 
 __all__ = [
+    "reading_as",
     "ssr_state",
     "attach_ssr_state",
     "SsrState",
     "SessionVar",
     "StateHandle",
     "Namespace",
+    "NoSessionSubject",
 ]
+
+
+class NoSessionSubject(RuntimeError):
+    """A session write with no verified Cap subject to key it by."""
+
+
+_reader: contextvars.ContextVar[Optional[str]] = contextvars.ContextVar(
+    "ux_channel_ssr_state_reader", default=None
+)
+
+
+@contextmanager
+def reading_as(subject: str) -> Iterator[None]:
+    """Read session values as ``subject`` outside a dispatch (a page GET).
+
+    For the host that already knows who the page is for: the same subject it
+    mints the page's Caps for. Reads only; a write still needs the verified
+    Cap subject of an action. Inside a dispatch the Cap subject wins.
+    """
+    if not subject:
+        raise ValueError("reading_as needs a subject")
+    token = _reader.set(str(subject))
+    try:
+        yield
+    finally:
+        _reader.reset(token)
 
 Mutator = Callable[[Any], Any]
 _KEY_PART = re.compile(r"^[A-Za-z0-9_.:@+-]+$")
@@ -117,13 +154,27 @@ class SessionVar:
     _ui: "SsrState"
     key: str
     default: Any = None
+    shared: bool = False
 
-    def _full_key(self) -> str:
-        return self._ui._key(self.key)
+    def _full_key(self) -> Optional[str]:
+        return self._ui._key(self.key, shared=self.shared, write=False)
+
+    def _write_key(self) -> str:
+        full = self._ui._key(self.key, shared=self.shared, write=True)
+        if full is None:
+            raise NoSessionSubject(
+                f"session value {self.key!r} is per visitor and this action has no "
+                "verified Cap subject. Mint its Cap with sub=, or use shared() for "
+                "app-wide state."
+            )
+        return full
 
     def peek(self, default: Any = None) -> Any:
         d = self.default if default is None else default
-        return self._ui.ch.draft.get(self._full_key(), d)
+        full = self._full_key()
+        if full is None:
+            return copy.deepcopy(d)
+        return self._ui.ch.draft.get(full, d)
 
     def get(self, default: Any = None) -> Any:
         self._ui._track(self.key)
@@ -138,7 +189,7 @@ class SessionVar:
 
     def set(self, value: Union[Any, Mutator]) -> Any:
         """Set value, or ``set(fn)`` as mutator. Prefer ``map(fn)`` for transforms."""
-        full = self._full_key()
+        full = self._write_key()
         if not (callable(value) and not isinstance(value, type)):
             try:
                 from ux_channel.foundations.quantity import refuse_session_quantity
@@ -185,7 +236,7 @@ class SessionVar:
 
     def reset(self) -> None:
         """Drop stored value; next read returns ``default``."""
-        self._ui.ch.draft.clear(self._full_key())
+        self._ui.ch.draft.clear(self._write_key())
         self._ui._mark_dirty(self.key)
 
 
@@ -391,16 +442,32 @@ class SsrState:
         self.ch = channel
         self.prefix = prefix if prefix.endswith(".") or prefix == "" else prefix + "."
         self._subs: dict[str, set[str]] = {}
-        self._vars: dict[str, SessionVar] = {}
+        self._vars: dict[tuple[bool, str], SessionVar] = {}
         self._patched = False
         self._lock = threading.RLock()
 
-    def _key(self, key: str) -> str:
+    def _key(self, key: str, *, shared: bool, write: bool) -> Optional[str]:
+        """Store key. A session key needs a subject, else None.
+
+        The subject is the verified Cap subject; a read falls back to the
+        ``reading_as`` subject.
+        """
         k = str(key).strip()
         if not k:
             raise ValueError("session key cannot be empty")
         if ":" not in k:
             k = stable_part(k, what="session key")
+        if "/" in k:
+            raise ValueError(f"session key cannot contain '/': {k!r}")
+        if not shared:
+            verified = current_verified()
+            subject = verified.subject if verified is not None else None
+            if not subject and not write:
+                subject = _reader.get()
+            if not subject:
+                return None
+            # Keys have no "/", so a shared key never equals a session key.
+            return f"{self.prefix}@{subject}/{k}"
         if self.prefix and not k.startswith(self.prefix):
             return f"{self.prefix}{k}"
         return k
@@ -493,22 +560,37 @@ class SsrState:
         refresh: Any = None,
     ) -> SessionVar:
         """
-        Global cell (page-level). Same key → same cell.
+        Per-visitor cell (page-level). Same key → same cell, one value per
+        verified Cap subject.
 
         For N independent values: ``ui.namespace(...).session(...)``.
+        For one value the whole app shares: ``ui.shared(...)``.
         """
+        return self._cell(key, default, refresh=refresh, shared=False)
+
+    def shared(
+        self,
+        key: str,
+        default: Any = None,
+        *,
+        refresh: Any = None,
+    ) -> SessionVar:
+        """App-wide cell: every visitor reads and writes the same value."""
+        return self._cell(key, default, refresh=refresh, shared=True)
+
+    def _cell(self, key: str, default: Any, *, refresh: Any, shared: bool) -> SessionVar:
         raw = str(key).strip()
         if not raw:
             raise ValueError("session key cannot be empty")
         k = self._logical_key(raw if ":" in raw else join_key(raw))
         with self._lock:
-            if k in self._vars:
-                a = self._vars[k]
+            if (shared, k) in self._vars:
+                a = self._vars[(shared, k)]
                 if default is not None and a.default is None:
                     a.default = default
             else:
-                a = SessionVar(self, k, default)
-                self._vars[k] = a
+                a = SessionVar(self, k, default, shared=shared)
+                self._vars[(shared, k)] = a
         if refresh is not None:
             if isinstance(refresh, (list, tuple)):
                 a.feeds(*refresh)
@@ -536,7 +618,7 @@ class SsrState:
 
     def snapshot(self, *keys: str) -> dict[str, Any]:
         if not keys:
-            keys = tuple(self._subs.keys()) or tuple(self._vars.keys())
+            keys = tuple(self._subs.keys()) or tuple(k for _shared, k in self._vars)
         return {str(k): self.session(k).peek() for k in keys}
 
 # batch
@@ -702,4 +784,4 @@ class SsrState:
         }
 
     def __repr__(self) -> str:
-        return f"SsrState(prefix={self.prefix!r}, vars={list(self._vars.keys())[:12]})"
+        return f"SsrState(prefix={self.prefix!r}, vars={[k for _s, k in self._vars][:12]})"

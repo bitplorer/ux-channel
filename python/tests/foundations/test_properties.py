@@ -314,7 +314,7 @@ def test_prop_effects_ok_matches_result_ok():
     ch = _ch()
     ag = agents(ch)
     st_ = state(ch)
-    n = st_.session("n", 0)
+    n = st_.shared("n", 0)
 
     @ch.on
     def inc():
@@ -343,7 +343,7 @@ def test_prop_payment_status_machine():
         "ord_1": {"status": "open", "revision": 1, "amount": Decimal("10.00")},
         "ord_2": {"status": "open", "revision": 1, "amount": Decimal("20.00")},
     }
-    selected = st_.session("order_id", "")
+    selected = st_.shared("order_id", "")
 
     @ch.on
     def select_order(order_id: str = "ord_1"):

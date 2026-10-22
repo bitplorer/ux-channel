@@ -23,7 +23,7 @@ def test_human_and_agent_same_handler():
     ch = _boot()
     st = state(ch)
     ag = agents(ch)
-    n = st.session("n", 0)
+    n = st.shared("n", 0)  # one counter for the human and the agent
 
     @ch.region("badge")
     def badge(ctx):

@@ -25,6 +25,7 @@ from ux_channel.host.context import (
     IDENTITY_KEYS,
     Principal,
     VerifiedContext,
+    _verified,
     cap_subject,
 )
 from ux_channel.protocol.navigate_markers import Navigate
@@ -1415,6 +1416,7 @@ class ActionRegistry:
         # An auth_resolver principal must be visible to auth wraps / RegionBook
         # (they read ContextVar; principal= on dispatch already set it).
         resolver_token = None
+        verified_token = None
         claim_token: Optional[str] = None
         if principal is not None and _principal_override.get() is None:
             resolver_token = _principal_override.set(principal)
@@ -1435,6 +1437,7 @@ class ActionRegistry:
             handler = self._actions[intent.action]
             meta = {"action": intent.action, "request_id": intent.request_id}
             ctx = self._build_ctx(intent, principal, t0, args, _cap)
+            verified_token = _verified.set(ctx.verified)
 
             try:
                 bound = self._bind_args(handler, args, ctx)
@@ -1512,6 +1515,8 @@ class ActionRegistry:
             self._idem_release(intent.idempotency_key, claim_token)
             if resolver_token is not None:
                 _principal_override.reset(resolver_token)
+            if verified_token is not None:
+                _verified.reset(verified_token)
 
     async def _join_cancelled_thread(self, work: "asyncio.Future[Any]") -> Any:
         """Wait until a shielded sync worker finishes.
@@ -1566,6 +1571,7 @@ class ActionRegistry:
             )
 
         resolver_token = None
+        verified_token = None
         claim_token: Optional[str] = None
         if principal is not None and _principal_override.get() is None:
             resolver_token = _principal_override.set(principal)
@@ -1586,6 +1592,7 @@ class ActionRegistry:
             handler = self._actions[intent.action]
             meta = {"action": intent.action, "request_id": intent.request_id}
             ctx = self._build_ctx(intent, principal, t0, args, _cap)
+            verified_token = _verified.set(ctx.verified)
 
             try:
                 bound = self._bind_args(handler, args, ctx)
@@ -1701,6 +1708,8 @@ class ActionRegistry:
             self._idem_release(intent.idempotency_key, claim_token)
             if resolver_token is not None:
                 _principal_override.reset(resolver_token)
+            if verified_token is not None:
+                _verified.reset(verified_token)
 
 
 __all__ = ["ActionRegistry", "Navigate", "ActionHandler"]

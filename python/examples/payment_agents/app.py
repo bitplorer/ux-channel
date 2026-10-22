@@ -62,9 +62,9 @@ def load_payable(order_id: str) -> Quantity:
     )
 
 
-# session chrome only (ids / steps — never durable authority quantities)
-wizard = st.session("pay_step", "review")
-last_notice = st.session("last_notice", "")
+# one desk for every human and agent: shared chrome (ids / steps — never durable quantities)
+wizard = st.shared("pay_step", "review")
+last_notice = st.shared("last_notice", "")
 
 
 @st.region("status")
@@ -105,7 +105,7 @@ def select_order(order_id: str = "ord_1001"):
     """Select an order to pay (chrome only — stores id)."""
     if order_id not in ORDERS:
         return ch.fail.validation(f"unknown order {order_id}")
-    st.session("selected_order", "").set(order_id)
+    st.shared("selected_order", "").set(order_id)
     wizard.set("confirm")
     last_notice.set(f"Selected {order_id}")
     return st.done(refresh=["status", "orders"], notice=f"Selected {order_id}")
@@ -116,7 +116,7 @@ def pay_order(order_id: str = ""):
     """
     Charge order from durable amount (never trust client amount).
     """
-    oid = order_id or st.session("selected_order", "").peek() or ""
+    oid = order_id or st.shared("selected_order", "").peek() or ""
     if not oid or oid not in ORDERS:
         return ch.fail.validation("select an order first")
     # refuse client-supplied durable authority
@@ -139,7 +139,7 @@ def pay_order(order_id: str = ""):
 @st.action
 def refund_order(order_id: str = ""):
     """Refund a paid order (restricted agents only)."""
-    oid = order_id or st.session("selected_order", "").peek() or ""
+    oid = order_id or st.shared("selected_order", "").peek() or ""
     if not oid or oid not in ORDERS:
         return ch.fail.validation("need order_id")
     order = ORDERS[oid]
@@ -161,7 +161,7 @@ def reset_demo():
         o.revision = 1
     wizard.set("review")
     last_notice.set("Demo reset")
-    st.session("selected_order", "").set("")
+    st.shared("selected_order", "").set("")
     return st.done(refresh=["status", "orders"], notice="Reset")
 
 

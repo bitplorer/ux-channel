@@ -22,7 +22,10 @@ def inc():
 button("+", **ui.bind(inc))
 ```
 
-Same key → same local (shared on purpose).
+Same key → same local, one value per visitor: the subject of the action's
+verified Cap (see [STATE.md](STATE.md#who-a-session-value-belongs-to)).
+`ui.shared(key, default)` is the one cell every visitor shares. A page GET
+paints a visitor's values inside `reading_as(subject)`.
 
 ## Many cells — `namespace` only
 
@@ -62,7 +65,7 @@ with ui.changes():
 
 ## Rules
 
-1. Page chrome → `ui.session`  
+1. Page chrome → `ui.session` (per visitor); app-wide → `ui.shared`  
 2. N widgets / rows → `ui.namespace`  
 3. Prefer `add` / `map` / `toggle` / `merge`  
 4. Auto-track on paint; namespace locals auto-feed their `uid`

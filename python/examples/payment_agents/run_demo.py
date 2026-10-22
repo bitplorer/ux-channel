@@ -34,8 +34,8 @@ def facts() -> dict:
             }
             for oid, o in ORDERS.items()
         },
-        "selected_order": st.session("selected_order", "").peek() or None,
-        "pay_step": st.session("pay_step", "review").peek(),
+        "selected_order": st.shared("selected_order", "").peek() or None,
+        "pay_step": st.shared("pay_step", "review").peek(),
     }
 
 

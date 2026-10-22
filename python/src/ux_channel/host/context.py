@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import copy
 import time
+from contextvars import ContextVar
 from dataclasses import dataclass, field
 from types import MappingProxyType
 from typing import Any, Callable, Mapping, Optional
@@ -100,6 +101,21 @@ class VerifiedContext:
             subject=cap_subject(frozen),
             claims=frozen,
         )
+
+
+_verified: ContextVar[Optional[VerifiedContext]] = ContextVar(
+    "ux_channel_verified", default=None
+)
+
+
+def current_verified() -> Optional[VerifiedContext]:
+    """The verified Cap of the action running now, or ``None``.
+
+    ``None`` outside a dispatch (a page paint, a push render) and for an
+    Intent that carried no Cap. The registry binds it around the handler and
+    the Result encode, so a region repainted for the action sees it too.
+    """
+    return _verified.get()
 
 
 @dataclass
