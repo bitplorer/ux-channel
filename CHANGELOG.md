@@ -16,7 +16,9 @@
   Pages with bridges pass `bridge=True` (as `examples/ux_dom_chartjs` and
   `examples/ux_dom_threejs` now do) or load `bridge_script_tags()` /
   `builtins_script_tags()` / `widgets_script_tags()`, which exist only to
-  load bridge adapters and keep loading it.
+  load bridge adapters and keep loading it. `uxchannel create-app --bridge`
+  pages pass `bridge=True`, and the `full` template without `--bridge` no
+  longer loads it.
 - `data-ux-keep-value` keeps the visitor's live `.value` across a morph or
   outer swap for a `textarea`, or for an `input` of type `password`, `text`,
   `email`, `search`, `tel`, or `url`. Those six types are one class, so Show

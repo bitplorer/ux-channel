@@ -16,7 +16,8 @@ For third-party JS widgets (charts, maps):
 
 1. SSR a host node with `mount_html` from `ux_channel.bridge_api`
    (`mount_html(bridge_id, package=…, props=…)`)  
-2. Include `ux-bridge.js` (via `ch.scripts()`)  
+2. Load `ux-bridge.js`: `ch.runtime(bridge=True)` (or `demo_page(..., bridge=True)`).
+   It is off by default.  
 3. Drive with `bridge_mount` / `bridge_update` / `bridge_call` / `bridge_destroy` ops  
 
 This is **not** the same as a **region** morph slot.
