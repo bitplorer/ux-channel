@@ -78,6 +78,19 @@ def test_other_principal_is_refused(cek, bind):
 
 
 @HOSTS
+def test_empty_subject_matches_no_principal(cek, bind):
+    """An empty Cap subject names nobody, not the empty principal id."""
+    ch = _channel(cek, bind)
+    args = {"order_id": "o1"}
+    cap = ch.mint("Order.pay", args, sub="")
+    for principal in (Principal.of(""), Principal.of("alice"), None):
+        r = ch.registry.dispatch(
+            Intent(action="Order.pay", args=args, cap=cap), principal=principal
+        )
+        assert _refused(ch, r), (principal, r.error)
+
+
+@HOSTS
 def test_no_principal_fails_closed(cek, bind):
     """The Cap subject never stands in for a missing principal."""
     ch = _channel(cek, bind)

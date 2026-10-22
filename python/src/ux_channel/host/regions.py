@@ -59,6 +59,7 @@ from typing import Any, Callable, Mapping, Optional, Sequence, Union
 
 from ux_channel.render.html_safe import SafeHtml
 from ux_channel.protocol.types import Result
+from ux_channel.host.context import VerifiedContext
 
 
 def _id_str(uid: Any) -> str:
@@ -83,6 +84,9 @@ class RegionContext:
     * subject / actor — who is acting
     * scope — resource ids (cart_id, user_id, …)
     * draft — ephemeral UI state
+    * verified — the verified Cap (``ActionContext.verified``); ``None`` on
+      paint or when the Intent carried no Cap. principal / subject / scope
+      may come from Intent args; verified never does.
     """
 
     principal: Any = None
@@ -90,6 +94,7 @@ class RegionContext:
     state: Any = None
     meta: dict[str, Any] = field(default_factory=dict)
     channel: Any = None
+    verified: Optional[VerifiedContext] = None
 
     @property
     def user_id(self) -> Any:
@@ -513,6 +518,7 @@ class RegionBook:
                                 list(roles) if not isinstance(roles, str) else [roles]
                             )
                 ctx = self.context(principal=principal, scope=scope)
+                ctx.verified = getattr(existing_ctx, "verified", None)
                 try:
                     sig = inspect.signature(fn)
                     params = sig.parameters

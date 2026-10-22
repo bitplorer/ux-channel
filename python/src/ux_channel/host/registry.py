@@ -19,7 +19,13 @@ import weakref
 from typing import Any, Callable, Mapping, Optional, Sequence, TYPE_CHECKING
 
 from ux_channel.protocol.capability import CapError, CapService
-from ux_channel.host.context import ActionContext, AuthResolver, Principal
+from ux_channel.host.context import (
+    ActionContext,
+    AuthResolver,
+    Principal,
+    VerifiedContext,
+    cap_subject,
+)
 from ux_channel.protocol.navigate_markers import Navigate
 from ux_channel.protocol.errors import ActionError
 from ux_channel.host.hooks import AfterHook, BeforeHook, HookList
@@ -734,18 +740,19 @@ class ActionRegistry:
                 # A subject-bound Cap runs only for the authenticated principal
                 # it names (cek-host claims "subject", classic CapService "sub").
                 # A soft id from Intent.args is client data, not a principal.
-                cap_subject = cap_data.get("subject", cap_data.get("sub"))
-                if cap_subject is not None:
+                subject = cap_subject(cap_data)
+                if subject is not None:
                     if principal is None or soft_from_args:
                         raise CapError("capability subject requires an authenticated principal")
-                    if principal.id != cap_subject:
+                    # An empty subject names nobody, so no principal matches it.
+                    if not subject or principal.id != subject:
                         raise CapError("subject bind mismatch")
                 tr.emit(
                     _trace_api().FrameKind.CAP_OK,
                     "capability verified",
                     request_id=intent.request_id,
                     action=intent.action,
-                    detail={"sub": cap_subject, "once": cap_data.get("once")},
+                    detail={"sub": subject, "once": cap_data.get("once")},
                 )
             except CapError as exc:
                 _sec("cap_fail", action=getattr(intent, "action", ""), reason=str(exc))
@@ -1000,6 +1007,7 @@ class ActionRegistry:
         principal: Optional[Principal],
         t0: float,
         args: Optional[Mapping[str, Any]] = None,
+        cap_data: Optional[Mapping[str, Any]] = None,
     ) -> ActionContext:
         deadline = None
         if self.action_timeout_s and self.action_timeout_s > 0:
@@ -1031,6 +1039,7 @@ class ActionRegistry:
             idempotency_key=intent.idempotency_key,
             request=_request_var.get(),
             meta=meta,
+            verified=VerifiedContext.from_claims(cap_data) if cap_data else None,
         )
 
     def _bind_args(
@@ -1436,7 +1445,7 @@ class ActionRegistry:
 
             handler = self._actions[intent.action]
             meta = {"action": intent.action, "request_id": intent.request_id}
-            ctx = self._build_ctx(intent, principal, t0, args)
+            ctx = self._build_ctx(intent, principal, t0, args, _cap)
 
             try:
                 bound = self._bind_args(handler, args, ctx)
@@ -1587,7 +1596,7 @@ class ActionRegistry:
 
             handler = self._actions[intent.action]
             meta = {"action": intent.action, "request_id": intent.request_id}
-            ctx = self._build_ctx(intent, principal, t0, args)
+            ctx = self._build_ctx(intent, principal, t0, args, _cap)
 
             try:
                 bound = self._bind_args(handler, args, ctx)

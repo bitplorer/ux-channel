@@ -2,14 +2,17 @@
 ActionContext — request-scoped context for handlers.
 
 Injected optionally when action signature accepts ``ctx: ActionContext``.
-Carries principal, deadlines, request_id, and tracer correlation.
+Carries principal, deadlines, request_id, tracer correlation, and what the
+Cap Host verified (``ctx.verified``).
 """
 
 from __future__ import annotations
 
+import copy
 import time
 from dataclasses import dataclass, field
-from typing import Any, Callable, Optional
+from types import MappingProxyType
+from typing import Any, Callable, Mapping, Optional
 
 
 @dataclass
@@ -53,6 +56,47 @@ class Principal:
         return role in roles or role in self.scopes
 
 
+def cap_subject(claims: Mapping[str, Any]) -> Optional[str]:
+    """Cap subject from verify output: cek-runtime Host ``subject``, classic ``sub``."""
+    subject = claims.get("subject", claims.get("sub"))
+    return None if subject is None else str(subject)
+
+
+def _freeze(value: Any) -> Any:
+    if isinstance(value, Mapping):
+        return MappingProxyType({k: _freeze(v) for k, v in value.items()})
+    if isinstance(value, (list, tuple)):
+        return tuple(_freeze(v) for v in value)
+    if isinstance(value, (set, frozenset)):
+        return frozenset(_freeze(v) for v in value)
+    return copy.deepcopy(value)
+
+
+@dataclass(frozen=True)
+class VerifiedContext:
+    """What the Cap Host verified for this Intent. Deeply read-only.
+
+    Built only from the claims ``verify`` returned (cek-runtime Host, or
+    classic ``CapService``), never from Intent args. ``subject`` is the
+    subject the Cap is bound to (SPEC/capability.md rule 5), ``None`` when
+    the Cap names none. ``claims`` is frozen recursively: mappings are
+    ``MappingProxyType``, lists are tuples, sets are frozensets.
+    """
+
+    action: str
+    subject: Optional[str]
+    claims: Mapping[str, Any]
+
+    @classmethod
+    def from_claims(cls, claims: Mapping[str, Any]) -> "VerifiedContext":
+        frozen = _freeze(claims)
+        return cls(
+            action=str(frozen["action"]),
+            subject=cap_subject(frozen),
+            claims=frozen,
+        )
+
+
 @dataclass
 class ActionContext:
     """
@@ -65,6 +109,10 @@ class ActionContext:
             if not ctx.principal or not ctx.principal.has_scope(\"orders:write\"):
                 raise ActionError(\"forbidden\", \"no scope\")
             ...
+
+    ``principal``, ``subject``, ``user_id`` and ``meta`` may come from Intent
+    args (soft identity). ``verified`` never does: it is the verified Cap, or
+    ``None`` when the Intent carried no Cap.
     """
 
     request_id: str
@@ -76,6 +124,7 @@ class ActionContext:
     meta: dict[str, Any] = field(default_factory=dict)
     # Host may stash raw request (framework-specific)
     request: Any = None
+    verified: Optional[VerifiedContext] = None
 
     def remaining_s(self) -> Optional[float]:
         if self.deadline_monotonic is None:

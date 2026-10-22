@@ -130,13 +130,14 @@ Classic IR ignores unknown keys; neither package is on root `__all__`.
 |--|--|
 | **What** | Named server handlers: `action` string → callable |
 | **Use when** | Every interactive control that hits the server |
-| **API** | `@ch.region` / `@on` patterns via Channel DX; `ActionRegistry`; `ActionContext`, `Principal` |
+| **API** | `@ch.region` / `@on` patterns via Channel DX; `ActionRegistry`; `ActionContext`, `Principal`, `VerifiedContext` |
 | **Implements** | `registry.py`, `context.py`, `channel.py`, `actions_file.py` |
 | **Tests** | `tests/core/`, `tests/asgi/` |
 | **Docs** | [HOW_TO](start/HOW_TO.md) · [COOKBOOK](start/COOKBOOK.md) |
 
 Handlers receive context (principal, caps, state) and return `Result` or values
-coerced to Result/ops.
+coerced to Result/ops. `ctx.verified` is the verified Cap; `ctx.principal` may
+be a soft id from args (see [capabilities](../../docs/reference/capabilities.md#what-the-handler-can-trust)).
 
 ---
 
