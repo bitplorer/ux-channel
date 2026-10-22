@@ -291,9 +291,11 @@ def test_stress_concurrent_cart_adds():
     ch.registry.hooks.before.clear()
 
     def one(i: int) -> bool:
-        args = {"sku": "sku1", "user_id": "alice", "tenant_id": "t1"}
+        args = {"sku": "sku1", "tenant_id": "t1"}
         cap = ch.mint("Cart.add", args)
-        r = ch.registry.dispatch(Intent(action="Cart.add", args=args, cap=cap))
+        r = ch.registry.dispatch(
+            Intent(action="Cart.add", args=args, cap=cap), principal=Principal.of("alice")
+        )
         return r.ok
 
     with ThreadPoolExecutor(48) as ex:

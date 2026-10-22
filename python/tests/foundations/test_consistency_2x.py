@@ -10,6 +10,7 @@ import pytest
 import ux_channel
 from ux_channel import Channel, Intent
 from ux_channel.components.form import Field, Form
+from ux_channel.host.context import Principal
 
 SECRET = "dev-secret-key-32chars-minimum!!!!"
 
@@ -93,7 +94,8 @@ def test_unknown_region_message():
 
 def test_subject_on_context():
     ch = Channel.boot(secret=SECRET)
-    ctx = ch.regions.context(scope={"user_id": "u1"})
+    ctx = ch.regions.context(principal=Principal.of("u1"))
     assert ctx.subject == "u1"
     assert ctx.actor == "u1"
-    assert ctx.scope["user_id"] == "u1"
+    # A scope id is data, not the subject (#72).
+    assert ch.regions.context(scope={"user_id": "u1"}).subject is None
