@@ -94,15 +94,10 @@ def verify_workplace_ticket_payload(
     from itsdangerous import BadSignature, SignatureExpired
 
     # Logout / ban denylist (same store as push tickets)
-    try:
-        from ux_channel.devtools.ticket_revoke import get_revocation_list
+    from ux_channel.devtools.ticket_revoke import get_revocation_list
 
-        if get_revocation_list().is_revoked(ticket):
-            raise WorkplaceTicketError("workplace ticket revoked")
-    except WorkplaceTicketError:
-        raise
-    except Exception:
-        pass
+    if get_revocation_list().is_revoked(ticket):
+        raise WorkplaceTicketError("workplace ticket revoked")
 
     ser = _serializer(config)
     age = _ticket_max_age(config, max_age)

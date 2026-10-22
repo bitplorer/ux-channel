@@ -101,21 +101,18 @@ def verify_confirm_token(
         return False, "expired"
     jti = data.get("jti")
     if nonce_store is not None and jti:
-        try:
-            # MemoryNonceStore-like: use once
-            key = f"mcp_confirm:{jti}"
-            if hasattr(nonce_store, "seen"):
-                if nonce_store.seen(key):
-                    return False, "replay"
-                nonce_store.mark(key)
-            elif hasattr(nonce_store, "check_and_use"):
-                if not nonce_store.check_and_use(key):
-                    return False, "replay"
-            else:
-                # set-like
-                if jti in nonce_store:
-                    return False, "replay"
-                nonce_store.add(jti)
-        except Exception:
-            pass
+        # MemoryNonceStore-like: use once
+        key = f"mcp_confirm:{jti}"
+        if hasattr(nonce_store, "seen"):
+            if nonce_store.seen(key):
+                return False, "replay"
+            nonce_store.mark(key)
+        elif hasattr(nonce_store, "check_and_use"):
+            if not nonce_store.check_and_use(key):
+                return False, "replay"
+        else:
+            # set-like
+            if jti in nonce_store:
+                return False, "replay"
+            nonce_store.add(jti)
     return True, "ok"

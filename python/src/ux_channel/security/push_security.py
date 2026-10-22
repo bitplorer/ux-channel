@@ -27,12 +27,9 @@ class PushAuthError(ChannelError):
 def _ticket_not_revoked(ticket: str | None) -> tuple[bool, str]:
     if not ticket:
         return True, "ok"
-    try:
-        from ux_channel.devtools.ticket_revoke import get_revocation_list
-        if get_revocation_list().is_revoked(ticket):
-            return False, "push ticket revoked"
-    except Exception:
-        pass
+    from ux_channel.devtools.ticket_revoke import get_revocation_list
+    if get_revocation_list().is_revoked(ticket):
+        return False, "push ticket revoked"
     return True, "ok"
 
 
@@ -51,15 +48,12 @@ def _tenant_and_policy(config: Any, topic: str, *, sub: Any = None) -> tuple[boo
         if prefix and not topic_is_public(topic, config):
             if not str(topic).startswith(prefix):
                 return False, f"topic must start with tenant prefix {prefix!r}"
-    try:
-        from ux_channel.security.policy import get_policy
-        eng = get_policy()
-        if eng is not None:
-            ok, reason = eng.check_topic(topic, sub)
-            if not ok:
-                return False, reason or "policy denied topic"
-    except Exception:
-        pass
+    from ux_channel.security.policy import get_policy
+    eng = get_policy()
+    if eng is not None:
+        ok, reason = eng.check_topic(topic, sub)
+        if not ok:
+            return False, reason or "policy denied topic"
     return True, "ok"
 
 

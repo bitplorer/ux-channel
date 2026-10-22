@@ -1157,13 +1157,9 @@ def mount_channel(
             if not tid:
                 return JSONResponse({"error": "ticket required"}, status_code=400)
             gone = get_session_store().revoke(str(tid))
-            # also workplace revoke when possible
-            try:
-                from ux_channel.workplace import revoke_workplace_ticket
+            from ux_channel.workplace import revoke_workplace_ticket
 
-                revoke_workplace_ticket(str(tid))
-            except Exception:
-                pass
+            revoke_workplace_ticket(str(tid))
             return {"revoked": bool(gone), "ticket": tid}
 
 
