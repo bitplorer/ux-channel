@@ -59,7 +59,7 @@ from typing import Any, Callable, Mapping, Optional, Sequence, Union
 
 from ux_channel.render.html_safe import SafeHtml
 from ux_channel.protocol.types import Result
-from ux_channel.host.context import VerifiedContext
+from ux_channel.host.context import IDENTITY_KEYS, VerifiedContext
 
 
 def _id_str(uid: Any) -> str:
@@ -85,8 +85,11 @@ class RegionContext:
     * scope — resource ids (cart_id, user_id, …)
     * draft — ephemeral UI state
     * verified — the verified Cap (``ActionContext.verified``); ``None`` on
-      paint or when the Intent carried no Cap. principal / subject / scope
-      may come from Intent args; verified never does.
+      paint or when the Intent carried no Cap.
+
+    principal is the authenticated principal or ``None``; subject / actor /
+    user_id are its id. None of them, nor the identity keys of scope, ever
+    come from Intent args.
     """
 
     principal: Any = None
@@ -100,7 +103,7 @@ class RegionContext:
     def user_id(self) -> Any:
         p = self.principal
         if p is None:
-            return self.scope.get("user_id") or self.scope.get("sub") or self.scope.get("actor")
+            return None
         return getattr(p, "sub", None) or getattr(p, "id", None) or p
 
     @property
@@ -451,9 +454,11 @@ class RegionBook:
             def _prepare_call(args, kwargs):
                 """Build RegionContext from dispatch kwargs.
 
-                Registry injects ``ctx=ActionContext`` (with soft/hard principal).
-                That identity must not be discarded when we rebuild RegionContext —
-                otherwise auth=True and multi-tenant scope silently see ``anon``.
+                Registry injects ``ctx=ActionContext`` with the authenticated
+                principal. That identity must not be discarded when we rebuild
+                RegionContext — otherwise auth=True and multi-tenant scope
+                silently see ``anon``. Identity keys in scope come only from
+                that principal: ``scope`` and every other kwarg are client args.
                 """
                 principal = kwargs.pop("principal", None)
                 scope = dict(kwargs.pop("scope", None) or {})
@@ -467,14 +472,6 @@ class RegionBook:
                         for k, v in meta.items():
                             if v is not None:
                                 scope.setdefault(k, v)
-                    # ActionContext.user_id / subject (properties)
-                    uid_existing = getattr(existing_ctx, "user_id", None) or getattr(
-                        existing_ctx, "subject", None
-                    )
-                    if uid_existing:
-                        scope.setdefault("user_id", uid_existing)
-                        scope.setdefault("subject", uid_existing)
-                        scope.setdefault("sub", uid_existing)
                     # claims → scope (roles, tenant_id, …)
                     if principal is not None:
                         claims = getattr(principal, "claims", None) or {}
@@ -482,17 +479,17 @@ class RegionBook:
                             for k, v in claims.items():
                                 if v is not None and (
                                     k.endswith("_id")
-                                    or k in ("roles", "role", "user_id", "sub", "subject", "tenant_id")
+                                    or k in ("roles", "role", "tenant_id")
                                 ):
                                     scope.setdefault(k, v)
                 for k in list(kwargs.keys()):
                     if k in ("roles", "role"):
                         continue
-                    if k.endswith("_id") or k in (
-                        "id", "uid", "sub", "user_id", "subject", "tenant_id",
-                    ):
+                    if k.endswith("_id") or k in ("id", "uid", "tenant_id"):
                         scope.setdefault(k, kwargs[k])
-                # Soft principal from ContextVar when still missing
+                for k in IDENTITY_KEYS:
+                    scope.pop(k, None)
+                # Authenticated principal from ContextVar when still missing
                 if principal is None:
                     try:
                         from ux_channel.host.registry import _principal_override
@@ -506,9 +503,8 @@ class RegionBook:
                         or getattr(principal, "sub", None)
                         or principal
                     )
-                    scope.setdefault("user_id", pid)
-                    scope.setdefault("subject", pid)
-                    scope.setdefault("sub", pid)
+                    for k in IDENTITY_KEYS:
+                        scope[k] = pid
                     if "roles" not in scope:
                         roles = (getattr(principal, "claims", None) or {}).get("roles")
                         if not roles:

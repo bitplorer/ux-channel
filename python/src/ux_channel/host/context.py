@@ -56,6 +56,11 @@ class Principal:
         return role in roles or role in self.scopes
 
 
+# Context keys that name the caller. They are filled from the principal only:
+# an Intent arg with one of these names is client data, never identity.
+IDENTITY_KEYS = ("user_id", "subject", "sub")
+
+
 def cap_subject(claims: Mapping[str, Any]) -> Optional[str]:
     """Cap subject from verify output: cek-runtime Host ``subject``, classic ``sub``."""
     subject = claims.get("subject", claims.get("sub"))
@@ -110,9 +115,11 @@ class ActionContext:
                 raise ActionError(\"forbidden\", \"no scope\")
             ...
 
-    ``principal``, ``subject``, ``user_id`` and ``meta`` may come from Intent
-    args (soft identity). ``verified`` never does: it is the verified Cap, or
-    ``None`` when the Intent carried no Cap.
+    ``principal`` is the authenticated principal (``dispatch(principal=)`` or
+    ``auth_resolver``) or ``None``; ``subject`` and ``user_id`` are its id.
+    None of them, nor the identity keys of ``meta``, ever come from Intent
+    args. ``verified`` is the verified Cap, or ``None`` when the Intent carried
+    no Cap.
     """
 
     request_id: str

@@ -388,29 +388,13 @@ def _auth_wrap(ch: Any, fn: Handler) -> Handler:
     import functools
 
     def _resolve_uid(*args: Any, **kwargs: Any):
+        """Caller id from the authenticated principal only, never from args."""
         ctx = kwargs.get("ctx")
-        principal = kwargs.get("principal")
-        # Dispatch may inject principal via ContextVar without putting it in kwargs
-        # (handler signatures often omit principal/ctx).
-        if principal is None:
-            try:
-                from ux_channel.host.registry import _principal_override
-
-                principal = _principal_override.get()
-            except Exception:
-                principal = None
-        if principal is None and ctx is not None:
-            principal = getattr(ctx, "principal", None)
+        principal = _principal_from_call(*args, **kwargs)
         uid = None
-        if ctx is not None:
-            uid = getattr(ctx, "subject", None) or getattr(ctx, "user_id", None)
-            if not uid and getattr(ctx, "scope", None):
-                uid = ctx.scope.get("user_id") or ctx.scope.get("subject") or ctx.scope.get("sub")
-        uid = uid or kwargs.get("user_id") or kwargs.get("sub") or kwargs.get("subject")
         if principal is not None:
             uid = (
-                uid
-                or getattr(principal, "id", None)
+                getattr(principal, "id", None)
                 or getattr(principal, "sub", None)
                 or (principal if isinstance(principal, str) else None)
             )

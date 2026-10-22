@@ -1,4 +1,4 @@
-"""Regression: soft principal + once-caps + agents façade after package import."""
+"""Regression: auth=True principal + once-caps + agents façade after package import."""
 
 from __future__ import annotations
 
@@ -9,8 +9,8 @@ from ux_channel.host.context import Principal
 SECRET = "polish-auth-agents-secret-key-32b!!"
 
 
-def test_soft_principal_auth_true_without_dispatch_principal():
-    """Intent.args user_id alone must satisfy auth=True (no principal= kwarg)."""
+def test_args_user_id_does_not_satisfy_auth_true():
+    """Intent.args user_id is client data: it never satisfies auth=True (#72)."""
     ch = Channel.boot(secret=SECRET)
 
     @ch.on("Secure.ping", auth=True)
@@ -20,11 +20,10 @@ def test_soft_principal_auth_true_without_dispatch_principal():
     args = {"user_id": "alice"}
     cap = ch.mint("Secure.ping", args)
     r = ch.registry.dispatch(Intent(action="Secure.ping", args=args, cap=cap))
-    assert r.ok, r.error
-    assert any("alice" in str(o.get("message", "")) for o in r.ops)
+    assert not r.ok and r.error and r.error.code == "unauthorized"
 
 
-def test_soft_principal_roles_and_once_cap_replay():
+def test_principal_roles_and_once_cap_replay():
     """Roles must come from server-side principal — never Intent.args."""
     ch = Channel.boot(secret=SECRET)
 
@@ -38,11 +37,11 @@ def test_soft_principal_roles_and_once_cap_replay():
     def refund(order_id: str, ctx):
         return ch.done(f"Refunded by {ctx.user_id}")
 
-    # Client-supplied roles are ignored (authz seal) — need principal=
+    # Client-supplied identity and roles are ignored (authz seal) — need principal=
     args = {"order_id": "o1", "user_id": "bob", "roles": ["finance"]}
     cap = ch.mint("Order.refund", args, once=True)
     r0 = ch.registry.dispatch(Intent(action="Order.refund", args=args, cap=cap))
-    assert not r0.ok and r0.error and r0.error.code == "forbidden"
+    assert not r0.ok and r0.error and r0.error.code == "unauthorized"
 
     finance = Principal.of("bob", roles=["finance"])
     cap = ch.mint("Order.refund", args, once=True, sub="bob")
@@ -80,9 +79,11 @@ def test_region_command_preserves_principal_on_ctx():
         seen["principal"] = getattr(ctx, "principal", None)
         return ch.done("ok")
 
-    args = {"sku": "sku1", "user_id": "dave", "tenant_id": "t9"}
+    args = {"sku": "sku1", "tenant_id": "t9"}
     cap = ch.mint("Cart.add", args)
-    r = ch.registry.dispatch(Intent(action="Cart.add", args=args, cap=cap))
+    r = ch.registry.dispatch(
+        Intent(action="Cart.add", args=args, cap=cap), principal=Principal.of("dave")
+    )
     assert r.ok, r.error
     assert seen["user"] == "dave"
     assert seen["principal"] is not None

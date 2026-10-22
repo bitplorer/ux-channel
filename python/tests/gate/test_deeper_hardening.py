@@ -16,7 +16,7 @@ from ux_channel.security.security import safe_href, sanitize_op_hrefs
 from ux_channel.security.security_events import get_security_bus, set_security_bus, SecurityEventBus
 
 
-def test_soft_id_meta_no_roles():
+def test_args_id_is_not_principal_and_meta_has_no_roles():
     reg = ActionRegistry(secret="test-secret-key-32chars-minimum!!!!", require_cap=False)
     seen = {}
 
@@ -27,7 +27,8 @@ def test_soft_id_meta_no_roles():
         return None
 
     assert reg.dispatch(Intent(action="X", args={"user_id": "u", "roles": ["admin"]})).ok
-    assert seen["id"] == "u" and "roles" not in seen["meta"]
+    assert seen["id"] is None and "roles" not in seen["meta"]
+    assert "user_id" not in seen["meta"]
 
 
 def test_role_claim_emits_security_event():

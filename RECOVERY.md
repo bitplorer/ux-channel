@@ -31,7 +31,7 @@ Patch lives in-repo: [`patches/0001-production-hardening-authz-seal.patch`](patc
 | Rate limit / idempotency stores fail-closed when full | on `main` |
 | `roles_of`: principal claims only | on `main` |
 | MCP sessions `max_sessions` fail-closed | on `main` |
-| Soft principal: **id only** (no client roles) | on `main` / patch |
+| Principal only from `auth_resolver` / `dispatch(principal=)`, **never** from Intent args | on `main` |
 | RegionBook / flow: no client roles into scope | on `main` / patch |
 | AgentRunner confirm: signed secret required | on `main` / patch |
 | WebRTC ticket/origin defaults fail-closed | on `main` / patch |

@@ -53,8 +53,7 @@ A peer must reject the Intent if any of the following fail:
 4. `args_hash` ≠ hash of the sealed args actually presented.
 5. The Cap carries a subject and it does not match the caller's authenticated principal. This holds for
    every subject-bound Cap, on the cek-runtime Host and on classic `CapService` (`cek=off`) alike: no
-   resolved principal refuses, a soft id taken from Intent args is not a principal, and an empty subject
-   matches no principal. The Cap subject never supplies a missing principal. Classic
+   resolved principal refuses, and an empty or whitespace-only subject matches no principal. The Cap subject never supplies a missing principal. Classic
    `bind_cap_to_principal` additionally refuses a Cap with no subject when a principal is present.
 6. Required scopes are not a subset of the token’s scopes (unless `"*"` is present).
 7. `once=true` and the `jti` has already been consumed.
@@ -68,6 +67,13 @@ subject (`subject` on the cek-runtime Host, `sub` on classic `CapService`; absen
 none) and the verified claims, read-only. A Host builds it only from its verifier's output, never from
 Intent args, so a `principal`, `subject`, `sub` or `user_id` key the client sends never appears in it.
 An Intent with no Cap has no verified context. Python: `ActionContext.verified` (`VerifiedContext`).
+
+### Caller identity
+
+The caller's principal comes only from the Host's authentication (Python: `auth_resolver` or
+`dispatch(principal=)`). Intent args are client data: a `principal`, `subject`, `sub`, `user`,
+`user_id` or `scope` key never becomes the principal or its id, with or without a Cap, on any
+transport. With no authenticated principal the handler sees none (`ctx.principal is None`).
 
 ### Implementation status (Rust Cap 0.1 in this package)
 
