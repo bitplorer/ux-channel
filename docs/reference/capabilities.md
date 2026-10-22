@@ -31,9 +31,11 @@ verify(token, action, args) → ok or CapError
 `subject` (the subject the Cap is bound to, or `None`) and `claims` (read-only). It is built only
 from verify output, never from Intent args, and is `None` when the Intent carried no Cap.
 `ctx.principal` is the authenticated principal (`auth_resolver` or `dispatch(principal=)`) or
-`None`; `ctx.subject`, `ctx.user_id` and the `user_id` / `subject` / `sub` keys of `ctx.meta` and
-`ctx.scope` are its id. None of them ever come from Intent args. Authorize Cap-bound work on
-`ctx.verified`.
+`None`; `ctx.subject` and `ctx.user_id` are its id. In an `@ch.on` action, `ctx.scope` holds only
+what that principal vouches for: its id (`user_id` / `subject` / `sub`), `roles` and `*_id` claims
+such as `tenant_id`. None of them ever come from Intent args, and args never override them. The
+action's Intent args are in `ctx.args` (read-only), which is untrusted client data. Authorize
+Cap-bound work on `ctx.verified`.
 
 ```python
 @ch.on("Doc.edit")

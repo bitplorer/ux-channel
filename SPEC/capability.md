@@ -74,6 +74,9 @@ The caller's principal comes only from the Host's authentication (Python: `auth_
 `dispatch(principal=)`). Intent args are client data: a `principal`, `subject`, `sub`, `user`,
 `user_id` or `scope` key never becomes the principal or its id, with or without a Cap, on any
 transport. With no authenticated principal the handler sees none (`ctx.principal is None`).
+Values derived from the principal (Python: `RegionContext.scope`, with its id, roles and `*_id`
+claims such as `tenant_id`) are never set or overridden by Intent args. A Host hands args to the
+handler only as untrusted client data (Python: handler parameters and `RegionContext.args`).
 
 ### Implementation status (Rust Cap 0.1 in this package)
 

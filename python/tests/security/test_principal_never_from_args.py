@@ -130,7 +130,12 @@ def test_args_never_override_the_authenticated_principal(cek, action, key):
     _no_spoof(seen)
     row = seen[0]
     assert row["ctx.principal"] is alice and row["principal"] is alice
-    ids = {v for k, v in row.items() if k not in ("principal", "ctx.principal", "verified.subject")}
+    ids = {
+        v
+        for k, v in row.items()
+        if k not in ("principal", "ctx.principal", "verified.subject")
+        and not k.startswith("meta.")  # ActionContext.meta carries no identity
+    }
     assert ids == {"alice"}, row
 
 

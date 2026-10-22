@@ -1,5 +1,12 @@
 ## Unreleased
 
+- In an `@ch.on` action, `ctx.scope` (and the scope of the regions it
+  refreshes) now holds only what the authenticated principal vouches for:
+  its id, `roles` and `*_id` claims such as `tenant_id`. Intent args
+  (`tenant_id`, `roles`, `role`, `actor`, a `scope` dict, any `*_id`) no
+  longer enter or override it; they are in the new read-only
+  `RegionContext.args`, as untrusted client data. `ActionContext.meta` no
+  longer copies args, so `ActionContext.key()` reads principal claims only.
 - An error on the Cap or ticket path now raises instead of allowing. `mint_continuation` raises on an unknown `cek` mode or a broken `ux_channel.cek.surface_adapter` import; it no longer falls back to native continuations under `cek=require`. When the revocation store raises, push subscribe, RTC ticket verify, and workplace ticket verify raise, and `POST /mcp/session/revoke` returns 500 instead of reporting the ticket revoked. A topic policy engine that raises, or a confirm-token nonce store that raises, propagates instead of allowing the subscribe or accepting the token.
 - `ctx.principal` comes only from `auth_resolver` or `dispatch(principal=)`,
   never from Intent args (#72). A `user_id`, `sub`, `subject`, `principal` or
